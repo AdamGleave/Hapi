@@ -1,0 +1,26 @@
+% This is a LaTeX driving document to produce a standalone copy
+% of the project proposal held in propbody.tex.  Notice that
+% propbody can be used in this context as well as being incorporated
+% in the dissertation (see diss.tex).
+
+\documentclass[12pt,a4]{article}
+\usepackage[parfill]{parskip}
+\usepackage{url}
+\usepackage{fullpage}
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{nameref}
+\righthyphenmin=62
+\lefthyphenmin=62
+\sloppy
+\begin{document}
+
+\include{propbody}
+
+% check with Malte - "plain" style ?
+\bibliographystyle{ieeetr}
+\bibliography{diss.bib}
+\end{document}
+
+
+
