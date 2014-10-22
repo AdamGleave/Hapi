@@ -74,11 +74,11 @@ Whilst working on this project, I will be building on the following resources:
 % IA & IB knowledge?
 \begin{itemize}
   \item \textbf{Existing research} \\
-    There is considerable existing research into flow algorithms. Implementation of an existing algorithm, to use as a performance baseline, forms one of the first deliverables of the project. There are a number of algorithms in the literature suitable for this purpose\cite{Goldberg:1992,Zolt:2012}. 
+    There is considerable existing research into flow algorithms. Implementation of an existing algorithm, to use as a performance baseline, forms one of the first deliverables of the project. There are a number of algorithms in the literature suitable for this purpose.\cite{Goldberg:1992,Zolt:2012}
     
     When devising my own algorithm, I also anticipate building on the work of existing researchers. For example, Goldberg\cite{Goldberg:1987} describes an algorithm using successive approximation to find an optimal solution. This forms an excellent starting point for developing an approximate solver.
 
-    Whilst a literature review shows little in the way of research into incremental flow algorithms, there are a number of published algorithms in related fields. It is probable that some of the techniques used to solve related problems, such as shortest path search, will also be of use here.\cite{Ramalingam:1996,Roddity:2011}.
+    Whilst a literature review shows little in the way of research into incremental flow algorithms, there are a number of published algorithms in related fields. It is probable that some of the techniques used to solve related problems, such as shortest path search, will also be of use here.\cite{Ramalingam:1996,Roddity:2011}
   \item \textbf{Firmament} \\
     A distributed data-flow execution engine under development in the SRG, with lead developer Malte Schwarzkopf. The project includes a representation of data centres as a flow network.
   \item \textbf{Programming experience} \\ 
@@ -140,8 +140,8 @@ The idea of modelling data centres as flow networks is relatively recent, having
     
     Because of this, we care more about the \emph{span} of the flow algorithm, than we do about the total work expended. It would therefore be highly desirable to use a parallel algorithm for this task.
     
-    Unfortunately, flow algorithms are known to be hard to parallelise. It is therefore unclear how tractable this problem is, although some progress has been made \cite{Staples:1995}.
-  \item \textbf{Automatic parameter tuning} -- there are a number of parameters present in the system, which it is unclear how best to set. We have already encountered $\alpha$, which determines the accuracy of the approximation. There are also parameters which control what cost should be imposed on traffic across the network.
+    Unfortunately, flow algorithms are known to be hard to parallelise. It is therefore unclear how tractable this problem is, although some progress has been made.\cite{Staples:1995}
+  \item \textbf{Automatic parameter tuning} -- there are a number of parameters present in the system, which it is unclear how best to set. One such example is the parameter controlling the accuracy of the approximation. There are also parameters which control what cost should be imposed on traffic across the network.
 
         It would be highly desirable, in terms of both performance and usability, for the system to automatically set these parameters. As the optimal parameter is likely to vary depending on the workload, this may outperform any hard-coded value, even if considerable effort was expended to choose that value.
   \item \textbf{Multi-dimensional cost function} -- in the original Quincy paper, the cost of edges is determined purely by the amount of data that needs to be transferred. We have other information available to us, such as the CPU and memory usage of a task. A multi-dimensional cost function, such as a weighted sum of these factors, may provide superior performance.
@@ -226,7 +226,7 @@ By the end of Lent term, I intend to have completed implementation and testing, 
   \workpackage{2\textsuperscript{nd} January to 16\textsuperscript{th} January}{\wpstartfill
     Start implementation of phase 3 (optimisations and enhancements)
     \begin{itemize}
-      \item Begin implementation of the extensions outlined in \nameref{sec:extensions} on \pageref{sec:extensions}
+      \item Begin implementation of the extensions outlined in \nameref{sec:extensions} on page \pageref{sec:extensions}
       \item Pursue additional extension possibilities which have emerged from research or development earlier in the project
 		\end{itemize}
 		\wpendfill
@@ -240,6 +240,7 @@ By the end of Lent term, I intend to have completed implementation and testing, 
       \item Continue implementation of extensions
 		\end{itemize}
     \textbf{Deadline}: Hand-in the progress report
+
     \milestone{Presentation ready for early February}
 		\wpendfill
 	}{}
@@ -256,7 +257,9 @@ By the end of Lent term, I intend to have completed implementation and testing, 
       \item In-depth testing of the scheduler. This should produce data suitable for the dissertation write-up, which commences in the next work package.
       \item Wrap up any final extensions.
 		\end{itemize}
-    \milestone{Scheduler implemented and tested, including the optional extensions previously selected. Code freeze: only bug fixes allowed henceforth.}
+    \milestone{Scheduler implemented and tested, including the optional extensions previously selected.}
+
+    \textbf{Code freeze}: only bug fixes allowed henceforth.
 		\wpendfill
 	}{}
 	\workpackage{27\textsuperscript{th} February to 13\textsuperscript{th} March}{\wpstartfill
@@ -272,6 +275,7 @@ By the end of Lent term, I intend to have completed implementation and testing, 
 	}{}
   \workpackage{27\textsuperscript{th} March to 10\textsuperscript{th} April}{\wpstartfill
     Write all remaining sections. Typeset to standard suitable for review by supervisor and others.
+
     \milestone{Dissertation draft}
 		\wpendfill
 	}{}
