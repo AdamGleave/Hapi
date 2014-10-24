@@ -1,4 +1,4 @@
-% Draft #1
+% Final draft 
 \begin{flushright}
 	\small {
 		Adam Gleave \\
@@ -13,98 +13,97 @@
 \vspace{0.4in}
 \centerline{\LARGE \textbf{Distributed scheduling using flow networks}}
 \vspace{0.4in}
-\centerline{\large DATE: TBC}
+\centerline{\large Thursday 23\textsuperscript{rd} October 2014}
 
 \vfill
 
 \textbf{Project Originators:} Ionel Gog \hfil \\ \\
 \textbf{Resources Required:} Yes, please see section~\nameref{sec:special-resources} \hfil \\ \\ \\ \\
 \textbf{Project Supervisors:} Ionel Gog \hfil \\ \\
-\textbf{Director of Studies:} Robert Mullins \hfil \\ \\
-\textbf{Overseers:} Dr Stephen Clark \& Dr Pietro Lio \hfil \\ \\
+\textbf{Director of Studies:} Dr Robert Mullins \hfil \\ \\
+\textbf{Overseers:} Dr Stephen Clark \& Dr Pietro Li\a'o \hfil \\ \\
 
 \vfil 
 
 % Main document
-\section*{Introduction \& Description}
+\section*{Introduction \& description}
 
 The usage of clusters of commodity computers has now become the ubiquitous paradigm within major web companies. Whilst these so-called \emph{warehouse-scale computers} offer many advantages, programming for this environment is often a challenge.
 
-Most development for warehouse-scale computers takes place on top of some distributed system framework. These take many forms, with the data-flow oriented MapReduce perhaps the best known example. A common theme is that these frameworks include a \emph{scheduler}, mapping individual tasks to machines. 
+Most development for warehouse-scale computers takes place on top of some distributed system framework. These take many forms, with the data-flow oriented MapReduce the best known example. A common theme is that these frameworks include a \emph{scheduler}, mapping individual tasks to machines. 
 
-The goal of the scheduler is to make the best possible use of the finite resources of the cluster. To aid it in this mission, the framework may provide the scheduler with additional information. For example, the programmer could specify with flags whether the task is CPU and/or memory hungry. In a data-flow engine, the framework knows where the inputs to the task are stored.
+The goal of the scheduler is to make the best possible use of the finite resources of the cluster. To aid it in this mission, the framework may provide the scheduler with additional information. For example, the programmer could use flags to specify whether the task is CPU and/or memory hungry. In a data-flow engine, the framework knows where the inputs to the task are stored.
 
-Whilst the state of the art within major cluster operators is proprietary, widely-used public implementations tend to use a simplistic queue-based approach. An example of this is the scheduler for Hadoop, by far the most widely used open-source framework.
+The state of the art within major cluster operators is proprietary. However, widely-used public implementations tend to use a simplistic queue-based approach. An example of this is the scheduler for Hadoop, by far the most widely used open-source framework.
 
-The Hadoop scheduler achieves admirable data locality: scheduling tasks close to where the sources of their input data. However, it has a notable drawback: very unfair schedules are produced in some common cases.
+The Hadoop scheduler achieves admirable data locality: scheduling tasks close to the the sources of their input data. However, it has a notable drawback: very unfair schedules are produced in some common cases.
 
-Alternatives have been proposed, addressing the issue of fairness\cite{Zaharia:2010}. However, these approaches are still flawed. Most importantly, they ignore factors besides data locality that are relevant to scheduling: for example, the CPU and memory usage of tasks.
+Alternatives have been proposed, addressing the issue of fairness~\cite{Zaharia:2010}. However, these approaches are still flawed. Most importantly, they ignore factors besides data locality that are relevant to scheduling: for example, the CPU and memory usage of tasks.
 
-Ad hoc approaches to scheduling can never capture the full complexity of a system as large as warehouse-scale computers. For a comprehensive solution, I would argue it is necessary to build a model of the data centre. This is precisely the approach taken by the Quincy system, developed by Microsoft Research\cite{Isard:2009}, which models the data centre as a flow network. As expected, their system considerably outperformed a queue-based approach.
+Ad hoc approaches to scheduling can never capture the full complexity of a system as large as warehouse-scale computers. For a comprehensive solution, I would argue it is necessary to build a model of the data centre. This is precisely the approach taken by the Quincy system, developed at Microsoft Research~\cite{Isard:2009}, which models the data centre as a flow network. As expected, their system considerably outperformed a queue-based approach.
 
 Disappointingly, however, the cost of solving the min-cost flow problem was prohibitively expensive. Despite the schedules providing excellent performance, the runtime of the scheduler was increased by such a great amount that it negated the performance benefits for short-lived jobs. For sufficiently long-lived jobs, it may offer a performance advantage (with the scheduling cost being amortized over a longer time period), but it raises questions as to the scalability of the system in larger data centres.
 
-My proposal is to implement flow algorithms, more suitable to this problem domain. Whereas Quincy used a standard algorithm to find an \emph{optimal} solution to the flow network, it seems likely that an approximate solution would work almost as well. Even if the schedules resulting from an approximate algorithm were noticeably different, it is likely they would still outperform a queue-based approach. Of course, an approximate solution can be found much more quickly.
+My proposal is to implement flow algorithms more suitable to this problem domain. Whereas Quincy used a standard algorithm to find an optimal solution to the flow network, it seems likely that an approximate solution would work almost as well. Even if the schedules resulting from an approximate algorithm were noticeably different, it is likely they would still outperform a queue-based approach. Of course, an approximate solution can be found much more quickly.
 
-Another approach is to exploit unique characteristics of the flow networks being modelled, which general purpose flow algorithms cannot take advantage of. For example, the scheduler must be rerun each time a new task is submitted to the scheduler, or a task completes in the system (resulting in a node becoming idle.) The flow network will therefore be \emph{mostly unchanged} between each iteration of the scheduler. A so-called 'incremental' solver exploiting this could yield drastic performance gains, as has been the case in related problem domains (such as single-source shortest-path problems.) 
+Another approach is to exploit unique characteristics of the flow networks being modelled, which general purpose flow algorithms cannot take advantage of. For example, the scheduler is rerun every time a new task is submitted to the scheduler, and whenever a task completes in the system (resulting in a node becoming idle). The flow network will therefore be \emph{mostly unchanged} between each iteration of the scheduler. A so-called `incremental' solver exploiting this could yield drastic performance gains, as has been the case in related problem domains (such as shortest path problems). 
 
 Unfortunately there is no guarantee that this problem is tractable, so it cannot form a core deliverable for this project. However, incremental changes are rare in flow networks. The fact that there is no extant algorithm may therefore reflect more on the uniqueness of this problem, than on the intrinsic difficulty of developing such an algorithm.
 
-Whilst an improved flow solving algorithm for this problem would have immediate practical impact, there are other areas to explore which are of considerable theoretical interest. The model used in the Quincy paper was very naive. It excluded a large swathe of relevant information, making it not much better in this regard than the dominant queue-based approach. More sophisticated, multi-dimensional cost functions could yield a considerable performance improvement. There are also a number of parameters in the paper that must be hard-coded by the operator. Making the system tune these automatically has the potential to improve both performance and usability. 
+Whilst an improved flow solving algorithm for this problem would have immediate practical impact, there are other areas to explore which are of considerable theoretical interest. The model used in the Quincy paper considered only a small subset of the information that is available to a scheduler. For example, it would be possible to take into account the predicted runtimes of jobs. There are also a number of parameters in the paper that must be hard-coded by the operator. Making the system tune these automatically has the potential to improve both performance and usability. 
 
-\section*{Special Resources}
+\section*{Special resources}
 \label{sec:special-resources}
 
 \subsection*{Personal machine}
-My personal Linux-based laptop, for development purposes. This an Intel core i5 machine with 6 GB RAM. I accept full responsibility for this machine and I have made contingency plans to protect myself against hardware and/or software failure.
+My personal Linux-based laptop, for development purposes. This is an Intel core i5 machine with 6 GB RAM. I accept full responsibility for this machine and I have made contingency plans to protect myself against hardware and/or software failure.
 
-To protect myself against data loss in the event of hardware failure or accidental deletion, I will be using the Git version control system, pushing changes to GitHub's servers (outside of Cambridge.) Furthermore, I will make automated and manual backups to the MCS and a local hard disk.
+To protect myself against data loss in the event of hardware failure or accidental deletion, I will be using the Git version control system, pushing changes to GitHub's servers (outside of Cambridge). Furthermore, I will make automated and manual backups to the MCS and an external hard disk.
 
-\subsection*{Systems Research Group (SRG) Cluster}
+\subsection*{Systems Research Group (SRG) cluster}
 Whilst most of the development and testing of the project can take place on my personal machine, I anticipate occasionally requiring more resources:
 
 \begin{itemize}
-  \item Dedicated server or high-spec virtual machine. For testing new algorithms or cost functions, the results will be computed much more quickly on a server than on my laptop. It would be possible for me to continue development without this resource, but at a slower pace.
-  \item Occasional access to the SRG cluster. Whilst most of the testing can be carried out on a model of a data centre, it is desirable to verify that this simulation matches reality, by modelling the SRG data centre and evaluating the scheduler on real-life jobs. This would be required towards the end of the project, and only for a brief period of time.
+  \item Dedicated server or high-specification virtual machine. For testing new algorithms or cost functions, the results will be computed much more quickly on a server than on my laptop. It would be possible for me to continue development without this resource, but at a slower pace.
+  \item Occasional access to the SRG cluster. Whilst most of the testing can be carried out on a single machine, it is prudent to verify that the expected performance is attained in practice. This can be done by modelling the SRG data centre, and evaluating the scheduler on real-life jobs. I would anticipate requiring access to the SRG cluster towards the end of the project for a brief period of time for these tests.
 \end{itemize}
 
-\section*{Starting Point}
+\section*{Starting point}
 Whilst working on this project, I will be building on the following resources:
 
 % IA & IB knowledge?
 \begin{itemize}
   \item \textbf{Existing research} \\
-    There is considerable existing research into flow algorithms. Implementation of an existing algorithm, to use as a performance baseline, forms one of the first deliverables of the project. There are a number of algorithms in the literature suitable for this purpose.\cite{Goldberg:1992,Zolt:2012}
+    There is considerable existing research into flow algorithms. Implementation of an existing algorithm, to use as a performance baseline, forms one of the first deliverables of the project. There are a number of algorithms in the literature suitable for this purpose~\cite{Goldberg:1992,Zolt:2012}.
     
-    When devising my own algorithm, I also anticipate building on the work of existing researchers. For example, Goldberg\cite{Goldberg:1987} describes an algorithm using successive approximation to find an optimal solution. This forms an excellent starting point for developing an approximate solver.
+    I also anticipate building on the work of existing researchers when devising my own algorithm. For example, Goldberg\cite{Goldberg:1987} describes an algorithm using successive approximation to find an optimal solution. This forms an excellent starting point for developing an approximate solver.
 
-    Whilst a literature review shows little in the way of research into incremental flow algorithms, there are a number of published algorithms in related fields. It is probable that some of the techniques used to solve related problems, such as shortest path search, will also be of use here.\cite{Ramalingam:1996,Roddity:2011}
+    Whilst a literature review shows little in the way of research into incremental flow algorithms, there are a number of published algorithms in related fields. It is probable that some of the techniques used to solve related problems, such as shortest path problems, will also be of use here~\cite{Ramalingam:1996,Roddity:2011}.
   \item \textbf{Firmament} \\
     A distributed data-flow execution engine under development in the SRG, with lead developer Malte Schwarzkopf. The project includes a representation of data centres as a flow network.
   \item \textbf{Programming experience} \\ 
     I will be drawing heavily on my prior programming experience, gained from the Tripos and summer internships. Most of my experience has been in either functional languages, such as OCaml, or scripting languages, such as Python. By contrast, for this project I will likely be working in a systems programming language, such as C or C++. My experience in these languages is limited to that gained from the Tripos. Familiarizing myself with the implementation language will form part of my preparation time.
 \end{itemize}
 
-\section*{Structure of the Project}
+\section*{Structure of the project}
 
-I propose to split the project into several phases. This will simplify project management, with each phase having associated milestones. All phases are working towards the overall goal of improving scheduling performance.
+I propose to split the project into several phases. This will simplify project management, with each phase having associated milestones. All phases contribute towards the overall goal of improving scheduling performance.
 
-\subsection*{Phase 1 -- Core Implementation}
+\subsection*{Phase 1 -- core implementation}
 \label{subsec:structure-phase1}
 
 In the first phase, a simple scheduler will be built. Data centres will be modelled as flow networks. Two different algorithms will be supported, to allow for comparison. Broadly, this phase will be divided into the following three tasks:
-\begin{itemize}
+\begin{enumerate}
   \item Implementation of a standard algorithm for solving min-cost problems. Some research and experimentation may be required to identify the fastest algorithm for the class of flow networks we will be working with.
-  \item Development of an algorithm which provides approximate solutions to the min-cost problem. This should take parameter, specifying an upper bound on the factor by which the cost of the returned solution exceeds that of the minimum cost. 
+  \item Development of an algorithm which provides approximate solutions to the min-cost problem. This should take a parameter giving an upper bound for:
+\[\frac{\mbox{Cost of returned solution}}{\mbox{Minimum cost}}\]
   \item Integration of both of the above with Firmament, an execution engine for distributed clusters.
-\end{itemize}
+\end{enumerate}
 
 Making the initial steps simple serves several purposes. Firstly, by keeping the complexity of the code to a minimum, I will be able to familiarize myself with the process of developing new algorithms. Secondly, by postponing optimisations and enhancements to later in the project, progress can be observed early on by reaching a tangible milestone.
 
-\subsection*{Phase 2 -- Testing and Performance Evaluation}
+\subsection*{Phase 2 -- testing and performance evaluation}
 \label{subsec:structure-phase2}
-
-% TODO: Unit tests / tests for correctness?
 
 On completion of the first phase, the performance of the scheduler should be evaluated. The overall runtime taken to execute a job is determined by two factors:
 
@@ -115,33 +114,33 @@ On completion of the first phase, the performance of the scheduler should be eva
 
 The key concept of the project is that by paying more scheduling overhead, the computation time can be decreased due to a more efficient scheduling allocation. However, finding an optimal solution to the flow problem involves paying considerable scheduling overhead. We should be willing to increase the scheduling overhead only so long as computation time decreases by a greater amount.
 
-For a comprehensive evaluation, it is therefore necessary for both aspects to be measured. It is simple to compare the scheduling overhead of different algorithms: simply run them both on the same model, and measure the runtime. Since there is a monotonic relationship between the runtime of the scheduler and the total scheduling overhead, whichever algorithm has a lower runtime must have a lower scheduling overhead.
+For a comprehensive evaluation, it is therefore necessary for both aspects to be measured. It is simple to compare the scheduling overhead of different algorithms: simply run them both on the same model, and measure the runtime. Since there is a monotonic relationship between the runtime of the scheduler and the total scheduling overhead, whichever algorithm has a lower runtime also has a lower scheduling overhead.
 
-Putting a numerical value on the scheduling overhead is more tricky, however: it depends on the number of idle nodes in the cluster. There are similar problems with measuring computation time, which depends on the type of jobs scheduled. For the results to be realistic, the scheduler will have to be tested on a real cluster, with a simulated workload. 
+Putting a numerical value on the scheduling overhead is more tricky, however: it depends on the number of idle nodes in the cluster. There are similar problems with measuring computation time, which depends on the type of jobs scheduled. For a comprehensive evaluation, the scheduler will need to be tested on a real cluster, with a simulated workload. 
 
-Ensuring the simulated workload is representative of actual usage patterns may be a challenge. Google has released a trace from one of their data centres\cite{clusterdata:Wilkes2011,clusterdata:Reiss2011}, which could be used to determine an appropriate cross-section of tasks. Alternatively, it would be possible to use similar benchmarks to those in the Quincy paper\cite{Isard:2009}.
+Ensuring the simulated workload is representative of actual usage patterns may be a challenge. Google has released a trace from one of their data centres~\cite{clusterdata:Wilkes2011,clusterdata:Reiss2011}, which could be used to determine an appropriate cross-section of tasks. Alternatively, it would be possible to use similar benchmarks to those in the Quincy paper~\cite{Isard:2009}.
 
-There is a risk that the results returned from testing on a cluster may not generalize to other data centres. This is a problem common to all research in this area, however. To mitigate this as far as possible, the algorithm should be tested on synthetic models of much larger data centres, to verify the scheduling overhead does not increase faster than expected.
+There is a risk that the results returned from testing on a cluster may not generalize to other data centres. However, this is a problem common to all research in this area. To mitigate this as far as possible, the algorithm should be tested on synthetic models of much larger data centres, to verify the scheduling overhead does not increase faster than expected.
 
 An area of considerable interest is determining how accurate to make the approximate solution. Demanding more accuracy will increase the scheduling overhead but decrease the computation time, so this is a special case of the trade-off described above. For a specific workload on a particular cluster, it is possible to determine this value empirically.
 
-\subsection*{Phase 3 -- Enhancements and Optimisations}
+\subsection*{Phase 3 -- enhancements and optimisations}
 
 The final phase will be dedicated to optimizing the flow solving algorithm, and adding extensions to the data centre model. My current ideas are summarized in \nameref{sec:extensions}. It is also anticipated that new ideas may emerge during preparatory research, and implementation of the algorithms above.
 
-\section*{Possible Extensions}
+\section*{Possible extensions}
 \label{sec:extensions}
 
 The idea of modelling data centres as flow networks is relatively recent, having been published only in 2009. Consequently, there are a wide variety of promising areas which have yet to be explored, giving considerable scope for extension. Here, I present a few of the most promising ideas:
 
 \begin{itemize}
-  \item \textbf{Incremental flow algorithm} -- this holds the potential of a considerable reduction in scheduling overhead. Crucially, it is likely that such an algorithm would yield not just a constant factor reduction, but also a decrease in the average-case asymptotic complexity. This would allow the algorithm to scale up to the biggest data centres today, and to those in the future.
+  \item \textbf{Incremental flow algorithm} -- this holds the potential of a considerable reduction in scheduling overhead. Crucially, it is likely that such an algorithm would yield not just a constant factor reduction, but also a decrease in the average-case asymptotic complexity. This would allow the algorithm to scale up to the biggest data centres both today, and in the future.
   \item \textbf{Parallel flow algorithm} -- the cost of running the scheduling algorithm is negligible. Most of the scheduling overhead comes instead from other nodes in the cluster being unnecessarily left idle, waiting for the cluster.
     
     Because of this, we care more about the \emph{span} of the flow algorithm, than we do about the total work expended. It would therefore be highly desirable to use a parallel algorithm for this task.
     
-    Unfortunately, flow algorithms are known to be hard to parallelise. It is therefore unclear how tractable this problem is, although some progress has been made.\cite{Staples:1995}
-  \item \textbf{Automatic parameter tuning} -- there are a number of parameters present in the system, which it is unclear how best to set. One such example is the parameter controlling the accuracy of the approximation. There are also parameters which control what cost should be imposed on traffic across the network.
+    Unfortunately, flow algorithms are known to be hard to parallelise. It is therefore unclear how tractable this problem is, although some progress has been made~\cite{Staples:1995}.
+  \item \textbf{Automatic parameter tuning} -- there are a number of parameters present in the system, which it is unclear how best to set. One such example is the parameter controlling the accuracy of the approximation. There are also parameters which control the cost imposed on traffic across the network.
 
         It would be highly desirable, in terms of both performance and usability, for the system to automatically set these parameters. As the optimal parameter is likely to vary depending on the workload, this may outperform any hard-coded value, even if considerable effort was expended to choose that value.
   \item \textbf{Multi-dimensional cost function} -- in the original Quincy paper, the cost of edges is determined purely by the amount of data that needs to be transferred. We have other information available to us, such as the CPU and memory usage of a task. A multi-dimensional cost function, such as a weighted sum of these factors, may provide superior performance.
@@ -152,10 +151,10 @@ The idea of modelling data centres as flow networks is relatively recent, having
 
         There is a danger this could actually harm performance for certain workloads: for example, two memory-intensive tasks running on the same machine might result in thrashing occurring. 
 
-        A simple approach might be to add flags to each job, describing its resource requirements, in an attempt to pair tasks suitably. A more sophisticated technique would be to make the model more fine-grained. Rather than just describing the network, it could be extended to represent the CPU and memory resources in each machine. For this to be successful, some estimate of resource requirements for a newly submitted job will be necessary. This extension is therefore closely related to the above enhancement.
+        A simple approach would be to add flags to each job, describing its resource requirements, and then pair tasks suitably. A more sophisticated technique would be to make the flow model more fine-grained. Rather than just describing the network, it could be extended to represent the CPU and memory resources in each machine. For this to be successful, some estimate of resource requirements for a newly submitted job will be necessary. This extension is therefore closely related to the above enhancement.
 \end{itemize}
 
-\section*{Success Criteria}
+\section*{Success criteria}
 
 \begin{enumerate}
   \item \textbf{Standard algorithm} -- Implementation of an existing min-cost flow algorithm, described in the literature.
@@ -166,7 +165,7 @@ The idea of modelling data centres as flow networks is relatively recent, having
   \item \textbf{Accuracy trade-off} -- Running the approximate algorithm for longer will yield a more accurate solution. Explore the effect of increasing and decreasing the accuracy of the algorithm on overall system performance.
 \end{enumerate}
 
-\section*{Timetable: Work Plan and Milestones}
+\section*{Timetable: work plan and milestones}
 
 I have split the entire project into work packages, as recommended in the Pink Book. For most of the project these are fortnightly, but become longer towards the tail-end of the project.
 
@@ -180,54 +179,54 @@ By the end of Lent term, I intend to have completed implementation and testing, 
 \begin{itemize}
 
 	\workpackage{10\textsuperscript{th} October to 24\textsuperscript{th} October}{\begin{itemize}
-      \item Background research into the problem area
-      \item Writing the project proposal
+      \item Background research into the problem area.
+      \item Writing the project proposal.
 		\end{itemize}
 		\wpendfill
 	}{}
 	\workpackage{24\textsuperscript{th} October to 7\textsuperscript{th} November}{\begin{itemize}
-      \item Familiarize myself with the Firmament code base
-      \item Additional research into flow algorithms
-      \item Configure development environment
+      \item Familiarize myself with the Firmament code base.
+      \item Additional research into flow algorithms.
+      \item Configure development environment.
       \item Test backup procedures
 		\end{itemize}
 		\wpendfill
 	}{}
 	\workpackage{7\textsuperscript{th} November to 21\textsuperscript{st} November}{\begin{itemize}
-      \item Implementation of baseline algorithm
-      \item Design of approximation algorithm
-      \item Begin investigating workloads for performance testing of the scheduler
+      \item Implementation of baseline algorithm.
+      \item Begin investigating workloads for performance testing of the scheduler.
 		\end{itemize}
 		\wpendfill
 	}{}
 	\workpackage{24\textsuperscript{st} November to 5\textsuperscript{th} December}{\begin{itemize}
-      \item Integration with Firmament code base
-      \item Initial performance test on SRG cluster
+      \item Design of approximation algorithm.
+      \item Integration with Firmament code base.
+      \item Initial performance test on SRG cluster.
 		\end{itemize}
 		\wpendfill
 	}{}
 
 	\textit{\textbf{5\textsuperscript{th} December} -- end of full Michaelmas term}	\\
 
-  \workpackage{5th\textsuperscript{th} December to 19\textsuperscript{th} December}{\begin{itemize}
-      \item 5\textsuperscript{th}-12\textsuperscript{th} December: Vacation, no Internet access
-      \item Further time for testing
+  \workpackage{5\textsuperscript{th} December to 19\textsuperscript{th} December}{\begin{itemize}
+      \item 5\textsuperscript{th}-12\textsuperscript{th} December: Vacation, no Internet access.
+      \item Further time for testing.
 		\end{itemize}
     \milestone{Phase 1 and phase 2 complete}
 		\wpendfill
 	}{}
 	\workpackage{19\textsuperscript{th} December to 2\textsuperscript{nd} January}{\begin{itemize}
-      \item Write progress report
-      \item Buffer time
+      \item Write progress report.
+      \item Buffer time.
 		\end{itemize}
     \milestone{Progress report draft}
 		\wpendfill
 	}{}
   \workpackage{2\textsuperscript{nd} January to 16\textsuperscript{th} January}{\wpstartfill
-    Start implementation of phase 3 (optimisations and enhancements)
+    Start implementation of phase 3 (optimisations and enhancements):
     \begin{itemize}
-      \item Begin implementation of the extensions outlined in \nameref{sec:extensions} on page \pageref{sec:extensions}
-      \item Pursue additional extension possibilities which have emerged from research or development earlier in the project
+      \item Begin implementation of the extensions outlined in \nameref{sec:extensions} on page \pageref{sec:extensions}.
+      \item Pursue additional extension possibilities which have emerged from research or development earlier in the project.
 		\end{itemize}
 		\wpendfill
 	}{}
@@ -237,7 +236,7 @@ By the end of Lent term, I intend to have completed implementation and testing, 
 	\workpackage{16\textsuperscript{th} January to 30\textsuperscript{th} January}{\begin{itemize}
       \item Complete and hand-in progress report. Update to include any new developments.
       \item Write presentation for overseers and other students. To include preparation of figures or other material summarizing test results.
-      \item Continue implementation of extensions
+      \item Continue implementation of extensions..
 		\end{itemize}
     \textbf{Deadline}: Hand-in the progress report
 
@@ -246,8 +245,8 @@ By the end of Lent term, I intend to have completed implementation and testing, 
 	}{}
 	\workpackage{30\textsuperscript{th} February to 13\textsuperscript{rd} February}{\begin{itemize}
       \item Development of extensions continues.
-      \item Deliver progress presentation
-      \item Buffer time
+      \item Deliver progress presentation.
+      \item Buffer time.
 		\end{itemize}
 		\wpendfill
 	}{}

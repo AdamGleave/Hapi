@@ -4,9 +4,9 @@
 # Note that continuation lines require '\'
 # and that TAB is used after ':' and before unix commands.
 
-DISS = diss.tex #refs.bib propbody.tex figs/diagram.eps makefile.txt
+DISS = diss.tex diss.bib #refs.bib propbody.tex figs/diagram.eps makefile.txt
 
-PROP = proposal.tex propbody.tex
+PROP = proposal.tex propbody.tex diss.bib
 
 SLIDES = slides.tex
 
