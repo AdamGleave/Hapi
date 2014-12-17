@@ -19,10 +19,10 @@
 
 namespace flowsolver {
 
-FlowNetwork &DIMACS::readDIMACSMin(std::istream &is) {
+ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 	std::string line;
 
-	FlowNetwork *g = 0;
+	ResidualNetwork *g = 0;
 	bool seen_node = false, seen_arc = false;
 	while (getline(is, line)) {
 		// TODO: how does this respond to blank lines in the file?
@@ -58,7 +58,7 @@ FlowNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 			assert(num_matches == 3);
 			assert(strcmp(problem, "min") == 0);
 
-			g = new FlowNetwork(num_nodes);
+			g = new ResidualNetwork(num_nodes);
 			break;
 		case 'n':
 			// node descriptor line
@@ -100,7 +100,7 @@ FlowNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 	return *g;
 }
 
-void DIMACS::writeDIMACSMin(const FlowNetwork &g, std::ostream &os) {
+void DIMACS::writeDIMACSMin(const ResidualNetwork &g, std::ostream &os) {
 	uint32_t num_nodes = g.getNumNodes();
 	uint32_t num_arcs = g.getNumArcs();
 
@@ -116,7 +116,7 @@ void DIMACS::writeDIMACSMin(const FlowNetwork &g, std::ostream &os) {
 	}
 
 	// arc descriptor lines
-	for (FlowNetwork::const_iterator it = g.begin(); it != g.end(); ++it) {
+	for (ResidualNetwork::const_iterator it = g.begin(); it != g.end(); ++it) {
 		const Arc &arc = *it;
 		os << boost::format("a %u %u 0 %lu %lu\n")
 		 % arc.getSrcId() % arc.getDstId() % arc.getCapacity() % arc.getCost();

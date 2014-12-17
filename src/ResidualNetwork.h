@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef SRC_FLOWNETWORK_H_
-#define SRC_FLOWNETWORK_H_
+#ifndef SRC_RESIDUALNETWORK_H_
+#define SRC_RESIDUALNETWORK_H_
 
 #include <cinttypes>
 #include <vector>
@@ -16,20 +16,20 @@
 
 namespace flowsolver {
 
-class FlowNetwork {
+class ResidualNetwork {
 	uint32_t num_nodes;
 	int64_t *supply;
 	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
 
 public:
-	FlowNetwork(uint32_t num_nodes);
+	ResidualNetwork(uint32_t num_nodes);
 	uint32_t getNumNodes() const;
 	uint32_t getNumArcs() const;
 	int64_t getSupply(uint32_t id) const;
 	void setSupply(uint32_t id, int64_t supply);
 	void addEdge(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
-	virtual ~FlowNetwork();
+	virtual ~ResidualNetwork();
 
 	friend class const_noconst_iterator;
 
@@ -37,7 +37,7 @@ public:
 	class const_noconst_iterator :
 		  public std::iterator<std::forward_iterator_tag,Arc> {
 	private:
-		typedef typename std::conditional<is_const_iterator, const FlowNetwork &, FlowNetwork &>::type FlowNetworkType;
+		typedef typename std::conditional<is_const_iterator, const ResidualNetwork &, ResidualNetwork &>::type FlowNetworkType;
 		typedef typename std::conditional<is_const_iterator, const Arc &, Arc &>::type ArcType;
 
 		typedef typename std::conditional<is_const_iterator,
@@ -132,4 +132,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* SRC_FLOWNETWORK_H_ */
+#endif /* SRC_RESIDUALNETWORK_H_ */

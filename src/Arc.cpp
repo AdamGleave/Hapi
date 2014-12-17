@@ -12,9 +12,7 @@
 namespace flowsolver {
 
 void Arc::pushFlow(int64_t amount) {
-	assert (amount < 0 || capacity >= (uint64_t)amount);
 	capacity -= amount;
-	assert(capacity < initial_capacity);
 }
 
 } /* namespace flowsolver */

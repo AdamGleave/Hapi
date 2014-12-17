@@ -5,11 +5,11 @@
 
 #include <iostream>
 
-#include "FlowNetwork.h"
 #include "DIMACS.h"
+#include "ResidualNetwork.h"
 
 int main() {
-	flowsolver::FlowNetwork g = flowsolver::DIMACS::readDIMACSMin(std::cin);
+	flowsolver::ResidualNetwork g = flowsolver::DIMACS::readDIMACSMin(std::cin);
 	flowsolver::DIMACS::writeDIMACSMin(g, std::cout);
 
 	return 0;
