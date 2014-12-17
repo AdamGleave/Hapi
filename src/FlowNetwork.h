@@ -17,6 +17,10 @@
 namespace flowsolver {
 
 class FlowNetwork {
+	uint32_t num_nodes;
+	int64_t *supply;
+	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
+
 public:
 	FlowNetwork(uint32_t num_nodes);
 	uint32_t getNumNodes() const;
@@ -124,11 +128,6 @@ public:
 	const_iterator begin() const { return const_iterator(*this); }
 	iterator end() { return iterator(*this, true); }
 	const_iterator end() const { return const_iterator(*this, true); }
-
-private:
-	uint32_t num_nodes;
-	int64_t *supply;
-	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
 };
 
 } /* namespace flowsolver */

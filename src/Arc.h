@@ -13,6 +13,11 @@
 namespace flowsolver {
 
 class Arc {
+	uint32_t src_id, dst_id;
+	uint64_t capacity;
+	const uint64_t initial_capacity;
+	int64_t cost;
+
 	// TODO: Storing src and dst ID is redundant, already included in the
 	// data structure the arcs are stored in. However, need to be able to
 	// access it when returned in iterator. May want to refactor this.
@@ -47,12 +52,6 @@ public:
 	}
 
 	void pushFlow(int64_t amount);
-
-private:
-	uint32_t src_id, dst_id;
-	uint64_t capacity;
-	const uint64_t initial_capacity;
-	int64_t cost;
 };
 
 } /* namespace flowsolver */

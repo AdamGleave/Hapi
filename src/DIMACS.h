@@ -15,6 +15,7 @@
 namespace flowsolver {
 
 class DIMACS {
+	DIMACS() = delete;
 public:
 	static FlowNetwork &readDIMACSMin(std::istream &);
 	static void writeDIMACSMin(const FlowNetwork &, std::ostream &);
