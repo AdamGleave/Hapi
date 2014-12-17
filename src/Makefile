@@ -7,4 +7,6 @@ LFLAGS = $(FLAGS)
 clean:
 	rm *.o
 
-all: Arc.o DIMACS.o ResidualNetwork.o
+DIMACSEcho: DIMACSEcho.o DIMACS.o Arc.o FlowNetwork.o 
+
+all: DIMACSEcho
