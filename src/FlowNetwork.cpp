@@ -5,9 +5,9 @@
  *      Author: adam
  */
 
-#include "FlowNetwork.h"
-
 #include <cassert>
+
+#include "FlowNetwork.h"
 
 namespace flowsolver {
 
@@ -29,9 +29,6 @@ uint32_t FlowNetwork::getNumArcs() const {
 	for (vec_it = this->arcs.begin(); vec_it != this->arcs.end(); vec_it++) {
 		num_arcs += vec_it->size();
 	}
-	// TODO: if we turn this into a residual network with reverse arcs,
-	// this will become more complicated. We would want to disappear any
-	// reverse arcs with no flow. (Or we could just be naive and output all.)
 
 	return num_arcs;
 }
@@ -54,10 +51,13 @@ void FlowNetwork::addEdge(uint32_t src, uint32_t dst,
 	src--;
 	dst--;
 	assert(src < this->num_nodes && dst < this->num_nodes);
-	arcs[src][dst] = new Arc(src, dst, capacity, cost);
+	arcs[src][dst] = new Arc(src+1, dst+1, capacity, cost);
 }
 
 void FlowNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
+	src--;
+	dst--;
+	assert(src < this->num_nodes && dst < this->num_nodes);
 	arcs[src][dst]->pushFlow(amount);
 }
 

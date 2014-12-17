@@ -12,6 +12,8 @@
 #include <sstream>
 #include <string>
 
+#include <boost/format.hpp>
+
 #include "DIMACS.h"
 #include "Arc.h"
 
@@ -98,27 +100,26 @@ FlowNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 	return *g;
 }
 
-void DIMACS::writeDIMACSMin(FlowNetwork &g, std::ostream &os) {
+void DIMACS::writeDIMACSMin(const FlowNetwork &g, std::ostream &os) {
 	uint32_t num_nodes = g.getNumNodes();
 	uint32_t num_arcs = g.getNumArcs();
 
 	// problem line
-	os << "p min" << num_nodes << num_arcs << std::endl;
+	printf("p min %u %u\n", num_nodes, num_arcs);
 
 	// node descriptor lines
-	for (uint32_t id = 1; id <= num_nodes; id++) {
+	for (uint32_t id = 1; id <= num_nodes; ++id) {
 		int64_t supply = g.getSupply(id);
-		os << "n" << id << supply << std::endl;
+		if (supply != 0) {
+			os << boost::format("n %u %ld\n") % id % supply;
+		}
 	}
 
 	// arc descriptor lines
-	for (FlowNetwork::iterator it = g.begin(); it != g.end(); it++) {
-		Arc &arc = *it;
-		os << "a";
-		os << arc.getSrcId() << arc.getDstId();
-		os << 0 << arc.getCapacity();
-		os << arc.getCost();
-		os << std::endl;
+	for (FlowNetwork::const_iterator it = g.begin(); it != g.end(); ++it) {
+		const Arc &arc = *it;
+		os << boost::format("a %u %u 0 %lu %lu\n")
+		 % arc.getSrcId() % arc.getDstId() % arc.getCapacity() % arc.getCost();
 	}
 }
 

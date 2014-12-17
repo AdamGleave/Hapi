@@ -27,49 +27,74 @@ public:
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
 	virtual ~FlowNetwork();
 
-	class iterator;
-	friend class iterator;
+	friend class const_noconst_iterator;
 
-	class iterator {
+	template<bool is_const_iterator = true>
+	class const_noconst_iterator :
+		  public std::iterator<std::forward_iterator_tag,Arc> {
 	private:
-		FlowNetwork &g;
-		std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
-		std::unordered_map<uint32_t, Arc*>::iterator map_it;
+		typedef typename std::conditional<is_const_iterator, const FlowNetwork &, FlowNetwork &>::type FlowNetworkType;
+		typedef typename std::conditional<is_const_iterator, const Arc &, Arc &>::type ArcType;
+
+		typedef typename std::conditional<is_const_iterator,
+				std::vector<std::unordered_map<uint32_t, Arc*>>::const_iterator,
+			    std::vector<std::unordered_map<uint32_t, Arc*>>::iterator>::type
+				VectorIterator;
+		typedef typename std::conditional<is_const_iterator,
+						std::unordered_map<uint32_t, Arc*>::const_iterator,
+					    std::unordered_map<uint32_t, Arc*>::iterator>::type
+						MapIterator;
+
+		FlowNetworkType g;
+		VectorIterator vec_it;
+		MapIterator map_it;
+
 
 	public:
-		iterator(FlowNetwork &g) : g(g) {
+		const_noconst_iterator(FlowNetworkType g) : g(g) {
 			vec_it = g.arcs.begin();
 			map_it = vec_it->begin();
 		};
 
-		iterator(FlowNetwork &g, bool) : g(g) {
+		const_noconst_iterator(FlowNetworkType g, bool) : g(g) {
 			// for end sentinel
 			vec_it = g.arcs.end();
 		}
 
-		Arc &operator*() const {
+		// Copy constructor. Implicit conversion from regular iterator to
+		// const_iterator.
+		const_noconst_iterator(const const_noconst_iterator<false>& other) :
+			g(other.g), vec_it(other.vec_it), map_it(other.map_it) {}
+
+		ArcType operator*() const {
 			return *(map_it->second);
 		}
 
-		Arc &operator++() {
+		const_noconst_iterator<is_const_iterator> operator++() {
+			map_it++;
 			// prefix operator
-			if (map_it == vec_it->end()) {
+			while (map_it == vec_it->end()) {
+				// end of map, go on to next value in vector
+				// (may need to do this repeatedly if maps are empty)
 				vec_it++;
+				if (vec_it == g.arcs.end()) {
+					// no elements left to iterate over: end
+					break;
+				}
 				map_it = vec_it->begin();
-			} else {
-				map_it++;
 			}
-			return *(map_it->second);
+			return *this;
 		}
 
-		Arc &operator++(int) {
+		const_noconst_iterator<is_const_iterator> operator++(int) {
 			// postfix operator
-			Arc &arc = *(map_it->second);
+			const_noconst_iterator<is_const_iterator> old(*this);
 			++(*this);
-			return arc;
+			return old;
 		}
 
-		bool operator==(const iterator& it) const {
+		bool operator==(const const_noconst_iterator<is_const_iterator>& it)
+				const {
 			if (vec_it == it.vec_it) {
 				if (vec_it == g.arcs.end()) {
 					// End iterator not unique.
@@ -86,13 +111,19 @@ public:
 			}
 		}
 
-		bool operator!=(const iterator& it) const {
+		bool operator!=(const const_noconst_iterator<is_const_iterator>& it)
+				const {
 			return !(*this == it);
 		}
 	};
 
+	typedef const_noconst_iterator<false> iterator;
+	typedef const_noconst_iterator<true> const_iterator;
+
 	iterator begin() { return iterator(*this); }
+	const_iterator begin() const { return const_iterator(*this); }
 	iterator end() { return iterator(*this, true); }
+	const_iterator end() const { return const_iterator(*this, true); }
 
 private:
 	uint32_t num_nodes;

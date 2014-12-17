@@ -16,8 +16,8 @@ namespace flowsolver {
 
 class DIMACS {
 public:
-	FlowNetwork &readDIMACSMin(std::istream &);
-	void writeDIMACSMin(FlowNetwork &, std::ostream &);
+	static FlowNetwork &readDIMACSMin(std::istream &);
+	static void writeDIMACSMin(const FlowNetwork &, std::ostream &);
 };
 
 } /* namespace flowsolver */

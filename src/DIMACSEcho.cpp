@@ -8,14 +8,9 @@
 #include "FlowNetwork.h"
 #include "DIMACS.h"
 
-namespace flowsolver {
-
 int main() {
-	FlowNetwork g = DIMACS::readDIMACSMin(std::cin);
-	DIMACS::writeDIMACSMin(g, std::cout);
+	flowsolver::FlowNetwork g = flowsolver::DIMACS::readDIMACSMin(std::cin);
+	flowsolver::DIMACS::writeDIMACSMin(g, std::cout);
 
 	return 0;
 }
-
-}
-
