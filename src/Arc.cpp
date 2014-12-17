@@ -12,8 +12,8 @@
 namespace flowsolver {
 
 void Arc::pushFlow(int64_t amount) {
+	assert (amount < 0 || capacity >= (uint64_t)amount);
 	capacity -= amount;
-	assert(capacity >= 0);
 	// TODO: I think this will no longer hold true with reverse edges
 	assert(capacity < initial_capacity);
 }

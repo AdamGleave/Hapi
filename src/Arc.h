@@ -8,6 +8,8 @@
 #ifndef SRC_ARC_H_
 #define SRC_ARC_H_
 
+#include <cinttypes>
+
 namespace flowsolver {
 
 class Arc {

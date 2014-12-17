@@ -8,6 +8,7 @@
 #ifndef SRC_RESIDUALNETWORK_H_
 #define SRC_RESIDUALNETWORK_H_
 
+#include <cinttypes>
 #include <vector>
 #include <unordered_map>
 
