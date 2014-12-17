@@ -10,14 +10,14 @@
 
 #include <iostream>
 
-#include "ResidualNetwork.h"
+#include "FlowNetwork.h"
 
 namespace flowsolver {
 
 class DIMACS {
 public:
-	ResidualNetwork &readDIMACSMin(std::istream &);
-	void writeDIMACSMin(ResidualNetwork &, std::ostream &);
+	FlowNetwork &readDIMACSMin(std::istream &);
+	void writeDIMACSMin(FlowNetwork &, std::ostream &);
 };
 
 } /* namespace flowsolver */

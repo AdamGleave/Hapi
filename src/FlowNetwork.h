@@ -1,12 +1,12 @@
 /*
- * ResidualNetwork.h
+ * FlowNetwork.h
  *
  *  Created on: 16 Dec 2014
  *      Author: adam
  */
 
-#ifndef SRC_RESIDUALNETWORK_H_
-#define SRC_RESIDUALNETWORK_H_
+#ifndef SRC_FLOWNETWORK_H_
+#define SRC_FLOWNETWORK_H_
 
 #include <cinttypes>
 #include <vector>
@@ -16,33 +16,33 @@
 
 namespace flowsolver {
 
-class ResidualNetwork {
+class FlowNetwork {
 public:
-	ResidualNetwork(uint32_t num_nodes);
+	FlowNetwork(uint32_t num_nodes);
 	uint32_t getNumNodes() const;
 	uint32_t getNumArcs() const;
 	int64_t getSupply(uint32_t id) const;
 	void setSupply(uint32_t id, int64_t supply);
 	void addEdge(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
-	virtual ~ResidualNetwork();
+	virtual ~FlowNetwork();
 
 	class iterator;
 	friend class iterator;
 
 	class iterator {
 	private:
-		ResidualNetwork &g;
+		FlowNetwork &g;
 		std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
 		std::unordered_map<uint32_t, Arc*>::iterator map_it;
 
 	public:
-		iterator(ResidualNetwork &g) : g(g) {
+		iterator(FlowNetwork &g) : g(g) {
 			vec_it = g.arcs.begin();
 			map_it = vec_it->begin();
 		};
 
-		iterator(ResidualNetwork &g, bool) : g(g) {
+		iterator(FlowNetwork &g, bool) : g(g) {
 			// for end sentinel
 			vec_it = g.arcs.end();
 		}
@@ -102,4 +102,4 @@ private:
 
 } /* namespace flowsolver */
 
-#endif /* SRC_RESIDUALNETWORK_H_ */
+#endif /* SRC_FLOWNETWORK_H_ */

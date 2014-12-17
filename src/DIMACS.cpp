@@ -17,12 +17,10 @@
 
 namespace flowsolver {
 
-// TODO: replace asserts with LOG statements?
-
-ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
+FlowNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 	std::string line;
 
-	ResidualNetwork *g = 0;
+	FlowNetwork *g = 0;
 	bool seen_node = false, seen_arc = false;
 	while (getline(is, line)) {
 		// TODO: how does this respond to blank lines in the file?
@@ -58,7 +56,7 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 			assert(num_matches == 3);
 			assert(strcmp(problem, "min") == 0);
 
-			g = new ResidualNetwork(num_nodes);
+			g = new FlowNetwork(num_nodes);
 			break;
 		case 'n':
 			// node descriptor line
@@ -89,17 +87,8 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 						   &src, &dst, &lower_bound, &upper_bound, &cost);
 			assert(num_matches == 5);
 
+			assert(lower_bound == 0);
 			g->addEdge(src, dst, upper_bound, cost);
-			if (lower_bound > 0) {
-				// min-cost flow network has no concept of lower bound
-				// must reformulate
-				int64_t src_supply = g->getSupply(src);
-				int64_t dst_supply = g->getSupply(dst);
-				g->setSupply(src, src_supply - lower_bound);
-				g->setSupply(dst, dst_supply + lower_bound);
-				// TODO: Will this work?
-				g->pushFlow(src, dst, lower_bound);
-			}
 			break;
 		default:
 			assert(false);
@@ -109,9 +98,7 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 	return *g;
 }
 
-void DIMACS::writeDIMACSMin(ResidualNetwork &g, std::ostream &os) {
-	// TODO: This is broken when lower bounds are non-zero in the original input
-	// (No easy way to resolve this, we need to mutate the graph and then export it.)
+void DIMACS::writeDIMACSMin(FlowNetwork &g, std::ostream &os) {
 	uint32_t num_nodes = g.getNumNodes();
 	uint32_t num_arcs = g.getNumArcs();
 
@@ -121,19 +108,15 @@ void DIMACS::writeDIMACSMin(ResidualNetwork &g, std::ostream &os) {
 	// node descriptor lines
 	for (uint32_t id = 1; id <= num_nodes; id++) {
 		int64_t supply = g.getSupply(id);
-		if (id != 0) {
-			// TODO: adjust supply due to lower bounds?
-			os << "n" << id << supply << std::endl;
-		}
+		os << "n" << id << supply << std::endl;
 	}
 
 	// arc descriptor lines
-	for (ResidualNetwork::iterator it = g.begin(); it != g.end(); it++) {
+	for (FlowNetwork::iterator it = g.begin(); it != g.end(); it++) {
 		Arc &arc = *it;
-		uint64_t lower_bound = 0;
 		os << "a";
 		os << arc.getSrcId() << arc.getDstId();
-		os << lower_bound << arc.getCapacity();
+		os << 0 << arc.getCapacity();
 		os << arc.getCost();
 		os << std::endl;
 	}
