@@ -18,6 +18,7 @@ class Arc {
 	const uint64_t initial_capacity;
 	int64_t cost;
 
+	void pushFlow(int64_t amount);
 	// TODO: Storing src and dst ID is redundant, already included in the
 	// data structure the arcs are stored in. However, need to be able to
 	// access it when returned in iterator. May want to refactor this.
@@ -51,7 +52,7 @@ public:
 		return getInitialCapacity() - getCapacity();
 	}
 
-	void pushFlow(int64_t amount);
+	friend class ResidualNetwork;
 };
 
 } /* namespace flowsolver */

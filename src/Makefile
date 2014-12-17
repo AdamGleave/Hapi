@@ -11,6 +11,6 @@ clean:
 %.o : %.cpp %.h
 	$(CPP) -c $(CPPFLAGS) $< -o $@
 
-DIMACSEcho: DIMACSEcho.o DIMACS.o Arc.o FlowNetwork.o 
+DIMACSEcho: DIMACSEcho.o DIMACS.o Arc.o ResidualNetwork.o 
 
-all: DIMACSEcho
+all: DIMACSEcho EdmondsKarp.o
