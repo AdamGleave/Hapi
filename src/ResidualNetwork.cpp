@@ -27,7 +27,7 @@ uint32_t ResidualNetwork::getNumArcs() const {
 	uint32_t num_arcs = 0;
 
 	std::vector<std::unordered_map<uint32_t, Arc*>>::const_iterator vec_it;
-	for (vec_it = this->arcs.begin(); vec_it != this->arcs.end(); vec_it++) {
+	for (vec_it = this->arcs.begin(); vec_it != this->arcs.end(); ++vec_it) {
 		num_arcs += vec_it->size();
 	}
 
@@ -69,7 +69,23 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	arcs[dst][src]->pushFlow(-amount);
 }
 
+std::unordered_map<uint32_t, Arc*> ResidualNetwork::getAdjacencies(uint32_t src) {
+	src--;
+	assert(src < this->num_nodes);
+	return arcs[src];
+}
+
 ResidualNetwork::~ResidualNetwork() {
+	delete this->supply;
+
+	std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
+	for (vec_it = this->arcs.begin(); vec_it != this->arcs.end(); ++vec_it) {
+		std::unordered_map<uint32_t, Arc*>::iterator map_it;
+		for (map_it = vec_it->begin(); map_it != vec_it->end(); ++map_it) {
+			Arc *arc = map_it->second;
+			delete arc;
+		}
+	}
 }
 
 } /* namespace flowsolver */
