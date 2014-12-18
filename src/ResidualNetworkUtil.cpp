@@ -5,6 +5,9 @@
  *      Author: adam
  */
 
+//TODO: debug
+#include <iostream>
+
 #include <queue>
 
 #include "ResidualNetworkUtil.h"
@@ -38,6 +41,7 @@ uint64_t ResidualNetworkUtil::augmentingFlow
 void ResidualNetworkUtil::augmentPath
 	 	 	 	 	 	  (ResidualNetwork &g, std::queue<Arc *> path) {
 	uint64_t flow = augmentingFlow(g, path);
+	std::cout << "Augmenting by " << flow << std::endl;
 
 	while (!path.empty()) {
 		Arc *arc = path.front();
