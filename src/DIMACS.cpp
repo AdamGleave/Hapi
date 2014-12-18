@@ -97,8 +97,6 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 		}
 	}
 
-	// TODO: debug
-	std::cout << "num sources: " << g->getSources().size() << std::endl;
 	return *g;
 }
 
@@ -130,10 +128,8 @@ void DIMACS::writeDIMACSMinFlow(const ResidualNetwork &g, std::ostream &os) {
 
 	uint64_t total_cost = 0;
 	for (it = g.begin(); it != g.end(); ++it) {
-		std::cout << "before dereference" << std::endl;
 		const Arc &arc = *it;
-		std::cout << "after dereference" << std::endl;
-		std::cout << boost::format("%x\n") % &arc;
+
 		int64_t flow = arc.getFlow();
 		if (flow > 0) {
 			// ignore negative flows

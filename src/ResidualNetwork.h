@@ -6,9 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-// TODO: debug
-#include <iostream>
-
 #include "Arc.h"
 
 namespace flowsolver {
@@ -80,8 +77,6 @@ public:
 			g(other.g), vec_it(other.vec_it), map_it(other.map_it) {}
 
 		ArcType operator*() const {
-			// TODO: debug
-			std::cout << map_it->first << std::endl;
 			return *(map_it->second);
 		}
 

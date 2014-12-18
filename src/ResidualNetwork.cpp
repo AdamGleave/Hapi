@@ -86,7 +86,7 @@ void ResidualNetwork::updateSupply(uint32_t index, int64_t delta) {
 
 	supply[index] += delta;
 	if (supply[index] > 0) {
-		sources.erase(index + 1);
+		sources.insert(index + 1);
 	} else if (supply[index] < 0) {
 		sinks.insert(index + 1);
 	}

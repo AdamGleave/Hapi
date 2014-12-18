@@ -14,9 +14,6 @@
 #include "ResidualNetworkUtil.h"
 #include "EdmondsKarp.h"
 
-// TODO: debug
-#include <iostream>
-
 namespace flowsolver {
 
 EdmondsKarp::EdmondsKarp(ResidualNetwork &g) : g(g) {
@@ -55,12 +52,7 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 	// in the residual network (all augmenting paths)
 	const std::set<uint32_t> &sources = g.getSources();
 	const std::set<uint32_t> &sinks = g.getSinks();
-	// TODO: debug
 	std::set<uint32_t>::const_iterator it;
-	std::cout << sources.size() << std::endl;
-	for (it = sources.begin(); it != sources.end(); ++it) {
-		std::cout << *it << std::endl;
-	}
 	std::list<uint32_t> to_visit_list(sources.begin(), sources.end());
 	std::queue<uint32_t, std::list<uint32_t>> to_visit(to_visit_list);
 
@@ -69,7 +61,6 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 
 	while (!to_visit.empty()) {
 		uint32_t cur = to_visit.front();
-		std::cout << "Visited " << cur << std::endl;
 		to_visit.pop();
 		std::unordered_map<uint32_t, Arc*> adjacencies = g.getAdjacencies(cur);
 		std::unordered_map<uint32_t, Arc*>::iterator it;
@@ -83,7 +74,6 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 			}
 
 			uint32_t next = it->second->getDstId();
-			std::cout << "Adjacent: " << next << std::endl;
 			if (predecessors[next] == 0) {
 				// TODO: this does not handle back edges to sources
 				// A source may have already been visited, but still have
@@ -93,18 +83,14 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 				predecessors[next] = cur;
 
 				if (sinks.count(next) > 0) {
-					// found path from source to sink
-					std::cout << "Found path terminating at " << next << std::endl;
 					return predecessorPath(next);
 				}
 
-				std::cout << "To visit: " << next << std::endl;
 				to_visit.push(next);
 			}
 		}
 	}
 
-	std::cout << "No augmenting paths found" << std::endl;
 	return std::queue<Arc *>();
 }
 
