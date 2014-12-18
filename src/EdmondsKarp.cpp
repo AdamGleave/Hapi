@@ -61,11 +61,8 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 	for (it = sources.begin(); it != sources.end(); ++it) {
 		std::cout << *it << std::endl;
 	}
-	std::cout << "baz" << std::endl;
 	std::list<uint32_t> to_visit_list(sources.begin(), sources.end());
-	std::cout << "foo" << std::endl;
 	std::queue<uint32_t, std::list<uint32_t>> to_visit(to_visit_list);
-	std::cout << "bar" << std::endl;
 
 	// note ID 0 is unused
 	predecessors.assign(predecessors.size() + 1, 0);

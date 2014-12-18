@@ -11,6 +11,7 @@
 
 int main() {
 	flowsolver::ResidualNetwork g = flowsolver::DIMACS::readDIMACSMin(std::cin);
+	std::cout << "num sources: " << g.getSources().size() << std::endl;
 	flowsolver::CycleCancelling cc(g);
 	cc.run();
 	flowsolver::DIMACS::writeDIMACSMinFlow(g, std::cout);
