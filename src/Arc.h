@@ -48,7 +48,7 @@ public:
 		return initial_capacity;
 	}
 
-	uint64_t getFlow() const {
+	int64_t getFlow() const {
 		return getInitialCapacity() - getCapacity();
 	}
 

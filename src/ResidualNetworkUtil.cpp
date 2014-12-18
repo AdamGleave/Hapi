@@ -11,24 +11,33 @@
 
 namespace flowsolver {
 
-uint64_t ResidualNetworkUtil::augmentingFlow(std::queue<Arc *> path) {
-	uint64_t augmenting_flow = UINT64_MAX;
+uint64_t ResidualNetworkUtil::augmentingFlow
+							  (ResidualNetwork &g, std::queue<Arc *> path) {
+	uint32_t src_id = path.front()->getSrcId();
+	// TODO: delete?
+	/*uint64_t excess = g.getSupply(src_id);
+	std::unordered_map<uint32_t, Arc *> adjacencies = g.getAdjacencies(src_id);
+	std::unordered_map<uint32_t, Arc *>::iterator it;
+	for (it = adjacencies.begin(); it != adjacencies.end(); ++it) {
+		Arc *arc = it->second;
+		excess -= arc->getFlow();
+	}*/
+	uint64_t augmenting_flow = std::max(g.getSupply(src_id), 0l);
 
-	do {
+	while (!path.empty()) {
 		Arc *arc = path.front();
 		path.pop();
 
 		uint64_t capacity = arc->getCapacity();
 		augmenting_flow = std::min(augmenting_flow, capacity);
-
-	} while (!path.empty());
+	}
 
 	return augmenting_flow;
 }
 
 void ResidualNetworkUtil::augmentPath
 	 	 	 	 	 	  (ResidualNetwork &g, std::queue<Arc *> path) {
-	uint64_t flow = augmentingFlow(path);
+	uint64_t flow = augmentingFlow(g, path);
 
 	while (!path.empty()) {
 		Arc *arc = path.front();

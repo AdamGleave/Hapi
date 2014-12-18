@@ -19,6 +19,7 @@ class DIMACS {
 public:
 	static ResidualNetwork &readDIMACSMin(std::istream &);
 	static void writeDIMACSMin(const ResidualNetwork &, std::ostream &);
+	static void writeDIMACSMinFlow(const ResidualNetwork &, std::ostream &);
 };
 
 } /* namespace flowsolver */

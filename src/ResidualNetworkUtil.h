@@ -15,9 +15,9 @@
 namespace flowsolver {
 
 class ResidualNetworkUtil {
-	static uint64_t augmentingFlow(std::queue<Arc *>);
+	static uint64_t augmentingFlow(ResidualNetwork &, std::queue<Arc *>);
 public:
-	static void augmentPath(ResidualNetwork &g, std::queue<Arc *>);
+	static void augmentPath(ResidualNetwork &, std::queue<Arc *>);
 };
 
 } /* namespace flowsolver */

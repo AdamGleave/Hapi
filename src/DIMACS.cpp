@@ -123,4 +123,28 @@ void DIMACS::writeDIMACSMin(const ResidualNetwork &g, std::ostream &os) {
 	}
 }
 
+void DIMACS::writeDIMACSMinFlow(const ResidualNetwork &g, std::ostream &os) {
+	ResidualNetwork::const_iterator it;
+
+	uint64_t total_cost = 0;
+	for (it = g.begin(); it != g.end(); ++it) {
+		const Arc &arc = *it;
+		int64_t flow = arc.getFlow();
+		if (flow > 0) {
+			// ignore negative flows
+			total_cost += arc.getCost() * flow;
+		}
+	}
+	os << boost::format("s %lu\n") % total_cost;
+
+	for (it = g.begin(); it != g.end(); ++it) {
+		const Arc &arc = *it;
+		int64_t flow = arc.getFlow();
+		if (flow > 0) {
+			os << boost::format("f %u %u %lu\n")
+					  % arc.getSrcId() % arc.getDstId() % arc.getFlow();
+		}
+	}
+}
+
 } /* namespace flowsolver */

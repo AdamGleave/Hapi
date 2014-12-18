@@ -14,11 +14,14 @@
 #include "ResidualNetworkUtil.h"
 #include "EdmondsKarp.h"
 
+// TODO: debug
+#include <iostream>
+
 namespace flowsolver {
 
 EdmondsKarp::EdmondsKarp(ResidualNetwork &g) : g(g) {
 	numNodes = g.getNumNodes();
-	predecessors.resize(numNodes);
+	predecessors.resize(numNodes + 1);
 }
 
 void EdmondsKarp::run() {
@@ -38,7 +41,7 @@ std::queue<Arc *> EdmondsKarp::predecessorPath(uint32_t end) {
 	while (sources.count(cur) == 0) {
 		// cur not a source
 		prev = predecessors[cur];
-		Arc *arc = g.getAdjacencies(prev)[cur];
+		Arc *arc = g.getArc(prev, cur);
 		path.push_front(arc);
 		cur = prev;
 	}
@@ -52,33 +55,59 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 	// in the residual network (all augmenting paths)
 	const std::set<uint32_t> &sources = g.getSources();
 	const std::set<uint32_t> &sinks = g.getSinks();
+	// TODO: debug
+	std::set<uint32_t>::const_iterator it;
+	std::cout << sources.size() << std::endl;
+	for (it = sources.begin(); it != sources.end(); ++it) {
+		std::cout << *it << std::endl;
+	}
+	std::cout << "baz" << std::endl;
 	std::list<uint32_t> to_visit_list(sources.begin(), sources.end());
+	std::cout << "foo" << std::endl;
 	std::queue<uint32_t, std::list<uint32_t>> to_visit(to_visit_list);
+	std::cout << "bar" << std::endl;
 
 	// note ID 0 is unused
-	predecessors.assign(predecessors.size(), 0);
+	predecessors.assign(predecessors.size() + 1, 0);
 
 	while (!to_visit.empty()) {
 		uint32_t cur = to_visit.front();
+		std::cout << "Visited " << cur << std::endl;
 		to_visit.pop();
 		std::unordered_map<uint32_t, Arc*> adjacencies = g.getAdjacencies(cur);
 		std::unordered_map<uint32_t, Arc*>::iterator it;
 		for (it = adjacencies.begin(); it != adjacencies.end(); ++it) {
-			uint32_t next = it->first;
+			Arc *arc = it->second;
+			if (arc->getCapacity() == 0) {
+				// 0-capacity arcs are not really in the residual network,
+				// they're present in the data structure only to simplify
+				// the representation. Ignore.
+				continue;
+			}
+
+			uint32_t next = it->second->getDstId();
+			std::cout << "Adjacent: " << next << std::endl;
 			if (predecessors[next] == 0) {
+				// TODO: this does not handle back edges to sources
+				// A source may have already been visited, but still have
+				// predecessor zero.
+
 				// not already encountered next
 				predecessors[next] = cur;
 
 				if (sinks.count(next) > 0) {
 					// found path from source to sink
+					std::cout << "Found path terminating at " << next << std::endl;
 					return predecessorPath(next);
 				}
 
+				std::cout << "To visit: " << next << std::endl;
 				to_visit.push(next);
 			}
 		}
 	}
 
+	std::cout << "No augmenting paths found" << std::endl;
 	return std::queue<Arc *>();
 }
 
