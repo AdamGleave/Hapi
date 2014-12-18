@@ -11,70 +11,36 @@
 #include <utility>
 #include <cstring>
 
+#include "ResidualNetworkUtil.h"
 #include "EdmondsKarp.h"
 
 namespace flowsolver {
 
 EdmondsKarp::EdmondsKarp(ResidualNetwork &g) : g(g) {
 	numNodes = g.getNumNodes();
-	predecessors = std::vector<uint32_t>(numNodes);
+	predecessors.resize(numNodes);
 }
 
 void EdmondsKarp::run() {
-	for (uint32_t id = 1; id < numNodes; id++) {
-		int64_t supply = g.getSupply(id);
-		if (supply > 0) {
-			// source node
-			source.insert(id);
-		} else if (supply < 0) {
-			// sink node
-			sink.insert(id);
-		}
-	}
-
 	std::queue<Arc *> path;
 	while (!(path = bfs()).empty()) {
 		// whilst there is an augmenting path
-		uint64_t flow = augmenting_flow(path);
-
-		while (!path.empty()) {
-			Arc *arc = path.front();
-			path.pop();
-
-			uint32_t src = arc->getSrcId();
-			uint32_t dst = arc->getDstId();
-			// N.B. Must do this through ResidualNetwork rather than Arc
-			// directly, so that reverse arc is also updated
-			g.pushFlow(src, dst, flow);
-		}
+		ResidualNetworkUtil::augmentPath(g, path);
 	}
 }
 
-uint64_t EdmondsKarp::augmenting_flow(std::queue<Arc *> path) {
-	uint64_t augmenting_flow = UINT64_MAX;
-
-	do {
-		Arc *arc = path.front();
-		path.pop();
-
-		uint64_t capacity = arc->getCapacity();
-		augmenting_flow = std::min(augmenting_flow, capacity);
-
-	} while (!path.empty());
-
-	return augmenting_flow;
-}
-
-std::queue<Arc *> EdmondsKarp::predecessor_path(uint32_t end) {
+std::queue<Arc *> EdmondsKarp::predecessorPath(uint32_t end) {
 	std::deque<Arc *> path;
 	uint32_t cur, prev;
 	cur = end;
 
-	while (source.count(cur) == 0) {
+	const std::set<uint32_t> &sources = g.getSources();
+	while (sources.count(cur) == 0) {
 		// cur not a source
 		prev = predecessors[cur];
 		Arc *arc = g.getAdjacencies(prev)[cur];
 		path.push_front(arc);
+		cur = prev;
 	}
 
 	return std::queue<Arc *>(path);
@@ -84,7 +50,9 @@ std::queue<Arc *> EdmondsKarp::predecessor_path(uint32_t end) {
 std::queue<Arc *> EdmondsKarp::bfs() {
 	// Breadth First Search (BFS) to find all paths from a source to sink
 	// in the residual network (all augmenting paths)
-	std::list<uint32_t> to_visit_list(source.begin(), source.end());
+	const std::set<uint32_t> &sources = g.getSources();
+	const std::set<uint32_t> &sinks = g.getSinks();
+	std::list<uint32_t> to_visit_list(sources.begin(), sources.end());
 	std::queue<uint32_t, std::list<uint32_t>> to_visit(to_visit_list);
 
 	// note ID 0 is unused
@@ -101,9 +69,9 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 				// not already encountered next
 				predecessors[next] = cur;
 
-				if (sink.count(next) > 0) {
+				if (sinks.count(next) > 0) {
 					// found path from source to sink
-					return predecessor_path(next);
+					return predecessorPath(next);
 				}
 
 				to_visit.push(next);

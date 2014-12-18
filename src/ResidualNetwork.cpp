@@ -1,19 +1,10 @@
-/*
- * FlowNetwork.cpp
- *
- *  Created on: 16 Dec 2014
- *      Author: adam
- */
-
 #include "ResidualNetwork.h"
 
 #include <cassert>
 
-
 namespace flowsolver {
 
-ResidualNetwork::ResidualNetwork(uint32_t num_nodes) {
-	this->num_nodes = num_nodes;
+ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	// initialize all supply values to zero
 	this->supply = new int64_t[num_nodes]();
 	arcs.resize(num_nodes);
@@ -43,7 +34,27 @@ int64_t ResidualNetwork::getSupply(uint32_t id) const {
 void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
 	id--; // id's are 1-indexed
 	assert(id < this->num_nodes);
+
+	int64_t oldSupply = this->supply[id];
+	if (oldSupply < 0) {
+		sinks.erase(id);
+	} else if (oldSupply > 0) {
+		sources.erase(id);
+	}
 	this->supply[id] = supply;
+	if (supply < 0) {
+		sinks.insert(id);
+	} else if (supply > 0) {
+		sources.insert(id);
+	}
+}
+
+const std::set<uint32_t>& ResidualNetwork::getSinks() const {
+	return sinks;
+}
+
+const std::set<uint32_t>& ResidualNetwork::getSources() const {
+	return sources;
 }
 
 void ResidualNetwork::addEdge(uint32_t src, uint32_t dst,
