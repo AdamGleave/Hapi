@@ -1,4 +1,8 @@
 *.o
 tmp/
+dependencies/*
+lib/*
+include/*
 src/DIMACSEcho
 src/RunCycleCancelling
+cs2/cs2

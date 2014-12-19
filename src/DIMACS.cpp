@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 
+#include <glog/logging.h>
 #include <boost/format.hpp>
 
 #include "DIMACS.h"
@@ -20,12 +21,13 @@
 namespace flowsolver {
 
 ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
+	unsigned int line_num = 0;
 	std::string line;
 
 	ResidualNetwork *g = 0;
 	bool seen_node = false, seen_arc = false;
 	while (getline(is, line)) {
-		// TODO: how does this respond to blank lines in the file?
+		line_num++;
 
 		std::istringstream iss (line);
 
@@ -73,10 +75,9 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 			num_matches = sscanf(remainder, "%u %ld", &id, &supply);
 			assert(num_matches == 2);
 
-			if (g->getSupply(id) != 0) {
-				std::cerr << "WARNING: DIMACS redefines supply of node "
-						  << id << std::endl;
-			}
+			LOG_IF(WARNING, g->getSupply(id) != 0)
+				<< "Duplicate definition of node " << id
+				<< " at line " << line_num;
 
 			g->setSupply(id, supply);
 			break;
@@ -97,15 +98,16 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 			assert(lower_bound == 0);
 
 			if (g->getArc(src,dst) != 0) {
-				std::cerr << "WARNING: DIMACS attempts to redefine arc "
-						  << src << "->" << dst << std::endl;
+				LOG(WARNING) << "Duplicate definition of arc "
+							 << src << "->" << dst << " at line " << line_num;
 			} else {
 				g->addEdge(src, dst, upper_bound, cost);
 			}
 
 			break;
 		default:
-			assert(false);
+			LOG(FATAL) << "Unrecognized type " << type
+			 	 	   << " at line " << line_num;
 		}
 	}
 
