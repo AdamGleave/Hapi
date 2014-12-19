@@ -30,6 +30,7 @@ public:
 	void addEdge(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
 	std::unordered_map<uint32_t, Arc*> getAdjacencies(uint32_t src);
+	/* returns NULL if no such Arc present */
 	Arc *getArc(uint32_t src, uint32_t dst);
 	virtual ~ResidualNetwork();
 

@@ -1,5 +1,8 @@
 #include "ResidualNetwork.h"
 
+// TODO: debug
+#include <iostream>
+
 #include <cassert>
 
 namespace flowsolver {
@@ -70,6 +73,10 @@ void ResidualNetwork::addEdge(uint32_t src, uint32_t dst,
 	// indices in range
 	assert(src < this->num_nodes && dst < this->num_nodes);
 	// arc does not already exist in graph
+	// TODO: debug
+	if (arcs[src].count(dst) > 0) {
+		std::cerr << "ERROR: duplicate arc " << src << "->" << dst << std::endl;
+	}
 	assert(arcs[src].count(dst) == 0);
 	// forward arc
 	arcs[src][dst] = new Arc(src+1, dst+1, capacity, cost);
@@ -113,7 +120,12 @@ Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) {
 	src--;
 	dst--;
 	assert(src< this->num_nodes && dst < this->num_nodes);
-	return arcs[src][dst];
+	std::unordered_map<uint32_t, Arc*>::iterator arcIt = arcs[src].find(dst);
+	if (arcIt == arcs[src].end()) {
+		return 0;
+	} else {
+		return arcIt->second;
+	}
 }
 
 ResidualNetwork::~ResidualNetwork() {

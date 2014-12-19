@@ -73,6 +73,11 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 			num_matches = sscanf(remainder, "%u %ld", &id, &supply);
 			assert(num_matches == 2);
 
+			if (g->getSupply(id) != 0) {
+				std::cerr << "WARNING: DIMACS redefines supply of node "
+						  << id << std::endl;
+			}
+
 			g->setSupply(id, supply);
 			break;
 		case 'a':
@@ -90,7 +95,14 @@ ResidualNetwork &DIMACS::readDIMACSMin(std::istream &is) {
 			assert(num_matches == 5);
 
 			assert(lower_bound == 0);
-			g->addEdge(src, dst, upper_bound, cost);
+
+			if (g->getArc(src,dst) != 0) {
+				std::cerr << "WARNING: DIMACS attempts to redefine arc "
+						  << src << "->" << dst << std::endl;
+			} else {
+				g->addEdge(src, dst, upper_bound, cost);
+			}
+
 			break;
 		default:
 			assert(false);
