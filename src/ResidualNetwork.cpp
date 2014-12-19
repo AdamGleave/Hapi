@@ -2,6 +2,9 @@
 
 #include <cassert>
 
+// TODO: debug
+#include <iostream>
+
 namespace flowsolver {
 
 ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
@@ -101,6 +104,9 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 
 	updateSupply(src, -amount);
 	updateSupply(dst, amount);
+
+	// TODO: debug
+	std::cout << "Push " << amount << " from " << (src+1) << " to " << (dst+1) << std::endl;
 }
 
 std::unordered_map<uint32_t, Arc*> ResidualNetwork::getAdjacencies(uint32_t src) {

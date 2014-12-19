@@ -46,9 +46,12 @@ std::set<std::queue<Arc *>> BellmanFord::negativeCycles() {
 	ResidualNetwork::const_iterator graph_it;
 	for (graph_it = g.begin(); graph_it != g.end(); ++graph_it) {
 		const Arc &arc = *graph_it;
-		if (distance[arc.getDstId()] >
-			distance[arc.getSrcId()] + arc.getCost()) {
-			negative_cycle_nodes.insert(arc.getSrcId());
+		if (arc.getCapacity() > 0) {
+			// ignore 0-capacity arcs
+			if (distance[arc.getDstId()] >
+				distance[arc.getSrcId()] + arc.getCost()) {
+				negative_cycle_nodes.insert(arc.getSrcId());
+			}
 		}
 	}
 
@@ -101,17 +104,8 @@ std::set<std::queue<Arc *>> BellmanFord::negativeCycles() {
 }
 
 std::set<std::queue<Arc *>> BellmanFord::run() {
-	// TODO: if set to INT64_MAX, will overflow when calculating through_distance. Better fix?
-	distance.assign(numNodes + 1, INT64_MAX/2);
+	distance.assign(numNodes + 1, 0);
 	predecessors.assign(numNodes + 1, 0);
-
-	const std::set<uint32_t> &sources = g.getSources();
-	std::set<uint32_t>::const_iterator it;
-	for (it = sources.begin(); it != sources.end(); ++it) {
-		// all sources have zero distance
-		uint32_t id = *it;
-		distance[id - 1] = 0;
-	}
 
 	relaxRepeatedly();
 	return negativeCycles();

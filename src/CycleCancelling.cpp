@@ -29,7 +29,7 @@ void CycleCancelling::run() {
 	while (!(negative_cycles = bf.run()).empty()) {
 		for (cycle_it = negative_cycles.begin();
 			 cycle_it != negative_cycles.end(); ++cycle_it) {
-			ResidualNetworkUtil::augmentPath(g, *cycle_it);
+			ResidualNetworkUtil::cancelCycle(g, *cycle_it);
 		}
 	}
 }

@@ -1,3 +1,4 @@
 *.o
 tmp/
 src/DIMACSEcho
+src/RunCycleCancelling
