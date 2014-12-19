@@ -5,9 +5,6 @@
  *      Author: adam
  */
 
-//TODO: debug
-#include <iostream>
-
 #include "BellmanFord.h"
 
 namespace flowsolver {
@@ -73,11 +70,7 @@ std::set<std::queue<Arc *>> BellmanFord::negativeCycles() {
 		uint32_t cur, prev;
 		cur = cycle_start;
 
-		// TODO: debug
-		std::cout << "Start: " << cycle_start << std::endl;
 		do {
-			// TODO: debug
-			std::cout << cur << std::endl;
 			if (nodes_traversed.count(cur) > 0) {
 				// TODO: better way of handling this?
 				// we started from a place that's not in a cycle: abort

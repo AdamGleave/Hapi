@@ -8,8 +8,6 @@
 #include "ResidualNetworkUtil.h"
 #include "CycleCancelling.h"
 
-// TODO: debug
-#include <iostream>
 #include "DIMACS.h"
 
 namespace flowsolver {
@@ -18,9 +16,6 @@ void CycleCancelling::run() {
 	// calculate maximum flow (in general this is not a minimum cost flow)
 	EdmondsKarp ek(g);
 	ek.run();
-
-	// TODO: debug
-	DIMACS::writeDIMACSMinFlow(g, std::cout);
 
 	// whilst negative cycles in the residual network exist, cancel them
 	BellmanFord bf(g);
