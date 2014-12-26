@@ -37,8 +37,10 @@ public:
 	friend class const_noconst_iterator;
 
 	template<bool is_const_iterator = true>
-	class const_noconst_iterator :
-		  public std::iterator<std::forward_iterator_tag,Arc> {
+	class const_noconst_iterator : public std::iterator
+		  <std::forward_iterator_tag,
+		   typename std::conditional<is_const_iterator, const Arc, Arc>::type>
+	{
 	private:
 		typedef typename std::conditional
 				<is_const_iterator, const ResidualNetwork *, ResidualNetwork *>
@@ -54,6 +56,7 @@ public:
 						std::unordered_map<uint32_t, Arc*>::const_iterator,
 					    std::unordered_map<uint32_t, Arc*>::iterator>::type
 						MapIterator;
+		typename std::conditional<is_const_iterator, const Arc, Arc> value_type;
 
 		FlowNetworkType g;
 		VectorIterator vec_it;

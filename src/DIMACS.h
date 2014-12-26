@@ -17,22 +17,25 @@
 
 #include <glog/logging.h>
 #include <boost/format.hpp>
+#include <boost/concept/assert.hpp>
 
 #include "Arc.h"
+#include "Graph.h"
 
 namespace flowsolver {
 
-template<class Graph>
+template<class T>
 class DIMACS {
+	BOOST_CONCEPT_ASSERT((Graph<T>));
 	DIMACS() = delete;
 
 public:
 
-	static Graph &readDIMACSMin(std::istream &is) {
+	static T &readDIMACSMin(std::istream &is) {
 		unsigned int line_num = 0;
 		std::string line;
 
-		Graph *g = 0;
+		T *g = 0;
 		bool seen_node = false, seen_arc = false;
 		while (getline(is, line)) {
 			line_num++;
@@ -68,7 +71,7 @@ public:
 				assert(num_matches == 3);
 				assert(strcmp(problem, "min") == 0);
 
-				g = new Graph(num_nodes);
+				g = new T(num_nodes);
 				break;
 			case 'n':
 				// node descriptor line
@@ -123,7 +126,7 @@ public:
 		return *g;
 	}
 
-	static void writeDIMACSMin(const Graph &g, std::ostream &os) {
+	static void writeDIMACSMin(const T &g, std::ostream &os) {
 		uint32_t num_nodes = g.getNumNodes();
 		uint32_t num_arcs = g.getNumArcs();
 
@@ -139,7 +142,7 @@ public:
 		}
 
 		// arc descriptor lines
-		typename Graph::const_iterator it;
+		typename T::const_iterator it;
 		for (it = g.begin(); it != g.end(); ++it) {
 			const Arc &arc = *it;
 			os << boost::format("a %u %u 0 %lu %lu\n")
@@ -148,8 +151,8 @@ public:
 		}
 	}
 
-	static void writeDIMACSMinFlow(const Graph &g, std::ostream &os) {
-		typename Graph::const_iterator it;
+	static void writeDIMACSMinFlow(const T &g, std::ostream &os) {
+		typename T::const_iterator it;
 
 		uint64_t total_cost = 0;
 		for (it = g.begin(); it != g.end(); ++it) {

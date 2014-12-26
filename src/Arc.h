@@ -15,7 +15,7 @@ namespace flowsolver {
 class Arc {
 	uint32_t src_id, dst_id;
 	uint64_t capacity;
-	const uint64_t initial_capacity;
+	uint64_t initial_capacity;
 	int64_t cost;
 
 	void pushFlow(int64_t amount);
