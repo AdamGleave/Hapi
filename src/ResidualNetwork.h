@@ -27,7 +27,7 @@ public:
 	const std::set<uint32_t>& getSinks() const;
 	const std::set<uint32_t>& getSources() const;
 	void setSupply(uint32_t id, int64_t supply);
-	void addEdge(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
+	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
 	std::unordered_map<uint32_t, Arc*> getAdjacencies(uint32_t src);
 	/* returns NULL if no such Arc present */

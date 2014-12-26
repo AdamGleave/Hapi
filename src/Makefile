@@ -9,9 +9,9 @@ LDLIBS=-lgflags -lglog $(LIB_DIR)/libgtest.a
 
 all: DIMACSEcho RunCycleCancelling
 
-DIMACSEcho: DIMACSEcho.o DIMACS.o Arc.o ResidualNetwork.o
+DIMACSEcho: DIMACSEcho.o Arc.o ResidualNetwork.o
 
-RunCycleCancelling: RunCycleCancelling.o CycleCancelling.o EdmondsKarp.o BellmanFord.o Arc.o ResidualNetwork.o ResidualNetworkUtil.o DIMACS.o 
+RunCycleCancelling: RunCycleCancelling.o CycleCancelling.o EdmondsKarp.o BellmanFord.o Arc.o ResidualNetwork.o ResidualNetworkUtil.o
 
 %.o : %.cpp %.h
 	$(CPP) -c $(CPPFLAGS) $< -o $@

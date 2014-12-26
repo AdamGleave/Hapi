@@ -62,7 +62,7 @@ const std::set<uint32_t>& ResidualNetwork::getSources() const {
 	return sources;
 }
 
-void ResidualNetwork::addEdge(uint32_t src, uint32_t dst,
+void ResidualNetwork::addArc(uint32_t src, uint32_t dst,
 							  uint64_t capacity, int64_t cost) {
 	// id's are 1-indexed
 	src--;

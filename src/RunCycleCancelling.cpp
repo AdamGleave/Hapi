@@ -9,11 +9,13 @@
 #include "DIMACS.h"
 #include "ResidualNetwork.h"
 
+using namespace flowsolver;
+
 int main() {
-	flowsolver::ResidualNetwork g = flowsolver::DIMACS::readDIMACSMin(std::cin);
-	flowsolver::CycleCancelling cc(g);
+	ResidualNetwork g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
+	CycleCancelling cc(g);
 	cc.run();
-	flowsolver::DIMACS::writeDIMACSMinFlow(g, std::cout);
+	DIMACS<ResidualNetwork>::writeDIMACSMinFlow(g, std::cout);
 
 	return 0;
 }

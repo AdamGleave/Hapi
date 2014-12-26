@@ -9,12 +9,14 @@
 #include "DIMACS.h"
 #include "ResidualNetwork.h"
 
+using namespace flowsolver;
+
 int main(int argc, char *argv[]) {
 	google::InitGoogleLogging(argv[0]);
 	google::ParseCommandLineFlags(&argc, &argv, true);
 
-	flowsolver::ResidualNetwork g = flowsolver::DIMACS::readDIMACSMin(std::cin);
-	flowsolver::DIMACS::writeDIMACSMin(g, std::cout);
+	ResidualNetwork g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
+	DIMACS<ResidualNetwork>::writeDIMACSMin(g, std::cout);
 
 	return 0;
 }
