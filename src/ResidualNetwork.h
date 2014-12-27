@@ -12,7 +12,7 @@ namespace flowsolver {
 
 class ResidualNetwork {
 	uint32_t num_nodes;
-	int64_t *supply, *initial_supply;
+	std::vector<int64_t> balance, supply;
 	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
 	std::set<uint32_t> sources;
 	std::set<uint32_t> sinks;
@@ -22,8 +22,8 @@ public:
 	ResidualNetwork(uint32_t num_nodes);
 	uint32_t getNumNodes() const;
 	uint32_t getNumArcs() const;
+	int64_t getBalance(uint32_t id) const;
 	int64_t getSupply(uint32_t id) const;
-	int64_t getInitialSupply(uint32_t id) const;
 	const std::set<uint32_t>& getSinks() const;
 	const std::set<uint32_t>& getSources() const;
 	void setSupply(uint32_t id, int64_t supply);

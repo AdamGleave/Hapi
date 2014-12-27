@@ -86,7 +86,7 @@ public:
 				num_matches = sscanf(remainder, "%u %ld", &id, &supply);
 				assert(num_matches == 2);
 
-				LOG_IF(WARNING, g->getSupply(id) != 0)
+				LOG_IF(ERROR, g->getBalance(id) != 0)
 					<< "Duplicate definition of node " << id
 					<< " at line " << line_num;
 

@@ -6,8 +6,8 @@ namespace flowsolver {
 
 ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	// initialize all supply values to zero
-	this->supply = new int64_t[num_nodes]();
-	this->initial_supply = new int64_t[num_nodes]();
+	balance.resize(num_nodes);
+	supply.resize(num_nodes);
 	arcs.resize(num_nodes);
 }
 
@@ -26,16 +26,16 @@ uint32_t ResidualNetwork::getNumArcs() const {
 	return num_arcs;
 }
 
+int64_t ResidualNetwork::getBalance(uint32_t id) const {
+	id--; // id's are 1-indexed
+	assert(id < this->num_nodes);
+	return this->balance[id];
+}
+
 int64_t ResidualNetwork::getSupply(uint32_t id) const {
 	id--; // id's are 1-indexed
 	assert(id < this->num_nodes);
 	return this->supply[id];
-}
-
-int64_t ResidualNetwork::getInitialSupply(uint32_t id) const {
-	id--; // id's are 1-indexed
-	assert(id < this->num_nodes);
-	return this->initial_supply[id];
 }
 
 void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
@@ -44,9 +44,9 @@ void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
 
 	// can only set supply once
 	// (although may be modified via pushFlow)
-	assert(this->initial_supply[id] == 0);
+	assert(this->supply[id] == 0);
+	this->balance[id] = supply;
 	this->supply[id] = supply;
-	this->initial_supply[id] = supply;
 	if (supply < 0) {
 		sinks.insert(id + 1);
 	} else if (supply > 0) {
@@ -78,16 +78,16 @@ void ResidualNetwork::addArc(uint32_t src, uint32_t dst,
 }
 
 void ResidualNetwork::updateSupply(uint32_t index, int64_t delta) {
-	if (supply[index] > 0) {
+	if (balance[index] > 0) {
 		sources.erase(index + 1);
-	} else if (supply[index] < 0) {
+	} else if (balance[index] < 0) {
 		sinks.erase(index + 1);
 	}
 
-	supply[index] += delta;
-	if (supply[index] > 0) {
+	balance[index] += delta;
+	if (balance[index] > 0) {
 		sources.insert(index + 1);
-	} else if (supply[index] < 0) {
+	} else if (balance[index] < 0) {
 		sinks.insert(index + 1);
 	}
 }
@@ -122,9 +122,6 @@ Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) {
 }
 
 ResidualNetwork::~ResidualNetwork() {
-	delete this->supply;
-	delete this->initial_supply;
-
 	std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
 	for (vec_it = this->arcs.begin(); vec_it != this->arcs.end(); ++vec_it) {
 		std::unordered_map<uint32_t, Arc*>::iterator map_it;

@@ -43,9 +43,9 @@ void ResidualNetworkUtil::pushFlow
 void ResidualNetworkUtil::augmentPath
 	 	 	 	 	 	  (ResidualNetwork &g, std::queue<Arc *> path) {
 	uint32_t source_id = path.front()->getSrcId();
-	int64_t supply = g.getSupply(source_id);
+	int64_t supply = g.getBalance(source_id);
 	uint32_t sink_id = path.back()->getDstId();
-	int64_t demand = -g.getSupply(sink_id);
+	int64_t demand = -g.getBalance(sink_id);
 	int64_t supply_limit = std::min(demand, supply);
 	assert(supply_limit >= 0);
 

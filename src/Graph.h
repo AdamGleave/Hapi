@@ -27,7 +27,7 @@ public:
 		graph.addArc(1, 2, 42, 5);
 		flowsolver::Arc &arc = *graph.getArc(1,2);
 		graph.setSupply(1, 20);
-		int64_t supply = graph.getSupply(1);
+		int64_t supply = graph.getBalance(1);
 
 		// needed for DIMACS export
 		Graph::iterator it = graph.begin();
@@ -39,6 +39,5 @@ public:
 };
 
 }
-
 
 #endif /* GRAPH_H_ */
