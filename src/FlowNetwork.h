@@ -16,6 +16,8 @@ namespace flowsolver {
 class FlowNetwork {
 	uint32_t num_nodes;
 	std::vector<int64_t> balances;
+	// TODO: debug
+	std::vector<int64_t> initial_supply;
 	// TODO: better data structures?
 	// std::vector<std::vector<Arc *>> might actually be best
 	std::vector<std::forward_list<Arc *>> arcs;
@@ -31,8 +33,12 @@ public:
 	 */
 	Arc *getArc(uint32_t src, uint32_t dst);
 	std::forward_list<Arc *> &getAdjacencies(uint32_t src);
+	const std::forward_list<Arc *> &getAdjacencies(uint32_t src) const;
 	int64_t getBalance(uint32_t id) const;
 	void setSupply(uint32_t id, int64_t supply);
+
+	// TODO: debug
+	int64_t getInitialSupply(uint32_t id) const;
 
 	int64_t getResidualCapacity(Arc &arc, uint32_t src_id);
 	void pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);
@@ -127,15 +133,20 @@ public:
 					if (arc->getSrcId() == vec_index) {
 						// arcs[src][dst] copy
 						break;
+					} else {
+						// arcs[dst][src] copy
+						list_it++;
 					}
+				} else {
+					// end of map
+					// go on to next value in vector
+					vec_it++;
+					if (vec_it == g->arcs.end()) {
+						// no elements left to iterate over: end
+						break;
+					}
+					list_it = vec_it->begin();
 				}
-				// go on to next value in vector (may need to do this repeatedly)
-				vec_it++;
-				if (vec_it == g->arcs.end()) {
-					// no elements left to iterate over: end
-					break;
-				}
-				list_it = vec_it->begin();
 			}
 			return *this;
 		}

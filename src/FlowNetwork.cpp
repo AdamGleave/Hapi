@@ -9,6 +9,8 @@ FlowNetwork::FlowNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	// for simplicity, size all vectors as num_nodes + 1
 	balances.resize(num_nodes + 1);
 	arcs.resize(num_nodes + 1);
+	// TODO: debug
+	initial_supply.resize(num_nodes + 1);
 }
 
 uint32_t FlowNetwork::getNumNodes() const {
@@ -42,18 +44,28 @@ std::forward_list<Arc *> &FlowNetwork::getAdjacencies(uint32_t src) {
 	return arcs[src];
 }
 
+const std::forward_list<Arc *> &FlowNetwork::getAdjacencies(uint32_t src) const {
+	return arcs[src];
+}
+
 int64_t FlowNetwork::getBalance(uint32_t id) const {
 	assert(id != 0);
 	return balances[id];
 }
 
 void FlowNetwork::setSupply(uint32_t id, int64_t supply) {
-	// mode must be uninitialized so far
+	// node must be uninitialized so far
 	// (this won't catch all cases, node could have zero balance despite
 	// non-zero initial supply if flow has been pushed)
 	assert(balances[id] == 0);
 
 	balances[id] = supply;
+	// TODO: debug
+	initial_supply[id] = supply;
+}
+
+int64_t FlowNetwork::getInitialSupply(uint32_t id) const {
+	return initial_supply[id];
 }
 
 int64_t FlowNetwork::getResidualCapacity(Arc& arc, uint32_t src_id) {

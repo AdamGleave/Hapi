@@ -20,7 +20,7 @@ class CostScaling {
 	// returns true if potential of id increases
 	bool pushOrUpdate(uint32_t id);
 	// returns true if potential of id increases
-	bool discharge(uint32_t id, std::forward_list<uint32_t>::iterator before);
+	bool discharge(uint32_t id);
 	void refine();
 public:
 	CostScaling(FlowNetwork &g);

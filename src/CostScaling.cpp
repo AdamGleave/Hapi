@@ -8,6 +8,54 @@
 
 namespace flowsolver {
 
+int64_t compute_balance(const FlowNetwork &g, uint32_t id) {
+	const std::forward_list<Arc *> &adjacencies = g.getAdjacencies(id);
+	std::forward_list<Arc *>::const_iterator it;
+	int64_t flow_sum = g.getInitialSupply(id);
+	for (it = adjacencies.begin(); it != adjacencies.end(); ++it) {
+		Arc *arc = *it;
+		if (arc->getSrcId() == id) {
+			// forwards arc
+			flow_sum -= arc->getFlow();
+		} else if (arc->getDstId() == id) {
+			// reverse arc
+			flow_sum += arc->getFlow();
+		} else {
+			assert(false);
+		}
+	}
+	return flow_sum;
+}
+
+void check_invariants(const FlowNetwork &g, bool circulation_expected) {
+	bool active_seen = false;
+	int64_t balance_sum = 0;
+	for (size_t i = 1; i <= g.getNumNodes(); i++) {
+		int64_t balance = g.getBalance(i);
+		if (balance > 0) {
+			active_seen = true;
+		}
+		int64_t computed_balance = compute_balance(g, i);
+		LOG_IF(WARNING, balance != computed_balance)
+				<< boost::format("computed balance %ld != actual balance %ld")
+				% computed_balance % balance;
+		balance_sum += balance;
+	}
+	LOG_IF(WARNING, balance_sum != 0) << "balance sum " << balance_sum;
+	LOG_IF(WARNING, active_seen && circulation_expected)
+			<< "active vertex when circulation expected";
+
+	FlowNetwork::const_iterator it;
+	for (it = g.begin(); it != g.end(); ++it) {
+		const Arc &arc = *it;
+		uint64_t capacity = arc.getCapacity();
+		uint64_t initial_capacity = arc.getInitialCapacity();
+		LOG_IF(WARNING, capacity > initial_capacity)
+			<< boost::format("%u->%u: %lu > %lu")
+			% arc.getSrcId() % arc.getDstId() % capacity % initial_capacity;
+	}
+}
+
 CostScaling::CostScaling(FlowNetwork &g) : g(g) {
 	uint32_t num_nodes = g.getNumNodes();
 
@@ -17,19 +65,23 @@ CostScaling::CostScaling(FlowNetwork &g) : g(g) {
 }
 
 int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
+	uint32_t dst_id;
+	int64_t cost;
 	if (arc.getSrcId() == src_id) {
 		// forwards arc
-		uint32_t dst_id = arc.getDstId();
-		return arc.getCost() - potentials[src_id] + potentials[dst_id];
+		dst_id = arc.getDstId();
+		cost = arc.getCost();
+
 	} else if (arc.getDstId() == src_id) {
 		// reverse arc
-		uint32_t dst_id = arc.getSrcId();
-		return -arc.getCost() - potentials[src_id] + potentials[dst_id];
+		dst_id = arc.getSrcId();
+		cost = -arc.getCost();
 	} else {
 		assert(false);
 		// NOREACH
 		return 0;
 	}
+	return cost - potentials[src_id] + potentials[dst_id];
 }
 
 void CostScaling::relabel(uint32_t id) {
@@ -102,19 +154,15 @@ bool CostScaling::pushOrUpdate(uint32_t id) {
 
 
 // precondition: *it is active
-bool CostScaling::discharge(uint32_t id,
-		 	 	 	 	 	std::forward_list<uint32_t>::iterator before) {
-	bool relabel_performed = false;
+bool CostScaling::discharge(uint32_t id) {
 	do {
-		relabel_performed = pushOrUpdate(id);
+		bool relabel_performed = pushOrUpdate(id);
 		if (relabel_performed) {
-			vertices.erase_after(before);
-			vertices.push_front(id);
-			break;
+			return true;
 		}
 	} while (g.getBalance(id) > 0);
 
-	return relabel_performed;
+	return false;
 }
 
 void CostScaling::refine() {
@@ -158,18 +206,27 @@ void CostScaling::refine() {
 	bool active_seen;
 	do {
 		active_seen = false;
-		for (prev = vertices.before_begin(), it = vertices.begin();
-			 it != vertices.end();
-			 prev = it, ++it) {
+
+		prev = vertices.before_begin();
+		it = vertices.begin();
+		while (it != vertices.end()) {
 			uint32_t id = *it;
+			bool relabel_performed = false;
+
 			if (g.getBalance(id) > 0) {
 				active_seen = true;
-				bool relabel_performed = discharge(id, prev);
-				if (relabel_performed) {
-					// must perform a fresh pass from beginning of
-					// the vertices list
-					break;
-				}
+				relabel_performed = discharge(id);
+			}
+
+			if (relabel_performed) {
+				vertices.push_front(id);
+				it = vertices.erase_after(prev);
+				// note prev remains unchanged: the iterator returned by
+				// erase_after(prev) points to the same index in the list as
+				// *it had originally (since it erases *it)
+			} else {
+				prev = it;
+				++it;
 			}
 		}
 	} while (active_seen);
@@ -193,7 +250,9 @@ bool CostScaling::run() {
 	// to determine feasibility. Worth seeing if there's any performance
 	// benefit to starting with a max-flow algorithm, however.
 
+	check_invariants(g, false);
 	refine();
+	check_invariants(g, true);
 	// potential increase is at most 3*num_nodes*epsilon iff. there is a
 	// feasible flow
 	uint32_t num_nodes = g.getNumNodes();
@@ -213,6 +272,7 @@ bool CostScaling::run() {
 		}
 		epsilon = new_epsilon;
 		refine();
+		check_invariants(g, true);
 	}
 	return true;
 }

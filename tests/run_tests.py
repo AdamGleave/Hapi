@@ -12,6 +12,7 @@ TEST_GRAPHS = ["small_graph_neg_costs.in",
                "small_graph.in",
                "graph_4m_2crs_8j.in",
                "graph_4m_2crs_10j.in",
+               "stndrd2.in",
                "graph_100m_8j_100t_10p.in"
                ]
 
