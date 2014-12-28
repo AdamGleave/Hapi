@@ -62,7 +62,7 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 	while (!to_visit.empty()) {
 		uint32_t cur = to_visit.front();
 		to_visit.pop();
-		std::unordered_map<uint32_t, Arc*> adjacencies = g.getAdjacencies(cur);
+		std::unordered_map<uint32_t, Arc*> &adjacencies = g.getAdjacencies(cur);
 		std::unordered_map<uint32_t, Arc*>::iterator it;
 		for (it = adjacencies.begin(); it != adjacencies.end(); ++it) {
 			Arc *arc = it->second;

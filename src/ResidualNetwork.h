@@ -29,10 +29,9 @@ public:
 	void setSupply(uint32_t id, int64_t supply);
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
-	std::unordered_map<uint32_t, Arc*> getAdjacencies(uint32_t src);
+	std::unordered_map<uint32_t, Arc*> &getAdjacencies(uint32_t src);
 	/* returns NULL if no such Arc present */
 	Arc *getArc(uint32_t src, uint32_t dst);
-	virtual ~ResidualNetwork();
 
 	friend class const_noconst_iterator;
 
@@ -151,6 +150,8 @@ public:
 	const_iterator begin() const { return const_iterator(this); }
 	iterator end() { return iterator(this, true); }
 	const_iterator end() const { return const_iterator(this, true); }
+
+	virtual ~ResidualNetwork();
 };
 
 } /* namespace flowsolver */
