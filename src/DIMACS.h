@@ -163,8 +163,6 @@ public:
 				// ignore negative flows
 				total_cost += arc.getCost() * flow;
 			}
-			// TODO: debug -- this should only for CostScaling
-			assert(flow >= 0);
 		}
 		// TODO: This works OK for CostScaling but is now broken for CycleCancelling;
 		// fix this in a more generic way.

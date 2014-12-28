@@ -1,17 +1,17 @@
 #include <cassert>
 #include <algorithm>
 
-#include "CostScaling.h"
+#include <glog/logging.h>
 
-// TODO: debug
-#include "DIMACS.h"
+#include "CostScaling.h"
 
 namespace flowsolver {
 
-int64_t compute_balance(const FlowNetwork &g, uint32_t id) {
+int64_t compute_balance(const FlowNetwork &g,
+						std::vector<int64_t> initial_supply, uint32_t id) {
 	const std::forward_list<Arc *> &adjacencies = g.getAdjacencies(id);
 	std::forward_list<Arc *>::const_iterator it;
-	int64_t flow_sum = g.getInitialSupply(id);
+	int64_t flow_sum = initial_supply[id];
 	for (it = adjacencies.begin(); it != adjacencies.end(); ++it) {
 		Arc *arc = *it;
 		if (arc->getSrcId() == id) {
@@ -27,7 +27,8 @@ int64_t compute_balance(const FlowNetwork &g, uint32_t id) {
 	return flow_sum;
 }
 
-void check_invariants(const FlowNetwork &g, bool circulation_expected) {
+void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
+					  bool circulation_expected) {
 	bool active_seen = false;
 	int64_t balance_sum = 0;
 	for (size_t i = 1; i <= g.getNumNodes(); i++) {
@@ -35,7 +36,7 @@ void check_invariants(const FlowNetwork &g, bool circulation_expected) {
 		if (balance > 0) {
 			active_seen = true;
 		}
-		int64_t computed_balance = compute_balance(g, i);
+		int64_t computed_balance = compute_balance(g, initial_supply, i);
 		LOG_IF(WARNING, balance != computed_balance)
 				<< boost::format("computed balance %ld != actual balance %ld")
 				% computed_balance % balance;
@@ -166,10 +167,6 @@ bool CostScaling::discharge(uint32_t id) {
 }
 
 void CostScaling::refine() {
-	// TODO: debug
-	std::cout << "epsilon: " << epsilon << std::endl;
-	DIMACS<FlowNetwork>::writeDIMACSMinFlow(g, std::cout);
-
 	uint32_t num_nodes = g.getNumNodes();
 
 	/*** initialization ***/
@@ -250,9 +247,7 @@ bool CostScaling::run() {
 	// to determine feasibility. Worth seeing if there's any performance
 	// benefit to starting with a max-flow algorithm, however.
 
-	check_invariants(g, false);
 	refine();
-	check_invariants(g, true);
 	// potential increase is at most 3*num_nodes*epsilon iff. there is a
 	// feasible flow
 	uint32_t num_nodes = g.getNumNodes();
@@ -272,7 +267,6 @@ bool CostScaling::run() {
 		}
 		epsilon = new_epsilon;
 		refine();
-		check_invariants(g, true);
 	}
 	return true;
 }

@@ -5,10 +5,6 @@
 #include <vector>
 #include <forward_list>
 
-// TOOD: debug
-#include <iostream>
-#include <boost/format.hpp>
-
 #include "Arc.h"
 
 namespace flowsolver {
@@ -16,8 +12,6 @@ namespace flowsolver {
 class FlowNetwork {
 	uint32_t num_nodes;
 	std::vector<int64_t> balances;
-	// TODO: debug
-	std::vector<int64_t> initial_supply;
 	// TODO: better data structures?
 	// std::vector<std::vector<Arc *>> might actually be best
 	std::vector<std::forward_list<Arc *>> arcs;
@@ -36,9 +30,6 @@ public:
 	const std::forward_list<Arc *> &getAdjacencies(uint32_t src) const;
 	int64_t getBalance(uint32_t id) const;
 	void setSupply(uint32_t id, int64_t supply);
-
-	// TODO: debug
-	int64_t getInitialSupply(uint32_t id) const;
 
 	int64_t getResidualCapacity(Arc &arc, uint32_t src_id);
 	void pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);
@@ -73,30 +64,12 @@ public:
 		ListIterator list_it;
 
 	public:
-		// TODO: debug
-		/*void print_state(const char *prefix) {
-			std::cout << prefix << ":";
-			if (vec_it == g->arcs.end()) {
-				std::cout << "vec END" << std::endl;
-			} else {
-				if (list_it == vec_it->end()) {
-					std::cout << boost::format("vec %x list END\n")
-								 % &(*vec_it);
-				} else {
-					std::cout << boost::format("vec %x list %x\n")
-								 % &(*vec_it) % &(*list_it);
-				}
-			}
-		}*/
-
 		const_noconst_iterator() : g(0) { }
 
 		const_noconst_iterator(FlowNetworkType g) : g(g) {
 			vec_it = g->arcs.begin();
 			list_it = vec_it->before_begin();
-			//print_state("cons1");
 			++(*this);
-			//print_state("cons2");
 		}
 
 		const_noconst_iterator(FlowNetworkType g, bool) : g(g) {
