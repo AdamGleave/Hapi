@@ -5,4 +5,5 @@ lib/
 include/
 src/DIMACSEcho
 src/RunCycleCancelling
+src/RunCostScaling
 cs2/cs2
