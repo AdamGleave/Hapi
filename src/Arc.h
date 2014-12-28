@@ -19,9 +19,6 @@ class Arc {
 	int64_t cost;
 
 	void pushFlow(int64_t amount);
-	// TODO: Storing src and dst ID is redundant, already included in the
-	// data structure the arcs are stored in. However, need to be able to
-	// access it when returned in iterator. May want to refactor this.
 public:
 	Arc(uint32_t src_id, uint32_t dst_id, uint64_t capacity, int64_t cost) :
 		src_id(src_id), dst_id(dst_id), capacity(capacity),

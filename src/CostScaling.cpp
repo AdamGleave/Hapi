@@ -105,7 +105,6 @@ void CostScaling::relabel(uint32_t id) {
 			// reverse arc
 			dst_id = arc->getSrcId();
 			cost = -arc->getCost();
-			// TODO: This logic is duplicated from inside FlowNetwork
 			capacity = arc->getInitialCapacity() - arc->getCapacity();
 		} else {
 			assert(false);
@@ -175,8 +174,8 @@ void CostScaling::refine() {
 	// bring all edges in kilter
 	for (FlowNetwork::iterator it = g.begin(); it != g.end(); ++it) {
 		Arc &arc = *it;
-		// TODO: This will always be a forwards arc, can optimize this
-		int64_t reduced_cost = reducedCost(arc, arc.getSrcId());
+		int64_t reduced_cost = (arc.getCost() * SCALING_FACTOR)
+					- potentials[arc.getSrcId()] + potentials[arc.getDstId()];
 		if (reduced_cost < 0) {
 			g.pushFlow(arc, arc.getSrcId(), arc.getCapacity());
 		} else if (reduced_cost > 0) {
@@ -262,12 +261,28 @@ bool CostScaling::run() {
 	}
 
 	while (epsilon > 1) {
-		uint64_t new_epsilon = epsilon / 2;
-		// TODO: Does this actually matter?
-		if (new_epsilon * 2 < epsilon) {
-			new_epsilon++;
-		}
-		epsilon = new_epsilon;
+		/*
+		 * The below computation will decrease epsilon by (slightly) more than
+		 * a factor of two when epsilon is odd, since integer division truncates
+		 * (rounds towards zero).
+		 *
+		 * The asymptotic complexity bound continues to hold, however, so this
+		 * is harmless. Using the Goldberg & Tarjan (1987) paper, by lemma 6.2
+		 * the maximum price update per vertex is n*(old_epsilon + new_epsilon).
+		 * Applying lemma 5.2 (price increases by at least epsilon per relabel),
+		 * we arrive at the number of relabels being at most
+		 * n^2*(old_epsilon + new_epsilon)/new_epsilon.
+		 *
+		 * new_epsilon is at most old_epsilon/2 and at least (old_epsilon - 1)/2.
+		 * So the number of relabels is at most
+		 * n^2*3/2*old_epsilon/[(old_epsilon-1)/2] = n^2*3*old_epsilon/(old_epsilon-1).
+		 *
+		 * For most rounds this is practically identical to 3n^2, the bound
+		 * given in the paper. For the lattermost round when old_epsilon=2, this
+		 * increases to 6n^2, however this still does not change the asymptotic
+		 * result.
+		 */
+		epsilon = std::max(1ul, epsilon / 2);
 		refine();
 	}
 	return true;

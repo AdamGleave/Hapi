@@ -12,8 +12,6 @@ namespace flowsolver {
 class FlowNetwork {
 	uint32_t num_nodes;
 	std::vector<int64_t> balances;
-	// TODO: better data structures?
-	// std::vector<std::vector<Arc *>> might actually be best
 	std::vector<std::forward_list<Arc *>> arcs;
 public:
 	FlowNetwork(uint32_t num_nodes);
