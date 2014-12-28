@@ -7,11 +7,14 @@ LIB_DIR=$(BASE_DIR)/lib
 CPPFLAGS = -Wall -Wextra -ansi -pedantic -std=c++11 -isystem $(INCLUDE_DIR) $(DEBUG)
 LDLIBS=-lgflags -lglog $(LIB_DIR)/libgtest.a
 
-all: DIMACSEcho RunCycleCancelling
+.PHONY:all
+all: DIMACSEcho RunCycleCancelling RunCostScaling
 
 DIMACSEcho: DIMACSEcho.o Arc.o ResidualNetwork.o
 
 RunCycleCancelling: RunCycleCancelling.o CycleCancelling.o EdmondsKarp.o BellmanFord.o Arc.o ResidualNetwork.o ResidualNetworkUtil.o
+
+RunCostScaling: RunCostScaling.o CostScaling.o Arc.o FlowNetwork.o 
 
 %.o : %.cpp %.h
 	$(CPP) -c $(CPPFLAGS) $< -o $@

@@ -31,7 +31,7 @@ class DIMACS {
 
 public:
 
-	static T &readDIMACSMin(std::istream &is) {
+	static T *readDIMACSMin(std::istream &is) {
 		unsigned int line_num = 0;
 		std::string line;
 
@@ -123,7 +123,7 @@ public:
 			}
 		}
 
-		return *g;
+		return g;
 	}
 
 	static void writeDIMACSMin(const T &g, std::ostream &os) {

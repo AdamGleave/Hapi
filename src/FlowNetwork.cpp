@@ -27,7 +27,7 @@ void FlowNetwork::addArc(uint32_t src, uint32_t dst,
 
 Arc* FlowNetwork::getArc(uint32_t src, uint32_t dst) {
 	assert(src != 0 && dst != 0);
-	std::forward_list<Arc *> arc_it;
+	std::forward_list<Arc *>::iterator arc_it;
 	for (arc_it = arcs[src].begin(); arc_it != arcs[src].end(); ++arc_it) {
 		Arc *arc = *arc_it;
 		if ((arc->getSrcId() == src && arc->getDstId() == dst)
@@ -56,13 +56,13 @@ void FlowNetwork::setSupply(uint32_t id, int64_t supply) {
 	balances[id] = supply;
 }
 
-int64_t FlowNetwork::getResidualCapacity(Arc* arc, uint32_t src_id) {
-	if (arc->getSrcId() == src_id) {
+int64_t FlowNetwork::getResidualCapacity(Arc& arc, uint32_t src_id) {
+	if (arc.getSrcId() == src_id) {
 		// arc is forwards
-		return arc->getCapacity();
-	} else if (arc->getDstId() == src_id) {
+		return arc.getCapacity();
+	} else if (arc.getDstId() == src_id) {
 		// arc is reverse
-		return arc->getInitialCapacity() - arc->getCapacity();
+		return arc.getInitialCapacity() - arc.getCapacity();
 	} else {
 		assert(false);
 		// NOREACH
@@ -70,16 +70,16 @@ int64_t FlowNetwork::getResidualCapacity(Arc* arc, uint32_t src_id) {
 	}
 }
 
-void FlowNetwork::pushFlow(Arc* arc, uint32_t src_id, uint64_t flow) {
+void FlowNetwork::pushFlow(Arc& arc, uint32_t src_id, uint64_t flow) {
 	uint32_t dst_id = -1;
-	if (arc->getSrcId() == src_id) {
+	if (arc.getSrcId() == src_id) {
 		// arc is forwards
-		arc->pushFlow(flow);
-		dst_id = arc->getDstId();
-	} else if (arc->getDstId() == src_id) {
+		arc.pushFlow(flow);
+		dst_id = arc.getDstId();
+	} else if (arc.getDstId() == src_id) {
 		// arc is reverse
-		arc->pushFlow(-flow);
-		dst_id = arc->getSrcId();
+		arc.pushFlow(-flow);
+		dst_id = arc.getSrcId();
 	} else {
 		assert(false);
 	}
@@ -89,7 +89,7 @@ void FlowNetwork::pushFlow(Arc* arc, uint32_t src_id, uint64_t flow) {
 
 FlowNetwork::~FlowNetwork() {
 	for (iterator it = begin(); it != end(); ++it) {
-		Arc *arc = *it;
+		Arc *arc = &(*it);
 		delete arc;
 	}
 }

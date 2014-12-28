@@ -2,7 +2,12 @@
 #define FLOWNETWORK_H_
 
 #include <cinttypes>
+#include <vector>
 #include <forward_list>
+
+// TOOD: debug
+#include <iostream>
+#include <boost/format.hpp>
 
 #include "Arc.h"
 
@@ -29,8 +34,8 @@ public:
 	int64_t getBalance(uint32_t id) const;
 	void setSupply(uint32_t id, int64_t supply);
 
-	int64_t getResidualCapacity(Arc *arc, uint32_t src_id);
-	void pushFlow(Arc *arc, uint32_t src_id, uint64_t flow);
+	int64_t getResidualCapacity(Arc &arc, uint32_t src_id);
+	void pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);
 
 	// iterator
 	friend class const_noconst_iterator;
@@ -62,16 +67,35 @@ public:
 		ListIterator list_it;
 
 	public:
+		// TODO: debug
+		/*void print_state(const char *prefix) {
+			std::cout << prefix << ":";
+			if (vec_it == g->arcs.end()) {
+				std::cout << "vec END" << std::endl;
+			} else {
+				if (list_it == vec_it->end()) {
+					std::cout << boost::format("vec %x list END\n")
+								 % &(*vec_it);
+				} else {
+					std::cout << boost::format("vec %x list %x\n")
+								 % &(*vec_it) % &(*list_it);
+				}
+			}
+		}*/
+
 		const_noconst_iterator() : g(0) { }
 
 		const_noconst_iterator(FlowNetworkType g) : g(g) {
 			vec_it = g->arcs.begin();
-			list_it = vec_it->begin();
+			list_it = vec_it->before_begin();
+			//print_state("cons1");
+			++(*this);
+			//print_state("cons2");
 		}
 
 		const_noconst_iterator(FlowNetworkType g, bool) : g(g) {
 			// for end sentinel
-			list_it = g->arcs.end();
+			vec_it = g->arcs.end();
 		}
 
 		// Copy constructor. Implicit conversion from regular iterator to
@@ -80,19 +104,32 @@ public:
 			g(other.g), vec_it(other.vec_it), list_it(other.list_it) {}
 
 		ArcType &operator*() const {
-			return *list_it;
+			return **list_it;
 		}
 
 		ArcType *operator->() const {
-			return &(*list_it);
+			return *list_it;
 		}
 
 		const_noconst_iterator<is_const_iterator> operator++() {
+			/*
+			 * Note each Arc is stored twice: in arcs[src][dst]
+			 * and arcs[dst][src]. We want to return each Arc exactly once,
+			 * so only return the arcs[src][dst] copy.
+			 */
 			list_it++;
 			// prefix operator
-			while (list_it == vec_it->end()) {
-				// end of map, go on to next value in vector
-				// (may need to do this repeatedly if maps are empty)
+			while (true) {
+				if (list_it != vec_it->end()) {
+					// not end of map
+					Arc *arc = *list_it;
+					uint32_t vec_index = vec_it - g->arcs.begin();
+					if (arc->getSrcId() == vec_index) {
+						// arcs[src][dst] copy
+						break;
+					}
+				}
+				// go on to next value in vector (may need to do this repeatedly)
 				vec_it++;
 				if (vec_it == g->arcs.end()) {
 					// no elements left to iterate over: end

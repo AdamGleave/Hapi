@@ -1,12 +1,9 @@
 #include <cassert>
+#include <algorithm>
 
 #include "CostScaling.h"
 
 namespace flowsolver {
-
-bool costCompare(Arc *i, Arc *j) {
-	return i->getCost() < j->getCost();
-}
 
 CostScaling::CostScaling(FlowNetwork &g) : g(g) {
 	uint32_t num_nodes = g.getNumNodes();
@@ -16,15 +13,15 @@ CostScaling::CostScaling(FlowNetwork &g) : g(g) {
 	epsilon = 0;
 }
 
-int64_t CostScaling::reducedCost(Arc *arc, uint32_t src_id) {
-	if (arc->getSrcId() == src_id) {
+int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
+	if (arc.getSrcId() == src_id) {
 		// forwards arc
-		uint32_t dst_id = arc->getDstId();
-		return arc->getCost() - potentials[src_id] + potentials[dst_id];
-	} else if (arc->getDstId() == src_id) {
+		uint32_t dst_id = arc.getDstId();
+		return arc.getCost() - potentials[src_id] + potentials[dst_id];
+	} else if (arc.getDstId() == src_id) {
 		// reverse arc
-		uint32_t dst_id = arc->getSrcId();
-		return -arc->getCost() - potentials[src_id] + potentials[dst_id];
+		uint32_t dst_id = arc.getSrcId();
+		return -arc.getCost() - potentials[src_id] + potentials[dst_id];
 	} else {
 		assert(false);
 		// NOREACH
@@ -33,28 +30,35 @@ int64_t CostScaling::reducedCost(Arc *arc, uint32_t src_id) {
 }
 
 void CostScaling::relabel(uint32_t id) {
-	std::forward_list<uint32_t> &adjacencies = g.getAdjacencies(id);
-	std::forward_list<uint32_t>::iterator it;
+	std::forward_list<Arc *> &adjacencies = g.getAdjacencies(id);
+	std::forward_list<Arc *>::iterator it;
 	int64_t new_potential = INT64_MAX;
 	for (it = adjacencies.begin(); it != adjacencies.end(); ++it) {
 		Arc *arc = *it;
 
 		int64_t cost;
 		uint32_t dst_id;
+		uint64_t capacity;
 		if (arc->getSrcId() == id) {
 			// forwards arc
 			dst_id = arc->getDstId();
 			cost = arc->getCost();
+			capacity = arc->getCapacity();
 		} else if (arc->getDstId() == id) {
 			// reverse arc
 			dst_id = arc->getSrcId();
 			cost = -arc->getCost();
+			// TODO: This logic is duplicated from inside FlowNetwork
+			capacity = arc->getInitialCapacity() - arc->getCapacity();
 		} else {
 			assert(false);
 		}
 
-		int64_t potential = potentials[dst_id] + cost + epsilon;
-		new_potential = std::min(new_potential, potential);
+		if (capacity > 0) {
+			// arc is in residual network
+			int64_t potential = potentials[dst_id] + cost + epsilon;
+			new_potential = std::min(new_potential, potential);
+		}
 	}
 	potentials[id] = new_potential;
 }
@@ -62,7 +66,7 @@ void CostScaling::relabel(uint32_t id) {
 // precondition: id is active
 // returns true if relabel occurs
 bool CostScaling::pushOrUpdate(uint32_t id) {
-	Arc *current_edge = *current_edges[id];
+	Arc &current_edge = **current_edges[id];
 
 	// if push is applicable, then apply it
 	// precondition for push is: id active (always satisfied);
@@ -74,15 +78,15 @@ bool CostScaling::pushOrUpdate(uint32_t id) {
 			// apply push
 			uint64_t flow = std::min(residual_capacity, g.getBalance(id));
 			g.pushFlow(current_edge, id, flow);
+			return false;
 		}
-		return false;
 	}
 
 	// push not applicable
-	std::forward_list<uint32_t> &adjacencies = g.getAdjacencies(id);
+	std::forward_list<Arc *> &adjacencies = g.getAdjacencies(id);
+	++current_edges[id];
 	if (current_edges[id] != adjacencies.end()) {
-		// not the last edge in list; update to next
-		++current_edges[id];
+		// not the last edge in list
 		return false;
 	} else {
 		// last edge in the list
@@ -95,14 +99,14 @@ bool CostScaling::pushOrUpdate(uint32_t id) {
 
 
 // precondition: *it is active
-bool CostScaling::discharge(std::forward_list<uint32_t>::iterator it) {
+bool CostScaling::discharge(uint32_t id,
+		 	 	 	 	 	std::forward_list<uint32_t>::iterator before) {
 	bool relabel_performed = false;
-	uint32_t id = *it;
 	do {
 		relabel_performed = pushOrUpdate(id);
 		if (relabel_performed) {
+			vertices.erase_after(before);
 			vertices.push_front(id);
-			vertices.erase_after(it);
 			break;
 		}
 	} while (g.getBalance(id) > 0);
@@ -116,10 +120,10 @@ void CostScaling::refine() {
 	/*** initialization ***/
 	// bring all edges in kilter
 	for (FlowNetwork::iterator it = g.begin(); it != g.end(); ++it) {
-		Arc *arc = *it;
+		Arc &arc = *it;
 		// TODO: This will always be a forwards arc, can optimize this
-		if (reducedCost(arc, arc->getSrcId()) < 0) {
-			g.pushFlow(arc, arc->getSrcId(), arc->getCapacity());
+		if (reducedCost(arc, arc.getSrcId()) < 0) {
+			g.pushFlow(arc, arc.getSrcId(), arc.getCapacity());
 		}
 	}
 
@@ -139,13 +143,17 @@ void CostScaling::refine() {
 	}
 
 	/*** main loop */
-	std::forward_list<uint32_t>::iterator it;
-	bool active_seen = false;
+	std::forward_list<uint32_t>::iterator it, prev;
+	bool active_seen;
 	do {
-		for (it = vertices.begin(); it != vertices.end(); ++it) {
-			if (g.getBalance(*it) > 0) {
+		active_seen = false;
+		for (prev = vertices.before_begin(), it = vertices.begin();
+			 it != vertices.end();
+			 prev = it, ++it) {
+			uint32_t id = *it;
+			if (g.getBalance(id) > 0) {
 				active_seen = true;
-				bool relabel_performed = discharge(it);
+				bool relabel_performed = discharge(id, prev);
 				if (relabel_performed) {
 					// must perform a fresh pass from beginning of
 					// the vertices list
@@ -154,6 +162,11 @@ void CostScaling::refine() {
 			}
 		}
 	} while (active_seen);
+}
+
+
+bool costCompare(Arc &i, Arc &j) {
+	return i.getCost() < j.getCost();
 }
 
 bool CostScaling::run() {
@@ -173,9 +186,10 @@ bool CostScaling::run() {
 	// potential increase is at most 3*num_nodes*epsilon iff. there is a
 	// feasible flow
 	uint32_t num_nodes = g.getNumNodes();
-	for (size_t i = 1; i < num_nodes; i++) {
+	for (size_t i = 1; i <= num_nodes; i++) {
 		// note potential initially zero
-		if (potentials[i] > 3*num_nodes*epsilon) {
+		if (potentials[i] > 0 &&
+		    (uint64_t)potentials[i] > 3*num_nodes*epsilon) {
 			return false;
 		}
 	}

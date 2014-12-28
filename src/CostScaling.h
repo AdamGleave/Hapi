@@ -15,12 +15,12 @@ class CostScaling {
 	std::forward_list<uint32_t> vertices;
 	std::vector<std::forward_list<Arc *>::iterator> current_edges;
 
-	int64_t reducedCost(Arc *arc, uint32_t src_id);
+	int64_t reducedCost(Arc &arc, uint32_t src_id);
 	void relabel(uint32_t id);
 	// returns true if potential of id increases
 	bool pushOrUpdate(uint32_t id);
 	// returns true if potential of id increases
-	bool discharge(std::forward_list<uint32_t>::iterator it);
+	bool discharge(uint32_t id, std::forward_list<uint32_t>::iterator before);
 	void refine();
 public:
 	CostScaling(FlowNetwork &g);
