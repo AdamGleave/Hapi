@@ -3,6 +3,9 @@
 
 #include "CostScaling.h"
 
+// TODO: debug
+#include "DIMACS.h"
+
 namespace flowsolver {
 
 CostScaling::CostScaling(FlowNetwork &g) : g(g) {
@@ -115,6 +118,10 @@ bool CostScaling::discharge(uint32_t id,
 }
 
 void CostScaling::refine() {
+	// TODO: debug
+	std::cout << "epsilon: " << epsilon << std::endl;
+	DIMACS<FlowNetwork>::writeDIMACSMinFlow(g, std::cout);
+
 	uint32_t num_nodes = g.getNumNodes();
 
 	/*** initialization ***/
@@ -122,8 +129,11 @@ void CostScaling::refine() {
 	for (FlowNetwork::iterator it = g.begin(); it != g.end(); ++it) {
 		Arc &arc = *it;
 		// TODO: This will always be a forwards arc, can optimize this
-		if (reducedCost(arc, arc.getSrcId()) < 0) {
+		int64_t reduced_cost = reducedCost(arc, arc.getSrcId());
+		if (reduced_cost < 0) {
 			g.pushFlow(arc, arc.getSrcId(), arc.getCapacity());
+		} else if (reduced_cost > 0) {
+			g.pushFlow(arc, arc.getDstId(), arc.getFlow());
 		}
 	}
 

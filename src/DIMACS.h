@@ -164,7 +164,7 @@ public:
 				total_cost += arc.getCost() * flow;
 			}
 		}
-		os << boost::format("s %lu\n") % total_cost;
+		os << boost::format("s %lu\n") % (total_cost / (2 * g.getNumNodes()));
 
 		for (it = g.begin(); it != g.end(); ++it) {
 			const Arc &arc = *it;
