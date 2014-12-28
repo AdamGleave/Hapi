@@ -137,6 +137,7 @@ void CostScaling::refine() {
 		}
 	}
 
+	current_edges.clear();
 	// initialize current edge to first edge in list
 	for (size_t i = 0; i < num_nodes + 1; i++) {
 		std::forward_list<Arc *> &adjacencies = g.getAdjacencies(i);
