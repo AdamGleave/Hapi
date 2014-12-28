@@ -11,6 +11,7 @@ namespace flowsolver {
 class CostScaling {
 	FlowNetwork &g;
 	uint64_t epsilon;
+	const uint64_t SCALING_FACTOR;
 	std::vector<int64_t> potentials;
 	std::forward_list<uint32_t> vertices;
 	std::vector<std::forward_list<Arc *>::iterator> current_edges;

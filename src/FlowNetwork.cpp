@@ -18,9 +18,7 @@ uint32_t FlowNetwork::getNumNodes() const {
 void FlowNetwork::addArc(uint32_t src, uint32_t dst,
 						 uint64_t capacity, int64_t cost) {
 	assert(src != 0 && dst != 0);
-	// TODO: Is this the best way to scale costs? At least document this
-	// and probably want to change it in some way
-	Arc *arc = new Arc(src, dst, capacity, cost * 2 * num_nodes);
+	Arc *arc = new Arc(src, dst, capacity, cost);
 	arcs[src].push_front(arc);
 	arcs[dst].push_front(arc);
 }

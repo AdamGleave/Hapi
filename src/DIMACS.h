@@ -164,9 +164,7 @@ public:
 				total_cost += arc.getCost() * flow;
 			}
 		}
-		// TODO: This works OK for CostScaling but is now broken for CycleCancelling;
-		// fix this in a more generic way.
-		os << boost::format("s %lu\n") % (total_cost / (2 * g.getNumNodes()));
+		os << boost::format("s %lu\n") % total_cost;
 
 		for (it = g.begin(); it != g.end(); ++it) {
 			const Arc &arc = *it;

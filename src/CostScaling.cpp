@@ -1,6 +1,7 @@
 #include <cassert>
 #include <algorithm>
 
+#include <boost/format.hpp>
 #include <glog/logging.h>
 
 #include "CostScaling.h"
@@ -57,12 +58,12 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 	}
 }
 
-CostScaling::CostScaling(FlowNetwork &g) : g(g) {
+CostScaling::CostScaling(FlowNetwork &g) : g(g), epsilon(0),
+										   SCALING_FACTOR(2 * g.getNumNodes()) {
 	uint32_t num_nodes = g.getNumNodes();
 
 	potentials.resize(num_nodes + 1);
 	current_edges.reserve(num_nodes + 1);
-	epsilon = 0;
 }
 
 int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
@@ -82,7 +83,7 @@ int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
 		// NOREACH
 		return 0;
 	}
-	return cost - potentials[src_id] + potentials[dst_id];
+	return (cost * SCALING_FACTOR) - potentials[src_id] + potentials[dst_id];
 }
 
 void CostScaling::relabel(uint32_t id) {
@@ -112,6 +113,7 @@ void CostScaling::relabel(uint32_t id) {
 
 		if (capacity > 0) {
 			// arc is in residual network
+			cost *= SCALING_FACTOR;
 			int64_t potential = potentials[dst_id] + cost + epsilon;
 			new_potential = std::min(new_potential, potential);
 		}
