@@ -53,6 +53,7 @@ public:
 	}
 
 	friend class ResidualNetwork;
+	friend class FlowNetwork;
 };
 
 } /* namespace flowsolver */
