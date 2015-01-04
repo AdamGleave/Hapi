@@ -58,7 +58,7 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 	}
 }
 
-CostScaling::CostScaling(FlowNetwork &g) : g(g), epsilon(0),
+CostScaling::CostScaling(FlowNetwork &g) : g(g), epsilon(0), num_iterations(0),
 										   SCALING_FACTOR(2 * g.getNumNodes()) {
 	uint32_t num_nodes = g.getNumNodes();
 
@@ -235,11 +235,11 @@ bool costCompare(Arc &i, Arc &j) {
 	return i.getCost() < j.getCost();
 }
 
-bool CostScaling::run() {
+bool CostScaling::run(std::function<bool()> continue_running) {
 	// initialize epsilon to C, max cost
 	FlowNetwork::const_iterator max_cost;
 	max_cost = std::max_element(g.begin(), g.end(), costCompare);
-	epsilon = max_cost->getCost();
+	epsilon = max_cost->getCost() * SCALING_FACTOR;
 
 	// TODO: presentation in paper makes a call to a max flow algorithm here
 	// This is unnecessary, as refine subroutine will work OK with any
@@ -260,7 +260,8 @@ bool CostScaling::run() {
 		}
 	}
 
-	while (epsilon > 1) {
+	while (epsilon > 1 && continue_running()) {
+		std::cout << "epsilon: " << epsilon << std::endl;
 		/*
 		 * The below computation will decrease epsilon by (slightly) more than
 		 * a factor of two when epsilon is odd, since integer division truncates
@@ -284,8 +285,24 @@ bool CostScaling::run() {
 		 */
 		epsilon = std::max(1ul, epsilon / 2);
 		refine();
+		num_iterations++;
 	}
 	return true;
+}
+
+bool CostScaling::runOptimal() {
+	return run([]() -> bool { return true; });
+}
+
+bool CostScaling::runEpsilonOptimal(double threshold) {
+	uint64_t epsilon_threshold = threshold * SCALING_FACTOR;
+	return run([epsilon_threshold, this]()
+			    -> bool { return epsilon > epsilon_threshold; });
+}
+
+bool CostScaling::runFixedIterations(uint64_t max_iterations) {
+	return run([max_iterations, this]()
+				-> bool { return num_iterations < max_iterations; });
 }
 
 CostScaling::~CostScaling() {

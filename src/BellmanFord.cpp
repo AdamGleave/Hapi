@@ -72,7 +72,7 @@ std::set<std::queue<Arc *>> BellmanFord::negativeCycles() {
 
 		do {
 			if (nodes_traversed.count(cur) > 0) {
-				// TODO: better way of handling this?
+				// SOMEDAY: better way to handle this?
 				// we started from a place that's not in a cycle: abort
 				cycle.clear();
 				break;
