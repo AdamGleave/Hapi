@@ -4,7 +4,7 @@ DEBUG = -g
 BASE_DIR=..
 INCLUDE_DIR=$(BASE_DIR)/include
 LIB_DIR=$(BASE_DIR)/lib
-CPPFLAGS = -Wall -Wextra -ansi -pedantic -std=c++11 -isystem $(INCLUDE_DIR) $(DEBUG)
+CPPFLAGS = -Wall -Wextra -ansi -pedantic -std=c++11 -isystem $(INCLUDE_DIR) -O2
 LDLIBS=-lboost_program_options -lgflags -lglog $(LIB_DIR)/libgtest.a
 
 .PHONY:all
@@ -21,3 +21,4 @@ FindMinCost: FindMinCost.o CostScaling.o Arc.o FlowNetwork.o CycleCancelling.o \
 .PHONY: clean
 clean:
 	rm *.o
+	rm DIMACSEcho FindMinCost

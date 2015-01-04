@@ -26,8 +26,14 @@ public:
 	Arc *getArc(uint32_t src, uint32_t dst);
 	std::forward_list<Arc *> &getAdjacencies(uint32_t src);
 	const std::forward_list<Arc *> &getAdjacencies(uint32_t src) const;
-	int64_t getBalance(uint32_t id) const;
 	void setSupply(uint32_t id, int64_t supply);
+
+	// SOMEDAY: This is inline as getBalance bottleneck; unnecessary if switch
+	// to using list of active vertices
+	inline int64_t getBalance(uint32_t id) const {
+			assert(id != 0);
+			return balances[id];
+		}
 
 	int64_t getResidualCapacity(Arc &arc, uint32_t src_id);
 	void pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);

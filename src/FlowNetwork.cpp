@@ -44,11 +44,6 @@ const std::forward_list<Arc *> &FlowNetwork::getAdjacencies(uint32_t src) const 
 	return arcs[src];
 }
 
-int64_t FlowNetwork::getBalance(uint32_t id) const {
-	assert(id != 0);
-	return balances[id];
-}
-
 void FlowNetwork::setSupply(uint32_t id, int64_t supply) {
 	// node must be uninitialized so far
 	// (this won't catch all cases, node could have zero balance despite

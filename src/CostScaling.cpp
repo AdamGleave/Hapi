@@ -177,9 +177,15 @@ void CostScaling::refine() {
 		int64_t reduced_cost = (arc.getCost() * SCALING_FACTOR)
 					- potentials[arc.getSrcId()] + potentials[arc.getDstId()];
 		if (reduced_cost < 0) {
-			g.pushFlow(arc, arc.getSrcId(), arc.getCapacity());
+			uint64_t capacity = arc.getCapacity();
+			if (capacity > 0) {
+				g.pushFlow(arc, arc.getSrcId(), arc.getCapacity());
+			}
 		} else if (reduced_cost > 0) {
-			g.pushFlow(arc, arc.getDstId(), arc.getFlow());
+			int64_t flow = arc.getFlow();
+			if (flow > 0) {
+				g.pushFlow(arc, arc.getDstId(), arc.getFlow());
+			}
 		}
 	}
 
@@ -229,7 +235,6 @@ void CostScaling::refine() {
 		}
 	} while (active_seen);
 }
-
 
 bool costCompare(Arc &i, Arc &j) {
 	return i.getCost() < j.getCost();
