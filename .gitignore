@@ -4,6 +4,6 @@ dependencies/
 lib/
 include/
 src/DIMACSEcho
-src/RunCycleCancelling
-src/RunCostScaling
+src/FindMinCost
 cs2/cs2
+tests/graphs/google_all.in
