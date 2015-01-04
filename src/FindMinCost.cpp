@@ -20,7 +20,7 @@
 using namespace flowsolver;
 
 int main(int argc, char *argv[]) {
-	//google::InitGoogleLogging(argv[0]);
+	google::InitGoogleLogging(argv[0]);
 
 	// inspiration for this style of command parsing:
 	// http://stackoverflow.com/questions/15541498/how-to-implement-subcommands-using-boost-program-options
@@ -80,7 +80,8 @@ int main(int argc, char *argv[]) {
 		desc.add_options()
 			("help", "produce help message")
 			("epsilon", po::value<double>(), "threshold for epsilon-optimality")
-			("iterations", po::value<uint64_t>(), "threshold for number of iterations");
+			("iterations", po::value<uint64_t>(), "threshold for number of iterations")
+			("cost-threshold", po::value<double>(), "minimum factor cost reduced by between iterations");
 		po::store(po::command_line_parser(opts).options(desc).run(), vm);
 
 		if (vm.count("help")) {
@@ -88,9 +89,10 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 
-		if (vm.count("epsilon") + vm.count("iterations") > 1) {
-			throw po::invalid_option_value
-					  ("at most one of --epsilon and --iterations can be used");
+		if (vm.count("epsilon") + vm.count("iterations")
+		    + vm.count("cost-threshold") > 1) {
+			throw po::invalid_option_value("at most one of --epsilon, "
+							"--iterations and --cost-threshold can be used");
 		}
 
 		FlowNetwork *g = DIMACS<FlowNetwork>::readDIMACSMin(std::cin);
@@ -103,6 +105,9 @@ int main(int argc, char *argv[]) {
 		} else if (vm.count("iterations")) {
 			uint64_t max_iterations = vm["iterations"].as<uint64_t>();
 			success = cc.runFixedIterations(max_iterations);
+		} else if (vm.count("cost-threshold")) {
+			double min_factor = vm["cost-threshold"].as<double>();
+			success = cc.runCostThreshold(min_factor);
 		} else {
 			success = cc.runOptimal();
 		}

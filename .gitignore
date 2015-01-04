@@ -7,3 +7,5 @@ src/DIMACSEcho
 src/FindMinCost
 cs2/cs2
 tests/graphs/google_all.in
+src/perf.data
+src/perf.data.old

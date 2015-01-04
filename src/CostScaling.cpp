@@ -1,5 +1,6 @@
 #include <cassert>
 #include <algorithm>
+#include <limits>
 
 #include <boost/format.hpp>
 #include <glog/logging.h>
@@ -308,6 +309,42 @@ bool CostScaling::runEpsilonOptimal(double threshold) {
 bool CostScaling::runFixedIterations(uint64_t max_iterations) {
 	return run([max_iterations, this]()
 				-> bool { return num_iterations < max_iterations; });
+}
+
+uint64_t totalCost(FlowNetwork &g) {
+	uint64_t total_cost = 0;
+	FlowNetwork::const_iterator it;
+	for (it = g.begin(); it != g.end(); ++it) {
+		const Arc &arc = *it;
+
+		int64_t flow = arc.getFlow();
+		total_cost += arc.getCost() * flow;
+	}
+
+	return total_cost;
+}
+
+bool CostScaling::costThreshold(double minimum_factor) {
+	uint64_t new_total_cost = totalCost(g);
+	// usually positive, but can be negative
+	int64_t cost_reduction = total_cost - new_total_cost;
+	std::cerr << "cost reduced by " << cost_reduction << std::endl;
+	double proportion_reduced = (double)cost_reduction / (double)total_cost;
+
+	total_cost = new_total_cost;
+
+	// FIXME: hack, sign of proportion_reduced is important.
+	// Empirically, find cost bounces around first few rounds, then settles
+	// down. If we used price refinement heuristic, I think this wouldn't happen.
+	// Alternatively, could keep track of total cost of several previous rounds
+	// and only terminate if not reduced in last k rounds (for some constant k.)
+	return fabs(proportion_reduced) > minimum_factor;
+}
+
+bool CostScaling::runCostThreshold(double minimum_factor) {
+	total_cost =  INT64_MAX;
+	return run([minimum_factor, this]()
+			   -> bool { return costThreshold(minimum_factor); });
 }
 
 CostScaling::~CostScaling() {
