@@ -74,12 +74,14 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 			}
 
 			uint32_t next = it->second->getDstId();
-			if (predecessors[next] == 0) {
-				// TODO: this does not handle back edges to sources
-				// A source may have already been visited, but still have
-				// predecessor zero.
-
-				// not already encountered next
+			if (predecessors[next] == 0 && sources.count(next) == 0) {
+				/* Predecessor of zero implies we have not already seen next.
+				 * Note a source may have a predecessor of zero and yet have
+				 * been visited, since sources were used to seed to_visit.
+				 *
+				 * It is possible next is a source and has not yet been visited,
+				 * but in this case it is in the to_visit queue and it is
+				 * pointless to push it again. */
 				predecessors[next] = cur;
 
 				if (sinks.count(next) > 0) {
