@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "FlowNetwork.h"
+#include "TaskAssignment.h"
 
 namespace flowsolver {
 

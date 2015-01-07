@@ -60,7 +60,7 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 }
 
 CostScaling::CostScaling(FlowNetwork &g) : g(g), epsilon(0), num_iterations(0),
-										   SCALING_FACTOR(2 * g.getNumNodes()) {
+							total_cost(0), SCALING_FACTOR(2 * g.getNumNodes()) {
 	uint32_t num_nodes = g.getNumNodes();
 
 	potentials.resize(num_nodes + 1);
