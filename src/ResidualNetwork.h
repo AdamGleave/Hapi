@@ -39,22 +39,7 @@ public:
 	void setSupply(uint32_t id, int64_t supply);
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
-
 	std::unordered_map<uint32_t, Arc*> &getAdjacencies(uint32_t src);
-
-	typedef boost::transform_iterator
-			<std::function<Arc*(std::unordered_map<uint32_t, Arc *>::iterator)>,
-			 std::unordered_map<uint32_t, Arc *>::iterator> adjacencies_iterator;
-	adjacencies_iterator getAdjacenciesBegin(uint32_t src) {
-		return boost::make_transform_iterator
-									 (getAdjacencies(src).begin(), ExtractArc());
-	}
-	/*
-	adjacencies_iterator getAdjacenciesEnd(uint32_t src) {
-		return boost::make_transform_iterator
-									 (getAdjacencies(src).end(), extractArc);
-	} */
-
 	/* returns NULL if no such Arc present */
 	Arc *getArc(uint32_t src, uint32_t dst);
 

@@ -112,9 +112,19 @@ public:
 		}
 
 		// find all leaf nodes
-		// TODO: this is not part of generic Graph interface
-		// could add getAdjacenciesBegin and getAdjacenciesEnd?
-		leaves(g.getAdjacenciesBegin(SINK_NODE), g.getAdjacenciesEnd(SINK_NODE));
+		const std::forward_list<Arc *> &sink_adjacencies
+												  = g.getAdjacencies(SINK_NODE);
+		std::forward_list<Arc *>::const_iterator it;
+		for (it = sink_adjacencies.begin(); it != sink_adjacencies.end(); ++it) {
+			Arc *arc = *it;
+			uint32_t src = arc->getSrcId();
+			uint32_t dst = arc->getDstId();
+			if (src == SINK_NODE) {
+				leaves.insert(dst);
+			} else {
+				leaves.insert(src);
+			}
+		}
 	}
 
 	std::unordered_map<uint32_t, uint32_t> *getAssignments(const FlowNetwork &g) {

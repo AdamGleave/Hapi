@@ -24,24 +24,8 @@ public:
 	 * Returns NULL if no such Arc present
 	 */
 	Arc *getArc(uint32_t src, uint32_t dst);
-
 	std::forward_list<Arc *> &getAdjacencies(uint32_t src);
 	const std::forward_list<Arc *> &getAdjacencies(uint32_t src) const;
-	std::forward_list<Arc *>::iterator getAdjacenciesBegin(uint32_t src) {
-		return getAdjacencies(src).begin();
-	}
-	std::forward_list<Arc *>::const_iterator
-	  getAdjacenciesBegin(uint32_t src) const {
-		return getAdjacencies(src).begin();
-	}
-	std::forward_list<Arc *>::iterator getAdjacenciesEnd(uint32_t src) {
-		return getAdjacencies(src).end();
-	}
-	std::forward_list<Arc *>::const_iterator
-	  getAdjacenciesEnd(uint32_t src) const {
-		return getAdjacencies(src).end();
-	}
-
 	void setSupply(uint32_t id, int64_t supply);
 
 	// SOMEDAY: This is inline as getBalance bottleneck; unnecessary if switch
