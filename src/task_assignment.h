@@ -5,7 +5,7 @@
 #include <utility>
 #include <map>
 #include <unordered_map>
-#include <set>
+#include <unordered_set>
 
 #include <glog/logging.h>
 
@@ -21,8 +21,7 @@ class TaskAssignment {
 	 * 	  (This includes both computers and unscheduled aggregators.)
 	 */
 	const uint32_t SINK_NODE = 1;
-	// TODO: unordered_set?
-	std::set<uint32_t> tasks, leaves;
+	std::unordered_set<uint32_t> tasks, leaves;
 
 	std::vector<std::unordered_map<uint32_t,int64_t>>
 		*extractFlow(const FlowNetwork &g);
