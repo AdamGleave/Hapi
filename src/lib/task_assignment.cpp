@@ -88,6 +88,21 @@ TaskAssignment::TaskAssignment(const FlowNetwork &g) {
 								<< " has negative balance" << balance;
 		}
 	}
+
+
+	// find all leaf nodes
+	const std::forward_list<Arc *> &sink_adjacencies = g.getAdjacencies(SINK_NODE);
+	std::forward_list<Arc *>::const_iterator it;
+	for (it = sink_adjacencies.begin(); it != sink_adjacencies.end(); ++it) {
+		Arc *arc = *it;
+		uint32_t src = arc->getSrcId();
+		uint32_t dst = arc->getDstId();
+		if (src == SINK_NODE) {
+			leaves.insert(dst);
+		} else {
+			leaves.insert(src);
+		}
+	}
 }
 
 std::unordered_map<uint32_t, uint32_t>
@@ -119,5 +134,7 @@ std::unordered_map<uint32_t, uint32_t>
 	delete flow;
 	return res;
 }
+
+TaskAssignment::~TaskAssignment() { }
 
 }
