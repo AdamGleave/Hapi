@@ -13,7 +13,7 @@ all: dimacs_echo find_min_cost
 dimacs_echo: dimacs_echo.o arc.o residual_network.o
 
 find_min_cost: find_min_cost.o cost_scaling.o arc.o flow_network.o \
-			   cycle_cancelling.o edmonds_karp.o bellman_ford.o \ 
+			   cycle_cancelling.o edmonds_karp.o bellman_ford.o \
 			   residual_network.o residual_network_util.o
 
 %.o : %.cpp %.h

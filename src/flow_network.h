@@ -5,6 +5,8 @@
 #include <vector>
 #include <forward_list>
 
+#include <glog/logging.h>
+
 #include "arc.h"
 
 namespace flowsolver {
@@ -31,9 +33,9 @@ public:
 	// SOMEDAY: This is inline as getBalance bottleneck; unnecessary if switch
 	// to using list of active vertices
 	inline int64_t getBalance(uint32_t id) const {
-			assert(id != 0);
-			return balances[id];
-		}
+		CHECK_NE(id, 0) << "0 id is reserved";
+		return balances[id];
+	}
 
 	int64_t getResidualCapacity(Arc &arc, uint32_t src_id);
 	void pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);

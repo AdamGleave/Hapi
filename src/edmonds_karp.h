@@ -8,6 +8,8 @@
 #ifndef EDMONDS_KARP_H_
 #define EDMONDS_KARP_H_
 
+#include <queue>
+
 #include "residual_network.h"
 
 namespace flowsolver {
