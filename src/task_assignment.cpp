@@ -99,7 +99,7 @@ std::unordered_map<uint32_t, uint32_t>
 	std::unordered_map<uint32_t, uint32_t> *res;
 	res = new std::unordered_map<uint32_t, uint32_t>();
 
-	std::set<uint32_t>::iterator it;
+	std::unordered_set<uint32_t>::iterator it;
 	for (it = leaves.begin(); it != leaves.end(); ++it) {
 		uint32_t leaf_id = *it;
 
@@ -119,8 +119,5 @@ std::unordered_map<uint32_t, uint32_t>
 	delete flow;
 	return res;
 }
-
-virtual ~TaskAssignment::TaskAssignment() { }
-
 
 }

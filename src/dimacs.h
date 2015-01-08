@@ -126,6 +126,69 @@ public:
 		return g;
 	}
 
+	/*
+	 * Returns cost of the solution on success, -1 on failure.
+	 * Side-effect: g updated to contain the flows in is.
+	 */
+	static int64_t readDIMACSMinFlow(std::istream &is, T &g) {
+		unsigned int line_num = 0;
+		std::string line;
+
+		int64_t solution = -1;
+		while (getline(is, line)) {
+			line_num++;
+
+			std::istringstream iss (line);
+			std::string first;
+			iss >> first;
+			CHECK_EQ(first.length(), 1)
+				<< "type not single character at L" << line_num;
+			char type = first[0];
+
+			std::ostringstream oss;
+			oss << iss.rdbuf();
+			const char *remainder = oss.str().c_str();
+
+			int num_matches = -1;
+			switch (type) {
+			case 'c':
+				// comment line -- ignore;
+				break;
+			case 's':
+			{
+				// solution line
+				CHECK_EQ(solution, -1) << "duplicate solution at L" << line_num;
+				uint64_t min_cost;
+				num_matches = sscanf(remainder, "%lu", &min_cost);
+				solution = (int64_t)min_cost;
+				CHECK_EQ(num_matches, 1);
+				break;
+			}
+			case 'f':
+			{
+				// flow assignment
+				CHECK_NE(solution, -1) << "flow before solution at L" << line;
+				uint32_t src_id, dst_id;
+				int64_t flow;
+				num_matches = sscanf(remainder, "%u %u %ld",
+									 &src_id, &dst_id, &flow);
+				CHECK_EQ(num_matches, 3);
+				Arc *arc = g.getArc(src_id, dst_id);
+				CHECK(arc != 0) << "arc " << src_id << "->" << dst_id
+								   << "has flow but not in original network";
+				g.pushFlow(*arc, src_id, flow);
+				break;
+			}
+			default:
+				LOG(FATAL) << "Unrecognized type " << type
+				 	 	   << " at line " << line_num;
+				break;
+			}
+		}
+
+		return solution;
+	}
+
 	static void writeDIMACSMin(const T &g, std::ostream &os) {
 		uint32_t num_nodes = g.getNumNodes();
 		uint32_t num_arcs = g.getNumArcs();

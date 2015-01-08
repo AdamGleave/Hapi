@@ -9,6 +9,8 @@
 
 #include <glog/logging.h>
 
+#include "flow_network.h"
+
 namespace flowsolver {
 
 class TaskAssignment {
@@ -35,6 +37,14 @@ public:
 	TaskAssignment(const FlowNetwork &g);
 	virtual ~TaskAssignment();
 	std::unordered_map<uint32_t, uint32_t> *getAssignments(const FlowNetwork &g);
+
+	const std::unordered_set<uint32_t>& getLeaves() const {
+		return leaves;
+	}
+
+	const std::unordered_set<uint32_t>& getTasks() const {
+		return tasks;
+	}
 };
 
 } /* namespace flowsolver */
