@@ -6,7 +6,7 @@ std::vector<std::unordered_map<uint32_t,int64_t>>
 	  *TaskAssignment::extractFlow(const FlowNetwork &g) {
 	std::vector<std::unordered_map<uint32_t, int64_t>> *res;
 	res = new std::vector<std::unordered_map<uint32_t, int64_t>>;
-	res->reserve(g.getNumNodes());
+	res->assign(g.getNumNodes() + 1, std::unordered_map<uint32_t, int64_t>());
 
 	FlowNetwork::const_iterator it;
 	for (it = g.begin(); it != g.end(); ++it) {
@@ -14,7 +14,9 @@ std::vector<std::unordered_map<uint32_t,int64_t>>
 		int64_t flow = arc.getFlow();
 		if (flow > 0) {
 			std::pair<uint32_t, int64_t> item(arc.getSrcId(), flow);
-			(*res)[arc.getDstId()].insert(item);
+			std::unordered_map<uint32_t, int64_t> &flow_map = (*res)[arc.getDstId()];
+			flow_map.insert(item);
+			//flow_map[arc.getSrcId()] = flow;
 		}
 	}
 
