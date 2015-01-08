@@ -23,7 +23,9 @@ include_directories(${GLOG_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${GLOG_LIBRARY})
 
 # Recursive application
+add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
 add_subdirectory(${PROJECT_SOURCE_DIR}/bin)
+enable_testing()
 add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
-add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
+
