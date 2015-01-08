@@ -20,6 +20,7 @@
 using namespace flowsolver;
 
 int main(int argc, char *argv[]) {
+	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
 
 	// inspiration for this style of command parsing:
@@ -81,7 +82,8 @@ int main(int argc, char *argv[]) {
 			("help", "produce help message")
 			("epsilon", po::value<double>(), "threshold for epsilon-optimality")
 			("iterations", po::value<uint64_t>(), "threshold for number of iterations")
-			("cost-threshold", po::value<double>(), "minimum factor cost reduced by between iterations");
+			("cost-threshold", po::value<double>(), "minimum factor cost reduced by between iterations")
+			("task-assignments", po::value<uint32_t>(), "minimum number of task assignments changed between iterations");
 		po::store(po::command_line_parser(opts).options(desc).run(), vm);
 
 		if (vm.count("help")) {
@@ -90,7 +92,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (vm.count("epsilon") + vm.count("iterations")
-		    + vm.count("cost-threshold") > 1) {
+		    + vm.count("cost-threshold") + vm.count("task-assignments") > 1) {
 			throw po::invalid_option_value("at most one of --epsilon, "
 							"--iterations and --cost-threshold can be used");
 		}
@@ -108,6 +110,9 @@ int main(int argc, char *argv[]) {
 		} else if (vm.count("cost-threshold")) {
 			double min_factor = vm["cost-threshold"].as<double>();
 			success = cc.runCostThreshold(min_factor);
+		} else if (vm.count("task-assignments")) {
+			uint32_t min_assignments = vm["task-assignments"].as<uint32_t>();
+			success = cc.runTaskAssignmentThreshold(min_assignments);
 		} else {
 			success = cc.runOptimal();
 		}

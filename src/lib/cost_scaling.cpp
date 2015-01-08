@@ -7,7 +7,6 @@
 #include <boost/format.hpp>
 #include <glog/logging.h>
 
-
 namespace flowsolver {
 
 int64_t compute_balance(const FlowNetwork &g,
@@ -325,27 +324,94 @@ uint64_t totalCost(FlowNetwork &g) {
 	return total_cost;
 }
 
-bool CostScaling::costThreshold(double minimum_factor) {
-	uint64_t new_total_cost = totalCost(g);
-	// usually positive, but can be negative
-	int64_t cost_reduction = total_cost - new_total_cost;
-	std::cerr << "cost reduced by " << cost_reduction << std::endl;
-	double proportion_reduced = (double)cost_reduction / (double)total_cost;
+class CostDelta {
+	int64_t total_cost;
+public:
+	CostDelta() {
+		total_cost = UINT64_MAX;
+	}
 
-	total_cost = new_total_cost;
+	double update(FlowNetwork &g) {
+		uint64_t new_total_cost = totalCost(g);
+		// usually positive, but can be negative
+		int64_t cost_reduction = total_cost - new_total_cost;
+		double proportion_reduced = (double)cost_reduction / (double)total_cost;
 
-	// FIXME: hack, sign of proportion_reduced is important.
-	// Empirically, find cost bounces around first few rounds, then settles
-	// down. If we used price refinement heuristic, I think this wouldn't happen.
-	// Alternatively, could keep track of total cost of several previous rounds
-	// and only terminate if not reduced in last k rounds (for some constant k.)
-	return fabs(proportion_reduced) > minimum_factor;
-}
+		total_cost = new_total_cost;
+
+		return proportion_reduced;
+	}
+};
 
 bool CostScaling::runCostThreshold(double minimum_factor) {
-	total_cost =  INT64_MAX;
-	return run([minimum_factor, this]()
-			   -> bool { return costThreshold(minimum_factor); });
+	CostDelta *cd = new CostDelta();
+	bool success = run([minimum_factor, cd, this]()-> bool {
+		double proportion_reduced = cd->update(g);
+		// FIXME: hack, sign of proportion_reduced is important.
+		// Empirically, find cost bounces around first few rounds, then settles
+		// down. If we used price refinement heuristic, I think this wouldn't happen.
+		// Alternatively, could keep track of total cost of several previous rounds
+		// and only terminate if not reduced in last k rounds (for some constant k.)
+		return fabs(proportion_reduced) > minimum_factor;
+	});
+	delete cd;
+	return success;
+}
+
+class TaskAssignmentDelta {
+	TaskAssignment ta;
+	std::unordered_map<uint32_t, uint32_t> *task_map;
+	bool updated;
+
+	uint32_t computeDelta(std::unordered_map<uint32_t, uint32_t> *new_map) {
+		uint32_t differences = 0;
+
+		CHECK_EQ(new_map->size(), task_map->size())
+				<< "number of tasks should not change";
+
+		for (std::pair<uint32_t, uint32_t> p : *task_map) {
+			uint32_t task_id = p.first;
+			CHECK_GT(new_map->count(task_id), 0)
+				<< "new task assignment missing tasks";
+
+			if ((*new_map)[task_id] != p.second) {
+				differences++;
+			}
+		}
+
+		return differences;
+	}
+public:
+	TaskAssignmentDelta(FlowNetwork &g) : ta(g), updated(false) {
+		task_map = new std::unordered_map<uint32_t, uint32_t>();
+	}
+
+	uint32_t update(FlowNetwork &g) {
+		std::unordered_map<uint32_t, uint32_t> *new_task_map;
+		new_task_map = ta.getAssignments(g);
+		uint32_t delta;
+		if (!updated) {
+			updated = true;
+			delta = new_task_map->size();
+		} else {
+			delta = computeDelta(new_task_map);
+		}
+
+		delete task_map;
+		task_map = new_task_map;
+
+		return delta;
+	}
+};
+
+bool CostScaling::runTaskAssignmentThreshold(uint64_t min_assignments) {
+	TaskAssignmentDelta *tad = new TaskAssignmentDelta(g);
+	bool success = run([min_assignments, tad, this]() -> bool {
+		uint32_t num_assignments = tad->update(g);
+		return num_assignments >= min_assignments;
+	});
+	delete tad;
+	return success;
 }
 
 CostScaling::~CostScaling() {

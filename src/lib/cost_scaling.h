@@ -52,6 +52,11 @@ public:
 	 * minimum_factor between two successive iterations.
 	 */
 	bool runCostThreshold(double minimum_factor);
+	/**
+	 * Approximate algorithm. Terminates when number of task assignments changed
+	 * is less than min_assignments between two successive iterations.
+	 */
+	bool runTaskAssignmentThreshold(uint64_t min_assignments);
 	virtual ~CostScaling();
 };
 
