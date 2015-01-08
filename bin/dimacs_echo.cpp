@@ -13,7 +13,6 @@ using namespace flowsolver;
 
 int main(int argc, char *argv[]) {
 	google::InitGoogleLogging(argv[0]);
-	google::ParseCommandLineFlags(&argc, &argv, true);
 
 	ResidualNetwork *g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
 	DIMACS<ResidualNetwork>::writeDIMACSMin(*g, std::cout);
