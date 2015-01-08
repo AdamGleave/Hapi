@@ -3,8 +3,8 @@ tmp/
 dependencies/
 lib/
 include/
-src/DIMACSEcho
-src/FindMinCost
+src/dimacs_echo
+src/find_min_cost
 cs2/cs2
 tests/graphs/google_all.in
 src/perf.data
