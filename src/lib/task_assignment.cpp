@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include "task_assignment.h"
 
 namespace flowsolver {
@@ -26,6 +28,7 @@ std::vector<std::unordered_map<uint32_t,int64_t>>
 void TaskAssignment::decrementFlow
 	(std::unordered_map<uint32_t, int64_t> &adjacencies, uint32_t id) {
 	int64_t flow = adjacencies[id];
+	CHECK_GT(flow, 0);
 	flow--;
 
 	if (flow == 0) {
@@ -90,7 +93,7 @@ TaskAssignment::TaskAssignment(const FlowNetwork &g) {
 								<< " has negative balance" << balance;
 		}
 	}
-
+	VLOG(0) << "# of task nodes: " << tasks.size();
 
 	// find all leaf nodes
 	const std::forward_list<Arc *> &sink_adjacencies = g.getAdjacencies(SINK_NODE);
@@ -105,6 +108,11 @@ TaskAssignment::TaskAssignment(const FlowNetwork &g) {
 			leaves.insert(src);
 		}
 	}
+	VLOG(0) << "# of leaf nodes: " << leaves.size();
+}
+
+int addFlow(int64_t acc, std::pair<uint32_t, int64_t> p) {
+	return acc + p.second;
 }
 
 std::unordered_map<uint32_t, uint32_t>
@@ -117,18 +125,30 @@ std::unordered_map<uint32_t, uint32_t>
 	res = new std::unordered_map<uint32_t, uint32_t>();
 
 	std::unordered_set<uint32_t>::iterator it;
+	VLOG(0) << "# of nodes draining into sink: " << sink_adjacencies.size();
+	VLOG(0) << "value of flow: "
+			<< std::accumulate(sink_adjacencies.begin(), sink_adjacencies.end(), 0, addFlow);
 	for (it = leaves.begin(); it != leaves.end(); ++it) {
 		uint32_t leaf_id = *it;
 
+		int64_t sink_flow;
 		if (sink_adjacencies.count(leaf_id) > 0) {
-			// leaf_id is assigned to some task
+			sink_flow = sink_adjacencies[leaf_id];
+		} else {
+			sink_flow = 0;
+		}
+		for (; sink_flow > 0; sink_flow--) {
+			// leaf_id is assigned to some task. (in the case of unscheduled
+			// aggregators, may be assigned to many tasks, so loop)
 
 			uint32_t task_id = findLeafAssignment(*flow, leaf_id);
 			if (task_id != 0) {
 				res->insert(std::pair<uint32_t, uint32_t>(task_id, leaf_id));
+				decrementFlow(sink_adjacencies, leaf_id);
 			} else {
 				LOG(FATAL) << "No task mapping for leaf " << leaf_id
-						   << " despite positive flow to sink.";
+						   << " despite positive flow "
+						   << sink_adjacencies[leaf_id] << " to sink.";
 			}
 		}
 	}
