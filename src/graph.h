@@ -4,7 +4,7 @@
 #include <boost/concept/assert.hpp>
 #include <boost/concept_check.hpp>
 
-#include "Arc.h"
+#include "arc.h"
 
 // we don't use any variables: the code is never run
 // assignments are made just to force type checking

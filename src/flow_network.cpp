@@ -1,6 +1,7 @@
+#include "flow_network.h"
+
 #include <cassert>
 
-#include "FlowNetwork.h"
 
 namespace flowsolver {
 

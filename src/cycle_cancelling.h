@@ -5,14 +5,14 @@
  *      Author: adam
  */
 
-#ifndef CYCLECANCELLING_H_
-#define CYCLECANCELLING_H_
+#ifndef CYCLE_CANCELLING_H_
+#define CYCLE_CANCELLING_H_
 
 #include <queue>
 
-#include "ResidualNetwork.h"
-#include "BellmanFord.h"
-#include "EdmondsKarp.h"
+#include "bellman_ford.h"
+#include "edmonds_karp.h"
+#include "residual_network.h"
 
 namespace flowsolver {
 
@@ -29,4 +29,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* CYCLECANCELLING_H_ */
+#endif /* CYCLE_CANCELLING_H_ */

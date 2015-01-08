@@ -7,7 +7,7 @@
 
 #include <cassert>
 
-#include "Arc.h"
+#include "arc.h"
 
 namespace flowsolver {
 

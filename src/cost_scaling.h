@@ -1,12 +1,12 @@
-#ifndef COSTSCALING_H_
-#define COSTSCALING_H_
+#ifndef COST_SCALING_H_
+#define COST_SCALING_H_
 
 #include <vector>
 #include <forward_list>
 #include <functional>
 
-#include "FlowNetwork.h"
-#include "TaskAssignment.h"
+#include "flow_network.h"
+#include "task_assignment.h"
 
 namespace flowsolver {
 
@@ -57,4 +57,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* COSTSCALING_H_ */
+#endif /* COST_SCALING_H_ */

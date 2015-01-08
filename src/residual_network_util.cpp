@@ -5,10 +5,11 @@
  *      Author: adam
  */
 
+#include "residual_network_util.h"
+
 #include <cassert>
 #include <queue>
 
-#include "ResidualNetworkUtil.h"
 
 namespace flowsolver {
 

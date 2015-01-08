@@ -1,5 +1,4 @@
-#include "ResidualNetwork.h"
-
+#include "residual_network.h"
 #include <cassert>
 
 namespace flowsolver {

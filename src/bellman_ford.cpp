@@ -5,7 +5,7 @@
  *      Author: adam
  */
 
-#include "BellmanFord.h"
+#include "bellman_ford.h"
 
 namespace flowsolver {
 

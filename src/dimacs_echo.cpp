@@ -6,8 +6,8 @@
 #include <iostream>
 #include <glog/logging.h>
 
-#include "DIMACS.h"
-#include "ResidualNetwork.h"
+#include "dimacs.h"
+#include "residual_network.h"
 
 using namespace flowsolver;
 

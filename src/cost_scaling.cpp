@@ -1,3 +1,5 @@
+#include "cost_scaling.h"
+
 #include <cassert>
 #include <algorithm>
 #include <limits>
@@ -5,7 +7,6 @@
 #include <boost/format.hpp>
 #include <glog/logging.h>
 
-#include "CostScaling.h"
 
 namespace flowsolver {
 

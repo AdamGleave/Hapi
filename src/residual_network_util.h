@@ -5,12 +5,12 @@
  *      Author: adam
  */
 
-#ifndef RESIDUALNETWORKUTIL_H_
-#define RESIDUALNETWORKUTIL_H_
+#ifndef RESIDUAL_NETWORK_UTIL_H_
+#define RESIDUAL_NETWORK_UTIL_H_
 
 #include <queue>
 
-#include "ResidualNetwork.h"
+#include "residual_network.h"
 
 namespace flowsolver {
 
@@ -24,4 +24,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* RESIDUALNETWORKUTIL_H_ */
+#endif /* RESIDUAL_NETWORK_UTIL_H_ */

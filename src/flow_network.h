@@ -1,48 +1,44 @@
-#ifndef SRC_RESIDUALNETWORK_H_
-#define SRC_RESIDUALNETWORK_H_
+#ifndef FLOW_NETWORK_H_
+#define FLOW_NETWORK_H_
 
 #include <cinttypes>
-#include <set>
-#include <unordered_map>
 #include <vector>
-#include <functional>
+#include <forward_list>
 
-#include <boost/iterator/transform_iterator.hpp>
-
-#include "Arc.h"
+#include "arc.h"
 
 namespace flowsolver {
 
-struct ExtractArc {
-	Arc *operator()(std::unordered_map<uint32_t, Arc*>::iterator it) {
-		return it->second;
-	}
-};
-
-
-class ResidualNetwork {
+class FlowNetwork {
 	uint32_t num_nodes;
-	std::vector<int64_t> balance, supply;
-	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
-	std::set<uint32_t> sources;
-	std::set<uint32_t> sinks;
-
-	void updateSupply(uint32_t id, int64_t delta);
+	std::vector<int64_t> balances;
+	std::vector<std::forward_list<Arc *>> arcs;
 public:
-	ResidualNetwork(uint32_t num_nodes);
+	FlowNetwork(uint32_t num_nodes);
+	// constant time
 	uint32_t getNumNodes() const;
-	uint32_t getNumArcs() const;
-	int64_t getBalance(uint32_t id) const;
-	int64_t getSupply(uint32_t id) const;
-	const std::set<uint32_t>& getSinks() const;
-	const std::set<uint32_t>& getSources() const;
-	void setSupply(uint32_t id, int64_t supply);
+	// constant time
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
-	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
-	std::unordered_map<uint32_t, Arc*> &getAdjacencies(uint32_t src);
-	/* returns NULL if no such Arc present */
+	/*
+	 * Linear in number of edges in src.
+	 * Returns NULL if no such Arc present
+	 */
 	Arc *getArc(uint32_t src, uint32_t dst);
+	std::forward_list<Arc *> &getAdjacencies(uint32_t src);
+	const std::forward_list<Arc *> &getAdjacencies(uint32_t src) const;
+	void setSupply(uint32_t id, int64_t supply);
 
+	// SOMEDAY: This is inline as getBalance bottleneck; unnecessary if switch
+	// to using list of active vertices
+	inline int64_t getBalance(uint32_t id) const {
+			assert(id != 0);
+			return balances[id];
+		}
+
+	int64_t getResidualCapacity(Arc &arc, uint32_t src_id);
+	void pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);
+
+	// iterator
 	friend class const_noconst_iterator;
 
 	template<bool is_const_iterator = true>
@@ -52,31 +48,32 @@ public:
 	{
 	private:
 		typedef typename std::conditional
-				<is_const_iterator, const ResidualNetwork *, ResidualNetwork *>
-		        ::type FlowNetworkType;
+				<is_const_iterator, const FlowNetwork *, FlowNetwork *>
+				::type FlowNetworkType;
 		typedef typename std::conditional
-				<is_const_iterator, const Arc &, Arc &>::type ArcType;
+				<is_const_iterator, const Arc, Arc>::type ArcType;
 
 		typedef typename std::conditional<is_const_iterator,
-				std::vector<std::unordered_map<uint32_t, Arc*>>::const_iterator,
-			    std::vector<std::unordered_map<uint32_t, Arc*>>::iterator>::type
+				std::vector<std::forward_list<Arc *>>::const_iterator,
+				std::vector<std::forward_list<Arc *>>::iterator>::type
 				VectorIterator;
 		typedef typename std::conditional<is_const_iterator,
-						std::unordered_map<uint32_t, Arc*>::const_iterator,
-					    std::unordered_map<uint32_t, Arc*>::iterator>::type
-						MapIterator;
+						std::forward_list<Arc *>::const_iterator,
+						std::forward_list<Arc *>::iterator>::type
+						ListIterator;
 		typename std::conditional<is_const_iterator, const Arc, Arc> value_type;
 
 		FlowNetworkType g;
 		VectorIterator vec_it;
-		MapIterator map_it;
+		ListIterator list_it;
 
 	public:
 		const_noconst_iterator() : g(0) { }
 
 		const_noconst_iterator(FlowNetworkType g) : g(g) {
 			vec_it = g->arcs.begin();
-			map_it = vec_it->begin();
+			list_it = vec_it->before_begin();
+			++(*this);
 		}
 
 		const_noconst_iterator(FlowNetworkType g, bool) : g(g) {
@@ -87,24 +84,46 @@ public:
 		// Copy constructor. Implicit conversion from regular iterator to
 		// const_iterator.
 		const_noconst_iterator(const const_noconst_iterator<false>& other) :
-			g(other.g), vec_it(other.vec_it), map_it(other.map_it) {}
+			g(other.g), vec_it(other.vec_it), list_it(other.list_it) {}
 
-		ArcType operator*() const {
-			return *(map_it->second);
+		ArcType &operator*() const {
+			return **list_it;
+		}
+
+		ArcType *operator->() const {
+			return *list_it;
 		}
 
 		const_noconst_iterator<is_const_iterator> operator++() {
-			map_it++;
+			/*
+			 * Note each Arc is stored twice: in arcs[src][dst]
+			 * and arcs[dst][src]. We want to return each Arc exactly once,
+			 * so only return the arcs[src][dst] copy.
+			 */
+			list_it++;
 			// prefix operator
-			while (map_it == vec_it->end()) {
-				// end of map, go on to next value in vector
-				// (may need to do this repeatedly if maps are empty)
-				vec_it++;
-				if (vec_it == g->arcs.end()) {
-					// no elements left to iterate over: end
-					break;
+			while (true) {
+				if (list_it != vec_it->end()) {
+					// not end of map
+					Arc *arc = *list_it;
+					uint32_t vec_index = vec_it - g->arcs.begin();
+					if (arc->getSrcId() == vec_index) {
+						// arcs[src][dst] copy
+						break;
+					} else {
+						// arcs[dst][src] copy
+						list_it++;
+					}
+				} else {
+					// end of map
+					// go on to next value in vector
+					vec_it++;
+					if (vec_it == g->arcs.end()) {
+						// no elements left to iterate over: end
+						break;
+					}
+					list_it = vec_it->begin();
 				}
-				map_it = vec_it->begin();
 			}
 			return *this;
 		}
@@ -127,7 +146,7 @@ public:
 					// last legal value.
 					return true;
 				} else {
-					return map_it == it.map_it;
+					return list_it == it.list_it;
 				}
 			} else {
 				return false;
@@ -150,9 +169,9 @@ public:
 	iterator end() { return iterator(this, true); }
 	const_iterator end() const { return const_iterator(this, true); }
 
-	virtual ~ResidualNetwork();
+	virtual ~FlowNetwork();
 };
 
 } /* namespace flowsolver */
 
-#endif /* SRC_RESIDUALNETWORK_H_ */
+#endif /* FLOW_NETWORK_H_ */

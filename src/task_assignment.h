@@ -1,5 +1,5 @@
-#ifndef TASKASSIGNMENT_H_
-#define TASKASSIGNMENT_H_
+#ifndef TASK_ASSIGNMENT_H_
+#define TASK_ASSIGNMENT_H_
 
 #include <vector>
 #include <utility>
@@ -114,9 +114,7 @@ public:
 		// find all leaf nodes
 		const std::forward_list<Arc *> &sink_adjacencies
 												  = g.getAdjacencies(SINK_NODE);
-		std::forward_list<Arc *>::const_iterator it;
-		for (it = sink_adjacencies.begin(); it != sink_adjacencies.end(); ++it) {
-			Arc *arc = *it;
+		for (Arc *arc : sink_adjacencies) {
 			uint32_t src = arc->getSrcId();
 			uint32_t dst = arc->getDstId();
 			if (src == SINK_NODE) {
@@ -161,4 +159,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* TASKASSIGNMENT_H_ */
+#endif /* TASK_ASSIGNMENT_H_ */

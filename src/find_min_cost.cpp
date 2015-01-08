@@ -11,11 +11,11 @@
 #include <boost/program_options.hpp>
 #include <glog/logging.h>
 
-#include "CostScaling.h"
-#include "CycleCancelling.h"
-#include "DIMACS.h"
-#include "FlowNetwork.h"
-#include "ResidualNetwork.h"
+#include "cost_scaling.h"
+#include "cycle_cancelling.h"
+#include "dimacs.h"
+#include "flow_network.h"
+#include "residual_network.h"
 
 using namespace flowsolver;
 

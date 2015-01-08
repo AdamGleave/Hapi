@@ -5,14 +5,14 @@
  *      Author: adam
  */
 
-#ifndef BELLMANFORD_H_
-#define BELLMANFORD_H_
+#ifndef BELLMAN_FORD_H_
+#define BELLMAN_FORD_H_
 
 #include <queue>
 #include <set>
 #include <vector>
 
-#include "ResidualNetwork.h"
+#include "residual_network.h"
 
 namespace flowsolver {
 
@@ -34,4 +34,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* BELLMANFORD_H_ */
+#endif /* BELLMAN_FORD_H_ */

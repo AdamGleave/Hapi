@@ -5,10 +5,10 @@
  *      Author: adam
  */
 
-#ifndef EDMONDSKARP_H_
-#define EDMONDSKARP_H_
+#ifndef EDMONDS_KARP_H_
+#define EDMONDS_KARP_H_
 
-#include "ResidualNetwork.h"
+#include "residual_network.h"
 
 namespace flowsolver {
 
@@ -28,4 +28,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* EDMONDSKARP_H_ */
+#endif /* EDMONDS_KARP_H_ */

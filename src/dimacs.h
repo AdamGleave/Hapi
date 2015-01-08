@@ -19,8 +19,8 @@
 #include <boost/format.hpp>
 #include <boost/concept/assert.hpp>
 
-#include "Arc.h"
-#include "Graph.h"
+#include "arc.h"
+#include "graph.h"
 
 namespace flowsolver {
 

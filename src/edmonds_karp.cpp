@@ -5,14 +5,15 @@
  *      Author: adam
  */
 
+#include "edmonds_karp.h"
+
 #include <queue>
 #include <set>
 #include <list>
 #include <utility>
 #include <cstring>
 
-#include "ResidualNetworkUtil.h"
-#include "EdmondsKarp.h"
+#include "residual_network_util.h"
 
 namespace flowsolver {
 
