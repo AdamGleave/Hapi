@@ -1,0 +1,54 @@
+% Final draft 
+
+\centerline{\Large Part II Project Progress Report}
+\vspace{0.2in}
+\centerline{\large \textbf{Distributed scheduling using flow networks}}
+\vspace{0.2in}
+\centerline{DATE TBC January 2015}
+
+%\vfill
+
+\textbf{Student name \& e-mail:} Adam Gleave, arg58 \hfil \\
+\textbf{Supervisor:} Ionel Gog \hfil \\
+\textbf{Director of Studies:} Dr Robert Mullins \hfil \\
+\textbf{Overseers:} Dr Stephen Clark \& Dr Pietro Li\a'o \hfil \\
+
+% Main document
+
+\section{Summary of the project}
+The goal of the project is to develop efficient algorithms for solving the min-cost max-flow problem, as it arises in the context of distributed scheduling in data centres, such as in the Quincy system~\cite{Isard:2009}. 
+
+The project can loosely be divided into thirds. The first part involves implementing standard algorithms, to determine which is most suitable for this class of flow networks. All standard algorithms for this problem produce optimal solutions: for the purpose of scheduling, an approximate solution found more quickly may be better. 
+
+The second part builds on earlier work by developing an approximate algorithm based on one of the standard algorithms. The accuracy and performance should then be evaluated.
+
+The third part is reserved for extensions, for example developing new heuristics or an incremental algorithm.
+
+\section{Timetable}
+The project is on schedule. The first part and second part are complete, with work underway on the third part. 
+
+By and large, I have stuck to the proposed timetable. On occassion, however, I have felt the work may be completed more efficiently if I rearrange the work units. 
+
+For example, performance testing on a cluster was originally slated for early December. However, this test would have to be repeated in February once other algorithms have been developed. Consequently, I opted to delay testing on clusters until this point, testing on single machines in the mean time.
+
+\section{Work completed}
+
+I have implemented two standard min-cost algorithms, cycle cancelling~\cite{Klein:1967} and cost scaling~\cite{Goldberg:1987}. This satisfies success criteria \#1, and is the first part of the project.
+
+For the second part, I chose cost scaling as the basis for my approximation algorithm, as it had superior performance in my testing. To determine when convergence is reached, my algorithm examines the change in cost between iterations, and the number of tasks rescheduled.
+
+I have compared the performance of the approximate and optimal algorithm, in accordance with success criteria \#3. The approximation algorithm is typically 30\% faster, whilst achieving a solution within 1\% of the optimum. 
+
+The approximation algorithm supports recording fine-grained statistics. For each iteration, the time elapsed, the cost reduction and the number of tasks rescheduled are recorded. This allows the approximation parameters to be tuned.
+
+An automated test framework verifies correctness of the algorithms, by comparing the solutions against those of a reference implementation. I have written unit tests to cover classes not covered by these tests.
+
+Success criteria 4, 5 and 6 cannot be completed until the end of the project, as explained in the above section. However, I have undertaken preparatory work. Analysis of the Google cluster trace~\cite{clusterdata:Wilkes2011} is a step towards success criteria \#4, and the statistics collected by the approximation algorithm form part of the work for criteria \#6.
+
+\section{Unexpected difficulties}
+
+I had originally intended my project to have a theoretical focus, exploring algorithmic improvements to the min-cost flow problem. However, the performance gap between naive and optimized versions of the same algorithm is much larger than I had anticipated. My initial implementation of the cost scaling algorithm was two orders of magnitude slower than Goldberg's reference implementation, for example. 
+
+For a fair empirical comparison of different algorithms to be made, it is necessary that both their implementations are optimized. Consequently, I now anticipate spending much more time profiling and optimizing my code than originally anticipated.
+
+To implement the standard algorithms, it was necessary for me to understand in detail a number of papers. Perusing these took longer than I had anticipated, perhaps because I had underestimated the difference in style between papers and textbooks. This led to the preparation phase of my project taking longer than expected, leading to being behind schedule for a period of time, although I have since recovered from this.
