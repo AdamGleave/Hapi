@@ -39,6 +39,12 @@ public:
 	 *
 	 */
 	bool runOptimal();
+	/*
+	 * Exact (optimal algorithm). Computes all factors used by approximate
+	 * algorithm and reports them, along with other statistics, for each
+	 * iteration in CSV format into file csv_path.
+	 */
+	bool runStatistics(std::string csv_path);
 	/**
 	 * Approximate algorithm. Terminates when epsilon is < threshold.
 	 */

@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
 		po::options_description desc("cost scaling options");
 		desc.add_options()
 			("help", "produce help message")
+			("statistics", po::value<std::string>(), "output statistics on each iteration to CSV file specified")
 			("epsilon", po::value<double>(), "threshold for epsilon-optimality")
 			("iterations", po::value<uint64_t>(), "threshold for number of iterations")
 			("cost-threshold", po::value<double>(), "minimum factor cost reduced by between iterations")
@@ -91,7 +92,7 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 
-		if (vm.count("epsilon") + vm.count("iterations")
+		if (vm.count("statistics") + vm.count("epsilon") + vm.count("iterations")
 		    + vm.count("cost-threshold") + vm.count("task-assignments") > 1) {
 			throw po::invalid_option_value("at most one of --epsilon, "
 							"--iterations and --cost-threshold can be used");
@@ -101,7 +102,10 @@ int main(int argc, char *argv[]) {
 		CostScaling cc(*g);
 		bool success;
 
-		if (vm.count("epsilon")) {
+		if (vm.count("statistics")) {
+			std::string path = vm["statistics"].as<std::string>();
+			success = cc.runStatistics(path);
+		} else if (vm.count("epsilon")) {
 			double threshold = vm["epsilon"].as<double>();
 			success = cc.runEpsilonOptimal(threshold);
 		} else if (vm.count("iterations")) {

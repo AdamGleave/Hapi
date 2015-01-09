@@ -126,7 +126,7 @@ std::unordered_map<uint32_t, uint32_t>
 
 	std::unordered_set<uint32_t>::iterator it;
 	VLOG(0) << "# of nodes draining into sink: " << sink_adjacencies.size();
-	VLOG(0) << "value of flow: "
+	VLOG(1) << "value of flow: "
 			<< std::accumulate(sink_adjacencies.begin(), sink_adjacencies.end(), 0, addFlow);
 	for (it = leaves.begin(); it != leaves.end(); ++it) {
 		uint32_t leaf_id = *it;

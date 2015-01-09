@@ -2,6 +2,8 @@
 
 #include <cassert>
 #include <algorithm>
+#include <chrono>
+#include <fstream>
 #include <limits>
 
 #include <boost/format.hpp>
@@ -255,7 +257,7 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 	// benefit to starting with a max-flow algorithm, however.
 
 	refine();
-	// potential increase is at most 3*num_nodes*epsilon iff. there is a
+	// potential increase is less than 3*num_nodes*epsilon iff. there is a
 	// feasible flow
 	uint32_t num_nodes = g.getNumNodes();
 	for (size_t i = 1; i <= num_nodes; i++) {
@@ -400,6 +402,7 @@ public:
 		delete task_map;
 		task_map = new_task_map;
 
+		VLOG(0) << "# task assignments changed: " << delta;
 		return delta;
 	}
 };
@@ -411,6 +414,51 @@ bool CostScaling::runTaskAssignmentThreshold(uint64_t min_assignments) {
 		return num_assignments >= min_assignments;
 	});
 	delete tad;
+	return success;
+}
+
+template <class Rep,class Period>
+uint64_t DurationToMicro(std::chrono::duration<Rep,Period> &d) {
+	return std::chrono::duration_cast<std::chrono::microseconds>(d).count();
+}
+
+bool CostScaling::runStatistics(std::string csv_path) {
+	TaskAssignmentDelta *tad = new TaskAssignmentDelta(g);
+	std::fstream *csv_file;
+	csv_file = new std::fstream(csv_path.c_str(),
+						        std::fstream::out | std::fstream::trunc);
+	if (csv_file->fail()) {
+		LOG(FATAL) << "Cannot open " << csv_path;
+	}
+	*csv_file << "iteration #,refine time,overhead time,epsilon,"
+			     "cost,# task assignments changed" << std::endl;;
+
+	// note the reported time for the first iteration will include some setup,
+	// such as finding the maximum cost and checking for feasibility
+	std::chrono::time_point<std::chrono::high_resolution_clock> *last;
+	last = new std::chrono::time_point<std::chrono::high_resolution_clock>();
+	*last = std::chrono::high_resolution_clock::now();
+	bool success = run([csv_file, tad, last, this]() -> bool {
+		auto after_refine = std::chrono::high_resolution_clock::now();
+		auto refine_time = after_refine - *last;
+
+		uint64_t total_cost = totalCost(g);
+		uint32_t num_assignments = tad->update(g);
+
+		auto after_update = std::chrono::high_resolution_clock::now();
+		auto overhead_time = after_update - after_refine;
+		*last = after_update;
+
+		*csv_file << num_iterations << "," << DurationToMicro(refine_time) << ","
+				  << DurationToMicro(overhead_time) << "," << epsilon << ","
+				  << total_cost << "," << num_assignments << std::endl;;
+
+		return true;
+	});
+
+	delete tad;
+	delete csv_file;
+
 	return success;
 }
 
