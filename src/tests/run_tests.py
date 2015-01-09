@@ -5,9 +5,9 @@ import sys
 import sh
 
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
-BASE_DIR = os.path.dirname(SCRIPT_ROOT)
+BASE_DIR = os.path.dirname(os.path.dirname(SCRIPT_ROOT))
 
-GRAPH_DIR = os.path.join(BASE_DIR, "tests", "graphs")
+GRAPH_DIR = os.path.join(BASE_DIR, "src", "tests", "graphs")
 TEST_GRAPHS = ["small_graph_neg_costs.in",
                "small_graph.in",
                "graph_4m_2crs_8j.in",
@@ -18,15 +18,15 @@ TEST_GRAPHS = ["small_graph_neg_costs.in",
 
 # Goldberg's CS2 solver
 # Known-working reference implementation
-REFERENCE_PROGRAM_PATH = os.path.join(BASE_DIR, "cs2", "cs2")
+REFERENCE_PROGRAM_PATH = os.path.join(BASE_DIR, "src", "cs2", "cs2")
 REFERENCE_PROGRAM = sh.Command(REFERENCE_PROGRAM_PATH)
 
-EXECUTABLE_DIR = os.path.join(BASE_DIR, "src")
-TEST_PROGRAM_PATHS = { #"cycle_cancelling": "RunCycleCancelling",
-                       "cost_scaling": "RunCostScaling" 
-                     }
-TEST_PROGRAMS = { name : sh.Command(os.path.join(EXECUTABLE_DIR, filename)) 
-                  for name, filename in TEST_PROGRAM_PATHS.items() }
+EXECUTABLE_DIR = os.path.join(BASE_DIR, "build", "bin")
+TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "find_min_cost"))
+TEST_PROGRAM_ARGUMENTS = ["cost_scaling", "cycle_cancelling"]
+
+TEST_PROGRAMS = { name : TEST_PROGRAM.bake(name)
+                  for name in TEST_PROGRAM_ARGUMENTS }
 
 def runCommand(graph_path, command):
     graph = open(graph_path, "rb")
