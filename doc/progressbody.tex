@@ -18,7 +18,7 @@
 \section{Summary of the project}
 The goal of the project is to develop efficient algorithms for solving the min-cost max-flow problem, as it arises in the context of distributed scheduling in data centres, such as in the Quincy system~\cite{Isard:2009}. 
 
-The project can loosely be divided into thirds. The first part involves implementing standard algorithms. The second part builds on earlier work by developing an approximate algorithm based on one of the standard algorithms. The accuracy and performance should then be evaluated. The third part is reserved for extensions, for example developing new heuristics or an incremental algorithm.
+The project can loosely be divided into thirds. The first part involves implementing standard algorithms. The second part entails modifying one of these algorithms to provide faster, but approximate, solutions. The accuracy and performance should then be evaluated. The third part is reserved for extensions, for example developing new heuristics or an incremental algorithm.
 
 \section{Timetable}
 The project is on schedule. The first part and second part are complete, with work underway on the third part. 
@@ -31,18 +31,18 @@ For example, performance testing on a cluster was originally slated for early De
 
 I have implemented two standard min-cost algorithms, cycle cancelling~\cite{Klein:1967} and cost scaling~\cite{Goldberg:1987}. This satisfies success criteria \#1, and is the first part of the project.
 
-For the second part and criteria \#2, I chose cost scaling as the basis for my approximation algorithm, as it had superior performance in my testing. To determine when convergence is reached, my algorithm examines the change in cost between iterations, and the number of tasks rescheduled.
+An automated test framework compares the solutions produced by the algorithms against those of a reference implementation. I have written unit tests to cover classes not covered by these tests.
+
+For the second part and criteria \#2, I chose cost scaling as the basis for my approximation algorithm, since it had superior performance. My algorithm uses the change in cost between iterations, and the number of tasks rescheduled, to determine when to terminate.
 
 In accordance with criteria \#3, I evaluated the performance of the approximation algorithm. I found it to be on average 30\% faster, whilst achieving a solution within 1\% of the optimum. 
 
-The algorithm supports recording fine-grained statistics. For each iteration, the time elapsed, the cost reduction and the number of tasks rescheduled are reported. This allows the approximation parameters to be tuned.
+The algorithm supports recording fine-grained statistics. For each iteration, the time elapsed, the cost reduction and the number of tasks rescheduled are reported. This allows for tuning of the approximation parameters.
 
-An automated test framework verifies correctness of the algorithms, by comparing the solutions against those of a reference implementation. I have written unit tests to cover classes not covered by these tests.
-
-Success criteria \#4-\#6 cannot be completed until the end of the project, as explained in the above section. However, I have undertaken preparatory work. Analysis of the Google cluster trace~\cite{clusterdata:Wilkes2011} is a step towards success criteria \#4, and the statistics reported by the approximation algorithm form part of the work for criteria \#6.
+Success criterias \#4-\#6 can only be completed at the end of the project, as explained in the above section. However, I have undertaken preparatory work. Analysis of the Google cluster trace~\cite{clusterdata:Wilkes2011} is a step towards success criteria \#4, and the statistics reported by the approximation algorithm form part of the work for criteria \#6.
 
 \section{Unexpected difficulties}
 
 I had intended the project to have a theoretical focus, exploring algorithmic improvements. However, the performance gap between naive and optimized implementations of the same algorithm is much larger than I had anticipated. My initial implementation of the cost scaling algorithm was two orders of magnitude slower than Goldberg's reference implementation, for example. Consequently, I anticipate spending much more time profiling and optimizing my code than expected.
 
-To implement the standard algorithms, it was necessary for me to understand in detail a number of papers. Perusing these took longer than I had anticipated, perhaps in part due to my lack of familiarity with the style of research papers. This led to the preparation phase of my project taking longer than expected.
+To implement the standard algorithms, it was necessary for me to understand in detail a number of papers. Perusing these took longer than I had anticipated, perhaps in part due to my lack of familiarity with the style of research papers. This led to the preparation phase of my project taking longer than scheduled.
