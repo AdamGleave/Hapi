@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
 		po::options_description desc("cost scaling options");
 		desc.add_options()
 			("help", "produce help message")
+			("scaling-factor", po::value<uint32_t>(), "factor by which to divide epsilon on each iteration")
 			("statistics", po::value<std::string>(), "output statistics on each iteration to CSV file specified")
 			("epsilon", po::value<double>(), "threshold for epsilon-optimality")
 			("iterations", po::value<uint64_t>(), "threshold for number of iterations")
@@ -99,28 +100,35 @@ int main(int argc, char *argv[]) {
 		}
 
 		FlowNetwork *g = DIMACS<FlowNetwork>::readDIMACSMin(std::cin);
-		CostScaling cc(*g);
+		CostScaling *cc;
+		if (vm.count("scaling-factor")) {
+			uint32_t scaling_factor = vm["scaling-factor"].as<uint32_t>();
+			cc = new CostScaling(*g, scaling_factor);
+		} else {
+			cc = new CostScaling(*g);
+		}
 		bool success;
 
 		if (vm.count("statistics")) {
 			std::string path = vm["statistics"].as<std::string>();
-			success = cc.runStatistics(path);
+			success = cc->runStatistics(path);
 		} else if (vm.count("epsilon")) {
 			double threshold = vm["epsilon"].as<double>();
-			success = cc.runEpsilonOptimal(threshold);
+			success = cc->runEpsilonOptimal(threshold);
 		} else if (vm.count("iterations")) {
 			uint64_t max_iterations = vm["iterations"].as<uint64_t>();
-			success = cc.runFixedIterations(max_iterations);
+			success = cc->runFixedIterations(max_iterations);
 		} else if (vm.count("cost-threshold")) {
 			double min_factor = vm["cost-threshold"].as<double>();
-			success = cc.runCostThreshold(min_factor);
+			success = cc->runCostThreshold(min_factor);
 		} else if (vm.count("task-assignments")) {
 			uint32_t min_assignments = vm["task-assignments"].as<uint32_t>();
-			success = cc.runTaskAssignmentThreshold(min_assignments);
+			success = cc->runTaskAssignmentThreshold(min_assignments);
 		} else {
-			success = cc.runOptimal();
+			success = cc->runOptimal();
 		}
 
+		delete cc;
 		LOG_IF(ERROR, !success) << "No feasible solution.";
 		DIMACS<FlowNetwork>::writeDIMACSMinFlow(*g, std::cout);
 

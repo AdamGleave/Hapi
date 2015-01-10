@@ -12,8 +12,8 @@ namespace flowsolver {
 
 class CostScaling {
 	FlowNetwork &g;
-	uint64_t epsilon, num_iterations, total_cost;
-	const uint64_t SCALING_FACTOR;
+	uint64_t epsilon, num_iterations;
+	const uint64_t SCALING_FACTOR, COST_SCALING_FACTOR;
 	std::vector<int64_t> potentials;
 	std::forward_list<uint32_t> vertices;
 	std::vector<std::forward_list<Arc *>::iterator> current_edges;
@@ -29,6 +29,7 @@ class CostScaling {
 	bool run(std::function<bool()> continue_running);
 public:
 	CostScaling(FlowNetwork &g);
+	CostScaling(FlowNetwork &g, uint32_t scaling_factor);
 	/**
 	 * All the run algorithms return true if a min-cost flow is found;
 	 * false if no feasible solution exists. Side-effect that graph is updated

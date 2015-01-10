@@ -61,13 +61,18 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 	}
 }
 
-CostScaling::CostScaling(FlowNetwork &g) : g(g), epsilon(0), num_iterations(0),
-							total_cost(0), SCALING_FACTOR(2 * g.getNumNodes()) {
+CostScaling::CostScaling(FlowNetwork &g, uint32_t scaling_factor)
+	: g(g), epsilon(0), num_iterations(0),
+	  SCALING_FACTOR(scaling_factor),
+	  COST_SCALING_FACTOR(scaling_factor * g.getNumNodes()) {
+	assert(scaling_factor > 1);
 	uint32_t num_nodes = g.getNumNodes();
 
 	potentials.resize(num_nodes + 1);
 	current_edges.reserve(num_nodes + 1);
 }
+
+CostScaling::CostScaling(FlowNetwork &g) : CostScaling(g, 2) {}
 
 int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
 	uint32_t dst_id;
@@ -86,7 +91,7 @@ int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
 		// NOREACH
 		return 0;
 	}
-	return (cost * SCALING_FACTOR) - potentials[src_id] + potentials[dst_id];
+	return (cost * COST_SCALING_FACTOR) - potentials[src_id] + potentials[dst_id];
 }
 
 void CostScaling::relabel(uint32_t id) {
@@ -115,7 +120,7 @@ void CostScaling::relabel(uint32_t id) {
 
 		if (capacity > 0) {
 			// arc is in residual network
-			cost *= SCALING_FACTOR;
+			cost *= COST_SCALING_FACTOR;
 			int64_t potential = potentials[dst_id] + cost + epsilon;
 			new_potential = std::min(new_potential, potential);
 		}
@@ -177,7 +182,7 @@ void CostScaling::refine() {
 	// bring all edges in kilter
 	for (FlowNetwork::iterator it = g.begin(); it != g.end(); ++it) {
 		Arc &arc = *it;
-		int64_t reduced_cost = (arc.getCost() * SCALING_FACTOR)
+		int64_t reduced_cost = (arc.getCost() * COST_SCALING_FACTOR)
 					- potentials[arc.getSrcId()] + potentials[arc.getDstId()];
 		if (reduced_cost < 0) {
 			uint64_t capacity = arc.getCapacity();
@@ -247,7 +252,7 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 	// initialize epsilon to C, max cost
 	FlowNetwork::const_iterator max_cost;
 	max_cost = std::max_element(g.begin(), g.end(), costCompare);
-	epsilon = max_cost->getCost() * SCALING_FACTOR;
+	epsilon = max_cost->getCost() * COST_SCALING_FACTOR;
 
 	// TODO: presentation in paper makes a call to a max flow algorithm here
 	// This is unnecessary, as refine subroutine will work OK with any
@@ -291,7 +296,7 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 		 * increases to 6n^2, however this still does not change the asymptotic
 		 * result.
 		 */
-		epsilon = std::max(1ul, epsilon / 2);
+		epsilon = std::max(1ul, epsilon / SCALING_FACTOR);
 		refine();
 		num_iterations++;
 	}
@@ -303,7 +308,7 @@ bool CostScaling::runOptimal() {
 }
 
 bool CostScaling::runEpsilonOptimal(double threshold) {
-	uint64_t epsilon_threshold = threshold * SCALING_FACTOR;
+	uint64_t epsilon_threshold = threshold * COST_SCALING_FACTOR;
 	return run([epsilon_threshold, this]()
 			    -> bool { return epsilon > epsilon_threshold; });
 }
