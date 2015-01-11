@@ -1,7 +1,6 @@
 /* Parses DIMACS input. Runs a minimum-cost maximum-flow algorithm,
  * outputting a DIMACS representation of the solution. */
 
-
 #include <cstdint>
 #include <iostream>
 #include <map>

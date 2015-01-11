@@ -113,7 +113,10 @@ public:
 								 << src << "->" << dst
 								 << " at line " << line_num;
 				} else {
-					g->addArc(src, dst, upper_bound, cost);
+					if (upper_bound != 0) {
+						// ignore zero-capacity arcs
+						g->addArc(src, dst, upper_bound, cost);
+					}
 				}
 
 				break;
