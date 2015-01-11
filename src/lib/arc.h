@@ -33,6 +33,8 @@ public:
 		return src_id;
 	}
 
+	uint32_t getOppositeId(uint32_t id) const;
+
 	uint64_t getCapacity() const {
 		return capacity;
 	}

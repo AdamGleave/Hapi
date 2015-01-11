@@ -2,6 +2,7 @@
 #define COST_SCALING_H_
 
 #include <vector>
+#include <queue>
 #include <forward_list>
 #include <functional>
 
@@ -15,15 +16,15 @@ class CostScaling {
 	uint64_t epsilon, num_iterations;
 	const uint64_t SCALING_FACTOR, COST_SCALING_FACTOR;
 	std::vector<int64_t> potentials;
-	std::forward_list<uint32_t> vertices;
+	// TODO: implementation of the queue? dequeue and list both possible
+	std::queue<uint32_t> active_vertices;
 	std::vector<std::forward_list<Arc *>::iterator> current_edges;
 
 	int64_t reducedCost(Arc &arc, uint32_t src_id);
 	void relabel(uint32_t id);
 	// returns true if potential of id increases
 	bool pushOrUpdate(uint32_t id);
-	// returns true if potential of id increases
-	bool discharge(uint32_t id);
+	void discharge(uint32_t id);
 	bool costThreshold(double minimum_factor);
 	void refine();
 	bool run(std::function<bool()> continue_running);

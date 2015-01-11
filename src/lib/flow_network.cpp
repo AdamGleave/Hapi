@@ -68,7 +68,7 @@ int64_t FlowNetwork::getResidualCapacity(Arc& arc, uint32_t src_id) {
 	}
 }
 
-void FlowNetwork::pushFlow(Arc& arc, uint32_t src_id, uint64_t flow) {
+int64_t FlowNetwork::pushFlow(Arc& arc, uint32_t src_id, uint64_t flow) {
 	uint32_t dst_id = -1;
 	if (arc.getSrcId() == src_id) {
 		// arc is forwards
@@ -83,6 +83,8 @@ void FlowNetwork::pushFlow(Arc& arc, uint32_t src_id, uint64_t flow) {
 	}
 	balances[src_id] -= flow;
 	balances[dst_id] += flow;
+
+	return balances[dst_id];
 }
 
 FlowNetwork::~FlowNetwork() {

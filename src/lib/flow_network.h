@@ -38,7 +38,8 @@ public:
 	}
 
 	int64_t getResidualCapacity(Arc &arc, uint32_t src_id);
-	void pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);
+	// returns balance of the node flow is pushed to
+	int64_t pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);
 
 	// iterator
 	friend class const_noconst_iterator;
