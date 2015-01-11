@@ -23,7 +23,9 @@ REFERENCE_PROGRAM = sh.Command(REFERENCE_PROGRAM_PATH)
 
 EXECUTABLE_DIR = os.path.join(BASE_DIR, "build", "bin")
 TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "find_min_cost"))
-TEST_PROGRAM_ARGUMENTS = ["cost_scaling", "cycle_cancelling"]
+TEST_PROGRAM_ARGUMENTS = ["cost_scaling",
+                          #"cycle_cancelling"
+                         ]
 
 TEST_PROGRAMS = { name : TEST_PROGRAM.bake(name)
                   for name in TEST_PROGRAM_ARGUMENTS }
