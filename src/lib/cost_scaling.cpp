@@ -141,13 +141,8 @@ bool CostScaling::pushOrUpdate(uint32_t id) {
 		int64_t reduced_cost = reducedCost(current_edge, id);
 		if (reduced_cost < 0) {
 			// apply push
-			int64_t flow = std::min(residual_capacity, g.getBalance(id));
-			int64_t new_balance = g.pushFlow(current_edge, id, flow);
-			if (new_balance > 0 && new_balance <= flow) {
-				// destination vertex is active, and excess is less than flow;
-				// so this push just *made* it active.
-				active_vertices.push(current_edge.getOppositeId(id));
-			}
+			uint64_t flow = std::min(residual_capacity, g.getBalance(id));
+			g.pushFlow(current_edge, id, flow);
 			return false;
 		}
 	}
@@ -169,15 +164,15 @@ bool CostScaling::pushOrUpdate(uint32_t id) {
 
 
 // precondition: *it is active
-void CostScaling::discharge(uint32_t id) {
+bool CostScaling::discharge(uint32_t id) {
 	do {
 		bool relabel_performed = pushOrUpdate(id);
 		if (relabel_performed) {
-			// relabel doesn't change potential, so id is still active
-			active_vertices.push(id);
-			return;
+			return true;
 		}
 	} while (g.getBalance(id) > 0);
+
+	return false;
 }
 
 void CostScaling::refine() {
@@ -204,26 +199,49 @@ void CostScaling::refine() {
 
 	current_edges.clear();
 	// initialize current edge to first edge in list
-	for (uint32_t id = 0; id <= num_nodes; id++) {
-		std::forward_list<Arc *> &adjacencies = g.getAdjacencies(id);
+	for (size_t i = 0; i < num_nodes + 1; i++) {
+		std::forward_list<Arc *> &adjacencies = g.getAdjacencies(i);
 		current_edges.push_back(adjacencies.begin());
 	}
 
-	// build list of active vertices
-	CHECK(active_vertices.empty())
-		<< "refine should only have terminated when no active vertices.";
-	for (uint32_t id = 1; id <= num_nodes; id++) {
-		if (g.getBalance(id) > 0) {
-			active_vertices.push(id);
-		}
+	// vertices must maintain the invariant that it is in topological order
+	// relative to the admissible network. However, initially the admissible
+	// network has no edges, and so any initial permutation is permissible.
+	// We choose a sequential one for simplicity.
+	vertices.clear();
+	for (size_t i = 0; i < num_nodes; i++) {
+		vertices.push_front(num_nodes - i);
 	}
 
 	/*** main loop */
-	while (!active_vertices.empty()) {
-		uint32_t active = active_vertices.front();
-		active_vertices.pop();
-		discharge(active);
-	}
+	std::forward_list<uint32_t>::iterator it, prev;
+	bool active_seen;
+	do {
+		active_seen = false;
+
+		prev = vertices.before_begin();
+		it = vertices.begin();
+		while (it != vertices.end()) {
+			uint32_t id = *it;
+			bool relabel_performed = false;
+
+			if (g.getBalance(id) > 0) {
+				active_seen = true;
+				relabel_performed = discharge(id);
+			}
+
+			if (relabel_performed) {
+				vertices.push_front(id);
+				it = vertices.erase_after(prev);
+				// note prev remains unchanged: the iterator returned by
+				// erase_after(prev) points to the same index in the list as
+				// *it had originally (since it erases *it)
+			} else {
+				prev = it;
+				++it;
+			}
+		}
+	} while (active_seen);
 }
 
 bool costCompare(Arc &i, Arc &j) {
