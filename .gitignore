@@ -2,6 +2,7 @@ perf.data
 perf.data.old
 .project
 .cproject
+.settings/
 
 tmp/
 

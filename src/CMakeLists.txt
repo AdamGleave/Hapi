@@ -26,6 +26,7 @@ set(LIBS ${LIBS} ${GLOG_LIBRARY})
 add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
 add_subdirectory(${PROJECT_SOURCE_DIR}/bin)
+add_subdirectory(${PROJECT_SOURCE_DIR}/cs2)
 enable_testing()
 add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 
