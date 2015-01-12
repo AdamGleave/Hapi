@@ -13,7 +13,9 @@ TEST_GRAPHS = ["small_graph_neg_costs.in",
                "graph_4m_2crs_8j.in",
                "graph_4m_2crs_10j.in",
                "stndrd2.in",
-               "graph_100m_8j_100t_10p.in"
+               "graph_100m_8j_100t_10p.in",
+               "graph_1000m_32j_100t_10p.in",
+               "google_all.in"
                ]
 
 # Goldberg's CS2 solver
