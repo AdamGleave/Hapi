@@ -22,6 +22,8 @@ ExternalProject_Add(
 # Specify include dir
 ExternalProject_Get_Property(googletest source_dir)
 set(GTEST_INCLUDE_DIR ${source_dir}/include)
+# Workaround: see http://public.kitware.com/Bug/bug_relationship_graph.php?bug_id=14495
+file(MAKE_DIRECTORY ${GTEST_INCLUDE_DIR})
 
 # Library
 ExternalProject_Get_Property(googletest binary_dir)
