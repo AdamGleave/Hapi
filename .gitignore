@@ -13,3 +13,4 @@ src/tests/graphs/google_all.in
 src/cs2/cs2
 
 build/
+benchmark/
