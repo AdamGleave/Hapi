@@ -3,6 +3,7 @@ perf.data.old
 .project
 .cproject
 .settings/
+*.pyc
 
 tmp/
 
