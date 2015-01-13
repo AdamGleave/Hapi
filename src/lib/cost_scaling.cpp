@@ -256,7 +256,6 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 	}
 
 	while (epsilon > 1 && continue_running()) {
-		std::cout << "epsilon: " << epsilon << std::endl;
 		/*
 		 * The below computation will decrease epsilon by (slightly) more than
 		 * a factor of two when epsilon is odd, since integer division truncates

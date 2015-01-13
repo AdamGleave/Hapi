@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <boost/program_options.hpp>
+#include <boost/timer/timer.hpp>
 #include <glog/logging.h>
 
 #include "cost_scaling.h"
@@ -16,11 +17,16 @@
 #include "flow_network.h"
 #include "residual_network.h"
 
+#define TIMER_FORMAT "ALGOTIME: %w\n"
+
 using namespace flowsolver;
 
 int main(int argc, char *argv[]) {
 	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
+
+	// for timing algorithms
+	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
 
 	// inspiration for this style of command parsing:
 	// http://stackoverflow.com/questions/15541498/how-to-implement-subcommands-using-boost-program-options
@@ -67,8 +73,11 @@ int main(int argc, char *argv[]) {
         po::store(po::command_line_parser(opts).options(desc).run(), vm);
 
     	ResidualNetwork *g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
+    	t.start();
     	CycleCancelling cc(*g);
     	cc.run();
+    	t.stop();
+    	t.report();
     	DIMACS<ResidualNetwork>::writeDIMACSMinFlow(*g, std::cout);
 
     	return 0;
@@ -100,6 +109,8 @@ int main(int argc, char *argv[]) {
 
 		FlowNetwork *g = DIMACS<FlowNetwork>::readDIMACSMin(std::cin);
 		CostScaling *cc;
+
+		t.start();
 		if (vm.count("scaling-factor")) {
 			uint32_t scaling_factor = vm["scaling-factor"].as<uint32_t>();
 			cc = new CostScaling(*g, scaling_factor);
@@ -127,6 +138,8 @@ int main(int argc, char *argv[]) {
 			success = cc->runOptimal();
 		}
 
+		t.stop();
+		t.report();
 		delete cc;
 		LOG_IF(ERROR, !success) << "No feasible solution.";
 		DIMACS<FlowNetwork>::writeDIMACSMinFlow(*g, std::cout);

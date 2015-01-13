@@ -72,11 +72,11 @@ TESTS = {
     "iterations": 1,
     "tests": {
       "wave": {
-        "implementation": "cs_wave",
+        "implementation": "cc_latest",
         "arguments": []
       },
       "fifo": {
-        "implementation": "cs_vertexqueue",
+        "implementation": "cs_goldberg",
         "arguments": []
       },
     },

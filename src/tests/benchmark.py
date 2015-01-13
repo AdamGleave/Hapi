@@ -149,16 +149,27 @@ def runTestInstance(test_command, log_directory, fname, iteration):
       pass
     
     prefix = fname + "_" + str(iteration)
-    start_time = time.time()
-    result = test_command(_in=input_file,
-                 _out=os.path.join(log_directory, prefix + ".out"),
-                 _err=os.path.join(log_directory, prefix + ".err"))
+    out_path = os.path.join(log_directory, prefix + ".out")
+    err_path = os.path.join(log_directory, prefix + ".err")
+    with open(err_path, 'w') as err_file:
+      start_time = time.time()
+      result = test_command(_in=input_file,
+                   _out=os.path.join(log_directory, prefix + ".out"),
+                   _iter="err")
+      algorithm_running_time = None
+      prefix = "ALGOTIME: "
+      for error_line in result:
+        if error_line.find(prefix) == 0:
+          algorithm_running_time = error_line[len(prefix):].strip()
+        else:
+          err_file.write(error_line)
+    
     end_time = time.time()
     if result.exit_code != 0:
       raise ExitCodeException(result.exit_code)
     
     time_elapsed = end_time - start_time
-    return time_elapsed
+    return (algorithm_running_time, time_elapsed)
 
 # SOMEDAY: Ugly how logic and IO are intermixed here. You could perhaps switch
 # to putting the logic in a generator, and iterate over the results yielded
@@ -168,7 +179,7 @@ def runTests(tests):
     
     result_fname = os.path.join(config.RESULT_ROOT, case_name + ".csv") 
     with open(result_fname, 'w') as result_file:
-      fieldnames = ["test", "file", "iteration", "time_elapsed"]
+      fieldnames = ["test", "file", "iteration", "algorithm_time", "total_time"]
       result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
       result_writer.writeheader()
       iterations = case_config["iterations"]
@@ -184,12 +195,14 @@ def runTests(tests):
                            for test_name in tests}
           for test_name, (test_command, version_directory) in test_instances.items():
             log_directory = os.path.join(version_directory, "log", case_name)
-            time_elapsed = runTestInstance(test_command, log_directory, fname, i)
+            algorithm_time, time_elapsed = runTestInstance(test_command,
+                                                        log_directory, fname, i)
             
             result = { "test": test_name, 
                        "file": fname, 
                        "iteration": i,
-                       "time_elapsed": time_elapsed }
+                       "algorithm_time": algorithm_time,
+                       "total_time": time_elapsed }
             result_writer.writerow(result)
             
         print("")
