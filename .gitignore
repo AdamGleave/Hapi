@@ -10,10 +10,12 @@ tmp/
 
 src/ext/
 src/include/
-src/tests/graphs/google_trace/
-#src/tests/graphs/road/
-#src/tests/graphs/netgen/
-#src/tests/graphs/goto/
+src/graphs/google_trace/
+src/graphs/road/
+src/graphs/vision/
+src/graphs/netgen/generator/netgen
+src/graphs/netgen/generated/
+src/graphs/goto/generated/
 src/cs2/cs2
 
 build/

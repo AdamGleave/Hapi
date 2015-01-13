@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_ROOT))
 
 #WORKING_DIRECTORY = os.path.join(PROJECT_DIR, "tmp/tests/")
 WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
-DATASET_ROOT = os.path.join(PROJECT_ROOT, "src", "tests", "graphs")
+DATASET_ROOT = os.path.join(PROJECT_ROOT, "src", "graphs")
 RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
 BUILD_ROOT = "build"
 SOURCE_ROOT = "src"
