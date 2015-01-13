@@ -12,13 +12,10 @@ endif()
 # treated as system include folder
 set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-include_directories(${BOOST_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${BOOST_LIBRARIES})
+find_package(Boost COMPONENTS REQUIRED program_options timer system)
 
 find_package(Glog REQUIRED)
 include_directories(${GLOG_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${GLOG_LIBRARY})
 
 INCLUDE(ExternalProject)
 SET_DIRECTORY_PROPERTIES(PROPERTIES EP_BASE ${CMAKE_BINARY_DIR}/ext)
