@@ -16,12 +16,17 @@ uint32_t FlowNetwork::getNumNodes() const {
 	return num_nodes;
 }
 
+uint32_t FlowNetwork::getNumArcs() const {
+	return num_arcs;
+}
+
 void FlowNetwork::addArc(uint32_t src, uint32_t dst,
 						 uint64_t capacity, int64_t cost) {
 	assert(src != 0 && dst != 0);
 	Arc *arc = new Arc(src, dst, capacity, cost);
 	arcs[src].push_front(arc);
 	arcs[dst].push_front(arc);
+	num_arcs++;
 }
 
 Arc* FlowNetwork::getArc(uint32_t src, uint32_t dst) {

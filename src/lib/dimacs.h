@@ -201,7 +201,7 @@ public:
 
 		// node descriptor lines
 		for (uint32_t id = 1; id <= num_nodes; ++id) {
-			int64_t supply = g.getSupply(id);
+			int64_t supply = g.getBalance(id);
 			if (supply != 0) {
 				os << boost::format("n %u %ld\n") % id % supply;
 			}

@@ -22,7 +22,7 @@ struct ExtractArc {
 
 class ResidualNetwork {
 	uint32_t num_nodes;
-	std::vector<int64_t> balance, supply;
+	std::vector<int64_t> balance;
 	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
 	std::set<uint32_t> sources;
 	std::set<uint32_t> sinks;
@@ -39,9 +39,9 @@ public:
 	void setSupply(uint32_t id, int64_t supply);
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
-	std::unordered_map<uint32_t, Arc*> &getAdjacencies(uint32_t src);
 	/* returns NULL if no such Arc present */
 	Arc *getArc(uint32_t src, uint32_t dst);
+	std::unordered_map<uint32_t, Arc*> &getAdjacencies(uint32_t src);
 
 	friend class const_noconst_iterator;
 

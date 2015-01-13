@@ -12,13 +12,15 @@
 namespace flowsolver {
 
 class FlowNetwork {
-	uint32_t num_nodes;
+	uint32_t num_nodes, num_arcs;
 	std::vector<int64_t> balances;
 	std::vector<std::forward_list<Arc *>> arcs;
 public:
 	FlowNetwork(uint32_t num_nodes);
 	// constant time
 	uint32_t getNumNodes() const;
+	// linear in number of arcs
+	uint32_t getNumArcs() const;
 	// constant time
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	/*

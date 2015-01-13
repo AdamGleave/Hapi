@@ -6,7 +6,6 @@ namespace flowsolver {
 ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	// initialize all supply values to zero
 	balance.resize(num_nodes);
-	supply.resize(num_nodes);
 	arcs.resize(num_nodes);
 }
 
@@ -18,7 +17,7 @@ uint32_t ResidualNetwork::getNumArcs() const {
 	uint32_t num_arcs = 0;
 
 	std::vector<std::unordered_map<uint32_t, Arc*>>::const_iterator vec_it;
-	for (vec_it = this->arcs.begin(); vec_it != this->arcs.end(); ++vec_it) {
+	for (vec_it = arcs.begin(); vec_it != arcs.end(); ++vec_it) {
 		num_arcs += vec_it->size();
 	}
 
@@ -31,21 +30,14 @@ int64_t ResidualNetwork::getBalance(uint32_t id) const {
 	return this->balance[id];
 }
 
-int64_t ResidualNetwork::getSupply(uint32_t id) const {
-	id--; // id's are 1-indexed
-	assert(id < this->num_nodes);
-	return this->supply[id];
-}
-
 void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
 	id--; // id's are 1-indexed
-	assert(id < this->num_nodes);
+	assert(id < num_nodes);
 
-	// can only set supply once
-	// (although may be modified via pushFlow)
-	assert(this->supply[id] == 0);
-	this->balance[id] = supply;
-	this->supply[id] = supply;
+	// Can only set supply once. Check it is zero, as it must be when just
+	// initialized. (Note won't catch all mistakes.)
+	assert(balance[id] == 0);
+	balance[id] = supply;
 	if (supply < 0) {
 		sinks.insert(id + 1);
 	} else if (supply > 0) {
@@ -67,7 +59,7 @@ void ResidualNetwork::addArc(uint32_t src, uint32_t dst,
 	src--;
 	dst--;
 	// indices in range
-	assert(src < this->num_nodes && dst < this->num_nodes);
+	assert(src < num_nodes && dst < num_nodes);
 	// arc does not already exist in graph
 	assert(arcs[src].count(dst) == 0);
 	// forward arc
@@ -94,7 +86,7 @@ void ResidualNetwork::updateSupply(uint32_t index, int64_t delta) {
 void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	src--;
 	dst--;
-	assert(src < this->num_nodes && dst < this->num_nodes);
+	assert(src < num_nodes && dst < num_nodes);
 	arcs[src][dst]->pushFlow(amount);
 	arcs[dst][src]->pushFlow(-amount);
 
@@ -111,7 +103,7 @@ std::unordered_map<uint32_t, Arc*> &ResidualNetwork::getAdjacencies(uint32_t src
 Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) {
 	src--;
 	dst--;
-	assert(src< this->num_nodes && dst < this->num_nodes);
+	assert(src< num_nodes && dst < num_nodes);
 	std::unordered_map<uint32_t, Arc*>::iterator arcIt = arcs[src].find(dst);
 	if (arcIt == arcs[src].end()) {
 		return 0;
@@ -122,7 +114,7 @@ Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) {
 
 ResidualNetwork::~ResidualNetwork() {
 	std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
-	for (vec_it = this->arcs.begin(); vec_it != this->arcs.end(); ++vec_it) {
+	for (vec_it = arcs.begin(); vec_it != arcs.end(); ++vec_it) {
 		std::unordered_map<uint32_t, Arc*>::iterator map_it;
 		for (map_it = vec_it->begin(); map_it != vec_it->end(); ++map_it) {
 			Arc *arc = map_it->second;
