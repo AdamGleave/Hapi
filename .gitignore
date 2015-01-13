@@ -11,8 +11,8 @@ tmp/
 src/ext/
 src/include/
 src/graphs/google_trace/
-src/graphs/road/
-src/graphs/vision/
+src/graphs/road/*.min
+src/graphs/vision/*.min
 src/graphs/netgen/generator/netgen
 src/graphs/netgen/generated/
 src/graphs/goto/goto
