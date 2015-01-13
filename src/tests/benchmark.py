@@ -2,6 +2,9 @@
 
 import config, sh, shutil, csv, os, sys, time
 
+# For reading DIMACS graph file
+BUFFER_SIZE = 4 * 1024
+
 # wrapper around file object, flushing after every write
 class flushfile:
     def __init__(self, f):
@@ -153,8 +156,8 @@ def runTestInstance(test_command, log_directory, fname, iteration):
     err_path = os.path.join(log_directory, prefix + ".err")
     with open(err_path, 'w') as err_file:
       start_time = time.time()
-      result = test_command(_in=input_file,
-                   _out=os.path.join(log_directory, prefix + ".out"),
+      result = test_command(_in=input_file, _in_bufsize=BUFFER_SIZE,
+                   _out=out_path,
                    _iter="err")
       algorithm_running_time = None
       prefix = "ALGOTIME: "
@@ -163,8 +166,8 @@ def runTestInstance(test_command, log_directory, fname, iteration):
           algorithm_running_time = error_line[len(prefix):].strip()
         else:
           err_file.write(error_line)
-    
-    end_time = time.time()
+      end_time = time.time()
+      
     if result.exit_code != 0:
       raise ExitCodeException(result.exit_code)
     
@@ -204,6 +207,7 @@ def runTests(tests):
                        "algorithm_time": algorithm_time,
                        "total_time": time_elapsed }
             result_writer.writerow(result)
+            result_file.flush()
             
         print("")
 

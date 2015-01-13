@@ -71,11 +71,11 @@ TESTS = {
     "files": FILES["development_only"],
     "iterations": 1,
     "tests": {
-      "wave": {
+      "my": {
         "implementation": "cc_latest",
         "arguments": []
       },
-      "fifo": {
+      "goldberg": {
         "implementation": "cs_goldberg",
         "arguments": []
       },
