@@ -10,7 +10,7 @@ tmp/
 
 src/ext/
 src/include/
-src/tests/graphs/google_all.in
+src/tests/graphs/google_trace/
 src/cs2/cs2
 
 build/
