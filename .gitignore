@@ -11,6 +11,9 @@ tmp/
 src/ext/
 src/include/
 src/tests/graphs/google_trace/
+#src/tests/graphs/road/
+#src/tests/graphs/netgen/
+#src/tests/graphs/goto/
 src/cs2/cs2
 
 build/
