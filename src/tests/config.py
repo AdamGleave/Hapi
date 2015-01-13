@@ -59,7 +59,7 @@ IMPLEMENTATIONS = {
    "arguments" : ["cost_scaling"]
   },
   "cs_vertexqueue": {
-   "version": "cd125be",
+   "version": "5784157",
    "target": "find_min_cost",
    "path": "bin/find_min_cost",
    "arguments" : ["cost_scaling"]
