@@ -35,19 +35,19 @@ FILES["all"] = all_files
 
 IMPLEMENTATIONS = {
   "cs_latest": {
-    "version": "HEAD",
+    "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments" : ["cost_scaling"]
    },
   "cs_goldberg": {
-    "version": "HEAD",
+    "version": "master",
     "target": "cs2",
     "path": "cs2/cs2",
     "arguments" : []
    },
    "cc_latest": {
-    "version": "HEAD",
+    "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments" : ["cycle_cancelling"]
