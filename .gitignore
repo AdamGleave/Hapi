@@ -15,6 +15,7 @@ src/graphs/road/
 src/graphs/vision/
 src/graphs/netgen/generator/netgen
 src/graphs/netgen/generated/
+src/graphs/goto/goto
 src/graphs/goto/generated/
 src/cs2/cs2
 
