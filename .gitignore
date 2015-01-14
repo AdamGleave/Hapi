@@ -10,13 +10,13 @@ tmp/
 
 src/ext/
 src/include/
-src/graphs/google_trace/
-src/graphs/road/*.min
-src/graphs/vision/*.min
-src/graphs/netgen/generator/netgen
-src/graphs/netgen/generated/
-src/graphs/goto/goto
-src/graphs/goto/generated/
+src/graphs/general/natural/road/*.min
+src/graphs/general/natural/vision/*.min
+src/graphs/general/synthetic/netgen/generator/netgen
+src/graphs/general/synthetic/netgen/generated/
+src/graphs/general/synthetic/goto/goto
+src/graphs/general/synthetic/goto/generated/
+src/graphs/clusters/natural/google_trace/
 src/cs2/cs2
 
 build/
