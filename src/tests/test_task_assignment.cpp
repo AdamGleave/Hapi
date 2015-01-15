@@ -19,7 +19,8 @@ protected:
 	fs::FlowNetwork *original;
 	fs::FlowNetwork *augmented;
 
-	const std::string GRAPH_PATH = CMAKE_SRC_DIR "/tests/graphs/";
+	const std::string GRAPH_PATH =
+			CMAKE_SRC_DIR "/graphs/clusters/synthetic/handmade/";
 	const std::string GRAPH_FILENAME = GRAPH_PATH + "task_assignments.in";
 	const std::string SOLUTION_FILENAME = GRAPH_PATH + "task_assignments.s";
 	void SetUp() {

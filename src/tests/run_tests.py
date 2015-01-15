@@ -7,14 +7,14 @@ import sh
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(SCRIPT_ROOT))
 
-GRAPH_DIR = os.path.join(BASE_DIR, "src", "tests", "graphs")
-TEST_GRAPHS = ["handmade/small_graph_neg_costs.in",
-               "handmade/small_graph.in",
-               "firmament_synthetic/graph_4m_2crs_8j.in",
-               "firmament_synthetic/graph_4m_2crs_10j.in",
-               "firmament_synthetic/graph_100m_8j_100t_10p.in",
-               "firmament_synthetic/graph_1000m_32j_100t_10p.in",
-               "google_trace/google_all.in"
+GRAPH_DIR = os.path.join(BASE_DIR, "src", "graphs", "clusters")
+TEST_GRAPHS = ["synthetic/handmade/small_graph_neg_costs.in",
+               "synthetic/handmade/small_graph.in",
+               "synthetic/firmament/graph_4m_2crs_8j.in",
+               "synthetic/firmament/graph_4m_2crs_10j.in",
+               "synthetic/firmament/graph_100m_8j_100t_10p.in",
+               "synthetic/firmament/graph_1000m_32j_100t_10p.in",
+               "natural/google_trace/google_all.in"
                ]
 
 # Goldberg's CS2 solver
