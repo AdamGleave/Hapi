@@ -6,6 +6,6 @@ SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
 # We are run from the corresponding directory in build/ by CMake
-GENERATOR=`pwd`/generator/netgen
+GENERATOR=`pwd`/generator/generator_netgen
 OUTPUT=$SCRIPTPATH/generated
 source $SCRIPTPATH/../generate_inc.sh
