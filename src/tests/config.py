@@ -3,7 +3,7 @@
 # Example config file
 # Mock-up only
 
-import os, glob
+import os, glob, itertools
 
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_ROOT))
@@ -77,7 +77,8 @@ FILES = {
   "goto_sr": graphGlob("general/synthetic/goto/goto_sr_*.min"),
 }
 
-FILES["synthetic"] = FILES["synthetic_small"] + FILES["synthetic_large"]
+FILES["synthetic"] = itertools.chain(FILES["synthetic_small"],
+                                     FILES["synthetic_large"])
 
 all_files = set()
 for files in FILES.values():
