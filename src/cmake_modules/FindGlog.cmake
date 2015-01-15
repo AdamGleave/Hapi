@@ -67,9 +67,8 @@ if(MSVC)
 		  )
 else(MSVC)
 	# Linux/OS X builds
-    find_path(GLOG_INCLUDE_DIR NAMES raw_logging.h
-        PATHS
-          ${GLOG_ROOT}/include/glog
+    find_path(GLOG_INCLUDE_DIR NAMES include/glog/raw_logging.h
+        PATHS ${GLOG_ROOT}
 		  )
 endif(MSVC)
 
