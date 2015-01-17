@@ -56,6 +56,7 @@ def runTest(graph_path):
             print("FAIL - ", name, file=sys.stderr)
             print("Expected {0}, actual {1}".
                   format(reference_solution, solution), file=sys.stderr)
+            sys.exit(1)
 
 for graph_filename in TEST_GRAPHS:
     print("***", graph_filename, "***")
