@@ -92,18 +92,25 @@ IMPLEMENTATIONS = {
     "path": "bin/find_min_cost",
     "arguments" : ["cost_scaling"]
    },
+   "ap_latest": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments" : ["augmenting_path"]
+   },
+  "cc_latest": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments" : ["cycle_cancelling"]
+   },
   "cs_goldberg": {
     "version": "master",
     "target": "cs2",
     "path": "cs2/cs2",
     "arguments" : []
    },
-   "cc_latest": {
-    "version": "master",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments" : ["cycle_cancelling"]
-   },
+
   "cs_wave": {
    "version": "cs_wave",
    "target": "find_min_cost",
@@ -183,4 +190,18 @@ TESTS = {
       },
     },
   },
+  "augmenting_vs_costscaling": {
+    "files": FILES["synthetic_large"] + FILES["google"],
+    "iterations": 3,
+    "tests": {
+      "cost_scaling": {
+        "implementation": "cs_latest",
+        "arguments": []
+      },
+      "augmenting_path": {
+        "implementation": "ap_latest",
+        "arguments": []
+      },
+    },
+  }
 }
