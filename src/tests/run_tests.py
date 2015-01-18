@@ -8,8 +8,7 @@ SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(SCRIPT_ROOT))
 
 GRAPH_DIR = os.path.join(BASE_DIR, "src", "graphs", "clusters")
-TEST_GRAPHS = ["synthetic/handmade/small_graph_neg_costs.in",
-               "synthetic/handmade/small_graph.in",
+TEST_GRAPHS = ["synthetic/handmade/small_graph.in",
                "synthetic/firmament/graph_4m_2crs_8j.in",
                "synthetic/firmament/graph_4m_2crs_10j.in",
                "synthetic/firmament/graph_100m_8j_100t_10p.in",
@@ -24,7 +23,8 @@ REFERENCE_PROGRAM = sh.Command(REFERENCE_PROGRAM_PATH)
 
 EXECUTABLE_DIR = os.path.join(BASE_DIR, "build", "bin")
 TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "find_min_cost"))
-TEST_PROGRAM_ARGUMENTS = ["cost_scaling",
+TEST_PROGRAM_ARGUMENTS = ["augmenting_path",
+                          "cost_scaling",
                           #"cycle_cancelling"
                          ]
 

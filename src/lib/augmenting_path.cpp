@@ -10,7 +10,7 @@ namespace flowsolver {
 // min heap
 class BinaryHeap {
 	const std::vector<uint64_t> &data;
-	std::vector<uint32_t> keys;
+	std::vector<uint32_t> keys, reverse;
 	uint32_t size;
 
 	uint32_t left(uint32_t index) {
@@ -23,6 +23,17 @@ class BinaryHeap {
 
 	uint32_t parent(uint32_t index) {
 		return (index - 1) / 2;
+	}
+
+	void assign(uint32_t index, uint32_t value) {
+		keys[index] = value;
+		reverse[value] = index;
+	}
+
+	void swap(uint32_t index1, uint32_t index2) {
+		uint32_t tmp = keys[index1];
+		assign(index1, keys[index2]);
+		assign(index2, tmp);
 	}
 
 	void heapify(uint32_t index) {
@@ -38,7 +49,7 @@ class BinaryHeap {
 		if (smallest != index) {
 			VLOG(4) << "heapify swapping " << smallest << " with " << index;
 			// we need to swap elements in order to maintain heap structure
-			std::iter_swap(keys.begin() + index, keys.begin() + smallest);
+			swap(index, smallest);
 			heapify(smallest);
 		}
 	}
@@ -50,17 +61,18 @@ public:
 		size = data.size();
 		VLOG(1) << "Building heap of size " << size << " with start " << start;
 		keys.resize(size);
+		reverse.resize(size);
 
 		// first key in min-heap is start
-		keys[0] = start;
+		assign(0, start);
 
 		// all other keys have the same value, and so can appear in any order
 		uint32_t i;
 		for (i = 1; i <= start; i++) {
-			keys[i] = i - 1;
+			assign(i, i - 1);
 		}
 		for (; i < size; i++) {
-			keys[i] = i;
+			assign(i, i);
 		}
 	}
 
@@ -76,14 +88,16 @@ public:
 	}
 
 	// PRECONDITION: data[id] <= the original value of data[id]
+	// XXX(adam): broken, would need to locate i such that keys[i] == id
 	void decreaseKey(uint32_t id) {
-		uint32_t parent_id = parent(id);
+		uint32_t index = reverse[id];
+		uint32_t parent_index = parent(index);
 		// bubble element up whilst it is smaller than its parents
-		while (id > 0 && data[keys[id]] < data[keys[parent_id]]) {
-			VLOG(4) << "Bubbling " << id << " up to " << parent_id;
-			std::iter_swap(keys.begin() + id, keys.begin() + parent_id);
-			id = parent_id;
-			parent_id = parent(id);
+		while (index > 0 && data[keys[index]] < data[keys[parent_index]]) {
+			VLOG(4) << "Bubbling " << index << " up to " << parent_index;
+			swap(index, parent_index);
+			index = parent_index;
+			parent_index = parent(index);
 		}
 	}
 
