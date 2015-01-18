@@ -88,14 +88,15 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	updateSupply(dst, amount);
 }
 
-std::unordered_map<uint32_t, Arc*> &ResidualNetwork::getAdjacencies(uint32_t src) {
+const std::unordered_map<uint32_t, Arc*>& ResidualNetwork::getAdjacencies
+																													(uint32_t src) const {
 	assert(src <= this->num_nodes);
 	return arcs[src];
 }
 
-Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) {
+Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) const {
 	assert(src <= num_nodes && dst <= num_nodes);
-	std::unordered_map<uint32_t, Arc*>::iterator arcIt = arcs[src].find(dst);
+	std::unordered_map<uint32_t, Arc*>::const_iterator arcIt = arcs[src].find(dst);
 	if (arcIt == arcs[src].end()) {
 		return 0;
 	} else {
