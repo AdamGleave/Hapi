@@ -11,11 +11,13 @@
 #include <boost/timer/timer.hpp>
 #include <glog/logging.h>
 
-#include "cost_scaling.h"
-#include "cycle_cancelling.h"
-#include "dimacs.h"
+
 #include "flow_network.h"
 #include "residual_network.h"
+#include "dimacs.h"
+#include "augmenting_path.h"
+#include "cost_scaling.h"
+#include "cycle_cancelling.h"
 
 #define TIMER_FORMAT "ALGOTIME: %w\n"
 
@@ -52,7 +54,8 @@ int main(int argc, char *argv[]) {
     po::store(parsed, vm);
 
     std::string usage = "usage: " + std::string(argv[0])
-					+ " <cost_scaling|cycle_cancelling> <subcommand arguments>";
+    					+ " <augmenting_path|cost_scaling|cycle_cancelling>"
+							+	" <subcommand arguments>";
     if (!vm.count("command")) {
     	std::cerr << "must specify command" << std::endl;
     	std::cerr << usage << std::endl;
@@ -66,25 +69,39 @@ int main(int argc, char *argv[]) {
 	opts.erase(opts.begin());
 
 	// match on command names
-    if (cmd == "cycle_cancelling")
-    {
-        // cycle_cancelling command has no options
-    	po::options_description desc("cycle cancelling options");
-        po::store(po::command_line_parser(opts).options(desc).run(), vm);
+	if (cmd == "augmenting_path") {
+		// augmenting_path command has no options
+		po::options_description desc("cycle cancelling options");
+		po::store(po::command_line_parser(opts).options(desc).run(), vm);
 
-    	ResidualNetwork *g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
-    	t.start();
-    	CycleCancelling cc(*g);
-    	cc.run();
-    	t.stop();
-    	t.report();
-    	DIMACS<ResidualNetwork>::writeDIMACSMinFlow(*g, std::cout);
+		ResidualNetwork *g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
+		t.start();
+		AugmentingPath ap(*g);
+		ap.run();
+		t.stop();
+		t.report();
+		DIMACS<ResidualNetwork>::writeDIMACSMinFlow(*g, std::cout);
 
-    	return 0;
-    }
-    else if (cmd == "cost_scaling")
-    {
-    	// cost_scaling command options
+		return 0;
+	} else if (cmd == "cycle_cancelling")
+	{
+		// cycle_cancelling command has no options
+		po::options_description desc("cycle cancelling options");
+		po::store(po::command_line_parser(opts).options(desc).run(), vm);
+
+		ResidualNetwork *g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
+		t.start();
+		CycleCancelling cc(*g);
+		cc.run();
+		t.stop();
+		t.report();
+		DIMACS<ResidualNetwork>::writeDIMACSMinFlow(*g, std::cout);
+
+		return 0;
+	}
+	else if (cmd == "cost_scaling")
+	{
+		// cost_scaling command options
 		po::options_description desc("cost scaling options");
 		desc.add_options()
 			("help", "produce help message")
@@ -102,7 +119,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (vm.count("statistics") + vm.count("epsilon") + vm.count("iterations")
-		    + vm.count("cost-threshold") + vm.count("task-assignments") > 1) {
+				+ vm.count("cost-threshold") + vm.count("task-assignments") > 1) {
 			throw po::invalid_option_value("at most one of --epsilon, "
 							"--iterations and --cost-threshold can be used");
 		}
@@ -145,10 +162,10 @@ int main(int argc, char *argv[]) {
 		DIMACS<FlowNetwork>::writeDIMACSMinFlow(*g, std::cout);
 
 		return 0;
-    } else {
-    	// unrecognised command
-    	std::cerr << "unrecognised command: " << cmd << std::endl;
-    	std::cerr << usage << std::endl;
-    	return -1;
-    }
+	} else {
+		// unrecognised command
+		std::cerr << "unrecognised command: " << cmd << std::endl;
+		std::cerr << usage << std::endl;
+		return -1;
+	}
 }

@@ -26,6 +26,7 @@ class BinaryHeap {
 	}
 
 	void heapify(uint32_t index) {
+		VLOG(4) << "heapify at " << index;
 		uint32_t l = left(index), r = right(index);
 		uint32_t smallest = index;
 		if (l < size && data[keys[l]] < data[keys[smallest]]) {
@@ -35,8 +36,10 @@ class BinaryHeap {
 			smallest = r;
 		}
 		if (smallest != index) {
+			VLOG(4) << "heapify swapping " << smallest << " with " << index;
 			// we need to swap elements in order to maintain heap structure
 			std::iter_swap(keys.begin() + index, keys.begin() + smallest);
+			heapify(smallest);
 		}
 	}
 public:
@@ -76,7 +79,8 @@ public:
 	void decreaseKey(uint32_t id) {
 		uint32_t parent_id = parent(id);
 		// bubble element up whilst it is smaller than its parents
-		while (id > 0 && data[id] < data[parent_id]) {
+		while (id > 0 && data[keys[id]] < data[keys[parent_id]]) {
+			VLOG(4) << "Bubbling " << id << " up to " << parent_id;
 			std::iter_swap(keys.begin() + id, keys.begin() + parent_id);
 			id = parent_id;
 			parent_id = parent(id);
@@ -103,6 +107,8 @@ class Djikstra {
 	void reset(uint32_t source) {
 		distances.assign(num_nodes + 1, UINT64_MAX);
 		distances[source] = 0;
+		// XXX(adam): heap doesn't need to be initialized to contain all vertices,
+		// just add them in as we explore them
 		priority_queue.makeHeap(source);
 		permanently_labelled.clear();
 		// TODO(adam): is this necessary?
@@ -110,8 +116,9 @@ class Djikstra {
 	}
 
 	uint64_t reducedCost(uint32_t src, uint32_t dst, Arc *arc) {
-		int64_t cost = arc->getCost() + potentials[src] - potentials[dst];
-		CHECK_GE(cost, 0) << "all reduced costs should be non-negative";
+		int64_t cost = arc->getCost() - potentials[src] + potentials[dst];
+		CHECK_GE(cost, 0) << "all reduced costs should be non-negative, "
+				 	 	 	 	 	    << src << "->" << dst << " has " << cost;
 		return cost;
 	}
 
@@ -123,11 +130,14 @@ class Djikstra {
 			distances[dst] = distance_via_arc;
 			priority_queue.decreaseKey(dst);
 			parents[dst] = src;
+			VLOG(2) << "Djikstra: relaxed " << src << "->" << dst
+					    << " new distance " << distance_via_arc;
 		}
 	}
 public:
-	Djikstra(ResidualNetwork &g) : g(g), num_nodes(g.getNumNodes()),
-						               potentials(potentials),	priority_queue(distances) {
+	Djikstra(ResidualNetwork &g, std::vector<uint64_t>& potentials)
+											    : g(g), num_nodes(g.getNumNodes()),
+													  potentials(potentials),	priority_queue(distances) {
 		distances.resize(num_nodes + 1);
 		parents.resize(num_nodes + 1);
 	}
@@ -144,6 +154,7 @@ public:
 
 			const std::unordered_map<uint32_t, Arc*>& adjacencies = g.getAdjacencies(id);
 			for (auto adjacency : adjacencies) {
+				VLOG(3) << "Inspecting arc to " << adjacency.first;
 				Arc *arc = adjacency.second;
 				if (arc->getCapacity() > 0) {
 					uint32_t dst = adjacency.first;
@@ -151,11 +162,11 @@ public:
 				} else {
 					// not in residual network, ignore
 				}
+			}
 
-				if (g.getBalance(id) < 0) {
-					// id, which is now permanently labelled, is a deficit node
-					return id;
-				}
+			if (g.getBalance(id) < 0) {
+				// id, which is now permanently labelled, is a deficit node
+				return id;
 			}
 		}
 
@@ -176,7 +187,8 @@ public:
 
 AugmentingPath::AugmentingPath(ResidualNetwork &g)
 																						: g(g), num_nodes(g.getNumNodes()) {
-	potentials.resize(num_nodes + 1);
+	//potentials.resize(num_nodes + 1);
+	potentials.assign(num_nodes + 1, 0);
 	// note flow is initially zero (default in ResidualNetwork),
 	// and potentials initialized to constant zero
 }
@@ -209,21 +221,30 @@ void AugmentingPath::run() {
 		uint32_t source = *sources.begin();
 
 		// compute shortest path distances
-		Djikstra shortest_paths(g);
+		Djikstra shortest_paths(g, potentials);
 		uint32_t sink = shortest_paths.run(source);
+		const std::vector<uint64_t>& distances =
+																   shortest_paths.getShortestDistances();
+		VLOG(1) << "Permanently labeled deficit node " << sink
+				    << " with distance " << distances[sink];
 
 		// update potentials
-		const std::vector<uint64_t>& distances =
-														   shortest_paths.getShortestDistances();
+		VLOG(1) << "Updating potentials";
 		const std::set<uint32_t>& permanently_labelled =
 											  shortest_paths.getPermanentlyLabelledNodes();
 		uint64_t sink_distance = distances[sink];
 		for (uint32_t id : permanently_labelled) {
+			VLOG(3) << "Distance to " << id << " is " << distances[id];
+		}
+		for (uint32_t id : permanently_labelled) {
 			uint32_t node_distance = distances[id];
-			potentials[id] += sink_distance - node_distance;
+			uint64_t new_potential = potentials[id] + sink_distance - node_distance;
+			potentials[id] = new_potential;
+			VLOG(3) << "Updating potential of " << id << " to " << new_potential;
 		}
 
 		// augment flow along path
+		VLOG(1) << "Augmenting flow ";
 		const std::vector<uint32_t>& parents = shortest_paths.getParents();
 		std::queue<Arc*> augmenting_path = predecessorPath(source, sink, parents);
 		ResidualNetworkUtil::augmentPath(g, augmenting_path);
