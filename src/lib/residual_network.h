@@ -77,6 +77,13 @@ public:
 		const_noconst_iterator(FlowNetworkType g) : g(g) {
 			vec_it = g->arcs.begin();
 			map_it = vec_it->begin();
+
+			// The first element of the vector may be an empty map: if so, skip until
+			// we find an element. But if arcs is completely empty, do nothing.
+			if (vec_it != g->arcs.end()) {
+				// g->arcs not empty
+				nextValid();
+			}
 		}
 
 		const_noconst_iterator(FlowNetworkType g, bool) : g(g) {
@@ -93,9 +100,8 @@ public:
 			return *(map_it->second);
 		}
 
-		const_noconst_iterator<is_const_iterator> operator++() {
-			map_it++;
-			// prefix operator
+		// keep iterating until we reach a valid element
+		void nextValid() {
 			while (map_it == vec_it->end()) {
 				// end of map, go on to next value in vector
 				// (may need to do this repeatedly if maps are empty)
@@ -106,6 +112,12 @@ public:
 				}
 				map_it = vec_it->begin();
 			}
+		}
+
+		// prefix operator
+		const_noconst_iterator<is_const_iterator> operator++() {
+			map_it++;
+			nextValid();
 			return *this;
 		}
 
