@@ -10,8 +10,7 @@ namespace flowsolver {
 // min heap
 class BinaryHeap {
 	const std::vector<uint64_t> &data;
-	std::vector<uint32_t> keys;
-	std::unordered_map<uint32_t, uint32_t> reverse;
+	std::vector<uint32_t> keys, reverse;
 	uint32_t size;
 
 	uint32_t left(uint32_t index) {
@@ -59,6 +58,7 @@ public:
 	BinaryHeap(std::vector<uint64_t> &data) : data(data), size(0) { }
 
 	void makeHeap(uint32_t start) {
+		reverse.resize(data.size());
 		size = 1;
 		keys.resize(size);
 
@@ -71,7 +71,6 @@ public:
 		uint32_t min = keys[0];
 
 		keys[0] = keys[size - 1];
-		reverse.erase(min);
 		size--;
 		heapify(0);
 
