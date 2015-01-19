@@ -87,8 +87,7 @@ public:
 		return min;
 	}
 
-	// PRECONDITION: data[id] <= the original value of data[id]
-	// XXX(adam): broken, would need to locate i such that keys[i] == id
+	// PRECONDITION: the distance for node id has decreased
 	void decreaseKey(uint32_t id) {
 		uint32_t index = reverse[id];
 		uint32_t parent_index = parent(index);
@@ -106,8 +105,6 @@ public:
 	}
 };
 
-// TODO(adam): make templated class for min-priority queue?
-// TODO(adam): facility to reset Djikstra rather than re-create everything?
 class Djikstra {
 	const ResidualNetwork &g;
 	const uint32_t num_nodes;
@@ -125,8 +122,9 @@ class Djikstra {
 		// just add them in as we explore them
 		priority_queue.makeHeap(source);
 		permanently_labelled.clear();
-		// TODO(adam): is this necessary?
-		parents.assign(num_nodes + 1, 0);
+		// note there's no need to reset parents: we only read it to trace back
+		// the path from the sink node, and the elements touched in this will have
+		// been overwritten during run()
 	}
 
 	uint64_t reducedCost(uint32_t src, uint32_t dst, Arc *arc) {
@@ -230,12 +228,12 @@ std::queue<Arc *> AugmentingPath::predecessorPath
 // TODO(adam): what happens if there's no feasible solution?
 void AugmentingPath::run() {
 	const std::set<uint32_t> &sources = g.getSources();
+	Djikstra shortest_paths(g, potentials);
 	while (!sources.empty()) {
 		// select some initial source
 		uint32_t source = *sources.begin();
 
 		// compute shortest path distances
-		Djikstra shortest_paths(g, potentials);
 		uint32_t sink = shortest_paths.run(source);
 		const std::vector<uint64_t>& distances =
 																   shortest_paths.getShortestDistances();
@@ -245,7 +243,7 @@ void AugmentingPath::run() {
 		// update potentials
 		VLOG(1) << "Updating potentials";
 		const std::set<uint32_t>& permanently_labelled =
-											  shortest_paths.getPermanentlyLabelledNodes();
+											             shortest_paths.getPermanentlyLabelledNodes();
 		uint64_t sink_distance = distances[sink];
 		for (uint32_t id : permanently_labelled) {
 			VLOG(3) << "Distance to " << id << " is " << distances[id];
