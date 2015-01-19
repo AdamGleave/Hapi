@@ -130,11 +130,29 @@ IMPLEMENTATIONS = {
     "arguments" : ["cost_scaling"]
    },
    "parser_set": {
-    "version": "04db7f8e109ab695f6bafc11d95a1cdd8646d6e3",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments" : ["cost_scaling"]
+     "version": "04db7f8e109ab695f6bafc11d95a1cdd8646d6e3",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["cost_scaling"]
    },
+   "ap_bigheap": {
+     "version": "1540fc0",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+   },
+   "ap_smallheap_vector": {
+     "version": "41c6852",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+   },
+   "ap_smallheap_map": {
+     "version": "cd42c6e",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+   },                
 }
 
 TESTS = {
@@ -200,6 +218,35 @@ TESTS = {
       },
       "augmenting_path": {
         "implementation": "ap_latest",
+        "arguments": []
+      },
+    },
+  },
+  # Big heap: keeps all vertices in the priority queue. O(n) to create, but
+  # all operations are O(n lg n) afterwards.
+  # Small heap: keeps only vertices with finite distance in priority queue.
+  # O(1) to create, but has to pay insertion cost. Operations cheaper provided
+  # there are vertices not in queue.
+  # Performance will ultimately depend on how many vertices get explored before
+  # Djikstra quits.
+  # Additionally, have the choice between maintaining the reverse index
+  # as a vector or a map. Vector will give guaranteed O(1) lookup, and we 
+  # don't care about the memory consumption, but map may actually perform 
+  # better since it can be better cached.
+  "augmenting_big_vs_small_heap": {
+    "files": FILES["synthetic"],
+    "iterations": 5,
+    "tests": {
+      "big": {
+        "implementation": "ap_bigheap",
+        "arguments": []
+      },
+      "small_vector": {
+        "implementation": "ap_smallheap_vector",
+        "arguments": []
+      },
+      "small_map": {
+        "implementation": "ap_smallheap_map",
         "arguments": []
       },
     },
