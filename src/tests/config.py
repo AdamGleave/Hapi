@@ -18,7 +18,8 @@ def prefix_list(prefix, fnames):
   return list(map(functools.partial(os.path.join(prefix)), fnames))
 
 def graphGlob(pathname):
-  return glob.iglob(os.path.join(DATASET_ROOT, pathname))
+  fnames = glob.glob(os.path.join(DATASET_ROOT, pathname))
+  return list(map(lambda x : os.path.relpath(x, DATASET_ROOT), fnames))
 
 # This variable is not used by the suite at all: it is just for convenience
 # within the config for referencing particular files
@@ -77,8 +78,7 @@ FILES = {
   "goto_sr": graphGlob("general/synthetic/goto/goto_sr_*.min"),
 }
 
-FILES["synthetic"] = itertools.chain(FILES["synthetic_small"],
-                                     FILES["synthetic_large"])
+FILES["synthetic"] = FILES["synthetic_small"] + FILES["synthetic_large"]
 
 all_files = set()
 for files in FILES.values():

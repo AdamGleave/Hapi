@@ -144,7 +144,7 @@ def createTestInstance(instance):
 
 def runTestInstance(test_command, log_directory, fname, iteration):
   input_path = os.path.join(config.DATASET_ROOT, fname)
-  dirname = os.path.dirname(fname)
+  dirname = os.path.relpath(input_path, config.DATASET_ROOT)
   log_subdirectory = os.path.join(log_directory, dirname)
   with open(input_path, 'r') as input_file:
     try:
