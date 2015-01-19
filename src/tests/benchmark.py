@@ -144,9 +144,11 @@ def createTestInstance(instance):
 
 def runTestInstance(test_command, log_directory, fname, iteration):
   input_path = os.path.join(config.DATASET_ROOT, fname)
+  dirname = os.path.dirname(fname)
+  log_subdirectory = os.path.join(log_directory, dirname)
   with open(input_path, 'r') as input_file:
     try:
-      os.mkdir(log_directory)
+      os.makedirs(log_subdirectory)
     except OSError:
       # directory already created if not first time we've been run
       pass
@@ -201,8 +203,8 @@ def runTests(tests):
             algorithm_time, time_elapsed = runTestInstance(test_command,
                                                         log_directory, fname, i)
             
-            result = { "test": test_name, 
-                       "file": fname, 
+            result = { "test": test_name,
+                       "file": fname,
                        "iteration": i,
                        "algorithm_time": algorithm_time,
                        "total_time": time_elapsed }
