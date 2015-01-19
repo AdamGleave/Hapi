@@ -54,26 +54,16 @@ class BinaryHeap {
 		}
 	}
 public:
-	// PRECONDITION: data[start_id] == 0, data[i] = UINT64_MAX for all other i
+	// PRECONDITION: data[start_id] == 0, data[i] == UINT64_MAX for all other i
 	BinaryHeap(std::vector<uint64_t> &data) : data(data), size(0) { }
 
 	void makeHeap(uint32_t start) {
-		size = data.size();
-		VLOG(1) << "Building heap of size " << size << " with start " << start;
+		reverse.resize(data.size());
+		size = 1;
 		keys.resize(size);
-		reverse.resize(size);
 
 		// first key in min-heap is start
 		assign(0, start);
-
-		// all other keys have the same value, and so can appear in any order
-		uint32_t i;
-		for (i = 1; i <= start; i++) {
-			assign(i, i - 1);
-		}
-		for (; i < size; i++) {
-			assign(i, i);
-		}
 	}
 
 	uint32_t extractMin() {
@@ -98,6 +88,13 @@ public:
 			index = parent_index;
 			parent_index = parent(index);
 		}
+	}
+
+	void insert(uint32_t id) {
+		size++;
+		keys.resize(size);
+		assign(size - 1, id);
+		decreaseKey(id);
 	}
 
 	bool empty() {
@@ -138,9 +135,16 @@ class Djikstra {
 		VLOG(3) << "Djikstra: relaxing " << src << "->" << dst;
 		uint64_t cost = reducedCost(src, dst, arc);
 		uint64_t distance_via_arc = distances[src] + cost;
-		if (distance_via_arc < distances[dst]) {
+		uint64_t distance_to_dst = distances[dst];
+		if (distance_via_arc < distance_to_dst) {
 			distances[dst] = distance_via_arc;
-			priority_queue.decreaseKey(dst);
+			if (distance_to_dst == UINT64_MAX) {
+				// dst not in priority queue
+				priority_queue.insert(dst);
+			} else {
+				// dst in queue, need to tell queue distance has decreased
+				priority_queue.decreaseKey(dst);
+			}
 			parents[dst] = src;
 			VLOG(2) << "Djikstra: relaxed " << src << "->" << dst
 					    << " new distance " << distance_via_arc;
