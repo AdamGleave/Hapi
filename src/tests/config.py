@@ -110,7 +110,6 @@ IMPLEMENTATIONS = {
     "path": "cs2/cs2",
     "arguments" : []
    },
-
   "cs_wave": {
    "version": "cs_wave",
    "target": "find_min_cost",
@@ -154,6 +153,15 @@ IMPLEMENTATIONS = {
      "arguments" : ["augmenting_path"]
    },                
 }
+
+LEMON_ALGOS = ["scc", "mmcc", "cat", "ssp", "cas", "cos", "ns"]
+for algo in LEMON_ALGOS:
+  IMPLEMENTATIONS["lemon_" + algo] = {
+    "version": "master",
+    "target": "lemon_min_cost",
+    "path": "bin/lemon_min_cost",
+    "arguments": ["-" + algo]
+  }
 
 TESTS = {
   "development_only": {
@@ -216,10 +224,14 @@ TESTS = {
         "implementation": "cs_latest",
         "arguments": []
       },
-      "augmenting_path": {
+      "my_augmenting_path": {
         "implementation": "ap_latest",
         "arguments": []
       },
+      "lemon_augmenting_path": {
+        "implementation": "lemon_ssp",
+        "arguments": []
+      }
     },
   },
   # Big heap: keeps all vertices in the priority queue. O(n) to create, but
@@ -234,7 +246,7 @@ TESTS = {
   # don't care about the memory consumption, but map may actually perform 
   # better since it can be better cached.
   "augmenting_big_vs_small_heap": {
-    "files": FILES["synthetic"],
+    "files": FILES["synthetic"] + FILES["google"],
     "iterations": 5,
     "tests": {
       "big": {
