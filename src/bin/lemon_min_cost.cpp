@@ -262,8 +262,8 @@ void MinCostSolver<Value,LargeValue>::run() {
 		std::cerr << "BUG: algorithm chosen unsupported." << std::endl;
 		exit(1);
 	}
-
-	std::cerr << "ALGOTIME: " << ti << std::endl;
+	std::cerr << "Algorithm run time: " << ti << std::endl;
+	std::cerr << "ALGOTIME: " << ti.realTime() << std::endl;
 }
 
 int main(int argc, const char *argv[]) {
