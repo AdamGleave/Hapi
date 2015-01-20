@@ -17,6 +17,8 @@ find_package(Boost COMPONENTS REQUIRED program_options timer system)
 find_package(Glog REQUIRED)
 include_directories(${GLOG_INCLUDE_DIRS})
 
+find_package(LEMON REQUIRED)
+
 INCLUDE(ExternalProject)
 SET_DIRECTORY_PROPERTIES(PROPERTIES EP_BASE ${CMAKE_BINARY_DIR}/ext)
 include(gtest)
