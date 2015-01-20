@@ -13,6 +13,13 @@ DATASET_ROOT = os.path.join(PROJECT_ROOT, "src", "graphs")
 RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
 BUILD_ROOT = "build"
 SOURCE_ROOT = "src"
+MAKE_FLAGS = []
+
+try:
+  # allow settings to be overridden on a local basis
+  from config_local import *
+except ImportError:
+  pass
 
 def prefix_list(prefix, fnames):
   return list(map(functools.partial(os.path.join(prefix)), fnames))

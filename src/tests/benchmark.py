@@ -99,7 +99,7 @@ def build(version, targets):
   # always re-run make: we might be building a new target.
   # (If not, it's harmless: make will do nothing for targets already built.)
   os.chdir(build_directory)
-  sh.make(*targets, 
+  sh.make(config.MAKE_FLAGS, *targets, 
           _out=os.path.join(log_directory, "makefile.out"),
           _err=os.path.join(log_directory, "makefile.err"))
   

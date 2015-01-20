@@ -18,6 +18,7 @@ src/graphs/general/synthetic/goto/goto
 src/graphs/general/synthetic/goto/generated/
 src/graphs/clusters/natural/google_trace/
 src/cs2/cs2
+src/tests/config_local.py
 
 build/
 benchmark/
