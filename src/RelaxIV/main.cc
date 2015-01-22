@@ -35,6 +35,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <string.h>
 
 #include "RelaxIV.h"
 #define MCFSOLVER RelaxIV
@@ -147,7 +148,7 @@ int main( int argc , char **argv )
 {
  // reading command line parameters - - - - - - - - - - - - - - - - - - - - -
 
- if( argc == 2 && argv[1] == "--help" ) {
+ if( argc == 2 && (strcmp(argv[1],"--help") == 0)) {
   cerr << "Usage: MCFSolve [input file] [<output MPS file>]" << endl;
   return( -1 );
   }
