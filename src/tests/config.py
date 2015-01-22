@@ -117,6 +117,12 @@ IMPLEMENTATIONS = {
     "path": "cs2/cs2",
     "arguments" : []
    },
+  "relax_frangioni": {
+    "version": "master",
+    "target": "RelaxIV",
+    "path": "RelaxIV/RelaxIV",
+    "arguments": []
+  },
   "cs_wave": {
    "version": "cs_wave",
    "target": "find_min_cost",
@@ -269,5 +275,23 @@ TESTS = {
         "arguments": []
       },
     },
+  },
+  "best_head_to_head": {
+    "files": FILES["synthetic"] + FILES["google"],
+    "iterations": 5,
+    "tests": {
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+      "relaxiv": {
+        "implementation": "relax_frangioni",
+        "arguments": []
+      },
+      "my_costscaling": {
+        "implementation": "cs_latest",
+        "arguments": []
+      },
+    }
   }
 }

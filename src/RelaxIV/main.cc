@@ -147,18 +147,23 @@ int main( int argc , char **argv )
 {
  // reading command line parameters - - - - - - - - - - - - - - - - - - - - -
 
- if( argc < 2 ) {
-  cerr << "Usage: MCFSolve <input file> [<output MPS file>]" << endl;
+ if( argc == 1 && argv[1] == "--help" ) {
+  cerr << "Usage: MCFSolve [input file] [<output MPS file>]" << endl;
   return( -1 );
   }
 
  // opening input stream- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- ifstream iFile( argv[ 1 ] );
- if( ! iFile ) {
-  cerr << "ERROR: opening input file " << argv[ 1 ] << endl;
-  return( -1 );
-  }
+ ifstream iFile;
+ if (argc > 1) {
+	 iFile.open(argv[1]);
+	 if( ! iFile ) {
+	   cerr << "ERROR: opening input file " << argv[ 1 ] << endl;
+	   return( -1 );
+	 }
+ }
+ istream &input = (argc > 1) ? iFile : cin;
+
 
  try {
   // construct the solver - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -169,7 +174,7 @@ int main( int argc , char **argv )
 
   // load the network - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  mcf->LoadDMX( iFile );
+  mcf->LoadDMX(input);
 
   // set "reasonable" values for the epsilons, if any - - - - - - - - - - - -
 
