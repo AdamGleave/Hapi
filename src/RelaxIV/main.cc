@@ -147,7 +147,7 @@ int main( int argc , char **argv )
 {
  // reading command line parameters - - - - - - - - - - - - - - - - - - - - -
 
- if( argc == 1 && argv[1] == "--help" ) {
+ if( argc == 2 && argv[1] == "--help" ) {
   cerr << "Usage: MCFSolve [input file] [<output MPS file>]" << endl;
   return( -1 );
   }
