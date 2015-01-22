@@ -46,7 +46,7 @@
 /*------------------------------- MACROS -----------------------------------*/
 /*--------------------------------------------------------------------------*/
 
-#define PRINT_RESULTS 0
+#define PRINT_RESULTS 1
 
 /* If PRINT_RESULTS != 0, the optimal flows and potentials are printed
    after that the problem is successfully solved to optimality (so, watch
@@ -203,11 +203,11 @@ int main( int argc , char **argv )
 
   switch( mcf->MCFGetStatus() ) {
    case( MCFClass::kOK ):
-    cout << "Optimal Objective Function value = " << mcf->MCFGetFO() << endl;
-
     double tu , ts;
     mcf->TimeMCF( tu , ts );
-    cout << "Solution time (s): user " << tu << ", system " << ts << endl;
+    cerr << "Solution time (s): user " << tu << ", system " << ts << endl;
+    // output overall time for benchmark suite
+    cerr << "ALGOTIME: " << mcf->TimeMCF() << endl;
     #if( PRINT_RESULTS )
     {
      if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
@@ -216,16 +216,26 @@ int main( int argc , char **argv )
       cout.precision( 12 );
       }
 
-     MCFClass::FRow x = new MCFClass::FNumber[ mcf->MCFm() ];
-     mcf->MCFGetX( x );
-     for( MCFClass::Index i = 0 ; i < mcf->MCFm() ; i++ )
-      cout << "x[" << i << "] = "  << x[ i ] << endl;
+     // cost of solution
+     cout << "s " << mcf->MCFGetFO() << endl;
+
+     MCFClass::Index m = mcf->MCFm();
+     MCFClass::FRow x = new MCFClass::FNumber[m];
+     MCFClass::Index_Set active_arcs = new MCFClass::Index[m];
+     mcf->MCFGetX(x, active_arcs);
+     MCFClass::Index_Set start = new MCFClass::Index[m];
+     MCFClass::Index_Set end = new MCFClass::Index[m];
+     mcf->MCFArcs(start, end, active_arcs);
+     for(MCFClass::Index i = 0;
+    		 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
+    	 cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
+     }
 
      delete[] x;
      MCFClass::CRow pi = new MCFClass::CNumber[ mcf->MCFn() ];
      mcf->MCFGetPi( pi );
      for( MCFClass::Index i = 0 ; i < mcf->MCFn() ; i++ )
-      cout << "pi[" << i << "] = "  << pi[ i ] << endl;
+      cout << "p " << i << " " << pi[ i ] << endl;
      delete[] pi;
      }
     #endif
