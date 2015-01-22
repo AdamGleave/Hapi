@@ -17,7 +17,7 @@ src/graphs/general/synthetic/netgen/generated/
 src/graphs/general/synthetic/goto/goto
 src/graphs/general/synthetic/goto/generated/
 src/graphs/clusters/natural/google_trace/
-src/cs2/cs2
+src/RelaxIV/doc/
 src/tests/config_local.py
 
 build/
