@@ -268,21 +268,21 @@ class MCFClass {
 
 /*--------------------------------------------------------------------------*/
 
- typedef double          FNumber;        ///< type of arc flow
+ typedef int64_t        FNumber;        ///< type of arc flow
  typedef FNumber        *FRow;           ///< vector of flows
  typedef const FNumber  cFNumber;        ///< a read-only flow
  typedef cFNumber      *cFRow;           ///< read-only flow array
 
 /*--------------------------------------------------------------------------*/
 
- typedef double          CNumber;        ///< type of arc flow cost
+ typedef int64_t        CNumber;        ///< type of arc flow cost
  typedef CNumber        *CRow;           ///< vector of costs
  typedef const CNumber  cCNumber;        ///< a read-only cost
  typedef cCNumber      *cCRow;           ///< read-only cost array
 
 /*--------------------------------------------------------------------------*/
 
- typedef double          FONumber; 
+ typedef int64_t        FONumber;
  /**< type of the objective function: has to hold sums of products of
     FNumber(s) by CNumber(s) */
 
