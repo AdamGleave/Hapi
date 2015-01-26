@@ -9,6 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(SCRIPT_ROOT))
 
 GRAPH_DIR = os.path.join(BASE_DIR, "src", "graphs", "clusters")
 TEST_GRAPHS = ["synthetic/handmade/small_graph.in",
+               "synthetic/handmade/small_graph_neg_costs.in",
                "synthetic/firmament/graph_4m_2crs_8j.in",
                "synthetic/firmament/graph_4m_2crs_10j.in",
                "synthetic/firmament/graph_100m_8j_100t_10p.in",
@@ -18,7 +19,7 @@ TEST_GRAPHS = ["synthetic/handmade/small_graph.in",
 
 # Goldberg's CS2 solver
 # Known-working reference implementation
-REFERENCE_PROGRAM_PATH = os.path.join(BASE_DIR, "src", "cs2", "cs2")
+REFERENCE_PROGRAM_PATH = os.path.join(BASE_DIR, "build", "cs2", "cs2")
 REFERENCE_PROGRAM = sh.Command(REFERENCE_PROGRAM_PATH)
 
 EXECUTABLE_DIR = os.path.join(BASE_DIR, "build", "bin")

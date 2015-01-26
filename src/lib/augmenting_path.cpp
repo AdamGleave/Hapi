@@ -115,8 +115,6 @@ class Djikstra {
 	void reset(uint32_t source) {
 		distances.assign(num_nodes + 1, UINT64_MAX);
 		distances[source] = 0;
-		// XXX(adam): heap doesn't need to be initialized to contain all vertices,
-		// just add them in as we explore them
 		priority_queue.makeHeap(source);
 		permanently_labelled.clear();
 		// note there's no need to reset parents: we only read it to trace back
@@ -203,7 +201,6 @@ public:
 
 AugmentingPath::AugmentingPath(ResidualNetwork &g)
 																						: g(g), num_nodes(g.getNumNodes()) {
-	//potentials.resize(num_nodes + 1);
 	potentials.assign(num_nodes + 1, 0);
 	// note flow is initially zero (default in ResidualNetwork),
 	// and potentials initialized to constant zero
@@ -226,11 +223,21 @@ std::queue<Arc *> AugmentingPath::predecessorPath
 	return std::queue<Arc *>(path);
 }
 
-// TODO(adam): we might want to maintain sources ourselves,
-// when we implement delta-scaling, as then not all excess vertices
-// are eligible to be used as starting vertex
-// TODO(adam): what happens if there's no feasible solution?
+void AugmentingPath::init() {
+	// saturate all negative cost arcs, so they drop out of the residual network
+	// (note algorithm requires invariant that all arcs have non-negative
+	// reduced cost)
+	for (Arc &arc : g) {
+		if (arc.getCost() < 0) {
+			g.pushFlow(arc.getSrcId(), arc.getDstId(), arc.getCapacity());
+		}
+	}
+}
+
+// SOMEDAY(adam): handle networks with no feasible solutions elegantly
 void AugmentingPath::run() {
+	init();
+
 	const std::set<uint32_t> &sources = g.getSources();
 	Djikstra shortest_paths(g, potentials);
 	while (!sources.empty()) {

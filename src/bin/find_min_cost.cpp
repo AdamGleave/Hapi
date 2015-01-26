@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
 
 	// for timing algorithms
 	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
+	t.stop();
 
 	// inspiration for this style of command parsing:
 	// http://stackoverflow.com/questions/15541498/how-to-implement-subcommands-using-boost-program-options
