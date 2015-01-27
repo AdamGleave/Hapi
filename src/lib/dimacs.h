@@ -31,7 +31,6 @@ class DIMACS {
 	DIMACS() = delete;
 
 public:
-
 	static T *readDIMACSMin(std::istream &is) {
 		unsigned int line_num = 0;
 		std::string line;

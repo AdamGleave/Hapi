@@ -17,7 +17,6 @@
 namespace flowsolver {
 
 class CycleCancelling {
-	ResidualNetwork &g;
 public:
 	explicit CycleCancelling(ResidualNetwork &g) : g(g) { };
 
@@ -25,6 +24,8 @@ public:
 	 * Side-effect: changes graph capacities to encode flow.
 	 */
 	void run();
+private:
+	ResidualNetwork &g;
 };
 
 } /* namespace flowsolver */

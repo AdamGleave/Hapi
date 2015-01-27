@@ -9,6 +9,17 @@ ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	arcs.resize(num_nodes + 1);
 }
 
+ResidualNetwork::~ResidualNetwork() {
+	std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
+	for (vec_it = arcs.begin(); vec_it != arcs.end(); ++vec_it) {
+		std::unordered_map<uint32_t, Arc*>::iterator map_it;
+		for (map_it = vec_it->begin(); map_it != vec_it->end(); ++map_it) {
+			Arc *arc = map_it->second;
+			delete arc;
+		}
+	}
+}
+
 uint32_t ResidualNetwork::getNumNodes() const {
 	return num_nodes;
 }
@@ -88,12 +99,6 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	updateSupply(dst, amount);
 }
 
-const std::unordered_map<uint32_t, Arc*>& ResidualNetwork::getAdjacencies
-																													(uint32_t src) const {
-	assert(src <= this->num_nodes);
-	return arcs[src];
-}
-
 Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) const {
 	assert(src <= num_nodes && dst <= num_nodes);
 	std::unordered_map<uint32_t, Arc*>::const_iterator arcIt = arcs[src].find(dst);
@@ -104,15 +109,26 @@ Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) const {
 	}
 }
 
-ResidualNetwork::~ResidualNetwork() {
-	std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
-	for (vec_it = arcs.begin(); vec_it != arcs.end(); ++vec_it) {
-		std::unordered_map<uint32_t, Arc*>::iterator map_it;
-		for (map_it = vec_it->begin(); map_it != vec_it->end(); ++map_it) {
-			Arc *arc = map_it->second;
-			delete arc;
-		}
-	}
+const std::unordered_map<uint32_t, Arc*>& ResidualNetwork::getAdjacencies
+																													(uint32_t src) const {
+	assert(src <= this->num_nodes);
+	return arcs[src];
+}
+
+ResidualNetwork::iterator ResidualNetwork::begin() {
+	return iterator(this);
+}
+
+ResidualNetwork::const_iterator ResidualNetwork::begin() const {
+	return const_iterator(this);
+}
+
+ResidualNetwork::iterator ResidualNetwork::end() {
+	return iterator(this, true);
+}
+
+ResidualNetwork::const_iterator ResidualNetwork::end() const {
+	return const_iterator(this, true);
 }
 
 } /* namespace flowsolver */

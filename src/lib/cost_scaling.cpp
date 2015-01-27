@@ -80,6 +80,8 @@ CostScaling::CostScaling(FlowNetwork &g, uint32_t scaling_factor)
 
 CostScaling::CostScaling(FlowNetwork &g) : CostScaling(g, 2) {}
 
+CostScaling::~CostScaling() {}
+
 int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
 	uint32_t dst_id;
 	int64_t cost;
@@ -452,9 +454,6 @@ bool CostScaling::runStatistics(std::string csv_path) {
 	delete csv_file;
 
 	return success;
-}
-
-CostScaling::~CostScaling() {
 }
 
 } /* namespace flowsolver */

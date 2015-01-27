@@ -4,6 +4,47 @@
 
 namespace flowsolver {
 
+TaskAssignment::TaskAssignment(const FlowNetwork &g) {
+	CHECK(g.getBalance(SINK_NODE) < 0) << "node 1 is not the sink";
+
+	// find all task nodes
+	uint32_t num_nodes = g.getNumNodes();
+	for (uint32_t id = 1; id <= num_nodes; id++) {
+		if (id == SINK_NODE) {
+			continue;
+		}
+
+		uint32_t balance = g.getBalance(id);
+		if (balance > 0) {
+			CHECK_EQ(balance, 1) << "node " << id
+								 << " has balance " << balance
+								 << " (does graph contain a source node?)";
+			tasks.insert(id);
+		} else {
+			CHECK_EQ(balance,0) << "non-sink node " << id
+								<< " has negative balance" << balance;
+		}
+	}
+	VLOG(0) << "# of task nodes: " << tasks.size();
+
+	// find all leaf nodes
+	const std::forward_list<Arc *> &sink_adjacencies = g.getAdjacencies(SINK_NODE);
+	std::forward_list<Arc *>::const_iterator it;
+	for (it = sink_adjacencies.begin(); it != sink_adjacencies.end(); ++it) {
+		Arc *arc = *it;
+		uint32_t src = arc->getSrcId();
+		uint32_t dst = arc->getDstId();
+		if (src == SINK_NODE) {
+			leaves.insert(dst);
+		} else {
+			leaves.insert(src);
+		}
+	}
+	VLOG(0) << "# of leaf nodes: " << leaves.size();
+}
+
+TaskAssignment::~TaskAssignment() { }
+
 std::vector<std::unordered_map<uint32_t,int64_t>>
 	  *TaskAssignment::extractFlow(const FlowNetwork &g) {
 	std::vector<std::unordered_map<uint32_t, int64_t>> *res;
@@ -72,45 +113,6 @@ uint32_t TaskAssignment::findLeafAssignment
 	return 0;
 }
 
-TaskAssignment::TaskAssignment(const FlowNetwork &g) {
-	CHECK(g.getBalance(SINK_NODE) < 0) << "node 1 is not the sink";
-
-	// find all task nodes
-	uint32_t num_nodes = g.getNumNodes();
-	for (uint32_t id = 1; id <= num_nodes; id++) {
-		if (id == SINK_NODE) {
-			continue;
-		}
-
-		uint32_t balance = g.getBalance(id);
-		if (balance > 0) {
-			CHECK_EQ(balance, 1) << "node " << id
-								 << " has balance " << balance
-								 << " (does graph contain a source node?)";
-			tasks.insert(id);
-		} else {
-			CHECK_EQ(balance,0) << "non-sink node " << id
-								<< " has negative balance" << balance;
-		}
-	}
-	VLOG(0) << "# of task nodes: " << tasks.size();
-
-	// find all leaf nodes
-	const std::forward_list<Arc *> &sink_adjacencies = g.getAdjacencies(SINK_NODE);
-	std::forward_list<Arc *>::const_iterator it;
-	for (it = sink_adjacencies.begin(); it != sink_adjacencies.end(); ++it) {
-		Arc *arc = *it;
-		uint32_t src = arc->getSrcId();
-		uint32_t dst = arc->getDstId();
-		if (src == SINK_NODE) {
-			leaves.insert(dst);
-		} else {
-			leaves.insert(src);
-		}
-	}
-	VLOG(0) << "# of leaf nodes: " << leaves.size();
-}
-
 int addFlow(int64_t acc, std::pair<uint32_t, int64_t> p) {
 	return acc + p.second;
 }
@@ -156,7 +158,5 @@ std::unordered_map<uint32_t, uint32_t>
 	delete flow;
 	return res;
 }
-
-TaskAssignment::~TaskAssignment() { }
 
 }

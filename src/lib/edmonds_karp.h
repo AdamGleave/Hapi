@@ -15,17 +15,19 @@
 namespace flowsolver {
 
 class EdmondsKarp {
-	ResidualNetwork &g;
-	uint32_t numNodes;
-	std::vector<uint32_t> predecessors;
-
-	std::queue<Arc *> predecessorPath(uint32_t);
-	std::queue<Arc *> bfs();
 public:
 	explicit EdmondsKarp(ResidualNetwork &);
 	// side-effect: updates graph
-	void run();
 	virtual ~EdmondsKarp();
+
+	void run();
+private:
+	std::queue<Arc *> predecessorPath(uint32_t);
+	std::queue<Arc *> bfs();
+
+	ResidualNetwork &g;
+	uint32_t numNodes;
+	std::vector<uint32_t> predecessors;
 };
 
 } /* namespace flowsolver */

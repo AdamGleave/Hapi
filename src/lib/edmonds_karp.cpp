@@ -22,6 +22,8 @@ EdmondsKarp::EdmondsKarp(ResidualNetwork &g) : g(g) {
 	predecessors.resize(numNodes + 1);
 }
 
+EdmondsKarp::~EdmondsKarp() { }
+
 void EdmondsKarp::run() {
 	std::queue<Arc *> path;
 	while (!(path = bfs()).empty()) {
@@ -96,7 +98,5 @@ std::queue<Arc *> EdmondsKarp::bfs() {
 
 	return std::queue<Arc *>();
 }
-
-EdmondsKarp::~EdmondsKarp() { }
 
 } /* namespace flowsolver */

@@ -13,12 +13,6 @@
 namespace flowsolver {
 
 class Arc {
-	uint32_t src_id, dst_id;
-	uint64_t capacity;
-	uint64_t initial_capacity;
-	int64_t cost;
-
-	void pushFlow(int64_t amount);
 public:
 	Arc(uint32_t src_id, uint32_t dst_id, uint64_t capacity, int64_t cost) :
 		src_id(src_id), dst_id(dst_id), capacity(capacity),
@@ -50,6 +44,13 @@ public:
 	int64_t getFlow() const {
 		return getInitialCapacity() - getCapacity();
 	}
+private:
+	void pushFlow(int64_t amount);
+
+	uint32_t src_id, dst_id;
+	uint64_t capacity;
+	uint64_t initial_capacity;
+	int64_t cost;
 
 	friend class ResidualNetwork;
 	friend class FlowNetwork;

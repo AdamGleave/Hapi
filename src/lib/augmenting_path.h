@@ -10,19 +10,20 @@
 namespace flowsolver {
 
 class AugmentingPath {
-	ResidualNetwork &g;
-	std::vector<uint64_t> potentials;
-	const uint32_t num_nodes;
-
 public:
 	explicit AugmentingPath(ResidualNetwork &g);
+	virtual ~AugmentingPath();
+
 	// returns true if feasible solution exists, and updates g accordingly;
 	// false if no feasible solution, g left in undefined state
 	std::queue<Arc *> predecessorPath(uint32_t source, uint32_t sink,
 																					const std::vector<uint32_t>& parents);
 	void init();
 	void run();
-	virtual ~AugmentingPath();
+private:
+	ResidualNetwork &g;
+	std::vector<uint64_t> potentials;
+	const uint32_t num_nodes;
 };
 
 } /* namespace flowsolver */

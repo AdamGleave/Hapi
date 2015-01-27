@@ -12,6 +12,14 @@ FlowNetwork::FlowNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	arcs.resize(num_nodes + 1);
 }
 
+FlowNetwork::~FlowNetwork() {
+	for (iterator it = begin(); it != end(); ++it) {
+		Arc *arc = &(*it);
+		delete arc;
+	}
+}
+
+
 uint32_t FlowNetwork::getNumNodes() const {
 	return num_nodes;
 }
@@ -92,12 +100,21 @@ int64_t FlowNetwork::pushFlow(Arc& arc, uint32_t src_id, uint64_t flow) {
 	return balances[dst_id];
 }
 
-FlowNetwork::~FlowNetwork() {
-	for (iterator it = begin(); it != end(); ++it) {
-		Arc *arc = &(*it);
-		delete arc;
-	}
+
+FlowNetwork::iterator FlowNetwork::begin() {
+	return iterator(this);
 }
 
+FlowNetwork::const_iterator FlowNetwork::begin() const {
+	return const_iterator(this);
+}
+
+FlowNetwork::iterator FlowNetwork::end() {
+	return iterator(this, true);
+}
+
+FlowNetwork::const_iterator FlowNetwork::end() const {
+	return const_iterator(this, true);
+}
 
 } /* namespace flowsolver */

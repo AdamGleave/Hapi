@@ -17,19 +17,21 @@
 namespace flowsolver {
 
 class BellmanFord {
-	ResidualNetwork &g;
-	uint32_t numNodes;
-	std::vector<int64_t> distance;
-	std::vector<uint32_t> predecessors;
-	void relax(const Arc &);
-	void relaxRepeatedly();
-	std::set<std::queue<Arc *>> negativeCycles();
 public:
 	explicit BellmanFord(ResidualNetwork &);
 	// returns a set of disjoint negative cycles, represented as an edge list
 	// if no negative cycles, set is empty
 	std::set<std::queue<Arc *>> run();
 	virtual ~BellmanFord();
+private:
+	void relax(const Arc &);
+	void relaxRepeatedly();
+	std::set<std::queue<Arc *>> negativeCycles();
+
+	ResidualNetwork &g;
+	uint32_t numNodes;
+	std::vector<int64_t> distance;
+	std::vector<uint32_t> predecessors;
 };
 
 } /* namespace flowsolver */
