@@ -9,7 +9,9 @@
 #include <boost/format.hpp>
 #include <glog/logging.h>
 
-namespace flowsolver {
+namespace {
+
+using namespace flowsolver;
 
 int64_t compute_balance(const FlowNetwork &g,
 						std::vector<int64_t> initial_supply, uint32_t id) {
@@ -60,6 +62,10 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 			% arc.getSrcId() % arc.getDstId() % capacity % initial_capacity;
 	}
 }
+
+} // namespace (unnamed)
+
+namespace flowsolver {
 
 CostScaling::CostScaling(FlowNetwork &g, uint32_t scaling_factor)
 	: g(g), epsilon(0), num_iterations(0),
