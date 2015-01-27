@@ -47,7 +47,7 @@ Arc* FlowNetwork::getArc(uint32_t src, uint32_t dst) {
 			return *arc_it;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
 std::forward_list<Arc *> &FlowNetwork::getAdjacencies(uint32_t src) {

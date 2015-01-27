@@ -103,7 +103,7 @@ Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) const {
 	assert(src <= num_nodes && dst <= num_nodes);
 	std::unordered_map<uint32_t, Arc*>::const_iterator arcIt = arcs[src].find(dst);
 	if (arcIt == arcs[src].end()) {
-		return 0;
+		return nullptr;
 	} else {
 		return arcIt->second;
 	}
