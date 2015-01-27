@@ -2,11 +2,11 @@
  * Exports the resulting graph representation in DIMACS format on stdout.
  * (Output should be identical to input, modulo missing comments.)
  */
+#include "dimacs.h"
 
 #include <iostream>
 #include <glog/logging.h>
 
-#include "dimacs.h"
 #include "residual_network.h"
 #include "flow_network.h"
 

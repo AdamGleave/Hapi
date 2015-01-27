@@ -1,10 +1,11 @@
+#include "task_assignment.h"
+
 #include <fstream>
 
 #include <gtest/gtest.h>
 
-#include "flow_network.h"
 #include "dimacs.h"
-#include "task_assignment.h"
+#include "flow_network.h"
 
 // TODO: test graphs with invalid format as well?
 // TODO: test graphs with & without unscheduled tasks?

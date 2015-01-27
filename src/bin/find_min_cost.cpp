@@ -1,6 +1,10 @@
 /* Parses DIMACS input. Runs a minimum-cost maximum-flow algorithm,
  * outputting a DIMACS representation of the solution. */
 
+#include "augmenting_path.h"
+#include "cost_scaling.h"
+#include "cycle_cancelling.h"
+
 #include <cstdint>
 #include <iostream>
 #include <map>
@@ -11,13 +15,9 @@
 #include <boost/timer/timer.hpp>
 #include <glog/logging.h>
 
-
 #include "flow_network.h"
 #include "residual_network.h"
 #include "dimacs.h"
-#include "augmenting_path.h"
-#include "cost_scaling.h"
-#include "cycle_cancelling.h"
 
 #define TIMER_FORMAT "ALGOTIME: %w\n"
 
