@@ -1,5 +1,5 @@
-#ifndef FLOW_NETWORK_H_
-#define FLOW_NETWORK_H_
+#ifndef LIB_FLOW_NETWORK_H_
+#define LIB_FLOW_NETWORK_H_
 
 #include <cinttypes>
 #include <vector>
@@ -179,4 +179,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* FLOW_NETWORK_H_ */
+#endif /* LIB_FLOW_NETWORK_H_ */

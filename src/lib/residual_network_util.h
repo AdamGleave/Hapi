@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef RESIDUAL_NETWORK_UTIL_H_
-#define RESIDUAL_NETWORK_UTIL_H_
+#ifndef LIB_RESIDUAL_NETWORK_UTIL_H_
+#define LIB_RESIDUAL_NETWORK_UTIL_H_
 
 #include <queue>
 
@@ -24,4 +24,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* RESIDUAL_NETWORK_UTIL_H_ */
+#endif /* LIB_RESIDUAL_NETWORK_UTIL_H_ */

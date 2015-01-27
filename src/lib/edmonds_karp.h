@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef EDMONDS_KARP_H_
-#define EDMONDS_KARP_H_
+#ifndef LIB_EDMONDS_KARP_H_
+#define LIB_EDMONDS_KARP_H_
 
 #include <queue>
 
@@ -30,4 +30,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* EDMONDS_KARP_H_ */
+#endif /* LIB_EDMONDS_KARP_H_ */

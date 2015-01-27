@@ -1,5 +1,5 @@
-#ifndef SRC_RESIDUALNETWORK_H_
-#define SRC_RESIDUALNETWORK_H_
+#ifndef LIB_RESIDUALNETWORK_H_
+#define LIB_RESIDUALNETWORK_H_
 
 #include <cinttypes>
 #include <set>
@@ -166,4 +166,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* SRC_RESIDUALNETWORK_H_ */
+#endif /* LIB_RESIDUALNETWORK_H_ */

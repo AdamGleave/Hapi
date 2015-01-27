@@ -1,5 +1,5 @@
-#ifndef GRAPH_H_
-#define GRAPH_H_
+#ifndef LIB_GRAPH_H_
+#define LIB_GRAPH_H_
 
 #include <boost/concept/assert.hpp>
 #include <boost/concept_check.hpp>
@@ -40,4 +40,4 @@ public:
 
 }
 
-#endif /* GRAPH_H_ */
+#endif /* LIB_GRAPH_H_ */

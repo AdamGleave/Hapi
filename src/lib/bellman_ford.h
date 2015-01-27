@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef BELLMAN_FORD_H_
-#define BELLMAN_FORD_H_
+#ifndef LIB_BELLMAN_FORD_H_
+#define LIB_BELLMAN_FORD_H_
 
 #include <queue>
 #include <set>
@@ -34,4 +34,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* BELLMAN_FORD_H_ */
+#endif /* LIB_BELLMAN_FORD_H_ */

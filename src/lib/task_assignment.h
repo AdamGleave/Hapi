@@ -1,5 +1,5 @@
-#ifndef TASK_ASSIGNMENT_H_
-#define TASK_ASSIGNMENT_H_
+#ifndef LIB_TASK_ASSIGNMENT_H_
+#define LIB_TASK_ASSIGNMENT_H_
 
 #include <vector>
 #include <utility>
@@ -49,4 +49,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* TASK_ASSIGNMENT_H_ */
+#endif /* LIB_TASK_ASSIGNMENT_H_ */

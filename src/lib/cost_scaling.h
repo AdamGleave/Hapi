@@ -1,5 +1,5 @@
-#ifndef COST_SCALING_H_
-#define COST_SCALING_H_
+#ifndef LIB_COST_SCALING_H_
+#define LIB_COST_SCALING_H_
 
 #include <vector>
 #include <queue>
@@ -70,4 +70,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* COST_SCALING_H_ */
+#endif /* LIB_COST_SCALING_H_ */

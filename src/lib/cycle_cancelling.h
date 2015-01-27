@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef CYCLE_CANCELLING_H_
-#define CYCLE_CANCELLING_H_
+#ifndef LIB_CYCLE_CANCELLING_H_
+#define LIB_CYCLE_CANCELLING_H_
 
 #include <queue>
 
@@ -29,4 +29,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* CYCLE_CANCELLING_H_ */
+#endif /* LIB_CYCLE_CANCELLING_H_ */

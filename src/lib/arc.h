@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef SRC_ARC_H_
-#define SRC_ARC_H_
+#ifndef LIB_ARC_H_
+#define LIB_ARC_H_
 
 #include <cinttypes>
 
@@ -57,4 +57,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* SRC_ARC_H_ */
+#endif /* LIB_ARC_H_ */

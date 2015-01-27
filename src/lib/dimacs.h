@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef SRC_DIMACS_H_
-#define SRC_DIMACS_H_
+#ifndef LIB_DIMACS_H_
+#define LIB_DIMACS_H_
 
 #include <cassert>
 #include <cstring>
@@ -251,4 +251,4 @@ public:
 
 } /* namespace flowsolver */
 
-#endif /* SRC_DIMACS_H_ */
+#endif /* LIB_DIMACS_H_ */
