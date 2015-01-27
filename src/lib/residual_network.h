@@ -13,12 +13,6 @@
 
 namespace flowsolver {
 
-struct ExtractArc {
-	Arc *operator()(std::unordered_map<uint32_t, Arc*>::iterator it) {
-		return it->second;
-	}
-};
-
 class ResidualNetwork {
 	uint32_t num_nodes;
 	std::vector<int64_t> balance;
