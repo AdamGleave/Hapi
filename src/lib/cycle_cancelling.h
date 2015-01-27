@@ -19,7 +19,7 @@ namespace flowsolver {
 class CycleCancelling {
 	ResidualNetwork &g;
 public:
-	CycleCancelling(ResidualNetwork &g) : g(g) { };
+	explicit CycleCancelling(ResidualNetwork &g) : g(g) { };
 
 	/**
 	 * Side-effect: changes graph capacities to encode flow.

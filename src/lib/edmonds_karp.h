@@ -22,7 +22,7 @@ class EdmondsKarp {
 	std::queue<Arc *> predecessorPath(uint32_t);
 	std::queue<Arc *> bfs();
 public:
-	EdmondsKarp(ResidualNetwork &);
+	explicit EdmondsKarp(ResidualNetwork &);
 	// side-effect: updates graph
 	void run();
 	virtual ~EdmondsKarp();

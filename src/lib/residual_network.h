@@ -28,7 +28,7 @@ class ResidualNetwork {
 
 	void updateSupply(uint32_t id, int64_t delta);
 public:
-	ResidualNetwork(uint32_t num_nodes);
+	explicit ResidualNetwork(uint32_t num_nodes);
 	uint32_t getNumNodes() const;
 	uint32_t getNumArcs() const;
 	int64_t getBalance(uint32_t id) const;

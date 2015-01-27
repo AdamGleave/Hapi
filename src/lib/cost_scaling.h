@@ -29,7 +29,7 @@ class CostScaling {
 	void refine();
 	bool run(std::function<bool()> continue_running);
 public:
-	CostScaling(FlowNetwork &g);
+	explicit CostScaling(FlowNetwork &g);
 	CostScaling(FlowNetwork &g, uint32_t scaling_factor);
 	/**
 	 * All the run algorithms return true if a min-cost flow is found;

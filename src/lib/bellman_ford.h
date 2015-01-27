@@ -25,7 +25,7 @@ class BellmanFord {
 	void relaxRepeatedly();
 	std::set<std::queue<Arc *>> negativeCycles();
 public:
-	BellmanFord(ResidualNetwork &);
+	explicit BellmanFord(ResidualNetwork &);
 	// returns a set of disjoint negative cycles, represented as an edge list
 	// if no negative cycles, set is empty
 	std::set<std::queue<Arc *>> run();

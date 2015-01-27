@@ -34,7 +34,7 @@ class TaskAssignment {
 	uint32_t findLeafAssignment
 		(std::vector<std::unordered_map<uint32_t,int64_t>> &flows, uint32_t id);
 public:
-	TaskAssignment(const FlowNetwork &g);
+	explicit TaskAssignment(const FlowNetwork &g);
 	virtual ~TaskAssignment();
 	std::unordered_map<uint32_t, uint32_t> *getAssignments(const FlowNetwork &g);
 
