@@ -12,9 +12,6 @@
 namespace flowsolver {
 
 class FlowNetwork {
-	uint32_t num_nodes, num_arcs;
-	std::vector<int64_t> balances;
-	std::vector<std::forward_list<Arc *>> arcs;
 public:
 	explicit FlowNetwork(uint32_t num_nodes);
 	virtual ~FlowNetwork();
@@ -59,6 +56,11 @@ public:
 	const_iterator begin() const;
 	iterator end();
 	const_iterator end() const;
+
+private:
+	uint32_t num_nodes, num_arcs;
+	std::vector<int64_t> balances;
+	std::vector<std::forward_list<Arc *>> arcs;
 };
 
 template<bool is_const_iterator>

@@ -8,7 +8,6 @@
 #ifndef LIB_DIMACS_H_
 #define LIB_DIMACS_H_
 
-#include <cassert>
 #include <cstring>
 #include <vector>
 #include <unordered_set>
@@ -31,7 +30,7 @@ class DIMACS {
 	DIMACS() = delete;
 
 public:
-	static T *readDIMACSMin(std::istream &is) {
+	static T *read(std::istream &is) {
 		unsigned int line_num = 0;
 		std::string line;
 
@@ -45,7 +44,7 @@ public:
 
 			std::string first;
 			iss >> first;
-			assert(first.length() == 1);
+			CHECK(first.length() == 1);
 			char type = first[0];
 
 			std::ostringstream oss;
@@ -55,7 +54,7 @@ public:
 			int num_matches = -1;
 			switch (type) {
 			case 'c':
-				// comment line -- ignore;
+				// comment line -- ignore
 				break;
 			case 'p':
 				// problem line
@@ -69,8 +68,8 @@ public:
 				uint32_t num_nodes, num_arcs;
 				num_matches = sscanf(remainder, "%3s %u %u",
 									 problem, &num_nodes, &num_arcs);
-				assert(num_matches == 3);
-				assert(strcmp(problem, "min") == 0);
+				CHECK(num_matches == 3);
+				CHECK(strcmp(problem, "min") == 0);
 
 				g = new T(num_nodes);
 				arcs_seen.resize(num_nodes + 1);
@@ -80,13 +79,13 @@ public:
 
 				// all lines of this type must appear before arc descriptor
 				// lines, and after the problem line
-				assert(g && !seen_arc);
+				CHECK(g && !seen_arc);
 
 				seen_node = true;
 				uint32_t id;
 				int64_t supply;
 				num_matches = sscanf(remainder, "%u %ld", &id, &supply);
-				assert(num_matches == 2);
+				CHECK(num_matches == 2);
 
 				LOG_IF(ERROR, g->getBalance(id) != 0)
 					<< "Duplicate definition of node " << id
@@ -98,7 +97,7 @@ public:
 				// arc descriptor line
 
 				// must appear after problem line (and node descriptor lines)
-				assert(g);
+				CHECK(g);
 
 				seen_arc = true;
 				uint32_t src, dst;
@@ -106,9 +105,9 @@ public:
 				int64_t cost;
 				num_matches = sscanf(remainder, "%u %u %lu %lu %ld",
 							   &src, &dst, &lower_bound, &upper_bound, &cost);
-				assert(num_matches == 5);
+				CHECK(num_matches == 5);
 
-				assert(lower_bound == 0);
+				CHECK(lower_bound == 0);
 
 				if (arcs_seen[src].count(dst) > 0 ||
 					arcs_seen[dst].count(src) > 0) {
@@ -138,7 +137,7 @@ public:
 	 * Returns cost of the solution on success, -1 on failure.
 	 * Side-effect: g updated to contain the flows in is.
 	 */
-	static int64_t readDIMACSMinFlow(std::istream &is, T &g) {
+	static int64_t readFlow(std::istream &is, T &g) {
 		unsigned int line_num = 0;
 		std::string line;
 
@@ -197,7 +196,7 @@ public:
 		return solution;
 	}
 
-	static void writeDIMACSMin(const T &g, std::ostream &os) {
+	static void write(const T &g, std::ostream &os) {
 		uint32_t num_nodes = g.getNumNodes();
 		uint32_t num_arcs = g.getNumArcs();
 
@@ -216,13 +215,16 @@ public:
 		typename T::const_iterator it;
 		for (it = g.begin(); it != g.end(); ++it) {
 			const Arc &arc = *it;
-			os << boost::format("a %u %u 0 %lu %lu\n")
-			 	 % arc.getSrcId() % arc.getDstId()
-				 % arc.getCapacity() % arc.getCost();
+			uint64_t capacity = arc.getCapacity();
+			if (capacity != 0) {
+				os << boost::format("a %u %u 0 %lu %lu\n")
+					 % arc.getSrcId() % arc.getDstId()
+					 % capacity % arc.getCost();
+			}
 		}
 	}
 
-	static void writeDIMACSMinFlow(const T &g, std::ostream &os) {
+	static void writeFlow(const T &g, std::ostream &os) {
 		typename T::const_iterator it;
 
 		uint64_t total_cost = 0;
@@ -243,6 +245,119 @@ public:
 			if (flow > 0) {
 				os << boost::format("f %u %u %lu\n")
 						  % arc.getSrcId() % arc.getDstId() % arc.getFlow();
+			}
+		}
+	}
+};
+
+template<class T>
+class IncrementalDIMACS {
+	BOOST_CONCEPT_ASSERT((Graph<T>));
+	IncrementalDIMACS() = delete;
+public:
+	static void readIncremental(std::istream &is, T &g) {
+		unsigned int line_num = 0;
+		std::string line;
+
+		unsigned int arcs_remaining = 0;
+		uint32_t new_node_id = 0;
+		// TODO (adam): reduce code duplication?
+		// TODO (adam): do we want this to directly update graph,
+		// or e.g. build list of changes?
+		while ((getline(is, line))) {
+			line_num++;
+
+			std::istringstream iss (line);
+
+			std::string first;
+			iss >> first;
+			CHECK(first.length() == 1);
+			char type = first[0];
+
+			std::ostringstream oss;
+			oss << iss.rdbuf();
+			const char *remainder = oss.str().c_str();
+
+			int num_matches = -1;
+			switch (type) {
+			case 'c':
+				// comment line -- ignore
+				break;
+			case 'r':
+				{
+				// remove node
+				CHECK_EQ(arcs_remaining, 0);
+				uint32_t node_id;
+				num_matches = sscanf(remainder, "%u", &node_id);
+				CHECK_EQ(num_matches, 1) << "malformed remove node at line " << line_num;
+				g.removeNode(node_id);
+				break;
+				}
+			case 'x':
+				{
+				// change of an existing arc;
+				// could be either cost or capacity, or both
+				CHECK_EQ(arcs_remaining, 0);
+				uint32_t src, dst;
+				uint64_t lower_bound, upper_bound;
+				int64_t cost;
+				num_matches = sscanf(remainder, "%u %u %lu %lu %ld",
+								 &src, &dst, &lower_bound, &upper_bound, &cost);
+				CHECK_EQ(num_matches, 5);
+
+				CHECK_EQ(lower_bound, 0);
+				Arc *arc = g.getArc(src, dst);
+				CHECK_NOTNULL(arc);
+				CHECK_EQ(arc->getSrcId(), src) << "arc specified in reverse direction?";
+
+				arc->setCapacity(upper_bound);
+				arc->setCost(cost);
+				break;
+				}
+			case 'd':
+				{
+				// add new node
+				CHECK_EQ(arcs_remaining, 0);
+				int64_t supply;
+				// TODO (adam): why do we need potential of a node?
+				uint64_t potential;
+				uint32_t num_arcs;
+				num_matches = sscanf(remainder, "%ld %lu %u",
+						                 &supply, &potential, &num_arcs);
+				CHECK_EQ(num_matches, 3);
+				CHECK_EQ(potential, 0);
+
+				new_node_id = g.addNode();
+				g.setSupply(new_node_id, supply);
+
+				arcs_remaining = num_arcs;
+				break;
+				}
+			case 'a':
+				{
+				// add new arc
+				CHECK_GT(arcs_remaining, 0) << "too many arcs for new node, at line "
+																	  << line_num;
+				uint32_t src, dst;
+				uint64_t lower_bound, upper_bound;
+				int64_t cost;
+				num_matches = sscanf(remainder, "%u %u %lu %lu %ld",
+								 &src, &dst, &lower_bound, &upper_bound, &cost);
+				CHECK_EQ(num_matches, 5);
+
+				CHECK_EQ(lower_bound, 0);
+				if (src == 0) {
+					src = new_node_id;
+				}
+				if (dst == 0) {
+					dst = new_node_id;
+				}
+
+				// TODO(adam): detect duplicate arcs?
+				g.addArc(src, dst, upper_bound, cost);
+				arcs_remaining--;
+				break;
+				}
 			}
 		}
 	}

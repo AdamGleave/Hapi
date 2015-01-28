@@ -22,16 +22,16 @@ int main(int argc, char *argv[]) {
 	} else if (argc == 2) {
 		graph = argv[1];
 	} else {
-		std::cerr << "usage: " << argv[0] << "[FlowNetwork|ResidualNetwork]";
+		std::cerr << "usage: " << argv[0] << " [FlowNetwork|ResidualNetwork]";
 		return -1;
 	}
 
 	if (graph == "FlowNetwork") {
-		FlowNetwork *g = DIMACS<FlowNetwork>::readDIMACSMin(std::cin);
-		DIMACS<FlowNetwork>::writeDIMACSMin(*g, std::cout);
+		FlowNetwork *g = DIMACS<FlowNetwork>::read(std::cin);
+		DIMACS<FlowNetwork>::write(*g, std::cout);
 	} else if (graph == "ResidualNetwork") {
-		ResidualNetwork *g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
-		DIMACS<ResidualNetwork>::writeDIMACSMin(*g, std::cout);
+		ResidualNetwork *g = DIMACS<ResidualNetwork>::read(std::cin);
+		DIMACS<ResidualNetwork>::write(*g, std::cout);
 	} else {
 		assert(false);
 	}

@@ -38,6 +38,21 @@ public:
 	}
 };
 
+template<class X>
+struct DynamicGraph {
+public:
+	// dynamic graph must also be a graph
+	BOOST_CONCEPT_ASSERT((Graph<X>));
+
+	BOOST_CONCEPT_USAGE(DynamicGraph) {
+		X graph(10);
+		uint32_t new_id = graph.addNode();
+		graph.addArc(0, new_id, 1, 1);
+		graph.removeArc(0, new_id);
+		graph.removeNode(0);
+	}
+};
+
 }
 
 #endif /* LIB_GRAPH_H_ */

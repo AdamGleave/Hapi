@@ -24,14 +24,19 @@ public:
 	int64_t getSupply(uint32_t id) const;
 	const std::set<uint32_t>& getSinks() const;
 	const std::set<uint32_t>& getSources() const;
-	void setSupply(uint32_t id, int64_t supply);
 
-	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
-	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
 	/* returns NULL if no such Arc present */
 	Arc *getArc(uint32_t src, uint32_t dst) const;
 	const std::unordered_map<uint32_t, Arc*>& getAdjacencies(uint32_t src) const;
 
+	// returns node ID
+	uint32_t addNode();
+	void removeNode(uint32_t id);
+	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
+	void removeArc(uint32_t src, uint32_t dst);
+
+	void setSupply(uint32_t id, int64_t supply);
+	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
 private:
 	friend class const_noconst_iterator;
 	template<bool is_const_iterator = true>
@@ -48,12 +53,14 @@ public:
 
 private:
 	void updateSupply(uint32_t id, int64_t delta);
+	bool validID(uint32_t id) const;
 
 	uint32_t num_nodes;
 	std::vector<int64_t> balance;
 	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
 	std::set<uint32_t> sources;
 	std::set<uint32_t> sinks;
+	std::set<uint32_t> free_nodes;
 };
 
 template<bool is_const_iterator>

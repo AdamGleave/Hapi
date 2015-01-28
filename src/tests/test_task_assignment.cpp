@@ -30,10 +30,10 @@ protected:
 		solved_file.open(SOLUTION_FILENAME, std::fstream::in);
 		ASSERT_FALSE(solved_file.fail()) << "unable to open " << SOLUTION_FILENAME;
 
-		original = fs::DIMACS<fs::FlowNetwork>::readDIMACSMin(graph_file);
+		original = fs::DIMACS<fs::FlowNetwork>::read(graph_file);
 		ASSERT_NE(original, (void *)0) << "DIMACS parse error";
 		augmented = new fs::FlowNetwork(*original);
-		fs::DIMACS<fs::FlowNetwork>::readDIMACSMinFlow(solved_file, *augmented);
+		fs::DIMACS<fs::FlowNetwork>::readFlow(solved_file, *augmented);
 	}
 };
 
