@@ -146,7 +146,7 @@ void ResidualNetwork::removeArc(uint32_t src, uint32_t dst) {
 	assert(num_erased == 1);
 }
 
-void ResidualNetwork::updateSupply(uint32_t id, int64_t delta) {
+void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
 	assert(validID(id));
 
 	if (balance[id] > 0) {
@@ -155,25 +155,11 @@ void ResidualNetwork::updateSupply(uint32_t id, int64_t delta) {
 		sinks.erase(id);
 	}
 
-	balance[id] += delta;
+	balance[id] = supply;
 	if (balance[id] > 0) {
 		sources.insert(id);
 	} else if (balance[id] < 0) {
 		sinks.insert(id);
-	}
-}
-
-void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
-	assert(validID(id));
-
-	// Can only set supply once. Check it is zero, as it must be when just
-	// initialized. (Note won't catch all mistakes.)
-	assert(balance[id] == 0);
-	balance[id] = supply;
-	if (supply < 0) {
-		sinks.insert(id);
-	} else if (supply > 0) {
-		sources.insert(id);
 	}
 }
 
@@ -182,8 +168,8 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	arcs[src][dst]->pushFlow(amount);
 	arcs[dst][src]->pushFlow(-amount);
 
-	updateSupply(src, -amount);
-	updateSupply(dst, amount);
+	setSupply(src, balance[src] - amount);
+	setSupply(dst, balance[dst] + amount);
 }
 
 bool ResidualNetwork::validID(uint32_t id) const {

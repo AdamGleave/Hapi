@@ -293,6 +293,16 @@ public:
 				g.removeNode(node_id);
 				break;
 				}
+			case 'n':
+				{
+				// change supply of a node
+				uint32_t id;
+				int64_t supply;
+				num_matches = sscanf(remainder, "%u %ld", &id, &supply);
+				CHECK_EQ(num_matches, 2);
+
+				g.setSupply(id, supply);
+				}
 			case 'x':
 				{
 				// change of an existing arc;
@@ -306,12 +316,16 @@ public:
 				CHECK_EQ(num_matches, 5);
 
 				CHECK_EQ(lower_bound, 0);
-				Arc *arc = g.getArc(src, dst);
-				CHECK_NOTNULL(arc);
-				CHECK_EQ(arc->getSrcId(), src) << "arc specified in reverse direction?";
+				if (upper_bound == 0) {
+					g.removeArc(src, dst);
+				} else {
+					Arc *arc = g.getArc(src, dst);
+					CHECK_NOTNULL(arc);
+					CHECK_EQ(arc->getSrcId(), src) << "arc specified in reverse direction?";
 
-				arc->setCapacity(upper_bound);
-				arc->setCost(cost);
+					arc->setCapacity(upper_bound);
+					arc->setCost(cost);
+				}
 				break;
 				}
 			case 'd':

@@ -52,7 +52,6 @@ public:
 	const_iterator end() const;
 
 private:
-	void updateSupply(uint32_t id, int64_t delta);
 	bool validID(uint32_t id) const;
 
 	uint32_t num_nodes;
