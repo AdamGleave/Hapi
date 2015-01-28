@@ -48,11 +48,8 @@ public:
 private:
 	// iterator
 	friend class const_noconst_iterator;
-
 	template<bool is_const_iterator = true>
-	class const_noconst_iterator
-	     <std::forward_iterator_tag,
-		   typename std::conditional<is_const_iterator, const Arc, Arc>::type>;
+	class const_noconst_iterator;
 
 public:
 	typedef const_noconst_iterator<false> iterator;
@@ -61,11 +58,11 @@ public:
 	iterator begin();
 	const_iterator begin() const;
 	iterator end();
-	const_iterator end();
+	const_iterator end() const;
 };
 
 template<bool is_const_iterator>
-class const_noconst_iterator : public std::iterator
+class FlowNetwork::const_noconst_iterator : public std::iterator
 		<std::forward_iterator_tag,
 		 typename std::conditional<is_const_iterator, const Arc, Arc>::type>
 {
