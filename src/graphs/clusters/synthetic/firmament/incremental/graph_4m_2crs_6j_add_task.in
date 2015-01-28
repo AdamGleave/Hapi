@@ -1,6 +1,6 @@
 c === Adds task vertex to graph_4m_2crs_6j. The graph has less tasks than cores, hence
 c === the flow changes should not propagate a lot through the graph.
-d 0 0 6
+d 1 0 6
 c === Arc from source
 a 1 0 0 1 0
 c === Arc to unscheduled
@@ -12,3 +12,5 @@ a 0 9 0 1 30
 c === Preference arcs to cores
 a 0 16 0 1 57
 a 0 22 0 1 62
+c === Increase demand at sink to compensate for additional task
+n -7
