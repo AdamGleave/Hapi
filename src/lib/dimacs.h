@@ -24,9 +24,6 @@
 
 namespace flowsolver {
 
-// XXX(adam): Do these need to be templates at all?
-// Could we just have FlowNetwork and ResidualNetwork inherit from an abstract
-// base class?
 template<class T>
 class DIMACSImporter {
 	BOOST_CONCEPT_ASSERT((Graph<T>));
@@ -281,7 +278,6 @@ public:
 
 		unsigned int arcs_remaining = 0;
 		uint32_t new_node_id = 0;
-		// TODO (adam): reduce code duplication?
 		// TODO (adam): do we want this to directly update graph,
 		// or e.g. build list of changes?
 		while ((getline(is, line))) {
@@ -353,12 +349,14 @@ public:
 				// add new node
 				CHECK_EQ(arcs_remaining, 0);
 				int64_t supply;
-				// TODO (adam): why do we need potential of a node?
 				uint64_t potential;
 				uint32_t num_arcs;
 				num_matches = sscanf(remainder, "%ld %lu %u",
 						                 &supply, &potential, &num_arcs);
 				CHECK_EQ(num_matches, 3);
+				// potential not currently used anywhere
+				// maintained for backwards compatibility, and in case we wish to hint
+				// at potential in the future
 				CHECK_EQ(potential, 0);
 
 				new_node_id = g.addNode();
@@ -387,7 +385,6 @@ public:
 					dst = new_node_id;
 				}
 
-				// TODO(adam): detect duplicate arcs?
 				g.addArc(src, dst, upper_bound, cost);
 				arcs_remaining--;
 				break;

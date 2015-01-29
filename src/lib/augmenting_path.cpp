@@ -208,7 +208,7 @@ AugmentingPath::AugmentingPath(ResidualNetwork &g)
 
 AugmentingPath::~AugmentingPath() { }
 
-// TODO(adam): potentially returning a big object, will compiler inline this?
+// SOMEDAY(adam): potentially returning a big object, will compiler inline this?
 std::queue<Arc *> AugmentingPath::predecessorPath
 			(uint32_t source, uint32_t sink, const std::vector<uint32_t>& parents) {
 	std::deque<Arc *> path;
