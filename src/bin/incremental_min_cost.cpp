@@ -75,13 +75,13 @@ int main(int argc, char *argv[]) {
 		po::options_description desc("cycle cancelling options");
 		po::store(po::command_line_parser(opts).options(desc).run(), vm);
 
-		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
+		ResidualNetwork *g = DIMACS<ResidualNetwork>::read(std::cin);
 		t.start();
 		AugmentingPath ap(*g);
 		ap.run();
 		t.stop();
 		t.report();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		DIMACS<ResidualNetwork>::writeFlow(*g, std::cout);
 
 		return 0;
 	} else if (cmd == "cycle_cancelling")
@@ -90,13 +90,13 @@ int main(int argc, char *argv[]) {
 		po::options_description desc("cycle cancelling options");
 		po::store(po::command_line_parser(opts).options(desc).run(), vm);
 
-		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
+		ResidualNetwork *g = DIMACS<ResidualNetwork>::read(std::cin);
 		t.start();
 		CycleCancelling cc(*g);
 		cc.run();
 		t.stop();
 		t.report();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		DIMACS<ResidualNetwork>::writeFlow(*g, std::cout);
 
 		return 0;
 	}
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
 							"--iterations and --cost-threshold can be used");
 		}
 
-		FlowNetwork *g = DIMACSOriginalImporter<FlowNetwork>(std::cin).read();
+		FlowNetwork *g = DIMACS<FlowNetwork>::read(std::cin);
 		CostScaling *cc;
 
 		t.start();
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 		t.report();
 		delete cc;
 		LOG_IF(ERROR, !success) << "No feasible solution.";
-		DIMACSExporter<FlowNetwork>(*g, std::cout).writeFlow();
+		DIMACS<FlowNetwork>::writeFlow(*g, std::cout);
 
 		return 0;
 	} else {

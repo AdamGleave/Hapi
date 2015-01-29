@@ -94,7 +94,8 @@ uint32_t ResidualNetwork::addNode() {
 	return id;
 }
 
-// SOMEDAY(adam): num_nodes can
+// SOMEDAY(adam): size of arcs & balance vector will grow without bound:
+// we never compact the graph after having removed nodes.
 void ResidualNetwork::removeNode(uint32_t id) {
 	// check node currently exists
 	assert(validID(id));

@@ -33,9 +33,9 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	ResidualNetwork *g = DIMACS<ResidualNetwork>::read(original);
+	ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(original).read();
 	IncrementalDIMACS<ResidualNetwork>::readIncremental(incremental, *g);
-	DIMACS<ResidualNetwork>::write(*g, std::cout);
+	DIMACSExporter<ResidualNetwork>(*g, std::cout).write();
 
 	return 0;
 }

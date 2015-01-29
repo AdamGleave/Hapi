@@ -27,11 +27,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (graph == "FlowNetwork") {
-		FlowNetwork *g = DIMACS<FlowNetwork>::read(std::cin);
-		DIMACS<FlowNetwork>::write(*g, std::cout);
+		FlowNetwork *g = DIMACSOriginalImporter<FlowNetwork>(std::cin).read();
+		DIMACSExporter<FlowNetwork>(*g, std::cout).write();
 	} else if (graph == "ResidualNetwork") {
-		ResidualNetwork *g = DIMACS<ResidualNetwork>::read(std::cin);
-		DIMACS<ResidualNetwork>::write(*g, std::cout);
+		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
+		DIMACSExporter<ResidualNetwork>(*g, std::cout).write();
 	} else {
 		assert(false);
 	}
