@@ -268,130 +268,119 @@ private:
 };
 
 template<class T>
-class IncrementalDIMACS {
-	BOOST_CONCEPT_ASSERT((Graph<T>));
-	IncrementalDIMACS() = delete;
+class DIMACSIncrementalImporter : public DIMACSImporter<T> {
+	BOOST_CONCEPT_ASSERT((DynamicGraph<T>));
 public:
-	static void readIncremental(std::istream &is, T &g) {
-		unsigned int line_num = 0;
-		std::string line;
+	DIMACSIncrementalImporter(std::istream &is, T &g) : DIMACSImporter<T>(is),
+			                                                g(g) {};
 
-		unsigned int arcs_remaining = 0;
-		uint32_t new_node_id = 0;
-		// TODO (adam): do we want this to directly update graph,
-		// or e.g. build list of changes?
-		while ((getline(is, line))) {
-			line_num++;
+	void read() {
+		DIMACSImporter<T>::parse();
+	}
+private:
+	void processLine(char type, const char *remainder) {
+		int num_matches = -1;
+		switch (type) {
+		case 'c':
+			// comment line -- ignore
+			break;
+		case 'r':
+			{
+			// remove node
+			CHECK_EQ(arcs_remaining, 0);
+			uint32_t node_id;
+			num_matches = sscanf(remainder, "%u", &node_id);
+			CHECK_EQ(num_matches, 1) << "malformed remove node, at line "
+															 << this->line_num;
+			g.removeNode(node_id);
+			break;
+			}
+		case 'n':
+			{
+			// change supply of a node
+			uint32_t id;
+			int64_t supply;
+			num_matches = sscanf(remainder, "%u %ld", &id, &supply);
+			CHECK_EQ(num_matches, 2);
 
-			std::istringstream iss (line);
+			g.setSupply(id, supply);
+			}
+		case 'x':
+			{
+			// change of an existing arc;
+			// could be either cost or capacity, or both
+			CHECK_EQ(arcs_remaining, 0);
+			uint32_t src, dst;
+			uint64_t lower_bound, upper_bound;
+			int64_t cost;
+			num_matches = sscanf(remainder, "%u %u %lu %lu %ld",
+							 &src, &dst, &lower_bound, &upper_bound, &cost);
+			CHECK_EQ(num_matches, 5);
 
-			std::string first;
-			iss >> first;
-			CHECK(first.length() == 1);
-			char type = first[0];
+			CHECK_EQ(lower_bound, 0);
+			if (upper_bound == 0) {
+				g.removeArc(src, dst);
+			} else {
+				Arc *arc = g.getArc(src, dst);
+				CHECK_NOTNULL(arc);
+				CHECK_EQ(arc->getSrcId(), src) << "arc specified in reverse direction?";
 
-			std::ostringstream oss;
-			oss << iss.rdbuf();
-			const char *remainder = oss.str().c_str();
+				arc->setCapacity(upper_bound);
+				arc->setCost(cost);
+			}
+			break;
+			}
+		case 'd':
+			{
+			// add new node
+			CHECK_EQ(arcs_remaining, 0);
+			int64_t supply;
+			uint64_t potential;
+			uint32_t num_arcs;
+			num_matches = sscanf(remainder, "%ld %lu %u",
+													 &supply, &potential, &num_arcs);
+			CHECK_EQ(num_matches, 3);
+			// potential not currently used anywhere
+			// maintained for backwards compatibility, and in case we wish to hint
+			// at potential in the future
+			CHECK_EQ(potential, 0);
 
-			int num_matches = -1;
-			switch (type) {
-			case 'c':
-				// comment line -- ignore
-				break;
-			case 'r':
-				{
-				// remove node
-				CHECK_EQ(arcs_remaining, 0);
-				uint32_t node_id;
-				num_matches = sscanf(remainder, "%u", &node_id);
-				CHECK_EQ(num_matches, 1) << "malformed remove node at line " << line_num;
-				g.removeNode(node_id);
-				break;
-				}
-			case 'n':
-				{
-				// change supply of a node
-				uint32_t id;
-				int64_t supply;
-				num_matches = sscanf(remainder, "%u %ld", &id, &supply);
-				CHECK_EQ(num_matches, 2);
+			new_node_id = g.addNode();
+			g.setSupply(new_node_id, supply);
 
-				g.setSupply(id, supply);
-				}
-			case 'x':
-				{
-				// change of an existing arc;
-				// could be either cost or capacity, or both
-				CHECK_EQ(arcs_remaining, 0);
-				uint32_t src, dst;
-				uint64_t lower_bound, upper_bound;
-				int64_t cost;
-				num_matches = sscanf(remainder, "%u %u %lu %lu %ld",
-								 &src, &dst, &lower_bound, &upper_bound, &cost);
-				CHECK_EQ(num_matches, 5);
+			arcs_remaining = num_arcs;
+			break;
+			}
+		case 'a':
+			{
+			// add new arc
+			CHECK_GT(arcs_remaining, 0) << "too many arcs for new node, at line "
+																	<< this->line_num;
+			uint32_t src, dst;
+			uint64_t lower_bound, upper_bound;
+			int64_t cost;
+			num_matches = sscanf(remainder, "%u %u %lu %lu %ld",
+							 &src, &dst, &lower_bound, &upper_bound, &cost);
+			CHECK_EQ(num_matches, 5);
 
-				CHECK_EQ(lower_bound, 0);
-				if (upper_bound == 0) {
-					g.removeArc(src, dst);
-				} else {
-					Arc *arc = g.getArc(src, dst);
-					CHECK_NOTNULL(arc);
-					CHECK_EQ(arc->getSrcId(), src) << "arc specified in reverse direction?";
+			CHECK_EQ(lower_bound, 0);
+			if (src == 0) {
+				src = new_node_id;
+			}
+			if (dst == 0) {
+				dst = new_node_id;
+			}
 
-					arc->setCapacity(upper_bound);
-					arc->setCost(cost);
-				}
-				break;
-				}
-			case 'd':
-				{
-				// add new node
-				CHECK_EQ(arcs_remaining, 0);
-				int64_t supply;
-				uint64_t potential;
-				uint32_t num_arcs;
-				num_matches = sscanf(remainder, "%ld %lu %u",
-						                 &supply, &potential, &num_arcs);
-				CHECK_EQ(num_matches, 3);
-				// potential not currently used anywhere
-				// maintained for backwards compatibility, and in case we wish to hint
-				// at potential in the future
-				CHECK_EQ(potential, 0);
-
-				new_node_id = g.addNode();
-				g.setSupply(new_node_id, supply);
-
-				arcs_remaining = num_arcs;
-				break;
-				}
-			case 'a':
-				{
-				// add new arc
-				CHECK_GT(arcs_remaining, 0) << "too many arcs for new node, at line "
-																	  << line_num;
-				uint32_t src, dst;
-				uint64_t lower_bound, upper_bound;
-				int64_t cost;
-				num_matches = sscanf(remainder, "%u %u %lu %lu %ld",
-								 &src, &dst, &lower_bound, &upper_bound, &cost);
-				CHECK_EQ(num_matches, 5);
-
-				CHECK_EQ(lower_bound, 0);
-				if (src == 0) {
-					src = new_node_id;
-				}
-				if (dst == 0) {
-					dst = new_node_id;
-				}
-
-				g.addArc(src, dst, upper_bound, cost);
-				arcs_remaining--;
-				break;
-				}
+			g.addArc(src, dst, upper_bound, cost);
+			arcs_remaining--;
+			break;
 			}
 		}
 	}
+
+	T &g;
+	unsigned int arcs_remaining = 0;
+	uint32_t new_node_id = 0;
 };
 
 } /* namespace flowsolver */
