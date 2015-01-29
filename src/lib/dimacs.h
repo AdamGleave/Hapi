@@ -24,9 +24,7 @@
 
 namespace flowsolver {
 
-template<class T>
 class DIMACSImporter {
-	BOOST_CONCEPT_ASSERT((Graph<T>));
 protected:
 	explicit DIMACSImporter(std::istream &is) : is(is) {};
 	virtual void processLine(char type, const char *remainder) = 0;
@@ -56,12 +54,13 @@ protected:
 };
 
 template<class T>
-class DIMACSOriginalImporter : public DIMACSImporter<T> {
+class DIMACSOriginalImporter : public DIMACSImporter {
+	BOOST_CONCEPT_ASSERT((Graph<T>));
 public:
-	explicit DIMACSOriginalImporter(std::istream &is) : DIMACSImporter<T>(is) {};
+	explicit DIMACSOriginalImporter(std::istream &is) : DIMACSImporter(is) {};
 
 	T *read() {
-		DIMACSImporter<T>::parse();
+		parse();
 
 		return g;
 	}
@@ -75,7 +74,7 @@ private:
 		case 'p':
 			// problem line
 
-			CHECK(!g) << "duplicate problem line at " << this->line_num;
+			CHECK(!g) << "duplicate problem line at " << line_num;
 			CHECK(!seen_node) << "problem line after node line";
 			CHECK(!seen_arc) << "problem line after arc line";
 
@@ -103,7 +102,7 @@ private:
 
 			LOG_IF(ERROR, g->getBalance(id) != 0)
 				<< "Duplicate definition of node " << id
-				<< " at line " << this->line_num;
+				<< " at line " << line_num;
 
 			g->setSupply(id, supply);
 			break;
@@ -128,7 +127,7 @@ private:
 				arcs_seen[dst].count(src) > 0) {
 				LOG(WARNING) << "Duplicate definition of arc "
 							 << src << "->" << dst
-							 << " at line " << this->line_num;
+							 << " at line " << line_num;
 			} else {
 				if (upper_bound != 0) {
 					// ignore zero-capacity arcs
@@ -141,7 +140,7 @@ private:
 			break;
 		default:
 			LOG(FATAL) << "Unrecognized type " << type
-						 << " at line " << this->line_num;
+						 << " at line " << line_num;
 		}
 	}
 
@@ -151,13 +150,14 @@ private:
 };
 
 template<class T>
-class DIMACSFlowImporter : public DIMACSImporter<T> {
+class DIMACSFlowImporter : public DIMACSImporter {
+	BOOST_CONCEPT_ASSERT((Graph<T>));
 public:
-	explicit DIMACSFlowImporter(std::istream &is, T &g) : DIMACSImporter<T>(is),
+	explicit DIMACSFlowImporter(std::istream &is, T &g) : DIMACSImporter(is),
 																										    g(g) {};
 
 	int64_t read() {
-		DIMACSImporter<T>::parse();
+		DIMACSImporter::parse();
 
 		return solution;
 	}
@@ -171,7 +171,7 @@ private:
 		case 's':
 		{
 			// solution line
-			CHECK(!solution_seen) << "duplicate solution at L" << this->line_num;
+			CHECK(!solution_seen) << "duplicate solution at L" << line_num;
 			num_matches = sscanf(remainder, "%ld", &solution);
 			CHECK_EQ(num_matches, 1);
 			solution_seen = true;
@@ -180,7 +180,7 @@ private:
 		case 'f':
 		{
 			// flow assignment
-			CHECK(solution_seen) << "flow before solution at L" << this->line_num;
+			CHECK(solution_seen) << "flow before solution at L" << line_num;
 			uint32_t src_id, dst_id;
 			int64_t flow;
 			num_matches = sscanf(remainder, "%u %u %ld",
@@ -194,7 +194,7 @@ private:
 		}
 		default:
 			LOG(FATAL) << "Unrecognized type " << type
-						 << " at line " << this->line_num;
+						 << " at line " << line_num;
 			break;
 		}
 	}
@@ -268,14 +268,14 @@ private:
 };
 
 template<class T>
-class DIMACSIncrementalImporter : public DIMACSImporter<T> {
-	BOOST_CONCEPT_ASSERT((DynamicGraph<T>));
+class DIMACSIncrementalImporter : public DIMACSImporter {
+	BOOST_CONCEPT_ASSERT((DynamicGraphCallbacks<T>));
 public:
-	DIMACSIncrementalImporter(std::istream &is, T &g) : DIMACSImporter<T>(is),
+	DIMACSIncrementalImporter(std::istream &is, T &g) : DIMACSImporter(is),
 			                                                g(g) {};
 
 	void read() {
-		DIMACSImporter<T>::parse();
+		DIMACSImporter::parse();
 	}
 private:
 	void processLine(char type, const char *remainder) {
@@ -291,7 +291,7 @@ private:
 			uint32_t node_id;
 			num_matches = sscanf(remainder, "%u", &node_id);
 			CHECK_EQ(num_matches, 1) << "malformed remove node, at line "
-															 << this->line_num;
+															 << line_num;
 			g.removeNode(node_id);
 			break;
 			}
@@ -321,12 +321,7 @@ private:
 			if (upper_bound == 0) {
 				g.removeArc(src, dst);
 			} else {
-				Arc *arc = g.getArc(src, dst);
-				CHECK_NOTNULL(arc);
-				CHECK_EQ(arc->getSrcId(), src) << "arc specified in reverse direction?";
-
-				arc->setCapacity(upper_bound);
-				arc->setCost(cost);
+				g.changeArc(src, dst, upper_bound, cost);
 			}
 			break;
 			}
@@ -355,7 +350,7 @@ private:
 			{
 			// add new arc
 			CHECK_GT(arcs_remaining, 0) << "too many arcs for new node, at line "
-																	<< this->line_num;
+																	<< line_num;
 			uint32_t src, dst;
 			uint64_t lower_bound, upper_bound;
 			int64_t cost;

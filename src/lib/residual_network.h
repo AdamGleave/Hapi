@@ -33,6 +33,8 @@ public:
 	uint32_t addNode();
 	void removeNode(uint32_t id);
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
+	// returns true if capacity constraint still satisfied, false otherwise
+	bool changeArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void removeArc(uint32_t src, uint32_t dst);
 
 	void setSupply(uint32_t id, int64_t supply);

@@ -39,18 +39,23 @@ public:
 };
 
 template<class X>
-struct DynamicGraph {
+struct DynamicGraphCallbacks {
 public:
-	// dynamic graph must also be a graph
-	BOOST_CONCEPT_ASSERT((Graph<X>));
-
-	BOOST_CONCEPT_USAGE(DynamicGraph) {
+	BOOST_CONCEPT_USAGE(DynamicGraphCallbacks) {
 		X graph(10);
 		uint32_t new_id = graph.addNode();
-		graph.addArc(0, new_id, 1, 1);
-		graph.removeArc(0, new_id);
-		graph.removeNode(0);
+		graph.addArc(1, new_id, 1, 1);
+		graph.changeArc(1, new_id, 3, 2);
+		graph.removeArc(1, new_id);
+		graph.setSupply(1, 5);
+		graph.removeNode(1);
 	}
+};
+
+template<class X>
+struct DynamicGraph {
+	BOOST_CONCEPT_ASSERT((Graph<X>));
+	BOOST_CONCEPT_ASSERT((DynamicGraphCallbacks<X>));
 };
 
 }

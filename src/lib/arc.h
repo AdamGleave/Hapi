@@ -28,12 +28,11 @@ public:
 		return getInitialCapacity() - getCapacity();
 	}
 	uint32_t getOppositeId(uint32_t id) const;
-
+private:
+	void pushFlow(int64_t amount)  { capacity -= amount; }
 	void setCost(int64_t new_cost) { cost = new_cost; };
 	// returns whether capacity constraint is satisfied with new capacity
 	bool setCapacity(uint64_t new_capacity);
-private:
-	void pushFlow(int64_t amount)  { capacity -= amount; }
 
 	uint32_t src_id, dst_id;
 	int64_t capacity;
