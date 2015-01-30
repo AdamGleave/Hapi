@@ -28,6 +28,9 @@ public:
 		return getInitialCapacity() - getCapacity();
 	}
 	uint32_t getOppositeId(uint32_t id) const;
+
+	bool operator==(const Arc &arc) const;
+	bool operator!=(const Arc &arc) const;
 private:
 	void pushFlow(int64_t amount)  { capacity -= amount; }
 	void setCost(int64_t new_cost) { cost = new_cost; };

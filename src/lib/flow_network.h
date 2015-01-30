@@ -9,11 +9,18 @@
 
 #include "arc.h"
 
+// forward declare
+namespace flowsolver {
+class FlowNetwork;
+}
+#include "residual_network.h"
+
 namespace flowsolver {
 
 class FlowNetwork {
 public:
 	explicit FlowNetwork(uint32_t num_nodes);
+	FlowNetwork(const ResidualNetwork &g);
 	virtual ~FlowNetwork();
 
 	// constant time
@@ -42,6 +49,8 @@ public:
 	// returns balance of the node flow is pushed to
 	int64_t pushFlow(Arc &arc, uint32_t src_id, uint64_t flow);
 
+	bool operator==(const FlowNetwork &g) const;
+	bool operator!=(const FlowNetwork &g) const;
 private:
 	// iterator
 	friend class const_noconst_iterator;
@@ -58,6 +67,9 @@ public:
 	const_iterator end() const;
 
 private:
+	Arc &addArcInternal(uint32_t src, uint32_t dst,
+			                uint64_t capacity, int64_t cost);
+
 	uint32_t num_nodes, num_arcs;
 	std::vector<int64_t> balances;
 	std::vector<std::forward_list<Arc *>> arcs;

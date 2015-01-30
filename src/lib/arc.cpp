@@ -34,4 +34,14 @@ bool Arc::setCapacity(uint64_t new_capacity) {
 	return capacity >= 0;
 }
 
+bool Arc::operator==(const Arc &arc) const {
+	return src_id == arc.src_id && dst_id == arc.dst_id
+			   && capacity == arc.capacity && initial_capacity == arc.initial_capacity
+				 && cost == arc.cost;
+}
+
+bool Arc::operator!=(const Arc &arc) const {
+	return !(*this == arc);
+}
+
 } /* namespace flowsolver */

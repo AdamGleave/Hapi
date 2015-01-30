@@ -3,13 +3,27 @@
 #include <cassert>
 
 #include <glog/logging.h>
+#include <boost/format.hpp>
 
 namespace flowsolver {
 
 ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	// initialize all supply values to zero
-	balance.resize(num_nodes + 1);
+	balances.resize(num_nodes + 1);
 	arcs.resize(num_nodes + 1);
+}
+
+ResidualNetwork::ResidualNetwork(const FlowNetwork &g)
+																					  : ResidualNetwork(g.getNumNodes()) {
+	// FlowNetwork stores each arc once
+	for (const Arc &arc : g) {
+		addArc(arc.getSrcId(), arc.getDstId(), arc.getCapacity(), arc.getCost());
+	}
+
+	// clone balances
+	for (uint32_t id = 1; id <= num_nodes; id++) {
+		balances[id] = g.getBalance(id);
+	}
 }
 
 ResidualNetwork::~ResidualNetwork() {
@@ -42,7 +56,7 @@ uint32_t ResidualNetwork::getNumArcs() const {
 
 int64_t ResidualNetwork::getBalance(uint32_t id) const {
 	assert(validID(id));
-	return balance[id];
+	return balances[id];
 }
 
 const std::set<uint32_t>& ResidualNetwork::getSinks() const {
@@ -75,11 +89,11 @@ uint32_t ResidualNetwork::addNode() {
 	num_nodes++;
 
 	if (free_nodes.empty()) {
-		balance.push_back(0);
+		balances.push_back(0);
 		arcs.push_back(std::unordered_map<uint32_t, Arc*>());
 		id = num_nodes;
 		// check for 'node leaks': free nodes not in the free list
-		assert(id == balance.size() - 1 && id == arcs.size() - 1);
+		assert(id == balances.size() - 1 && id == arcs.size() - 1);
 	} else {
 		std::set<uint32_t>::iterator it = free_nodes.begin();
 		id = *it;
@@ -87,7 +101,7 @@ uint32_t ResidualNetwork::addNode() {
 	}
 
 	// should not be any stale state from previous instances of this node ID
-	assert(balance[id] == 0);
+	assert(balances[id] == 0);
 	assert(arcs[id].empty());
 	assert(sources.count(id) == 0 && sinks.count(id) == 0);
 
@@ -119,7 +133,7 @@ void ResidualNetwork::removeNode(uint32_t id) {
 	sinks.erase(id);
 
 	// clear up state
-	balance[id] = 0;
+	balances[id] = 0;
 
 	// node now free
 	num_nodes--;
@@ -164,16 +178,16 @@ void ResidualNetwork::removeArc(uint32_t src, uint32_t dst) {
 void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
 	assert(validID(id));
 
-	if (balance[id] > 0) {
+	if (balances[id] > 0) {
 		sources.erase(id);
-	} else if (balance[id] < 0) {
+	} else if (balances[id] < 0) {
 		sinks.erase(id);
 	}
 
-	balance[id] = supply;
-	if (balance[id] > 0) {
+	balances[id] = supply;
+	if (balances[id] > 0) {
 		sources.insert(id);
-	} else if (balance[id] < 0) {
+	} else if (balances[id] < 0) {
 		sinks.insert(id);
 	}
 }
@@ -183,8 +197,8 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	arcs[src][dst]->pushFlow(amount);
 	arcs[dst][src]->pushFlow(-amount);
 
-	setSupply(src, balance[src] - amount);
-	setSupply(dst, balance[dst] + amount);
+	setSupply(src, balances[src] - amount);
+	setSupply(dst, balances[dst] + amount);
 }
 
 bool ResidualNetwork::validID(uint32_t id) const {
@@ -205,6 +219,67 @@ ResidualNetwork::iterator ResidualNetwork::end() {
 
 ResidualNetwork::const_iterator ResidualNetwork::end() const {
 	return const_iterator(this, true);
+}
+
+// this, the equality and inequality operator are only used by unit tests.
+// There is no reason it should ever be used by an actual algorithm.
+// Consequently, efficiency is not a priority.
+bool ResidualNetwork::adjacencyEquals(
+		const std::unordered_map<uint32_t, Arc*> &adj1,
+		const std::unordered_map<uint32_t, Arc*> &adj2) {
+	if (adj1.size() == adj2.size()) {
+		// Size the same, so cannot have one be a proper subset of the other.
+		// Thus if adj1 is a subset of adj2, equality must hold.
+		for (const std::pair<uint32_t, Arc*> &elt : adj1) {
+			auto it = adj2.find(elt.first);
+			if (it != adj2.end()) {
+				Arc *our_arc = elt.second;
+				Arc *other_arc = it->second;
+				if (*our_arc != *other_arc) {
+					VLOG(3) << "disagree in arcs";
+					VLOG(4) << "our_arc: " << boost::format("%u->%u %ld/%ld")
+										          % our_arc->getSrcId() % our_arc->getDstId()
+															% our_arc->getCapacity() % our_arc->getCost()
+									<< std::endl;
+					VLOG(4) << "other_arc: " << boost::format("%u->%u %ld/%ld")
+															% other_arc->getSrcId() % other_arc->getDstId()
+															% other_arc->getCapacity() % other_arc->getCost()
+									<< std::endl;
+					return false;
+				}
+			} else {
+				VLOG(4) << "missing id " << elt.first;
+				return false;
+			}
+		}
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool ResidualNetwork::operator==(const ResidualNetwork &g) const {
+	if (balances == g.balances) {
+		// note this implies both networks have the same number of nodes
+		for (uint32_t id = 1; id <= num_nodes; id++) {
+			const std::unordered_map<uint32_t, Arc*> &our_adjacencies = arcs[id];
+			const std::unordered_map<uint32_t, Arc*> &other_adjacencies = g.arcs[id];
+
+			if (!ResidualNetwork::adjacencyEquals(our_adjacencies, other_adjacencies)) {
+				return false;
+			}
+		}
+
+		// have checked everywhere for differences and none found: must be the same
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool ResidualNetwork::operator!=(const ResidualNetwork &g) const {
+	return !(*this == g);
 }
 
 } /* namespace flowsolver */

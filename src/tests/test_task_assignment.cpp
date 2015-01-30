@@ -31,7 +31,7 @@ protected:
 		ASSERT_FALSE(solved_file.fail()) << "unable to open " << SOLUTION_FILENAME;
 
 		original = fs::DIMACSOriginalImporter<fs::FlowNetwork>(graph_file).read();
-		ASSERT_NE(original, (void *)0) << "DIMACS parse error";
+		ASSERT_NE(original, nullptr) << "DIMACS parse error";
 		augmented = new fs::FlowNetwork(*original);
 		fs::DIMACSFlowImporter<fs::FlowNetwork>(solved_file, *augmented).read();
 	}

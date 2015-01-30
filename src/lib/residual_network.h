@@ -11,11 +11,18 @@
 
 #include "arc.h"
 
+// forward declare
+namespace flowsolver {
+class ResidualNetwork;
+}
+#include "flow_network.h"
+
 namespace flowsolver {
 
 class ResidualNetwork {
 public:
 	explicit ResidualNetwork(uint32_t num_nodes);
+	ResidualNetwork(const FlowNetwork &g);
 	virtual ~ResidualNetwork();
 
 	uint32_t getNumNodes() const;
@@ -39,6 +46,12 @@ public:
 
 	void setSupply(uint32_t id, int64_t supply);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
+
+	bool operator==(const ResidualNetwork &g) const;
+	bool operator!=(const ResidualNetwork &g) const;
+
+	static bool adjacencyEquals(const std::unordered_map<uint32_t, Arc*> &adj1,
+			 	 	 	 	 	 	 	 	 	 	 	  const std::unordered_map<uint32_t, Arc*> &adj2);
 private:
 	friend class const_noconst_iterator;
 	template<bool is_const_iterator = true>
@@ -57,7 +70,7 @@ private:
 	bool validID(uint32_t id) const;
 
 	uint32_t num_nodes;
-	std::vector<int64_t> balance;
+	std::vector<int64_t> balances;
 	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
 	std::set<uint32_t> sources;
 	std::set<uint32_t> sinks;
