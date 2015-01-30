@@ -45,7 +45,8 @@ public:
 		X graph(10);
 		uint32_t new_id = graph.addNode();
 		graph.addArc(1, new_id, 1, 1);
-		graph.changeArc(1, new_id, 3, 2);
+		graph.changeArcCapacity(1, new_id, 3);
+		graph.changeArcCost(1, new_id, 2);
 		graph.removeArc(1, new_id);
 		graph.setSupply(1, 5);
 		graph.removeNode(1);

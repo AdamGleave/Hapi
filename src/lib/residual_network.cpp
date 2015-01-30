@@ -152,18 +152,21 @@ void ResidualNetwork::addArc(uint32_t src, uint32_t dst,
 	arcs[dst][src] = new Arc(dst, src, 0, -cost);
 }
 
-bool ResidualNetwork::changeArc(uint32_t src, uint32_t dst,
-							  uint64_t capacity, int64_t cost) {
+void ResidualNetwork::changeArcCost(uint32_t src, uint32_t dst, int64_t cost) {
+	// indices in range
+	assert(validID(src) && validID(dst));
+	arcs[src][dst]->setCost(cost);
+	arcs[dst][src]->setCost(-cost);
+}
+
+bool ResidualNetwork::changeArcCapacity(uint32_t src, uint32_t dst,
+		                                    uint64_t capacity) {
 	// indices in range
 	assert(validID(src) && validID(dst));
 
 	// reverse arcs capacity remains 0 (the residual capacity on reverse arc
 	// is flow on forward arc, which is unchanged)
-	arcs[dst][src]->setCost(-cost);
-
-	Arc *forward = arcs[src][dst];
-	forward->setCost(cost);
-	return forward->setCapacity(capacity);
+	return arcs[src][dst]->setCapacity(capacity);
 }
 
 void ResidualNetwork::removeArc(uint32_t src, uint32_t dst) {

@@ -318,10 +318,20 @@ private:
 			CHECK_EQ(num_matches, 5);
 
 			CHECK_EQ(lower_bound, 0);
+			Arc *arc = g.getArc(src, dst);
+			CHECK(arc != nullptr) << "trying to change non-existent arc "
+					                  << src << "->" << dst;
 			if (upper_bound == 0) {
 				g.removeArc(src, dst);
 			} else {
-				g.changeArc(src, dst, upper_bound, cost);
+				uint64_t current_upper_bound = arc->getCapacity();
+				if (current_upper_bound != upper_bound) {
+					g.changeArcCapacity(src, dst, upper_bound);
+				}
+				int64_t current_cost = arc->getCost();
+				if (current_cost != cost) {
+					g.changeArcCost(src, dst, cost);
+				}
 			}
 			break;
 			}

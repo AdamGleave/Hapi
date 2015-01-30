@@ -38,19 +38,16 @@ void DynamicMaintainOptimality::addArc(uint32_t src, uint32_t dst,
 	// with the same cost but capacity 0, and then increasing its capacity to x
 
 	g.addArc(src, dst, 0, cost);
-	// TODO(adam): separate out the increase capacity, etc?
-	changeArc(src, dst, capacity, cost);
+	changeArcCapacity(src, dst, capacity);
 }
 
-bool DynamicMaintainOptimality::changeArc(uint32_t src, uint32_t dst,
-		uint64_t capacity, int64_t cost) {
+bool DynamicMaintainOptimality::changeArcCost(uint32_t src, uint32_t dst,
+																						  int64_t cost) {
 	Arc *arc = g.getArc(src, dst);
 	CHECK_NOTNULL(arc) << "trying to change non-existent arc "
 			               << src << "->" << dst;
 
 	int64_t old_cost = arc->getCost();
-	int64_t old_capacity = arc->getCapacity();
-	//TODO(adam): am I handling reverse arcs correctly?
 	if (cost != old_cost) {
 		// For optimality, we care only about the sign of the reduced cost
 		// If the sign remains the same, we need not do anything.
@@ -80,12 +77,20 @@ bool DynamicMaintainOptimality::changeArc(uint32_t src, uint32_t dst,
 			g.pushFlow(src, dst, arc->getCapacity());
 		}
 	}
-	g.changeArc(src, dst, old_capacity, cost);
+	g.changeArcCost(src, dst, cost);
+}
 
+bool DynamicMaintainOptimality::changeArcCapacity(uint32_t src, uint32_t dst,
+																								  uint64_t capacity) {
+	Arc *arc = g.getArc(src, dst);
+	CHECK_NOTNULL(arc) << "trying to change non-existent arc "
+										 << src << "->" << dst;
+
+	int64_t old_capacity = arc->getCapacity();
 	if (capacity < old_capacity) {
 		// Decrease in capacity.
 		// This can never violate optimality, but may make the flow no longer feasible.
-		bool capacity_constraint = g.changeArc(src, dst, capacity, cost);
+		bool capacity_constraint = g.changeArcCapacity(src, dst, capacity);
 		if (!capacity_constraint) {
 			// must reduce flow to satisfy capacity constraint, may break feasibility
 			// note arc->getCapacity() here is NEGATIVE
@@ -106,11 +111,9 @@ bool DynamicMaintainOptimality::changeArc(uint32_t src, uint32_t dst,
 		//reduced cost, but we only need to check the current capacity which is
 		//cheaper than computing reduced cost
 
-		//TODO(adam): does every algorithm use the same sign convention?
-		//Should document this as a requirement at least.
 		int64_t reduced_cost = arc->getCost() - potentials[src] + potentials[dst];
 
-		bool capacity_constraint = g.changeArc(src, dst, capacity, cost);
+		bool capacity_constraint = g.changeArcCapacity(src, dst, capacity);
 		if (reduced_cost < 0) {
 			// saturate arc
 			g.pushFlow(src, dst, capacity - old_capacity);
