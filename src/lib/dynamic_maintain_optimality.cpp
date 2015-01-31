@@ -1,3 +1,4 @@
+#include <cassert>
 #include <unordered_map>
 
 #include <glog/logging.h>
@@ -6,10 +7,18 @@
 
 namespace flowsolver {
 
+Arc *DynamicMaintainOptimality::getArc(uint32_t src, uint32_t dst) {
+	return g.getArc(src, dst);
+}
 uint32_t DynamicMaintainOptimality::addNode() {
 	// adding a node does not change the min-cost solution, since initially the
 	// arcs has no edges. pass through
-	return g.addNode();
+	uint32_t new_id = g.addNode();
+	if (new_id >= potentials.size()) {
+		potentials.resize(new_id + 1);
+		// note the new potential cells will be initialized to zero
+	}
+	return new_id;
 }
 
 void DynamicMaintainOptimality::setSupply(uint32_t id, int64_t supply) {
@@ -23,12 +32,26 @@ void DynamicMaintainOptimality::removeNode(uint32_t id) {
 	// it is removing the associated arcs that changes the solution
 	const std::unordered_map<uint32_t, Arc*> &adjacencies = g.getAdjacencies(id);
 	for (auto elt : adjacencies) {
-		uint32_t dst = elt.second;
-		removeArc(id, dst);
+		uint32_t opposite_id = elt.first;
+		Arc *arc = elt.second;
+
+		uint32_t src_id = arc->getSrcId();
+		if (src_id == id) {
+			// forward arc
+			removeArc(id, opposite_id);
+		} else if (src_id == opposite_id) {
+			// reverse arc
+			removeArc(opposite_id, id);
+		} else {
+			assert(false);
+		}
+
 	}
 
 	// Now the node is disconnected from the network, remove it directly.
 	g.removeNode(id);
+
+	potentials[id] = 0;
 }
 
 void DynamicMaintainOptimality::addArc(uint32_t src, uint32_t dst,
@@ -41,11 +64,11 @@ void DynamicMaintainOptimality::addArc(uint32_t src, uint32_t dst,
 	changeArcCapacity(src, dst, capacity);
 }
 
-bool DynamicMaintainOptimality::changeArcCost(uint32_t src, uint32_t dst,
+void DynamicMaintainOptimality::changeArcCost(uint32_t src, uint32_t dst,
 																						  int64_t cost) {
 	Arc *arc = g.getArc(src, dst);
-	CHECK_NOTNULL(arc) << "trying to change non-existent arc "
-			               << src << "->" << dst;
+	CHECK(arc != nullptr) << "trying to change non-existent arc "
+			                  << src << "->" << dst;
 
 	int64_t old_cost = arc->getCost();
 	if (cost != old_cost) {
@@ -83,21 +106,22 @@ bool DynamicMaintainOptimality::changeArcCost(uint32_t src, uint32_t dst,
 bool DynamicMaintainOptimality::changeArcCapacity(uint32_t src, uint32_t dst,
 																								  uint64_t capacity) {
 	Arc *arc = g.getArc(src, dst);
-	CHECK_NOTNULL(arc) << "trying to change non-existent arc "
-										 << src << "->" << dst;
+	CHECK(arc != nullptr) << "trying to change non-existent arc "
+										    << src << "->" << dst;
 
 	int64_t old_capacity = arc->getCapacity();
-	if (capacity < old_capacity) {
+	int64_t new_capacity = static_cast<int64_t>(capacity);
+	if (new_capacity < old_capacity) {
 		// Decrease in capacity.
 		// This can never violate optimality, but may make the flow no longer feasible.
-		bool capacity_constraint = g.changeArcCapacity(src, dst, capacity);
+		bool capacity_constraint = g.changeArcCapacity(src, dst, new_capacity);
 		if (!capacity_constraint) {
 			// must reduce flow to satisfy capacity constraint, may break feasibility
 			// note arc->getCapacity() here is NEGATIVE
 			g.pushFlow(src, dst, arc->getCapacity());
 		}
 		return capacity_constraint;
-	} else if (capacity > old_capacity) {
+	} else if (new_capacity > old_capacity) {
 		/*
 		 * Increase in capacity. This may violate optimality. Three cases:
 		 * - Positive reduced cost. Flow was previously zero, and should remain zero.
@@ -113,21 +137,24 @@ bool DynamicMaintainOptimality::changeArcCapacity(uint32_t src, uint32_t dst,
 
 		int64_t reduced_cost = arc->getCost() - potentials[src] + potentials[dst];
 
-		bool capacity_constraint = g.changeArcCapacity(src, dst, capacity);
+		bool capacity_constraint = g.changeArcCapacity(src, dst, new_capacity);
 		if (reduced_cost < 0) {
 			// saturate arc
-			g.pushFlow(src, dst, capacity - old_capacity);
+			g.pushFlow(src, dst, new_capacity - old_capacity);
 		}
 		return capacity_constraint;
+	} else {
+		// we've done nothing -- change has not violated capacity constraint
+		return true;
 	}
 }
 
 void DynamicMaintainOptimality::removeArc(uint32_t src, uint32_t dst) {
 	// Logically, removing an arc is the same as setting it to have 0 capacity
 	Arc *arc = g.getArc(src, dst);
-	CHECK_NOTNULL(arc) << "trying to remove non-existent arc "
-			               << src << "->" << dst;
-	changeArc(src, dst, 0, arc->getCost());
+	CHECK(arc != nullptr) << "trying to remove non-existent arc "
+			                  << src << "->" << dst;
+	changeArcCapacity(src, dst, 0);
 
 	// Now delete it to save memory
 	g.removeArc(src, dst);

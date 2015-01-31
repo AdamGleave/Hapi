@@ -23,7 +23,9 @@ public:
 	DynamicMaintainOptimality(ResidualNetwork &g,
 			                      std::vector<uint64_t> &potentials)
                             : g(g), potentials(potentials) {};
-	virtual ~DynamicMaintainOptimality();
+	virtual ~DynamicMaintainOptimality() {};
+
+	Arc *getArc(uint32_t src, uint32_t dst);
 
 	// returns node ID
 	uint32_t addNode();
@@ -32,7 +34,7 @@ public:
 
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void changeArcCost(uint32_t src, uint32_t dst, int64_t cost);
-	// returns true if capacity constraint still satisfied, false otherwise
+	// returns false if capacity constraint has been violated, true otherwise
   bool changeArcCapacity(uint32_t src, uint32_t dst, uint64_t capacity);
 	void removeArc(uint32_t src, uint32_t dst);
 private:

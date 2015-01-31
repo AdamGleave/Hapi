@@ -25,7 +25,7 @@ uint32_t Arc::getOppositeId(uint32_t id) const {
 bool Arc::setCapacity(uint64_t new_capacity) {
 	// note we are setting the capacity of the arc
 	// but capacity is the *residual* capacity of the arc
-	int64_t delta = initial_capacity - new_capacity;
+	int64_t delta = new_capacity - initial_capacity;
 	capacity += delta;
 	initial_capacity = new_capacity;
 

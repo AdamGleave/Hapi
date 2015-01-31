@@ -305,6 +305,7 @@ private:
 
 			g.setSupply(id, supply);
 			}
+			break;
 		case 'x':
 			{
 			// change of an existing arc;
@@ -359,8 +360,6 @@ private:
 		case 'a':
 			{
 			// add new arc
-			CHECK_GT(arcs_remaining, 0) << "too many arcs for new node, at line "
-																	<< line_num;
 			uint32_t src, dst;
 			uint64_t lower_bound, upper_bound;
 			int64_t cost;
@@ -369,11 +368,14 @@ private:
 			CHECK_EQ(num_matches, 5);
 
 			CHECK_EQ(lower_bound, 0);
-			if (src == 0) {
-				src = new_node_id;
-			}
-			if (dst == 0) {
-				dst = new_node_id;
+			if (arcs_remaining > 0) {
+				// we're adding arcs for a newly added node
+				if (src == 0) {
+					src = new_node_id;
+				}
+				if (dst == 0) {
+					dst = new_node_id;
+				}
 			}
 
 			g.addArc(src, dst, upper_bound, cost);
