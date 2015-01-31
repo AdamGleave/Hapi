@@ -30,7 +30,10 @@ void DynamicMaintainOptimality::setSupply(uint32_t id, int64_t supply) {
 void DynamicMaintainOptimality::removeNode(uint32_t id) {
 	// Removing a node itself has no effect on the min-cost solution:
 	// it is removing the associated arcs that changes the solution
-	const std::unordered_map<uint32_t, Arc*> &adjacencies = g.getAdjacencies(id);
+
+	// Note we must copy the adjacencies since we want to iterate over them,
+	// and will be deleting arcs as we go.
+	const std::unordered_map<uint32_t, Arc*> adjacencies(g.getAdjacencies(id));
 	for (auto elt : adjacencies) {
 		uint32_t opposite_id = elt.first;
 		Arc *arc = elt.second;
