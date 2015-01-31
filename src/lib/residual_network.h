@@ -22,6 +22,7 @@ namespace flowsolver {
 class ResidualNetwork {
 public:
 	explicit ResidualNetwork(uint32_t num_nodes);
+	ResidualNetwork(const ResidualNetwork &g);
 	ResidualNetwork(const FlowNetwork &g);
 	virtual ~ResidualNetwork();
 
@@ -130,6 +131,7 @@ public:
 		g(other.g), vec_it(other.vec_it), map_it(other.map_it) {}
 
 	ArcType operator*() const {
+		VLOG(3) << "Returning " << (vec_it - g->arcs.begin()) << "->" << map_it->first;
 		return *(map_it->second);
 	}
 

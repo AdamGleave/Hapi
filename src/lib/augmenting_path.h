@@ -14,9 +14,12 @@ public:
 	explicit AugmentingPath(ResidualNetwork &g);
 	virtual ~AugmentingPath();
 
-	void init();
+	const std::vector<uint64_t> &getPotentials() const;
+
 	void run();
 private:
+	void init();
+
 	// returns true if feasible solution exists, and updates g accordingly;
 	// false if no feasible solution, g left in undefined state
 	std::queue<Arc *> predecessorPath(uint32_t source, uint32_t sink,

@@ -26,6 +26,21 @@ ResidualNetwork::ResidualNetwork(const FlowNetwork &g)
 	}
 }
 
+// This copy constructor is currently only used for unit tests.
+// It is unlikely to be used in production algorithms.
+// Efficiency unimportant.
+ResidualNetwork::ResidualNetwork(const ResidualNetwork &g)
+  : num_nodes(g.num_nodes), balances(g.balances),
+		sources(g.sources), sinks(g.sources), free_nodes(g.free_nodes) {
+	// clone each of the unordered_map's in g.arcs
+	// don't clone the underlying arcs, though
+	arcs.resize(num_nodes + 1);
+	for (const Arc &arc : g) {
+		Arc *new_arc = new Arc(arc);
+		arcs[new_arc->getSrcId()][new_arc->getDstId()] = new_arc;
+	}
+}
+
 ResidualNetwork::~ResidualNetwork() {
 	std::vector<std::unordered_map<uint32_t, Arc*>>::iterator vec_it;
 	for (vec_it = arcs.begin(); vec_it != arcs.end(); ++vec_it) {

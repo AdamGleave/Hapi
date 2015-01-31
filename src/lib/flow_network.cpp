@@ -11,6 +11,17 @@ FlowNetwork::FlowNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	arcs.resize(num_nodes + 1);
 }
 
+FlowNetwork::FlowNetwork(const FlowNetwork &g)
+  : num_nodes(g.num_nodes), num_arcs(g.num_arcs), balances(g.balances) {
+	// deep copy of arcs
+	arcs.resize(num_nodes + 1);
+	for (const Arc &arc : g) {
+		Arc *new_arc = new Arc(arc);
+		arcs[new_arc->getSrcId()].push_front(new_arc);
+		arcs[new_arc->getDstId()].push_front(new_arc);
+	}
+}
+
 FlowNetwork::FlowNetwork(const ResidualNetwork &g)
 																							  : FlowNetwork(g.getNumNodes()) {
 	// ResidualNetwork stores each arc in the flow network as two arcs: the

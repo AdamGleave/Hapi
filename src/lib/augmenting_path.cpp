@@ -225,6 +225,10 @@ std::queue<Arc *> AugmentingPath::predecessorPath
 	return std::queue<Arc *>(path);
 }
 
+const std::vector<uint64_t> &AugmentingPath::getPotentials() const {
+	return potentials;
+}
+
 void AugmentingPath::init() {
 	// saturate all negative cost arcs, so they drop out of the residual network
 	// (note algorithm requires invariant that all arcs have non-negative

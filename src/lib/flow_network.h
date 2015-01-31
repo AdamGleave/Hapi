@@ -20,6 +20,7 @@ namespace flowsolver {
 class FlowNetwork {
 public:
 	explicit FlowNetwork(uint32_t num_nodes);
+	FlowNetwork(const FlowNetwork &g);
 	FlowNetwork(const ResidualNetwork &g);
 	virtual ~FlowNetwork();
 
