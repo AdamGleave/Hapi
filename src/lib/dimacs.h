@@ -43,7 +43,11 @@ protected:
 
 			std::ostringstream oss;
 			oss << iss.rdbuf();
-			const char *remainder = oss.str().c_str();
+			// WARNING: Do NOT 'simplify' this to oss.str().c_str()
+			// If you do, oss.str() will be a temporary, and will be deallocated
+			// immediately afterwards. This will lead to subtle memory access bugs.
+			std::string oss_str = oss.str();
+			const char *remainder = oss_str.c_str();
 
 			processLine(type, remainder);
 		}
