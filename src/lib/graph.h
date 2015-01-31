@@ -41,9 +41,15 @@ public:
 template<class X>
 struct DynamicGraphCallbacks {
 public:
+	X &graph;
+
+	// we do this so as to not require any ability to construct type X:
+	// we just need to be able to manipulate an instance we are given
+	DynamicGraphCallbacks(X &graph) : graph(graph) {};
+
 	BOOST_CONCEPT_USAGE(DynamicGraphCallbacks) {
-		X graph(10);
 		uint32_t new_id = graph.addNode();
+		Arc *arc = graph.getArc(1, 2);
 		graph.addArc(1, new_id, 1, 1);
 		graph.changeArcCapacity(1, new_id, 3);
 		graph.changeArcCost(1, new_id, 2);
