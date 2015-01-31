@@ -92,8 +92,16 @@ const std::string GRAPH_PATH = CMAKE_SRC_DIR "/graphs/";
 const std::string SMALL_INCREMENTAL_PATH =
 											 GRAPH_PATH + "clusters/synthetic/firmament/incremental/";
 
-
-TestCase tc = { GRAPH_PATH + "clusters/synthetic/firmament/incremental/",
+// SOMEDAY(adam): specify test cases in a better format.
+//
+// Would like to generate a separate test case instance for each pair of
+// full graph-incremental graph files. This would avoid the need to make a
+// copy of the flow network (above) and use a for loop in the test case;
+// it would also have the benefit of making each test independent.
+//
+// This could be done using gtest's Combine functionality with tuples, however
+// this requires support for tr1 tuples which are in C++0x but not C++11.
+TestCase tc_6j = { GRAPH_PATH + "clusters/synthetic/firmament/incremental/",
 							  "graph_4m_2crs_6j.in",
 								{
 										 "graph_4m_2crs_6j_add_arc_equiv_core.in",
@@ -111,5 +119,22 @@ TestCase tc = { GRAPH_PATH + "clusters/synthetic/firmament/incremental/",
 								}
               };
 
+TestCase tc_10j = { GRAPH_PATH + "clusters/synthetic/firmament/incremental/",
+							  "graph_4m_2crs_10j.in",
+								{
+										"graph_4m_2crs_10j_add_arc_equiv_core.in",
+										"graph_4m_2crs_10j_add_arc_pref_core.in",
+										"graph_4m_2crs_10j_add_core.in",
+										"graph_4m_2crs_10j_add_task.in",
+										"graph_4m_2crs_10j_add_task_nopremt.in",
+										"graph_4m_2crs_10j_chg_pref_core.in",
+										"graph_4m_2crs_10j_chg_task_sched.in",
+										"graph_4m_2crs_10j_rem_arc_pref_core.in",
+										"graph_4m_2crs_10j_rem_core_with_task.in",
+										"graph_4m_2crs_10j_rem_machine.in",
+										"graph_4m_2crs_10j_rem_sched_task.in"
+								}
+              };
+
 INSTANTIATE_TEST_CASE_P(SmallIncrementalTest, DynamicMaintainOptimalityTest,
-												::testing::Values(tc));
+												::testing::Values(tc_6j, tc_10j));
