@@ -18,7 +18,7 @@ src/graphs/general/synthetic/goto/goto
 src/graphs/general/synthetic/goto/generated/
 src/graphs/clusters/natural/google_trace/
 src/RelaxIV/doc/
-src/tests/config_local.py
+src/benchmark/config_local.py
 
 build/
 benchmark/
