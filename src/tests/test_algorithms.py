@@ -59,6 +59,7 @@ def runTest(graph_path):
                   format(reference_solution, solution), file=sys.stderr)
             sys.exit(1)
 
-for graph_filename in TEST_GRAPHS:
-    print("***", graph_filename, "***")
-    runTest(os.path.join(GRAPH_DIR, graph_filename))
+if __name__ == "__main__":
+  for graph_filename in TEST_GRAPHS:
+      print("***", graph_filename, "***")
+      runTest(os.path.join(GRAPH_DIR, graph_filename))
