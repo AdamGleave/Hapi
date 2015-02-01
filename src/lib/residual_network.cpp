@@ -10,6 +10,7 @@ namespace flowsolver {
 ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	// initialize all supply values to zero
 	balances.resize(num_nodes + 1);
+	supplies.resize(num_nodes + 1);
 	arcs.resize(num_nodes + 1);
 }
 
@@ -30,7 +31,7 @@ ResidualNetwork::ResidualNetwork(const FlowNetwork &g)
 // It is unlikely to be used in production algorithms.
 // Efficiency unimportant.
 ResidualNetwork::ResidualNetwork(const ResidualNetwork &g)
-  : num_nodes(g.num_nodes), balances(g.balances),
+  : num_nodes(g.num_nodes), balances(g.balances), supplies(g.supplies),
 		sources(g.sources), sinks(g.sources), free_nodes(g.free_nodes) {
 	// clone each of the unordered_map's in g.arcs
 	// don't clone the underlying arcs, though
@@ -113,6 +114,7 @@ uint32_t ResidualNetwork::addNode() {
 
 	if (free_nodes.empty()) {
 		balances.push_back(0);
+		supplies.push_back(0);
 		arcs.push_back(std::unordered_map<uint32_t, Arc*>());
 		id = num_nodes;
 		// check for 'node leaks': free nodes not in the free list
@@ -125,6 +127,7 @@ uint32_t ResidualNetwork::addNode() {
 
 	// should not be any stale state from previous instances of this node ID
 	assert(balances[id] == 0);
+	assert(supplies[id] == 0);
 	assert(arcs[id].empty());
 	assert(sources.count(id) == 0 && sinks.count(id) == 0);
 
@@ -204,13 +207,24 @@ void ResidualNetwork::removeArc(uint32_t src, uint32_t dst) {
 void ResidualNetwork::setSupply(uint32_t id, int64_t supply) {
 	assert(validID(id));
 
+	int64_t delta = supply - supplies[id];
+	supplies[id] = supply;
+	changeBalance(id, delta);
+	VLOG(3) << "setSupply (" << id << "): balance/supply = "
+			    << balances[id] << "/" << supplies[id];
+}
+
+void ResidualNetwork::changeBalance(uint32_t id, int64_t delta) {
+	assert(validID(id));
+
 	if (balances[id] > 0) {
 		sources.erase(id);
 	} else if (balances[id] < 0) {
 		sinks.erase(id);
 	}
 
-	balances[id] = supply;
+	balances[id] += delta;
+
 	if (balances[id] > 0) {
 		sources.insert(id);
 	} else if (balances[id] < 0) {
@@ -223,8 +237,8 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	arcs[src][dst]->pushFlow(amount);
 	arcs[dst][src]->pushFlow(-amount);
 
-	setSupply(src, balances[src] - amount);
-	setSupply(dst, balances[dst] + amount);
+	changeBalance(src, - amount);
+	changeBalance(dst, amount);
 }
 
 bool ResidualNetwork::validID(uint32_t id) const {

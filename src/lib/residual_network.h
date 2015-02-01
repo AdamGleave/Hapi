@@ -83,9 +83,10 @@ public:
 
 private:
 	bool validID(uint32_t id) const;
+	void changeBalance(uint32_t id, int64_t delta);
 
 	uint32_t num_nodes;
-	std::vector<int64_t> balances;
+	std::vector<int64_t> balances, supplies;
 	std::vector<std::unordered_map<uint32_t, Arc*>> arcs;
 	std::set<uint32_t> sources;
 	std::set<uint32_t> sinks;
