@@ -26,7 +26,20 @@ public:
 	ResidualNetwork(const FlowNetwork &g);
 	virtual ~ResidualNetwork();
 
+	// SOMEDAY(adam): This is a hack. It would be good to at least rename the
+	// functions to make it clearer what they do, although this would require
+	// changing the interface for FlowNetwork too.
+	/*
+	 * getNumNodes() >= getNumNodesPresent()
+	 *  The latter returns the number of nodes in the graph. The former returns
+	 *  the currently allocated *capacity* of ResidualNetwork. In other words,
+	 *  getNumNodesPresent() is the minimum capacity necessary to store the graph.
+	 *
+	 *  Initially, the two are equal. When removeNode() is invoked,
+	 *  getNumNodesPresent() decreases but getNumNodes() is unchanged.
+	 */
 	uint32_t getNumNodes() const;
+	uint32_t getNumNodesPresent() const;
 	uint32_t getNumArcs() const;
 	int64_t getBalance(uint32_t id) const;
 	int64_t getSupply(uint32_t id) const;

@@ -53,6 +53,10 @@ ResidualNetwork::~ResidualNetwork() {
 }
 
 uint32_t ResidualNetwork::getNumNodes() const {
+	return arcs.size() - 1;
+}
+
+uint32_t ResidualNetwork::getNumNodesPresent() const {
 	return num_nodes;
 }
 
@@ -69,9 +73,13 @@ uint32_t ResidualNetwork::getNumArcs() const {
 	return num_arcs / 2;
 }
 
+// SOMEDAY(adam): we don't check whether id is a free node.
+// A free node with always have zero balance, and no edges. This is logically
+// equivalent to the node not existing, so this works OK.
+// However, it would be cleaner to check. The thing stopping this is that
+// in DIMACSExporter, we need to get the balance for all nodes.
 int64_t ResidualNetwork::getBalance(uint32_t id) const {
-	assert(validID(id));
-	return balances[id];
+	return balances.at(id);
 }
 
 const std::set<uint32_t>& ResidualNetwork::getSinks() const {

@@ -34,7 +34,8 @@ public:
 
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void changeArcCost(uint32_t src, uint32_t dst, int64_t cost);
-	// returns false if capacity constraint has been violated, true otherwise
+	// N.B. this always returns true, as we decrease flow if necessary in order
+	// to satisfy capacity constraint
   bool changeArcCapacity(uint32_t src, uint32_t dst, uint64_t capacity);
 	void removeArc(uint32_t src, uint32_t dst);
 private:

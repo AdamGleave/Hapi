@@ -225,10 +225,6 @@ std::queue<Arc *> AugmentingPath::predecessorPath
 	return std::queue<Arc *>(path);
 }
 
-const std::vector<uint64_t> &AugmentingPath::getPotentials() const {
-	return potentials;
-}
-
 void AugmentingPath::init() {
 	// saturate all negative cost arcs, so they drop out of the residual network
 	// (note algorithm requires invariant that all arcs have non-negative
@@ -240,10 +236,14 @@ void AugmentingPath::init() {
 	}
 }
 
-// SOMEDAY(adam): handle networks with no feasible solutions elegantly
 void AugmentingPath::run() {
-	init();
+	// create a pseudoflow satisfying reduced-cost optimality conditions
+  init();
+  reoptimize();
+}
 
+// SOMEDAY(adam): handle networks with no feasible solutions elegantly
+void AugmentingPath::reoptimize() {
 	const std::set<uint32_t> &sources = g.getSources();
 	Djikstra shortest_paths(g, potentials);
 	while (!sources.empty()) {

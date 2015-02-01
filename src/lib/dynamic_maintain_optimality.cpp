@@ -38,17 +38,13 @@ void DynamicMaintainOptimality::removeNode(uint32_t id) {
 		uint32_t opposite_id = elt.first;
 		Arc *arc = elt.second;
 
-		uint32_t src_id = arc->getSrcId();
-		if (src_id == id) {
-			// forward arc
+		if (arc->getInitialCapacity() > 0) {
+			// id->opposite_id is the forward arc
 			removeArc(id, opposite_id);
-		} else if (src_id == opposite_id) {
-			// reverse arc
-			removeArc(opposite_id, id);
 		} else {
-			assert(false);
+			// id->opposite_id is the reverse arc
+			removeArc(opposite_id, id);
 		}
-
 	}
 
 	// Now the node is disconnected from the network, remove it directly.
@@ -112,18 +108,20 @@ bool DynamicMaintainOptimality::changeArcCapacity(uint32_t src, uint32_t dst,
 	CHECK(arc != nullptr) << "trying to change non-existent arc "
 										    << src << "->" << dst;
 
-	int64_t old_capacity = arc->getCapacity();
+	int64_t old_capacity = arc->getInitialCapacity();
 	int64_t new_capacity = static_cast<int64_t>(capacity);
+	VLOG(1) << "Changing capacity of " << src << "->" << dst
+			    << " from " << old_capacity << " to " << new_capacity;
 	if (new_capacity < old_capacity) {
 		// Decrease in capacity.
 		// This can never violate optimality, but may make the flow no longer feasible.
 		bool capacity_constraint = g.changeArcCapacity(src, dst, new_capacity);
 		if (!capacity_constraint) {
+			VLOG(2) << "Pushing " << arc->getCapacity();
 			// must reduce flow to satisfy capacity constraint, may break feasibility
 			// note arc->getCapacity() here is NEGATIVE
 			g.pushFlow(src, dst, arc->getCapacity());
 		}
-		return capacity_constraint;
 	} else if (new_capacity > old_capacity) {
 		/*
 		 * Increase in capacity. This may violate optimality. Three cases:
@@ -141,15 +139,15 @@ bool DynamicMaintainOptimality::changeArcCapacity(uint32_t src, uint32_t dst,
 		int64_t reduced_cost = arc->getCost() - potentials[src] + potentials[dst];
 
 		bool capacity_constraint = g.changeArcCapacity(src, dst, new_capacity);
+		assert(capacity_constraint);
 		if (reduced_cost < 0) {
 			// saturate arc
 			g.pushFlow(src, dst, new_capacity - old_capacity);
 		}
-		return capacity_constraint;
-	} else {
-		// we've done nothing -- change has not violated capacity constraint
-		return true;
 	}
+
+	// if the capacity constraint was violated, we've fixed it up
+	return true;
 }
 
 void DynamicMaintainOptimality::removeArc(uint32_t src, uint32_t dst) {
