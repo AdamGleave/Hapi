@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import config, sh, shutil, csv, os, sys, time
-
-# For reading DIMACS graph file
-BUFFER_SIZE = 4 * 1024
+import config.benchmark as config
+import sh, shutil, csv, os, sys, time
 
 # wrapper around file object, flushing after every write
 class flushfile:
@@ -158,7 +156,7 @@ def runTestInstance(test_command, log_directory, fname, iteration):
     err_path = os.path.join(log_directory, prefix + ".err")
     with open(err_path, 'w') as err_file:
       start_time = time.time()
-      result = test_command(_in=input_file, _in_bufsize=BUFFER_SIZE,
+      result = test_command(_in=input_file, _in_bufsize=config.BUFFER_SIZE,
                    _out=out_path,
                    _iter="err")
       algorithm_running_time = None

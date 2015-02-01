@@ -3,30 +3,19 @@
 # Example config file
 # Mock-up only
 
-import os, glob, itertools
+import os
 
-SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
-PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_ROOT))
+from config.common import *
 
 WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
-DATASET_ROOT = os.path.join(PROJECT_ROOT, "src", "graphs")
 RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
-BUILD_ROOT = "build"
-SOURCE_ROOT = "src"
 MAKE_FLAGS = []
 
 try:
   # allow settings to be overridden on a local basis
-  from config_local import *
+  from config.benchmark_local import *
 except ImportError:
   pass
-
-def prefix_list(prefix, fnames):
-  return list(map(functools.partial(os.path.join(prefix)), fnames))
-
-def graphGlob(pathname):
-  fnames = glob.glob(os.path.join(DATASET_ROOT, pathname))
-  return list(map(lambda x : os.path.relpath(x, DATASET_ROOT), fnames))
 
 # This variable is not used by the suite at all: it is just for convenience
 # within the config for referencing particular files

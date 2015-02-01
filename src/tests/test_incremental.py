@@ -4,7 +4,7 @@ import os
 import sys
 import sh
 
-import config_incremental as config
+import config.incremental as config
 import common
   
 def runReferenceCommand(testcase):
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     print("***", original_fname, "***")
     for incremental_fname in incremental_fnames:
       print("- ", incremental_fname)
-      testcase = (os.path.join(config.GRAPH_DIR, original_fname),
-                  os.path.join(config.GRAPH_DIR, incremental_fname))
+      testcase = (os.path.join(config.DATASET_ROOT,original_fname),
+                  os.path.join(config.DATASET_ROOT, incremental_fname))
       common.runTest(testcase, config.TEST_PROGRAMS, 
                      runReferenceCommand, runCommand) 
