@@ -1,6 +1,13 @@
+diss-auto-wordcount.tex
 *.pdf
 *.out
 *.log
 *.blg
 *.bbl
 *.aux
+*.idx
+*.toc
+*.ilg
+*.ind
+*.lof
+*.fdb_latexmk

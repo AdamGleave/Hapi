@@ -1,0 +1,252 @@
+\documentclass[12pt,a4paper,twoside,notitlepage]{report}
+
+% Change the font
+\usepackage[sc]{mathpazo}
+\linespread{1.05}         % apparently Palatino needs more leading space between lines
+\usepackage[T1]{fontenc}
+
+\usepackage[UKenglish]{babel}
+\usepackage[parfill]{parskip}
+\usepackage{verbatim}
+\usepackage[hyphens]{url}
+\usepackage{varioref}
+\usepackage{nameref}
+\usepackage[bookmarks,
+			pdftex,
+			pdfauthor= {Adam Gleave},
+			pdftitle = {Flow Network Scheduling},]{hyperref}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage[justification=centering,font=it]{caption}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage[export]{adjustbox}
+
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\theoremstyle{definition}
+
+\hypersetup{
+	colorlinks,
+	linkcolor={red!50!black},
+	citecolor={blue!50!black},
+	urlcolor={blue!80!black}
+}
+
+% Display the bibliography in the Table of Contents
+% (properly, so the page number doesn't get screwed up in the PDF which happens with \addcontentsline)
+\usepackage[nottoc,notlof]{tocbibind}
+
+\usepackage{showidx}			% for ease of proofreading 
+\usepackage{todonotes}
+
+% tick and cross marks
+% per http://tex.stackexchange.com/questions/42619/x-mark-to-match-checkmark
+\usepackage{pifont}
+\newcommand{\cmark}{{\color{green} \ding{51}}}
+\newcommand{\xmark}{{\color{red} \ding{55}}}
+
+% default listings package configuration for highlighting C code
+\lstset{
+	language = C,
+	basicstyle=\ttfamily,
+	keywordstyle=\color[rgb]{0,0,1}\ttfamily\bfseries,
+	identifierstyle=\ttfamily,
+	stringstyle=\color[rgb]{0.627,0.126,0.941}\ttfamily,
+	commentstyle=\color[rgb]{0.133,0.545,0.133}\ttfamily,
+	morecomment=[l][\color{magenta}]{\#},
+	captionpos=b,
+}
+
+\raggedbottom					% try to avoid widows and orphans
+\sloppy
+\clubpenalty 1000
+\widowpenalty 1000
+\hyphenpenalty 10000
+
+% table formatting
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage{footnote}
+
+\graphicspath{figures/}
+\DeclareGraphicsExtensions{.pdf, .png, .jpg}
+
+\usetikzlibrary{snakes}
+\makeatletter
+\pgfdeclareshape{document}{
+	\inheritsavedanchors[from=rectangle] % this is nearly a rectangle
+	\inheritanchorborder[from=rectangle]
+	\inheritanchor[from=rectangle]{center}
+	\inheritanchor[from=rectangle]{north}
+	\inheritanchor[from=rectangle]{south}
+	\inheritanchor[from=rectangle]{west}
+	\inheritanchor[from=rectangle]{east}
+	\inheritanchor[from=rectangle]{north east}
+	\inheritanchor[from=rectangle]{north west}
+	% ... and possibly more
+	\backgroundpath{% this is new
+	% store lower right in xa/ya and upper right in xb/yb
+	\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+	\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+	% compute corner of ‘‘flipped page’’
+	\pgf@xc=\pgf@xb \advance\pgf@xc by-10pt % this should be a parameter
+	\pgf@yc=\pgf@yb \advance\pgf@yc by-10pt
+	% construct main path
+	\pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+	\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+	\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+	\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+	\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+	\pgfpathclose
+	% add little corner
+	\pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+	\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+	\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+	\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+	}
+}
+\makeatother
+
+\makeindex
+
+\begin{document}
+
+\bibliographystyle{acm}		% used ieeetr in the proposal
+								% what is the style guide consensus?
+
+%TC:ignore
+%%
+\pagestyle{empty}
+%TODO: Copied from Matt's, customize to create your own style
+
+\hfill{\large \bf Adam Gleave}
+
+\vspace*{30mm}
+
+\begin{center}
+	\LARGE{\textbf{Distributed scheduling using flow networks}} \hspace*{\fill} \\
+
+	\vspace*{5mm}
+	Computer Science Tripos, Part II \\
+	\vspace*{5mm}
+	St John's College \\
+	\vspace*{5mm}
+	\today
+\end{center}
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proforma
+
+\setcounter{page}{1}
+\pagenumbering{roman}
+\pagestyle{plain}
+\chapter*{Proforma}
+\vspace*{-2em}
+{
+	\begin{tabular}{ll}
+		Name:			& \textbf{Adam Gleave}					\\
+		College:		& \textbf{St John's College}\\
+    Project Title:	& \textbf{Distributed scheduling using flow networks}\\
+		Examination:	& \textbf{Computer Science Tripos, Part II (June 2015)}\\
+    Word Count:		& \textbf{\input{diss-auto-wordcount} \unskip}\\
+		Project Originators:	& \textbf{Ionel Gog}\\
+    Supervisors:	& \textbf{Ionel Gog \& Malte Schwarzkopf}\\
+	\end{tabular}
+}
+
+% move this here so the table above doesn't get extra space added (which I don't want)
+\renewcommand{\arraystretch}{1.3}
+\vspace*{-1em}
+\section*{Original aims of the project}
+
+TODO
+
+\vspace*{-1em}
+\section*{Work completed}
+
+TODO
+
+\vspace*{-1em}
+\section*{Special difficulties}
+
+TODO
+
+\newpage
+
+\section*{Declaration}
+
+I, Adam Gleave of St John's College, being a candidate for Part II of the 
+Computer Science Tripos, hereby declare that this dissertation and the work 
+described in it are my own work, unaided except as may be specified below, and
+that the dissertation does not contain material that has already been used to
+any substantial extent for a comparable purpose.
+
+\bigskip
+\leftline{Signed}
+\medskip
+\leftline{Date: \today}
+
+\clearpage
+
+\tableofcontents
+
+\listoffigures
+
+\newpage
+\section*{Acknowledgements}
+
+TODO
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapters
+\clearpage	% before we change the page numbering
+
+%TC:endignore
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\pagestyle{headings}
+
+\include{diss-intro}
+
+\cleardoublepage
+\include{diss-prep}
+
+\cleardoublepage
+\include{diss-impl}
+
+\cleardoublepage
+\include{diss-eval}
+
+\cleardoublepage
+\include{diss-conc}
+
+\cleardoublepage
+
+% Bib and Appendices etc
+\bibliography{diss}
+
+% TODO: Do we really need an index? Have not seen this in other dissertations.
+% % Index
+% \cleardoublepage
+% %\addcontentsline{toc}{chapter}{Index}
+% \printindex
+
+%TC:ignore
+\appendix
+\chapter{Appendices}
+
+TODO
+
+\clearpage
+\section{Project proposal} \label{sec:proposal}
+\input{propbody}
+%TC:endignore
+
+\end{document}
