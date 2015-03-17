@@ -21,10 +21,8 @@ wordcount:
 	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //'
 
 clean:
-	rm -f *.dvi *.aux *.log *.err
-	rm -f *.pdf *.out
-	rm -f core *~ *.lof *.toc *.blg *.bbl
-	rm -f *.fdb_latexmk
+	rm -f *.pdf
+	latexmk -c
 
 help:
 	@echo

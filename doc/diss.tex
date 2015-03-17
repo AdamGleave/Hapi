@@ -1,4 +1,8 @@
 \documentclass[12pt,a4paper,twoside,notitlepage]{report}
+\usepackage{etex}
+\reserveinserts{28}
+
+\usepackage[utf8]{inputenc}
 
 % Change the font
 \usepackage[sc]{mathpazo}
@@ -20,7 +24,6 @@
 \usepackage[justification=centering,font=it]{caption}
 \usepackage[margin=1in]{geometry}
 \usepackage{tikz}
-\usepackage{cite}
 \usepackage{listings}
 \usepackage{booktabs}
 \usepackage{subcaption}
@@ -30,6 +33,10 @@
 \usepackage{amsthm}
 \usepackage{amsfonts}
 \theoremstyle{definition}
+
+% TODO: What citation style should I use?
+\usepackage[backend=biber,bibencoding=UTF-8,style=numeric]{biblatex}
+\addbibresource{diss.bib}
 
 \hypersetup{
 	colorlinks,
@@ -117,7 +124,7 @@
 
 \begin{document}
 
-\bibliographystyle{acm}		% used ieeetr in the proposal
+%\bibliographystyle{acm}		% used ieeetr in the proposal
 								% what is the style guide consensus?
 
 %TC:ignore
@@ -230,9 +237,10 @@ TODO
 \cleardoublepage
 
 % Bib and Appendices etc
-\bibliography{diss}
+\printbibliography
+%\bibliography{diss}
 
-% TODO: Do we really need an index? Have not seen this in other dissertations.
+% TODO: Enable for proofreading only
 % % Index
 % \cleardoublepage
 % %\addcontentsline{toc}{chapter}{Index}

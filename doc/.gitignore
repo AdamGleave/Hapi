@@ -3,6 +3,7 @@ diss-auto-wordcount.tex
 *.out
 *.log
 *.blg
+*.bcf
 *.bbl
 *.aux
 *.idx
@@ -11,3 +12,4 @@ diss-auto-wordcount.tex
 *.ind
 *.lof
 *.fdb_latexmk
+*.run.xml
