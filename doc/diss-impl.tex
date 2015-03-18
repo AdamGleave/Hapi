@@ -1,3 +1,119 @@
 \chapter{Implementation} \label{chap:impl}
 
-TODO
+\section{Approximation algorithms} \label{sec:impl-approx}
+
+Motivation. Do we need optimality? Schedulers widely used in industry far from optimal: e.g. reference Hadoop's FIFO scheme. Trade-off: quality of solution, speed of scheduler. Optimality probably not justified.
+
+\subsection{Choice of algorithm} \label{sec:impl-approx-choice}
+
+Why Goldberg's cost scaling. Iterative, so readily amenable to approximate solutions. So are others: e.g. cycle cancelling. But Goldberg is fastest: forward reference to benchmarks you've run, or just Kiraly \& Kovacs paper.
+
+\subsection{Goldberg's cost scaling} \label{sec:impl-approx-cs}
+
+Describe the algorithm. Can be brief: it's not work you've done, after all. But make sure to communicate how complicated the algorithm is.
+
+\subsubsection{Algorithm description}
+
+Brief summary.
+
+\subsubsubsection{Data structures}
+
+\subsubsubsection{Push operation}
+
+\subsubsubsection{Relabel operation}
+
+\subsubsubsection{Complete algorithm}
+
+\subsubsection{Analysis}
+
+Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
+
+\subsubsection{Heuristics}
+
+Maybe. Only if you have time to implement any!
+
+\subsubsection{Optimisations}
+
+e.g. vertex vs wave
+
+\subsection{An iterative approximation}
+
+Approximate algorithm yielded by ending iteration before optimality reached. We have a choice of termination condition.
+
+\subsubsection{Challenges} 
+
+No way to go from $\epsilon$-optimality to measure of accuracy. So must adopt heuristic approaches.
+
+\subsubsection{Convergence based on cost change}
+
+\subsubsection{Convergence based on task allocations}
+
+\subsubsection{Hybrid schemes}
+
+My code allows the two to be readily combined to produce different policies.
+
+\section{Incremental algorithms}
+
+Motivation. Most of the time the graph changes only a small amount. Existing approaches recompute from scratch. Can we re-use information?
+
+\subsection{Choice of algorithm}
+
+Explain why primal methods such as Goldberg's work poorly: require solution is feasible at all times. Dual methods better. Note these are slower when run on graph from scratch.
+
+\subsection{Dual algorithms}
+
+Explain how an incremental solver can be built from (any) dual algorithm. Show how reduced cost optimality conditions can be preserved, whatever change occurs.
+
+\subsection{Augmenting path}
+
+\subsubsection{Algorithm description}
+
+Brief summary.
+
+\subsubsection{Analysis}
+
+Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
+
+\subsubsection{Optimisations}
+
+\section{Input \& output}
+
+Loading networks, exporting results. Neither interesting nor impressive, but it is a necessary part of the project. Keep it brief. (Or cut it entirely?)
+
+\subsection{DIMACS}
+
+Representation for network, and network solution. Justify why: standard, widely used, readily available test data, integration with Firmament. 
+
+\subsection{Incremental extension}
+
+Why DIMACS isn't suitable for incremental problem: reloading the graph and computing diff prohibitive cost. 
+
+\subsection{Parser optimisations}
+
+Ignore zero-capacity arcs. Entirely trivial, but did produce noticeable performance improvement. Maybe worth mentioning.
+
+Ignoring duplicates. Necessary for correctness. Slightly more interesting: checking whether an arc is present is slow in some data structures (where the corresponding algorithm doesn't require manual lookup). Parser maintains a bitmap instead to check this quickly irrespective of data structure. Considerable performance improvement. 
+
+\subsection{Scheduling tasks}
+
+Show how solver can achieve original task, by integrating into a distributed scheduler. Justify the choice of Firmament (open source, VIP support). Keep it brief, it's not difficult to do.
+
+\subsection{Benchmark suite} \label{sec:impl-benchmark}
+
+Motivation. Automate common task. Improve quality of data collection: can run experiment many times with different parameters, no possibility of human error. 
+
+\subsubsection{Architecture}
+
+Specify different implementations by Git 'treeish', and path. Will checkout and build automatically. 
+
+Test cases specify implementations required, I/O parameters, number of iterations.
+
+Output CSV file with statistics.
+
+\subsubsection{Testing on full networks}
+
+Non-incremental case.
+
+\subsubsection{Testing on incremental changes}
+
+Can test two incremental versions head-to-head. Alternately, can test an incremental version compared to applying the diff and running a full solver from scratch.

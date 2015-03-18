@@ -1,3 +1,54 @@
 \chapter{Preparation} \label{chap:prep}
 
-TODO
+\section{Distributed scheduling} \label{sec:prep-scheduling}
+\subsection{Overview} \label{prep-scheduling-overview}
+Overview of what the task is.
+
+\subsection{Quincy and related systems} \label{prep-scheduling-quincy}
+Explanation of how Quincy-style systems work. Expressing data centre as a flow network.
+
+\section{Flow networks} \label{prep-flow}
+What flow networks are. The min-cost max-flow problem.
+
+\subsection{Definition} \label{prep-flow-definition}
+What flow networks are. Introduce notation which you'll use throughout rest of document.
+
+\subsection{The min-cost max-flow problem} \label{prep-flow-problem}
+What I'm trying to solve. Formally define it.
+
+\subsection{Properties}
+\label{prep-flow-results}
+MAYBE -- theorems/results/definitions used in later algorithms. I think it's best to define them right before discussing a particular algorithm, but some things (such as $\epsilon$-optimality) are common to multiple algorithms, so may be best 'uplifted' here.
+
+\section{Software engineering} \label{sec:prep-sweng}
+
+\subsection{Requirements analysis} \label{sec:prep-sweng-requirements}
+What the system should do. Include table listing goals and their priorities, etc.
+
+\subsection{Model}
+State the model you used (something like Spiral probably closest fit). Elaborate on what it is. Justify choice: can reference constraints imposed by requirements, e.g. some of them risky/speculative so waterfall model inappropriate.
+
+\subsection{Testing}
+Summarize approach. Maybe make forwards reference to \ref{sec:prep-tools-testing}.
+
+\section{Choice of tools} \label{sec:prep-tool-choice}
+\subsection{Language and libraries}
+Justify language choice (C++, Python). Libraries: GLOG, Boost.
+
+\subsection{Development environment}
+Physical machines used: laptop, MCS, SRG cluster.
+
+Revision control: Git.
+
+Backup strategy: GitHub. Daily snapshots backed up to MCS, SRCF, Copy (cloud).
+
+CMake. IDE: Eclipse with plugins, vim.
+
+\subsection{Testing environment} \label{sec:prep-tools-testing}
+GTest for unit tests. Other automated tests: Python. Note that performance evaluation part of testing requires custom development: no pre-existing benchmark suites suitable.
+
+\section{Initial experience}
+My starting point. C++: from IB Tripos. Algorithms: IA/IB. Maths: IA. No prior knowledge of flow networks.
+
+\section{Project schedule} \label{sec:prep-project-schedule}
+How I planned my time. Split into phases. Core success criteria obtained early. Testing completed. Extensions added and additional experiments performed later on.

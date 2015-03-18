@@ -1,43 +1,37 @@
 \documentclass[12pt,a4paper,twoside,notitlepage]{report}
+
+% Allow large number of packages to be used. Workaround LaTeX limitation.
 \usepackage{etex}
 \reserveinserts{28}
 
-\usepackage[utf8]{inputenc}
+% Explictly specify character encoding
+\usepackage[ascii]{inputenc}
 
-% Change the font
+% Change font to Palatino
 \usepackage[sc]{mathpazo}
 \linespread{1.05}         % apparently Palatino needs more leading space between lines
 \usepackage[T1]{fontenc}
 
-\usepackage[UKenglish]{babel}
-\usepackage[parfill]{parskip}
-\usepackage{verbatim}
-\usepackage[hyphens]{url}
-\usepackage{varioref}
-\usepackage{nameref}
-\usepackage[bookmarks,
-			pdftex,
-			pdfauthor= {Adam Gleave},
-			pdftitle = {Flow Network Scheduling},]{hyperref}
-\usepackage{makeidx}
-\usepackage{graphicx}
-\usepackage[justification=centering,font=it]{caption}
+% Page formatting
+\usepackage[parfill]{parskip} 
 \usepackage[margin=1in]{geometry}
-\usepackage{tikz}
-\usepackage{listings}
-\usepackage{booktabs}
-\usepackage{subcaption}
-\usepackage{xcolor}
-\usepackage[export]{adjustbox}
 
-\usepackage{amsthm}
-\usepackage{amsfonts}
-\theoremstyle{definition}
+% Internationalization: customize to UK English style
+\usepackage{csquotes}
+\usepackage[UKenglish]{babel}
 
-% TODO: What citation style should I use?
-\usepackage[backend=biber,bibencoding=UTF-8,style=numeric]{biblatex}
-\addbibresource{diss.bib}
+% Hyperlinks
+% Note must load url before hyperref
+\usepackage[hyphens]{url}
 
+% Indexing
+\usepackage[bookmarks,
+pdftex,
+pdfauthor= {Adam Gleave},
+pdftitle = {Flow Network Scheduling},]{hyperref}
+\usepackage{makeidx}
+
+% Hyperlink setup
 \hypersetup{
 	colorlinks,
 	linkcolor={red!50!black},
@@ -45,19 +39,33 @@
 	urlcolor={blue!80!black}
 }
 
-% Display the bibliography in the Table of Contents
-% (properly, so the page number doesn't get screwed up in the PDF which happens with \addcontentsline)
-\usepackage[nottoc,notlof]{tocbibind}
+\makeindex
 
-\usepackage{showidx}			% for ease of proofreading 
-\usepackage{todonotes}
+% Citations
+\usepackage{varioref}
+\usepackage{nameref}
+% TODO: What citation style should I use?
+\usepackage[backend=biber,bibencoding=UTF-8,style=numeric]{biblatex}
+\bibliography{diss.bib}
+\usepackage{footnote}
 
-% tick and cross marks
-% per http://tex.stackexchange.com/questions/42619/x-mark-to-match-checkmark
-\usepackage{pifont}
-\newcommand{\cmark}{{\color{green} \ding{51}}}
-\newcommand{\xmark}{{\color{red} \ding{55}}}
+% Figures
+\usepackage{verbatim} % environment where formatting preserved exactly
+\usepackage{tikz} % language for figures
+\usepackage{booktabs}
+\usepackage{subcaption} 
+\usepackage{xcolor}
+\usepackage[export]{adjustbox}
+\usepackage{graphicx}
+\usepackage[justification=centering,font=it]{caption}
+\usepackage{colortbl}
+\usepackage{tabularx}
 
+\graphicspath{figures/}
+\DeclareGraphicsExtensions{.pdf, .png, .jpg}
+
+% Code listings
+\usepackage{listings}
 % default listings package configuration for highlighting C code
 \lstset{
 	language = C,
@@ -70,21 +78,31 @@
 	captionpos=b,
 }
 
+% Mathematics
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\theoremstyle{definition}
+
+% Customize Table of Contents. Don't include list of figures or table of contents in the table of contents. Do still show the bibliography.
+\usepackage[nottoc,notlof]{tocbibind}
+
+% Proofreading
+\usepackage{showidx}
+\usepackage{todonotes}
+
+% Miscellaneous formatting
 \raggedbottom					% try to avoid widows and orphans
 \sloppy
 \clubpenalty 1000
 \widowpenalty 1000
 \hyphenpenalty 10000
 
-% table formatting
-\usepackage{colortbl}
-\usepackage{tabularx}
-\usepackage{footnote}
+% tick and cross marks
+% per http://tex.stackexchange.com/questions/42619/x-mark-to-match-checkmark
+\usepackage{pifont}
+\newcommand{\cmark}{{\color{green} \ding{51}}}
+\newcommand{\xmark}{{\color{red} \ding{55}}}
 
-\graphicspath{figures/}
-\DeclareGraphicsExtensions{.pdf, .png, .jpg}
-
-\usetikzlibrary{snakes}
 \makeatletter
 \pgfdeclareshape{document}{
 	\inheritsavedanchors[from=rectangle] % this is nearly a rectangle
@@ -120,7 +138,41 @@
 }
 \makeatother
 
-\makeindex
+\usepackage{titlesec}
+
+% Add new section level, subsubsubsection, in between subsubsection and paragraph
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+	{3.25ex \@plus1ex \@minus.2ex}%
+	{-1em}%
+	{\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+	{3.25ex \@plus1ex \@minus .2ex}%
+	{-1em}%
+	{\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+% Control indentation in TOC
+\def\l@subsubsubsection{\@dottedtocline{4}{11em}{5em}}
+\def\l@paragraph{\@dottedtocline{5}{14em}{6em}}
+\def\l@subparagraph{\@dottedtocline{6}{18em}{7em}}
+\makeatother
 
 \begin{document}
 
@@ -237,8 +289,7 @@ TODO
 \cleardoublepage
 
 % Bib and Appendices etc
-\printbibliography
-%\bibliography{diss}
+\printbibliography[heading=bibintoc]
 
 % TODO: Enable for proofreading only
 % % Index
@@ -250,8 +301,11 @@ TODO
 \appendix
 \chapter{Appendices}
 
-TODO
+\section{Test specification}
+State specifications of test machine/cluster.
+\clearpage
 
+% Note project proposal must appear at very end of dissertation, so do not move this!
 \clearpage
 \section{Project proposal} \label{sec:proposal}
 \input{propbody}
