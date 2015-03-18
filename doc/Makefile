@@ -1,6 +1,6 @@
 LATEXMK = latexmk
 
-.PHONY: prop progress diss
+.PHONY: prop progress diss diss_continual
 
 all: prop progress diss
 prop: proposal.pdf
@@ -16,6 +16,9 @@ progressreport.pdf: progressreport.tex progressbody.tex diss.bib
 diss.pdf: diss.tex diss.bib
 	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //' > diss-auto-wordcount.tex
 	latexmk -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diss.tex" diss.tex
+
+diss_continual: diss.tex diss.bib
+	latexmk -pvc -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diss.tex" diss.tex
 
 wordcount:
 	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //'
