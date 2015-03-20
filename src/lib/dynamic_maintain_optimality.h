@@ -25,7 +25,9 @@ public:
                             : g(g), potentials(potentials) {};
 	virtual ~DynamicMaintainOptimality() {};
 
-	Arc *getArc(uint32_t src, uint32_t dst);
+	const std::set<uint32_t>& getSinks() const;
+	Arc *getArc(uint32_t src, uint32_t dst) const;
+	int64_t getSupply(uint32_t id) const;
 
 	void addNode(uint32_t id);
 	void setSupply(uint32_t id, int64_t supply);

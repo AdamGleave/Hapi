@@ -7,9 +7,18 @@
 
 namespace flowsolver {
 
-Arc *DynamicMaintainOptimality::getArc(uint32_t src, uint32_t dst) {
+const std::set<uint32_t>& DynamicMaintainOptimality::getSinks() const {
+	return g.getSinks();
+}
+
+Arc *DynamicMaintainOptimality::getArc(uint32_t src, uint32_t dst) const {
 	return g.getArc(src, dst);
 }
+
+int64_t DynamicMaintainOptimality::getSupply(uint32_t id) const {
+	return g.getSupply(id);
+}
+
 void DynamicMaintainOptimality::addNode(uint32_t id) {
 	// adding a node does not change the min-cost solution, since initially the
 	// arcs has no edges. pass through
@@ -69,6 +78,8 @@ void DynamicMaintainOptimality::changeArcCost(uint32_t src, uint32_t dst,
 			                  << src << "->" << dst;
 
 	int64_t old_cost = arc->getCost();
+	VLOG(1) << "Changing cost of " << src << "->" << dst
+			    << " from " << old_cost << " to " << cost;
 	if (cost != old_cost) {
 		// For optimality, we care only about the sign of the reduced cost
 		// If the sign remains the same, we need not do anything.
@@ -81,8 +92,8 @@ void DynamicMaintainOptimality::changeArcCost(uint32_t src, uint32_t dst,
 		if (new_reduced_cost > 0) {
 			// flow needs to be zero
 			if (old_reduced_cost < 0) {
-				// arc currently saturated
-				assert(arc->getFlow() == arc->getCapacity());
+				// arc currently saturated: i.e. residual capacity zero
+				assert(arc->getCapacity() == 0);
 				g.pushFlow(src, dst, -arc->getFlow());
 			} else if (old_reduced_cost == 0) {
 				// flow could be anything, check

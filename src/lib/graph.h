@@ -56,6 +56,9 @@ public:
 		graph.removeArc(1, 5);
 		graph.setSupply(1, 5);
 		graph.removeNode(1);
+
+		// TODO: If you remove sink supply adjustment in DIMACS, remove this too.
+		graph.getSupply(1);
 	}
 };
 

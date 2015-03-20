@@ -18,6 +18,7 @@
 #include <glog/logging.h>
 #include <boost/format.hpp>
 #include <boost/concept/assert.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "arc.h"
 #include "graph.h"
@@ -52,8 +53,8 @@ protected:
 			std::string oss_str = oss.str();
 			const char *remainder = oss_str.c_str();
 
-			bool end = processLine(type, remainder);
-			if (end) {
+			bool more_data = processLine(type, remainder);
+			if (!more_data) {
 				return true;
 			}
 		}
@@ -293,11 +294,18 @@ public:
 protected:
 	// add support for c EOI as end-of-graph indicator
 	bool processLine(char type, const char *remainder) {
-		if (type == 'c' && strcmp(remainder, "EOI") == 0) {
-			return false;
-		} else {
-			return DIMACSOriginalImporter<T>::processLine(type, remainder);
+		if (type == 'c') {
+			std::string comment(remainder);
+			// remove whitespace
+			boost::trim(comment);
+
+			if (comment == "EOI") {
+				return false;
+			}
 		}
+
+		// if not c EOI, handle normally
+		return DIMACSOriginalImporter<T>::processLine(type, remainder);
 	}
 };
 
@@ -312,16 +320,24 @@ public:
 		return DIMACSImporter::parse();
 	}
 private:
+	const static uint32_t SINK_NODE = 1;
+
 	bool processLine(char type, const char *remainder) {
 		int num_matches = -1;
 		switch (type) {
 		case 'c':
+			{
 			// is it end of graph indicator?
-			if (strcmp(remainder, "EOI") == 0) {
+			std::string comment(remainder);
+			// remove whitespace
+			boost::trim(comment);
+
+			if (comment == "EOI") {
 				return false;
 			}
 			// otherwise can ignore comments
 			break;
+			}
 		case 'r':
 			{
 			// remove node
@@ -343,6 +359,13 @@ private:
 
 			g.addNode(id);
 			g.setSupply(id, supply);
+
+			// TODO: This is a bit of a hack - should I keep this?
+			// Firmament doesn't export changes in sink demand. To keep the problem
+			// balanced, increase demand at the sink whenever we add a new node.
+			CHECK_GE(supply, 0) << "only one node allowed to be a sink.";
+			CHECK_LE(g.getSupply(SINK_NODE), 0);
+			g.setSupply(SINK_NODE, g.getSupply(SINK_NODE) - supply);
 			}
 			break;
 		case 'x':
@@ -358,18 +381,35 @@ private:
 
 			CHECK_EQ(lower_bound, 0);
 			Arc *arc = g.getArc(src, dst);
-			CHECK(arc != nullptr) << "trying to change non-existent arc "
-					                  << src << "->" << dst;
-			if (upper_bound == 0) {
-				g.removeArc(src, dst);
-			} else {
-				uint64_t current_upper_bound = arc->getCapacity();
-				if (current_upper_bound != upper_bound) {
-					g.changeArcCapacity(src, dst, upper_bound);
+			if (arc == nullptr) {
+				// SOMEDAY: Decide whether Firmament should change or not.
+				// Firmament considers arcs with a zero upper bound to still be arcs.
+				// We do not. So we have to special-case this.
+				if (upper_bound == 0) {
+					// Firmament sometimes generates arc changes when nothing has changed
+					// This is the case "the arc had zero capacity before, and
+					// "still doesn't". That is, it wasn't an arc before, and still isn't.
+					LOG(WARNING) << "ignoring delete of non-existent arc "
+							         << src << "->" << dst;
+				} else {
+					LOG(WARNING) << "converting change of non-existent arc "
+											 << src << "->" << dst << " to an add";
+					CHECK_EQ(lower_bound, 0);
+					g.addArc(src, dst, upper_bound, cost);
 				}
-				int64_t current_cost = arc->getCost();
-				if (current_cost != cost) {
-					g.changeArcCost(src, dst, cost);
+				return true;
+			} else {
+				if (upper_bound == 0) {
+					g.removeArc(src, dst);
+				} else {
+					uint64_t current_upper_bound = arc->getCapacity();
+					if (current_upper_bound != upper_bound) {
+						g.changeArcCapacity(src, dst, upper_bound);
+					}
+					int64_t current_cost = arc->getCost();
+					if (current_cost != cost) {
+						g.changeArcCost(src, dst, cost);
+					}
 				}
 			}
 			break;

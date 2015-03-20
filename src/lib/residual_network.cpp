@@ -32,7 +32,7 @@ ResidualNetwork::ResidualNetwork(const FlowNetwork &g)
 // Efficiency unimportant.
 ResidualNetwork::ResidualNetwork(const ResidualNetwork &g)
   : num_nodes(g.num_nodes), balances(g.balances), supplies(g.supplies),
-		sources(g.sources), sinks(g.sources), free_nodes(g.free_nodes) {
+		sources(g.sources), sinks(g.sinks), free_nodes(g.free_nodes) {
 	// clone each of the unordered_map's in g.arcs
 	// don't clone the underlying arcs, though
 	arcs.resize(num_nodes + 1);
@@ -83,6 +83,11 @@ int64_t ResidualNetwork::getBalance(uint32_t id) const {
 	return balances.at(id);
 }
 
+int64_t ResidualNetwork::getSupply(uint32_t id) const {
+	assert(validID(id));
+	return supplies[id];
+}
+
 const std::set<uint32_t>& ResidualNetwork::getSinks() const {
 	return sinks;
 }
@@ -90,6 +95,7 @@ const std::set<uint32_t>& ResidualNetwork::getSinks() const {
 const std::set<uint32_t>& ResidualNetwork::getSources() const {
 	return sources;
 }
+
 
 Arc *ResidualNetwork::getArc(uint32_t src, uint32_t dst) const {
 	assert(validID(src) && validID(dst));
@@ -108,22 +114,20 @@ const std::unordered_map<uint32_t, Arc*>& ResidualNetwork::getAdjacencies
 }
 
 void ResidualNetwork::addNode(uint32_t id) {
-	num_nodes++;
-
 	if (id > balances.size()) {
 		CHECK(false) << "Node leak: adding " << id
 				         << "grows graph by more than necessary.";
 	} else if (id == balances.size()) {
 		CHECK(free_nodes.empty()) << "Node leak: adding " << id
 				                      << " grows graph despite free nodes.";
+		CHECK_EQ(balances.size() - 1, num_nodes) << "num_nodes inconsistent";
 
 		balances.push_back(0);
 		supplies.push_back(0);
 		arcs.push_back(std::unordered_map<uint32_t, Arc*>());
 
-		assert(num_nodes == balances.size()
-				&& num_nodes == supplies.size()
-				&& num_nodes == arcs.size());
+		assert(balances.size() == supplies.size()
+				&& balances.size() == arcs.size());
 	} else {
 		std::set<uint32_t>::iterator it = free_nodes.find(id);
 		CHECK(it != free_nodes.end()) << "adding non-free node " << id;
@@ -135,6 +139,8 @@ void ResidualNetwork::addNode(uint32_t id) {
 	assert(supplies[id] == 0);
 	assert(arcs[id].empty());
 	assert(sources.count(id) == 0 && sinks.count(id) == 0);
+
+	num_nodes++;
 }
 
 // SOMEDAY(adam): size of arcs & balance vector will grow without bound:
@@ -163,6 +169,7 @@ void ResidualNetwork::removeNode(uint32_t id) {
 
 	// clear up state
 	balances[id] = 0;
+	supplies[id] = 0;
 
 	// node now free
 	num_nodes--;

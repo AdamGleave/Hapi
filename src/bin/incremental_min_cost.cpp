@@ -31,7 +31,7 @@ int main(int, char *argv[]) {
 
 	// load full file
 	ResidualNetwork *g = DIMACSIncrementalFullImporter<ResidualNetwork>
-	                                                            (std::cin).read();
+                                                              (std::cin).read();
 
 	// solve full problem
 	t.start();
@@ -41,6 +41,8 @@ int main(int, char *argv[]) {
 
 	DIMACSExporter<ResidualNetwork> exporter(*g, std::cout);
 	exporter.writeFlow();
+	std::cout << "c EOI" << std::endl;
+	std::cout.flush();
 
 	// now solve incremental problem
 	DynamicMaintainOptimality dynamic(*g, ap.getPotentials());
@@ -55,6 +57,8 @@ int main(int, char *argv[]) {
 		t.stop();
 		t.report();
 		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		std::cout << "c EOI" << std::endl;
+		std::cout.flush();
 		t.start();
 	}
 	t.stop();
