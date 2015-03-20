@@ -322,6 +322,12 @@ public:
 private:
 	const static uint32_t SINK_NODE = 1;
 
+	void adjustSinkCapacity(int64_t delta) {
+		int64_t sink_supply = g.getSupply(SINK_NODE);
+		CHECK_LE(g.getSupply(SINK_NODE), 0);
+		g.setSupply(SINK_NODE, sink_supply + delta);
+	}
+
 	bool processLine(char type, const char *remainder) {
 		int num_matches = -1;
 		switch (type) {
@@ -345,6 +351,7 @@ private:
 			num_matches = sscanf(remainder, "%u", &node_id);
 			CHECK_EQ(num_matches, 1) << "malformed remove node, at line "
 															 << line_num;
+			adjustSinkCapacity(g.getSupply(node_id));
 			g.removeNode(node_id);
 			break;
 			}
@@ -364,8 +371,8 @@ private:
 			// Firmament doesn't export changes in sink demand. To keep the problem
 			// balanced, increase demand at the sink whenever we add a new node.
 			CHECK_GE(supply, 0) << "only one node allowed to be a sink.";
-			CHECK_LE(g.getSupply(SINK_NODE), 0);
-			g.setSupply(SINK_NODE, g.getSupply(SINK_NODE) - supply);
+			// increase demand at sink by parameter supply
+			adjustSinkCapacity(-supply);
 			}
 			break;
 		case 'x':
