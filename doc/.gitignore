@@ -13,3 +13,5 @@ diss-auto-wordcount.tex
 *.lof
 *.fdb_latexmk
 *.run.xml
+*.txss
+*.kilepr
