@@ -29,7 +29,12 @@ void check_reduced_cost_optimality(const ResidualNetwork &g,
 			// is positive flow on the (negative reduced cost) forward arc.
 			EXPECT_LE(flow, 0) << arc.getSrcId() << "->" << arc.getDstId();
 		} else if (reduced_cost < 0) {
-			EXPECT_EQ(arc.getInitialCapacity(), flow)
+			// first check if negative...
+			EXPECT_GE(flow, 0) << arc.getSrcId() << "->" << arc.getDstId()
+					               << "negative flow " << flow;
+			// so w can then cast to unsigned integer for comparison
+			uint64_t flow_unsigned = (uint64_t)flow;
+			EXPECT_EQ(arc.getInitialCapacity(), flow_unsigned)
 					<< arc.getSrcId() << "->" << arc.getDstId()
 					<< " cost " << arc.getCost() << " - " << potentials[arc.getSrcId()]
 					<< " + " << potentials[arc.getDstId()] << " = " << reduced_cost;
@@ -80,7 +85,7 @@ TEST_P(DynamicMaintainOptimalityTest, OptimalityInvariant) {
 		ResidualNetwork copy_g(*g);
 		std::vector<uint64_t> copy_potentials(potentials);
 		DynamicMaintainOptimality dynamic(copy_g, copy_potentials);
-		typedef DIMACSIncrementalImporter<DynamicMaintainOptimality> DIMACSImporter;
+		typedef DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality> DIMACSImporter;
 		DIMACSImporter(incremental_file, dynamic).read();
 
 		// check optimality still holds

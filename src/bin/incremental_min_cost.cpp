@@ -29,44 +29,35 @@ int main(int argc, char *argv[]) {
 	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
 	t.stop();
 
-	std::string usage = "usage: " + std::string(argv[0])
-	                  + "<command> <full graph> <incremental delta>";
-	if (argc != 4) {
-		std::cerr << usage << std::endl;
-		return -1;
-	}
-
-	std::string graph_fname = argv[2], incremental_fname = argv[3];
-	std::ifstream graph_file(graph_fname), incremental_file(incremental_fname);
-	CHECK(!graph_file.fail()) << "could not open " << graph_fname;
-	CHECK(!incremental_file.fail()) << "could not open " << incremental_fname;
-
 	// load full file
-	ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(graph_file).read();
-	CHECK(g != nullptr) << "DIMACS parsing error in " << graph_fname;
+	ResidualNetwork *g = DIMACSIncrementalFullImporter<ResidualNetwork>
+	                                                            (std::cin).read();
 
 	// solve full problem
+	t.start();
 	AugmentingPath ap(*g);
 	ap.run();
+	t.stop(); t.report();
 
-	std::string command = argv[1];
-	if (command == "incremental") {
-		// now solve incremental problem
-		t.start();
-		DynamicMaintainOptimality dynamic(*g, ap.getPotentials());
-		typedef DIMACSIncrementalImporter<DynamicMaintainOptimality> DIMACSImporter;
-		DIMACSImporter(incremental_file, dynamic).read();
+	DIMACSExporter<ResidualNetwork> exporter(*g, std::cout);
+	exporter.writeFlow();
+
+	// now solve incremental problem
+	DynamicMaintainOptimality dynamic(*g, ap.getPotentials());
+	DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality>
+	                              incremental_importer(std::cin, dynamic);
+
+	// process stream of incremental deltas, solving incremental problem
+	// TODO: am including time spent parsing in reported ALGOTIME
+	t.start();
+	while (incremental_importer.read()) {
 		ap.reoptimize();
 		t.stop();
 		t.report();
 		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
-	} else if (command == "partial") {
-		// just maintain optimality, and print out state of graph
-		DynamicMaintainOptimality dynamic(*g, ap.getPotentials());
-		typedef DIMACSIncrementalImporter<DynamicMaintainOptimality> DIMACSImporter;
-		DIMACSImporter(incremental_file, dynamic).read();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).write();
+		t.start();
 	}
+	t.stop();
 
 	return 0;
 }

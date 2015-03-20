@@ -27,8 +27,11 @@ namespace flowsolver {
 class DIMACSImporter {
 protected:
 	explicit DIMACSImporter(std::istream &is) : is(is) {};
-	virtual void processLine(char type, const char *remainder) = 0;
-	void parse() {
+	// return true if more data to read, false if end-of-graph token read
+	// (only needed for incremental DIMACS; others can always return true)
+	virtual bool processLine(char type, const char *remainder) = 0;
+	// returns false if EOF read, true if terminated before EOF
+	bool parse() {
 		std::string line;
 
 		while (getline(is, line)) {
@@ -49,8 +52,14 @@ protected:
 			std::string oss_str = oss.str();
 			const char *remainder = oss_str.c_str();
 
-			processLine(type, remainder);
+			bool end = processLine(type, remainder);
+			if (end) {
+				return true;
+			}
 		}
+
+		// EOF read
+		return false;
 	}
 
 	std::istream &is;
@@ -68,8 +77,8 @@ public:
 
 		return g;
 	}
-private:
-	void processLine(char type, const char *remainder) final {
+protected:
+	bool processLine(char type, const char *remainder) {
 		int num_matches = -1;
 		switch (type) {
 		case 'c':
@@ -146,6 +155,8 @@ private:
 			LOG(FATAL) << "Unrecognized type " << type
 						 << " at line " << line_num;
 		}
+
+		return true;
 	}
 
 	T *g = nullptr;
@@ -165,8 +176,8 @@ public:
 
 		return solution;
 	}
-private:
-	void processLine(char type, const char *remainder) final {
+protected:
+	bool processLine(char type, const char *remainder) final {
 		int num_matches = -1;
 		switch (type) {
 		case 'c':
@@ -201,6 +212,8 @@ private:
 						 << " at line " << line_num;
 			break;
 		}
+
+		return true;
 	}
 
 	T &g;
@@ -272,21 +285,42 @@ private:
 };
 
 template<class T>
-class DIMACSIncrementalImporter : public DIMACSImporter {
+class DIMACSIncrementalFullImporter : public DIMACSOriginalImporter<T> {
+public:
+	explicit DIMACSIncrementalFullImporter(std::istream &is)
+	                                           : DIMACSOriginalImporter<T>(is) {};
+
+protected:
+	// add support for c EOI as end-of-graph indicator
+	bool processLine(char type, const char *remainder) {
+		if (type == 'c' && strcmp(remainder, "EOI") == 0) {
+			return false;
+		} else {
+			return DIMACSOriginalImporter<T>::processLine(type, remainder);
+		}
+	}
+};
+
+template<class T>
+class DIMACSIncrementalDeltaImporter : public DIMACSImporter {
 	BOOST_CONCEPT_ASSERT((DynamicGraphCallbacks<T>));
 public:
-	DIMACSIncrementalImporter(std::istream &is, T &g) : DIMACSImporter(is),
+	DIMACSIncrementalDeltaImporter(std::istream &is, T &g) : DIMACSImporter(is),
 			                                                g(g) {};
 
-	void read() {
-		DIMACSImporter::parse();
+	bool read() {
+		return DIMACSImporter::parse();
 	}
 private:
-	void processLine(char type, const char *remainder) {
+	bool processLine(char type, const char *remainder) {
 		int num_matches = -1;
 		switch (type) {
 		case 'c':
-			// comment line -- ignore
+			// is it end of graph indicator?
+			if (strcmp(remainder, "EOI") == 0) {
+				return false;
+			}
+			// otherwise can ignore comments
 			break;
 		case 'r':
 			{
@@ -387,6 +421,8 @@ private:
 			break;
 			}
 		}
+
+		return true;
 	}
 
 	T &g;
