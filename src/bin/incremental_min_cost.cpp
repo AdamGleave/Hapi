@@ -13,6 +13,10 @@
 #include <boost/timer/timer.hpp>
 #include <glog/logging.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "residual_network.h"
 #include "dynamic_maintain_optimality.h"
 #include "dimacs.h"
@@ -21,9 +25,46 @@
 
 using namespace flowsolver;
 
-int main(int, char *argv[]) {
+int main(int argc, char *argv[]) {
 	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
+
+	namespace po = boost::program_options;
+
+	po::options_description global("Global options");
+	global.add_options()
+			("help", "produce help message")
+			("debug-partial-dir", po::value<std::string>(),
+			 "debug option: enable generation of partial traces,"
+			 " that is the state of the flow network before reoptimization but after"
+			 " the incremental changes, maintaining optimality (but not feasibility)");
+	po::variables_map vm;
+	po::parsed_options parsed = po::command_line_parser(argc, argv).
+				options(global).
+				run();
+	po::store(parsed, vm);
+
+	if (vm.count("help")) {
+		std::cout << global << std::endl;
+		return 0;
+	}
+
+	std::string partial_dir;
+	if (vm.count("debug-partial-dir")) {
+		partial_dir = vm["debug-partial-dir"].as<std::string>();
+		struct stat st;
+		if (stat(partial_dir.c_str(), &st) == -1) {
+			// directory doesn't exist
+			if (mkdir(partial_dir.c_str(), 0700) < 0) {
+				LOG(FATAL) << "Error creating directory " << partial_dir
+						       << ": " << strerror(errno);
+			}
+		} else {
+			LOG(WARNING) << "Not overwriting previous traces in " << partial_dir
+					         << " please remove them or specify a different directory.";
+			partial_dir = "";
+		}
+	}
 
 	// for timing algorithms
 	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
@@ -51,15 +92,28 @@ int main(int, char *argv[]) {
 
 	// process stream of incremental deltas, solving incremental problem
 	// TODO: am including time spent parsing in reported ALGOTIME
+	uint64_t num_iterations = 0;
 	t.start();
 	while (incremental_importer.read()) {
+		if (!partial_dir.empty()) {
+			// generate debug trace before reoptimization
+			std::string fname = partial_dir + "/debug-"
+					                  + std::to_string(num_iterations) + ".min";
+			std::ofstream partial_file(fname);
+			DIMACSExporter<ResidualNetwork> partial_exporter(*g, partial_file);
+			partial_exporter.write();
+			partial_exporter.writeFlow();
+		}
+
 		ap.reoptimize();
 		t.stop();
 		t.report();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		exporter.writeFlow();
 		std::cout << "c EOI" << std::endl;
 		std::cout.flush();
 		t.start();
+
+		num_iterations++;
 	}
 	t.stop();
 
