@@ -12,6 +12,9 @@ target_link_libraries(test_dynamic_maintain_optimality PRIVATE gtest gtest_main 
 add_test(task_assignment test_task_assignment)
 add_test(networks test_networks)
 add_test(dynamic_maintain_optimality test_dynamic_maintain_optimality)
-add_test(NAME flowsolver_tests 
-         COMMAND python3 run_tests.py
+add_test(NAME flowsolver_full_tests 
+         COMMAND ./test_algorithms.py
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME flowsolver_incremental_tests 
+         COMMAND ./test_incremental.py
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
