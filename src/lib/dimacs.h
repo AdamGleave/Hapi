@@ -426,7 +426,12 @@ private:
 
 			CHECK_EQ(lower_bound, 0);
 
-			g.addArc(src, dst, upper_bound, cost);
+			if (upper_bound == 0) {
+				LOG(WARNING) << "ignoring add of arc " << src << "->"
+						         << dst << " with zero upper-bound.";
+			} else {
+				g.addArc(src, dst, upper_bound, cost);
+			}
 			break;
 			}
 		}
