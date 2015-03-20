@@ -107,21 +107,26 @@ const std::unordered_map<uint32_t, Arc*>& ResidualNetwork::getAdjacencies
 	return arcs[src];
 }
 
-uint32_t ResidualNetwork::addNode() {
-	uint32_t id;
-
+void ResidualNetwork::addNode(uint32_t id) {
 	num_nodes++;
 
-	if (free_nodes.empty()) {
+	if (id > balances.size()) {
+		CHECK(false) << "Node leak: adding " << id
+				         << "grows graph by more than necessary.";
+	} else if (id == balances.size()) {
+		CHECK(free_nodes.empty()) << "Node leak: adding " << id
+				                      << " grows graph despite free nodes.";
+
 		balances.push_back(0);
 		supplies.push_back(0);
 		arcs.push_back(std::unordered_map<uint32_t, Arc*>());
-		id = num_nodes;
-		// check for 'node leaks': free nodes not in the free list
-		assert(id == balances.size() - 1 && id == arcs.size() - 1);
+
+		assert(num_nodes == balances.size()
+				&& num_nodes == supplies.size()
+				&& num_nodes == arcs.size());
 	} else {
-		std::set<uint32_t>::iterator it = free_nodes.begin();
-		id = *it;
+		std::set<uint32_t>::iterator it = free_nodes.find(id);
+		CHECK(it != free_nodes.end()) << "adding non-free node " << id;
 		free_nodes.erase(it);
 	}
 
@@ -130,8 +135,6 @@ uint32_t ResidualNetwork::addNode() {
 	assert(supplies[id] == 0);
 	assert(arcs[id].empty());
 	assert(sources.count(id) == 0 && sinks.count(id) == 0);
-
-	return id;
 }
 
 // SOMEDAY(adam): size of arcs & balance vector will grow without bound:

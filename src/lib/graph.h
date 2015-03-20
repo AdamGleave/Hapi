@@ -48,12 +48,12 @@ public:
 	DynamicGraphCallbacks(X &graph) : graph(graph) {};
 
 	BOOST_CONCEPT_USAGE(DynamicGraphCallbacks) {
-		uint32_t new_id = graph.addNode();
 		Arc *arc = graph.getArc(1, 2);
-		graph.addArc(1, new_id, 1, 1);
-		graph.changeArcCapacity(1, new_id, 3);
-		graph.changeArcCost(1, new_id, 2);
-		graph.removeArc(1, new_id);
+		graph.addNode(5);
+		graph.addArc(1, 5, 1, 1);
+		graph.changeArcCapacity(1, 5, 3);
+		graph.changeArcCost(1, 5, 2);
+		graph.removeArc(1, 5);
 		graph.setSupply(1, 5);
 		graph.removeNode(1);
 	}

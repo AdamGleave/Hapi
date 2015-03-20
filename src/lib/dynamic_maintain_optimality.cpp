@@ -10,15 +10,14 @@ namespace flowsolver {
 Arc *DynamicMaintainOptimality::getArc(uint32_t src, uint32_t dst) {
 	return g.getArc(src, dst);
 }
-uint32_t DynamicMaintainOptimality::addNode() {
+void DynamicMaintainOptimality::addNode(uint32_t id) {
 	// adding a node does not change the min-cost solution, since initially the
 	// arcs has no edges. pass through
-	uint32_t new_id = g.addNode();
-	if (new_id >= potentials.size()) {
-		potentials.resize(new_id + 1);
+	g.addNode(id);
+	if (id >= potentials.size()) {
+		potentials.resize(id + 1);
 		// note the new potential cells will be initialized to zero
 	}
-	return new_id;
 }
 
 void DynamicMaintainOptimality::setSupply(uint32_t id, int64_t supply) {

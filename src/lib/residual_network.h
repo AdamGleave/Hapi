@@ -50,8 +50,7 @@ public:
 	Arc *getArc(uint32_t src, uint32_t dst) const;
 	const std::unordered_map<uint32_t, Arc*>& getAdjacencies(uint32_t src) const;
 
-	// returns node ID
-	uint32_t addNode();
+	void addNode(uint32_t id);
 	void removeNode(uint32_t id);
 	void addArc(uint32_t src, uint32_t dst, uint64_t capacity, int64_t cost);
 	void changeArcCost(uint32_t src, uint32_t dst, int64_t cost);

@@ -325,7 +325,6 @@ private:
 		case 'r':
 			{
 			// remove node
-			CHECK_EQ(arcs_remaining, 0);
 			uint32_t node_id;
 			num_matches = sscanf(remainder, "%u", &node_id);
 			CHECK_EQ(num_matches, 1) << "malformed remove node, at line "
@@ -335,12 +334,14 @@ private:
 			}
 		case 'n':
 			{
-			// change supply of a node
+			// add a node
 			uint32_t id;
 			int64_t supply;
+			// node type also present as third column, but we ignore this
 			num_matches = sscanf(remainder, "%u %ld", &id, &supply);
 			CHECK_EQ(num_matches, 2);
 
+			g.addNode(id);
 			g.setSupply(id, supply);
 			}
 			break;
@@ -348,7 +349,6 @@ private:
 			{
 			// change of an existing arc;
 			// could be either cost or capacity, or both
-			CHECK_EQ(arcs_remaining, 0);
 			uint32_t src, dst;
 			uint64_t lower_bound, upper_bound;
 			int64_t cost;
@@ -374,27 +374,6 @@ private:
 			}
 			break;
 			}
-		case 'd':
-			{
-			// add new node
-			CHECK_EQ(arcs_remaining, 0);
-			int64_t supply;
-			uint64_t potential;
-			uint32_t num_arcs;
-			num_matches = sscanf(remainder, "%ld %lu %u",
-													 &supply, &potential, &num_arcs);
-			CHECK_EQ(num_matches, 3);
-			// potential not currently used anywhere
-			// maintained for backwards compatibility, and in case we wish to hint
-			// at potential in the future
-			CHECK_EQ(potential, 0);
-
-			new_node_id = g.addNode();
-			g.setSupply(new_node_id, supply);
-
-			arcs_remaining = num_arcs;
-			break;
-			}
 		case 'a':
 			{
 			// add new arc
@@ -406,18 +385,8 @@ private:
 			CHECK_EQ(num_matches, 5);
 
 			CHECK_EQ(lower_bound, 0);
-			if (arcs_remaining > 0) {
-				// we're adding arcs for a newly added node
-				if (src == 0) {
-					src = new_node_id;
-				}
-				if (dst == 0) {
-					dst = new_node_id;
-				}
-			}
 
 			g.addArc(src, dst, upper_bound, cost);
-			arcs_remaining--;
 			break;
 			}
 		}
@@ -426,7 +395,6 @@ private:
 	}
 
 	T &g;
-	unsigned int arcs_remaining = 0;
 	uint32_t new_node_id = 0;
 };
 

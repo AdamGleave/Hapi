@@ -27,8 +27,7 @@ public:
 
 	Arc *getArc(uint32_t src, uint32_t dst);
 
-	// returns node ID
-	uint32_t addNode();
+	void addNode(uint32_t id);
 	void setSupply(uint32_t id, int64_t supply);
 	void removeNode(uint32_t id);
 

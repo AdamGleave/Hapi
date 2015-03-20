@@ -21,7 +21,7 @@
 
 using namespace flowsolver;
 
-int main(int argc, char *argv[]) {
+int main(int, char *argv[]) {
 	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
 
