@@ -322,6 +322,24 @@ INCREMENTAL_TESTS_OFFLINE = {
       },
     },
   },
+  "incremental_vs_cs": {
+    "files": INCREMENTAL_DATASET["google_small_trace"],
+    "iterations": 10,
+    "tests": {
+      "my_incremental": {
+        "implementation": "ap_incremental_latest",
+        "arguments": []
+      },
+      "my_costscaling": {
+        "implementation": "cs_latest",
+        "arguments": []
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+    },
+  },
 }
 
 TRACE_ROOT = "/data/adam/"
