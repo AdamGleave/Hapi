@@ -11,5 +11,4 @@ a 0 14 0 1 25
 c === Preference arcs to cores
 a 0 21 0 1 28
 a 0 23 0 1 27
-c === Increase demand at sink to compensate for new task node
-n 28 -11
+c EOI

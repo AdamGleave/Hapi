@@ -1,4 +1,3 @@
 c === Removing a scheduled task
 r 3
-c === Reduce demand at sink accordingly
-n 28 -9
+c EOI
