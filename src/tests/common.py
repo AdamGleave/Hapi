@@ -1,11 +1,11 @@
 def extractSolution(command_res):
-  solution = None
+  solutions = []
   for line in command_res:
       fields = line.split()
       if fields[0] == "s":
           # solution
-          solution = int(fields[1])
-  return solution
+          solutions.append(int(fields[1]))
+  return solutions
   
 def runTest(testcase, test_programs, runReferenceCommand, runCommand):
   reference_solution = runReferenceCommand(testcase)

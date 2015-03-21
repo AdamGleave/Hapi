@@ -1,19 +1,26 @@
 from config.common import *
 
 # Program to merge incremental deltas with full graph
-DELTA_PATCH_PATH = os.path.join(EXECUTABLE_DIR, "dimacs_incremental")
-DELTA_PATCH = sh.Command(DELTA_PATCH_PATH)
+SNAPSHOT_CREATOR_PROGRAM_PATH = os.path.join(EXECUTABLE_DIR,
+                                             "incremental_snapshots")
+SNAPSHOT_CREATOR_PROGRAM = sh.Command(SNAPSHOT_CREATOR_PROGRAM_PATH)
+
+# Program to run full solver repeatedly for each snapshot
+SNAPSHOT_SOLVER_PROGRAM_PATH  = os.path.join(EXECUTABLE_SRC_DIR,
+                                             "snapshot_solver.py")
+SNAPSHOT_SOLVER_PROGRAM = sh.Command(SNAPSHOT_SOLVER_PROGRAM_PATH)
 
 TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "incremental_min_cost"))
-TEST_PROGRAM_ARGUMENTS = ["incremental"]
+TEST_PROGRAM_ARGUMENTS = []
 
-TEST_PROGRAMS = { name : TEST_PROGRAM.bake(name)
-                  for name in TEST_PROGRAM_ARGUMENTS }
+TEST_PROGRAMS = { "augmenting_path" : TEST_PROGRAM }
 
-INCREMENTAL_DIR = os.path.join("clusters", "synthetic", 
-                               "firmament", "incremental")
-TEST_CASES = {os.path.join(INCREMENTAL_DIR, "graph_4m_2crs_6j.in"): 
-                graphGlob(os.path.join(INCREMENTAL_DIR, "graph_4m_2crs_6j_*")),
-              os.path.join(INCREMENTAL_DIR, "graph_4m_2crs_10j.in"): 
-                graphGlob(os.path.join(INCREMENTAL_DIR, "graph_4m_2crs_10j_*")),
+HANDMADE_INCREMENTAL_DIR = os.path.join("clusters", "synthetic", 
+                                        "firmament", "incremental")
+GOOGLE_INCREMENTAL_DIR = os.path.join("clusters", "natural", "google_trace")
+TEST_CASES = {os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j.in"): 
+                graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j_*")),
+              os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j.in"): 
+                graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j_*")),
+              os.path.join(GOOGLE_INCREMENTAL_DIR, "tiny_trace.imin"): None
              }

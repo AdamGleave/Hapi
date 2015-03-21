@@ -11,11 +11,12 @@ BUILD_ROOT = "build"
 SOURCE_ROOT = "src"
 DATASET_ROOT = os.path.join(PROJECT_ROOT, SOURCE_ROOT, "graphs")
 EXECUTABLE_DIR = os.path.join(PROJECT_ROOT, BUILD_ROOT, "bin")
+EXECUTABLE_SRC_DIR = os.path.join(PROJECT_ROOT, SOURCE_ROOT, "bin")
 
 # Goldberg's CS2 solver
 # Known-working reference implementation
 REFERENCE_PROGRAM_PATH = os.path.join(PROJECT_ROOT, "build", "cs2", "cs2")
-REFERENCE_PROGRAM = sh.Command(REFERENCE_PROGRAM_PATH)
+REFERENCE_PROGRAM_ARGUMENTS = []
 
 # Convenience functions for specifying files
 def prefix_list(prefix, fnames):

@@ -10,7 +10,10 @@ import common
 def runCommand(graph_path, command):
   graph = open(graph_path, "rb")
   command_res = command(_in=graph, _in_bufsize=config.BUFFER_SIZE)
-  return common.extractSolution(command_res)
+  
+  solutions = common.extractSolution(command_res)
+  assert(len(solutions) == 1)
+  return solutions[0]
 
 def runReferenceCommand(graph_path):
   return runCommand(graph_path, config.REFERENCE_PROGRAM)
