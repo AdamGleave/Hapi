@@ -3,6 +3,10 @@
 import config.benchmark as config
 import sh, shutil, csv, os, sys, time
 
+def error(*args):
+  print(*args, file=sys.stderr)
+  sys.exit(1)
+  
 # wrapper around file object, flushing after every write
 class flushfile:
     def __init__(self, f):
@@ -124,7 +128,27 @@ class ExitCodeException(Exception):
   def __str__(self):
     return repr(self.exit_code)
 
-def createTestInstance(instance):
+def createNativeCommand(exe_path, arguments):
+  native_command = sh.Command(exe_path).bake(*arguments)
+  def runCommand(input_file, output_path):
+    return native_command(_in=input_file, _in_bufsize=config.BUFFER_SIZE, 
+                          _out=output_path, _iter="err")
+  return runCommand
+
+def createWrapperCommand(exe_path, arguments):
+  '''full solver to be used as incremental'''
+  snapshots = config.SNAPSHOT_CREATOR_PROGRAM
+  command = config.SNAPSHOT_SOLVER_PROGRAM.bake(exe_path, *arguments)
+  # output can be BIG, Python slow. This significantly speeds up computation.
+  # (Yes, this is a hack.)
+  def runCommand(input_file, output_path):
+    return command(
+      snapshots(_in=input_file, _in_bufsize=config.BUFFER_SIZE,
+                _piped="direct"),
+          _out=output_path, _iter="err")
+  return runCommand
+
+def createTestInstance(instance, isIncremental=False):
   # create instance
   implementation_name = instance["implementation"]
   implementation = implementations[implementation_name]
@@ -135,9 +159,22 @@ def createTestInstance(instance):
                           implementation["path"])
   arguments = implementation["arguments"] + instance["arguments"]
   
-  test_command = sh.Command(exe_path)
-  test_command = test_command.bake(*arguments)
-  
+  native = sh.Command(exe_path).bake(*arguments)
+  solver_type = implementation["type"]
+  test_command = None
+  if isIncremental:
+    if solver_type == "full":
+      test_command = createWrapperCommand(exe_path, arguments)
+    elif solver_type == "incremental":
+      test_command = createNativeCommand(exe_path, arguments)
+    else: 
+      error("Unrecognised implementation type ", implementation)
+  else:
+    if solver_type == "full":
+      test_command = createNativeCommand(exe_path, arguments)
+    else:
+      error("Illegal solver type ", solver_type, "for full test")
+      
   return (test_command, version_directory)
 
 def runTestInstance(test_command, log_directory, fname, iteration):
@@ -154,62 +191,121 @@ def runTestInstance(test_command, log_directory, fname, iteration):
     prefix = fname + "_" + str(iteration)
     out_path = os.path.join(log_directory, prefix + ".out")
     err_path = os.path.join(log_directory, prefix + ".err")
-    with open(err_path, 'w') as err_file:
+    with open(err_path, 'w') as err_file:      
+      running_command = test_command(input_file, out_path)
+      
       start_time = time.time()
-      result = test_command(_in=input_file, _in_bufsize=config.BUFFER_SIZE,
-                   _out=out_path,
-                   _iter="err")
-      algorithm_running_time = None
+      
       prefix = "ALGOTIME: "
-      for error_line in result:
+      for error_line in running_command:
         if error_line.find(prefix) == 0:
+          # record algorithm running time
           algorithm_running_time = error_line[len(prefix):].strip()
+          
+          # record total time (includes parsing, etc)          
+          end_time = time.time()
+          # TODO: Is this an accurate way of measuring the total times?
+          time_elapsed = end_time - start_time
+          
+          yield((algorithm_running_time, time_elapsed))
+          
+          # reset timer
+          start_time = time.time()
         else:
           err_file.write(error_line)
-      end_time = time.time()
       
-    if result.exit_code != 0:
+    if running_command.exit_code != 0:
       raise ExitCodeException(result.exit_code)
-    
-    time_elapsed = end_time - start_time
-    return (algorithm_running_time, time_elapsed)
 
 # SOMEDAY: Ugly how logic and IO are intermixed here. You could perhaps switch
 # to putting the logic in a generator, and iterate over the results yielded
+
+def runFullTest(case_name, case_config, result_file):      
+  fieldnames = ["test", "file", "iteration", "algorithm_time", "total_time"]
+  result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
+  result_writer.writeheader()
+  iterations = case_config["iterations"]
+  
+  for fname in case_config["files"]:
+    print("\t", fname, ": ", end="")
+    
+    for i in range(iterations):
+      print(i, " ", end="")
+      
+      tests = case_config["tests"]
+      test_instances = {test_name : createTestInstance(tests[test_name])
+                       for test_name in tests}
+      for test_name, (test_command, version_directory) in test_instances.items():
+        log_directory = os.path.join(version_directory, "log", case_name)
+        times = list(runTestInstance(test_command, log_directory, fname, i))
+        
+        assert(len(times) == 1)
+        algorithm_time, time_elapsed = times[0]
+        
+        result = { "test": test_name,
+                   "file": fname,
+                   "iteration": i,
+                   "algorithm_time": algorithm_time,
+                   "total_time": time_elapsed }
+        result_writer.writerow(result)
+        result_file.flush()
+        
+    print("")
+
+def runIncrementalOfflineTest(case_name, case_config, result_file):
+  fieldnames = ["test", "file", "delta_id", 
+                "iteration", "algorithm_time", "total_time"]
+  result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
+  result_writer.writeheader()
+  iterations = case_config["iterations"]
+  
+  for fname in case_config["files"]:
+    print("\t", fname, ": ", end="")
+    
+    for i in range(iterations):
+      print(i, " ", end="")
+      
+      tests = case_config["tests"]
+      test_instances = {test_name : createTestInstance(tests[test_name], 
+                                                       isIncremental=True)
+                       for test_name in tests}
+      for test_name, (test_command, version_directory) in test_instances.items():
+        log_directory = os.path.join(version_directory, "log", case_name)
+        
+        delta_id = 0
+        for (algorithm_time, time_elapsed) in \
+                         runTestInstance(test_command, log_directory, fname, i):
+          result = { "test": test_name,
+                     "file": fname,
+                     "delta_id": delta_id, 
+                     "iteration": i,
+                     "algorithm_time": algorithm_time,
+                     "total_time": time_elapsed }
+          result_writer.writerow(result)
+          result_file.flush()
+          delta_id += 1
+        
+    print("")
+
+def runIncrementalOnlineTest(case_name, case_config, result_file):
+  # TODO
+  error("Unsupported.")
+
 def runTests(tests):
   for case_name, case_config in tests.items():
     print(case_name)
     
     result_fname = os.path.join(config.RESULT_ROOT, case_name + ".csv") 
     with open(result_fname, 'w') as result_file:
-      fieldnames = ["test", "file", "iteration", "algorithm_time", "total_time"]
-      result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
-      result_writer.writeheader()
-      iterations = case_config["iterations"]
-      
-      for fname in case_config["files"]:
-        print("\t", fname, ": ", end="")
-        
-        for i in range(iterations):
-          print(i, " ", end="")
-          
-          tests = case_config["tests"]
-          test_instances = {test_name : createTestInstance(tests[test_name])
-                           for test_name in tests}
-          for test_name, (test_command, version_directory) in test_instances.items():
-            log_directory = os.path.join(version_directory, "log", case_name)
-            algorithm_time, time_elapsed = runTestInstance(test_command,
-                                                        log_directory, fname, i)
-            
-            result = { "test": test_name,
-                       "file": fname,
-                       "iteration": i,
-                       "algorithm_time": algorithm_time,
-                       "total_time": time_elapsed }
-            result_writer.writerow(result)
-            result_file.flush()
-            
-        print("")
+      test_type = case_config["type"]
+      if test_type == "full":
+        runFullTest(case_name, case_config, result_file)
+      elif test_type == "incremental_offline":
+        runIncrementalOfflineTest(case_name, case_config, result_file)
+      elif test_type == "incremental_online":
+        runIncrementalOnlineTest(case_name, case_config, result_file)
+      else:
+        error("Unrecognised test type: ", test_type)
 
 if __name__ == "__main__":
   # Unbuffered output. This is needed for progress indicators to display correctly,

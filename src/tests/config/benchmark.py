@@ -17,9 +17,11 @@ try:
 except ImportError:
   pass
 
+##### Dataset
+
 # This variable is not used by the suite at all: it is just for convenience
 # within the config for referencing particular files
-FILES = {
+FULL_DATASET = {
   ### Networks representing clusters
   
   # these are too small to be useful for a benchmark: but handy to quickly test
@@ -74,14 +76,20 @@ FILES = {
   "goto_sr": graphGlob("general/synthetic/goto/goto_sr_*.min"),
 }
 
-FILES["synthetic"] = FILES["synthetic_small"] + FILES["synthetic_large"]
+FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] + FULL_DATASET["synthetic_large"]
 
 all_files = set()
-for files in FILES.values():
+for files in FULL_DATASET.values():
   all_files.update(files)
-FILES["all"] = all_files
+FULL_DATASET["all"] = all_files
 
-IMPLEMENTATIONS = {
+INCREMENTAL_DATASET = {
+  "google_tiny_trace": ["clusters/natural/google_trace/tiny_trace.imin"],
+  "google_small_trace": ["clusters/natural/google_trace/small_trace.imin"],
+}
+
+##### Implementations
+FULL_IMPLEMENTATIONS = {
   "cs_latest": {
     "version": "master",
     "target": "find_min_cost",
@@ -158,16 +166,30 @@ IMPLEMENTATIONS = {
 
 LEMON_ALGOS = ["scc", "mmcc", "cat", "ssp", "cas", "cos", "ns"]
 for algo in LEMON_ALGOS:
-  IMPLEMENTATIONS["lemon_" + algo] = {
+  FULL_IMPLEMENTATIONS["lemon_" + algo] = {
     "version": "master",
     "target": "lemon_min_cost",
     "path": "bin/lemon_min_cost",
     "arguments": ["-" + algo]
   }
+  
+INCREMENTAL_IMPLEMENTATIONS = {
+  "ap_incremental_latest": {
+    "version": "master",
+    "target": "incremental_min_cost",
+    "path": "bin/incremental_min_cost",
+    "arguments": ["augmenting_path"]
+   },
+}
 
-TESTS = {
-  "development_only": {
-    "files": FILES["development_only"],
+IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS],
+                            ["full", "incremental"])
+
+##### Test cases
+
+FULL_TESTS = {
+  "development_only_full": {
+    "files": FULL_DATASET["development_only"],
     "iterations": 1,
     "tests": {
       "my": {
@@ -181,7 +203,7 @@ TESTS = {
     },
   },
   "wave_vs_fifo": {
-    "files": FILES["synthetic"],
+    "files": FULL_DATASET["synthetic"],
     "iterations": 5,
     "tests": {
       "wave": {
@@ -195,7 +217,7 @@ TESTS = {
     },
   },
   "scaling_factor": {
-    "files": FILES["all"],
+    "files": FULL_DATASET["all"],
     "iterations": 5,
     "tests": { 
       str(x): {
@@ -205,7 +227,7 @@ TESTS = {
     }
   },
  "dimacs_parser_set_vs_getarc": {
-    "files": FILES["synthetic_large"] + FILES["google"],
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
     "iterations": 5,
     "tests": {
       "set": {
@@ -219,7 +241,7 @@ TESTS = {
     },
   },
   "augmenting_vs_costscaling": {
-    "files": FILES["synthetic_large"] + FILES["google"],
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
     "iterations": 3,
     "tests": {
       "cost_scaling": {
@@ -248,7 +270,7 @@ TESTS = {
   # don't care about the memory consumption, but map may actually perform 
   # better since it can be better cached.
   "augmenting_big_vs_small_heap": {
-    "files": FILES["synthetic"] + FILES["google"],
+    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
     "iterations": 5,
     "tests": {
       "big": {
@@ -266,7 +288,7 @@ TESTS = {
     },
   },
   "best_head_to_head": {
-    "files": FILES["synthetic"] + FILES["google"],
+    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
     "iterations": 5,
     "tests": {
       "goldberg": {
@@ -284,3 +306,63 @@ TESTS = {
     }
   }
 }
+
+INCREMENTAL_TESTS_OFFLINE = {
+  "development_only_incremental_offline": {
+    "files": INCREMENTAL_DATASET["google_tiny_trace"],
+    "iterations": 1,
+    "tests": {
+      "my": {
+        "implementation": "ap_incremental_latest",
+        "arguments": []
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+    },
+  },
+}
+
+TRACE_ROOT = "/data/adam/"
+TRACE_DATASET = {
+  "tiny_trace": 
+  {
+    "dir": os.path.join(TRACE_ROOT, "tiny_trace"),
+    "num_files": 1,
+  },
+  "small_trace": {
+    "dir": os.path.join(TRACE_ROOT, "small_trace"),
+    "num_files": 1,
+  },
+}
+
+SECOND = 10**6 # 1 second in microseconds
+TRACE_START = 600*SECOND
+# timestamp of last event in trace
+TRACE_LENGTH = 2506199602822
+RUNTIME_MAX = 2**64 - 1
+
+def percentRuntime(p):
+  return TRACE_START + (TRACE_LENGTH - TRACE_START) * p
+
+INCREMENTAL_TESTS_ONLINE = {
+  "development_only_incremental_online": {
+    "trace": "tiny_trace",
+    "runtime": RUNTIME_MAX,
+    "iterations": 1,
+    "tests": {
+      "my": {
+        "implementation": "ap_incremental_latest",
+        "arguments": [],
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": [],
+      },
+    },
+  },
+}
+
+TESTS = mergeDicts([FULL_TESTS, INCREMENTAL_TESTS_OFFLINE, INCREMENTAL_TESTS_ONLINE], 
+                   ["full", "incremental_offline", "incremental_online"])

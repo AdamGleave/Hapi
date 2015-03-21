@@ -8,7 +8,7 @@ import config.incremental as config
 import common
   
 def runReferenceCommand(testcase):
-  snapshots = config.SNAPSHOT_CREATOR_PROGRAM.bake()
+  snapshots = config.SNAPSHOT_CREATOR_PROGRAM
   command = config.SNAPSHOT_SOLVER_PROGRAM.bake(
       config.REFERENCE_PROGRAM_PATH, *config.REFERENCE_PROGRAM_ARGUMENTS)
   # output can be BIG, Python slow. This significantly speeds up computation.

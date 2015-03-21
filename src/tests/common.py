@@ -1,3 +1,5 @@
+import config.common
+
 def extractSolution(command_res):
   solutions = []
   for line in command_res:
