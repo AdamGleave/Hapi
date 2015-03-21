@@ -9,10 +9,16 @@ HANDMADE_INCREMENTAL_DIR = os.path.join("clusters", "synthetic",
                                         "firmament", "incremental")
 GOOGLE_INCREMENTAL_DIR = os.path.join("clusters", "natural", "google_trace")
 TEST_CASES = {
-               os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j.in"): 
-                graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j_*")),
-               os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j.in"): 
-                 graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j_*")),
-               os.path.join(GOOGLE_INCREMENTAL_DIR, "tiny_trace.imin"): None,
-              os.path.join(GOOGLE_INCREMENTAL_DIR, "small_trace.imin"): None,
-             }
+  ### handmade data. tiny, but cover a lot of cases.
+  # 6 jobs
+  os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j.in"): 
+    graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j_*")),
+  # 10 jobs
+  os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j.in"): 
+    graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j_*")),
+  ### deltas from Google traces
+  # this one is quick
+  os.path.join(GOOGLE_INCREMENTAL_DIR, "tiny_trace.imin"): None,
+  # this one is quite large (~20M) and will take a while
+  os.path.join(GOOGLE_INCREMENTAL_DIR, "small_trace.imin"): None,
+}
