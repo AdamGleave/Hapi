@@ -9,7 +9,7 @@ import common
   
 def runReferenceCommand(testcase):
   command_res = config.SNAPSHOT_SOLVER_PROGRAM(
-     config.SNAPSHOT_CREATOR_PROGRAM(_in=testcase()), # pipe output into solver
+     config.SNAPSHOT_CREATOR_PROGRAM(_in=testcase(), _piped=True),
      config.REFERENCE_PROGRAM_PATH, *config.REFERENCE_PROGRAM_ARGUMENTS)
   return common.extractSolution(command_res)
 
