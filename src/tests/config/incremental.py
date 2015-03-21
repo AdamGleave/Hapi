@@ -6,7 +6,7 @@ SNAPSHOT_CREATOR_PROGRAM_PATH = os.path.join(EXECUTABLE_DIR,
 SNAPSHOT_CREATOR_PROGRAM = sh.Command(SNAPSHOT_CREATOR_PROGRAM_PATH)
 
 # Program to run full solver repeatedly for each snapshot
-SNAPSHOT_SOLVER_PROGRAM_PATH  = os.path.join(EXECUTABLE_SRC_DIR,
+SNAPSHOT_SOLVER_PROGRAM_PATH  = os.path.join(EXECUTABLE_DIR,
                                              "snapshot_solver")
 SNAPSHOT_SOLVER_PROGRAM = sh.Command(SNAPSHOT_SOLVER_PROGRAM_PATH)
 
