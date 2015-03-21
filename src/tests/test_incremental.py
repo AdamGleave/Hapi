@@ -8,20 +8,20 @@ import config.incremental as config
 import common
   
 def runReferenceCommand(testcase):
-  input_data = testcase.bake(_piped=True)
-  snapshots = config.SNAPSHOT_CREATOR_PROGRAM.bake(input_data, _piped=True)
-  command = config.SNAPSHOT_SOLVER_PROGRAM.bake(snapshots,
-     config.REFERENCE_PROGRAM_PATH, *config.REFERENCE_PROGRAM_ARGUMENTS)
+  snapshots = config.SNAPSHOT_CREATOR_PROGRAM.bake()
+  command = config.SNAPSHOT_SOLVER_PROGRAM.bake(
+      config.REFERENCE_PROGRAM_PATH, *config.REFERENCE_PROGRAM_ARGUMENTS)
   # output can be BIG, Python slow. This significantly speeds up computation.
   # (Yes, this is a hack.)
-  #solution = sh.grep(command(_piped=True), "^s")
-  solution = command(_piped=True)
-  return common.extractSolution(command_res)
+  filter = sh.grep.bake("^s")
+  solution = filter(command(snapshots(testcase(_piped="direct"), _piped="direct"),
+                            _piped="direct"))
+  return common.extractSolution(solution)
 
 def runCommand(testcase, program):
-  command = program.bake(testcase(_piped=True))
-  solution = sh.grep(command(_piped=True), "s ")
-  return common.extractSolution(command_res)
+  filter = sh.grep.bake("^s")
+  solution = filter(program(testcase(_piped="direct"), _piped="direct"))
+  return common.extractSolution(solution)
 
 if __name__ == "__main__":
   for (main_graph_fname, delta_fnames) in config.TEST_CASES.items():
