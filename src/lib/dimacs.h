@@ -409,14 +409,19 @@ private:
 				if (upper_bound == 0) {
 					g.removeArc(src, dst);
 				} else {
+					bool done_something = false;
 					uint64_t current_upper_bound = arc->getCapacity();
 					if (current_upper_bound != upper_bound) {
 						g.changeArcCapacity(src, dst, upper_bound);
+						done_something = true;
 					}
 					int64_t current_cost = arc->getCost();
 					if (current_cost != cost) {
 						g.changeArcCost(src, dst, cost);
+						done_something = true;
 					}
+					LOG_IF(WARNING, !done_something) << "no-op arc change event "
+					    				                     << src << "->" << dst;
 				}
 			}
 			break;
