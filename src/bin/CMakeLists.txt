@@ -26,6 +26,9 @@ target_link_libraries(partial_incremental_min_cost PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(partial_incremental_min_cost PRIVATE ${GLOG_LIBRARY})
 target_link_libraries(partial_incremental_min_cost PUBLIC ${PROJECT_NAME_STR})
 
+add_executable (snapshot_solver snapshot_solver.cpp)
+target_link_libraries(snapshot_solver PRIVATE ${GLOG_LIBRARY})
+
 add_executable (dimacs_echo dimacs_echo.cpp)
 target_link_libraries (dimacs_echo LINK_PUBLIC ${PROJECT_NAME_STR})
 
