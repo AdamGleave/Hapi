@@ -22,5 +22,6 @@ TEST_CASES = {os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j.in"):
                 graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_6j_*")),
               os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j.in"): 
                 graphGlob(os.path.join(HANDMADE_INCREMENTAL_DIR, "graph_4m_2crs_10j_*")),
-              os.path.join(GOOGLE_INCREMENTAL_DIR, "tiny_trace.imin"): None
+              os.path.join(GOOGLE_INCREMENTAL_DIR, "tiny_trace.imin"): None,
+              os.path.join(GOOGLE_INCREMENTAL_DIR, "small_trace.imin"): None,
              }
