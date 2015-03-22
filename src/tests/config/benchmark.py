@@ -439,7 +439,8 @@ INCREMENTAL_TESTS_ONLINE = {
       },
     },
   },
-  "incremental_vs_cs_online": INCREMENTAL_TESTS_HYBRID["incremental_vs_cs_hybrid"]
+  "incremental_vs_cs_online": 
+    INCREMENTAL_TESTS_HYBRID["incremental_vs_cs_hybrid"].copy()
 }
 
 TESTS = mergeDicts(
