@@ -148,8 +148,7 @@ def createWrapperCommand(exe_path, arguments):
           _out=output_path, _iter="err")
   return runCommand
 
-def createTestInstance(instance, isIncremental=False):
-  # create instance
+def helperCreateTestInstance(instance):
   implementation_name = instance["implementation"]
   implementation = implementations[implementation_name]
   
@@ -159,25 +158,39 @@ def createTestInstance(instance, isIncremental=False):
                           implementation["path"])
   arguments = implementation["arguments"] + instance["arguments"]
   
-  native = sh.Command(exe_path).bake(*arguments)
-  solver_type = implementation["type"]
-  test_command = None
-  if isIncremental:
-    if solver_type == "full":
-      test_command = createWrapperCommand(exe_path, arguments)
-    elif solver_type == "incremental":
-      test_command = createNativeCommand(exe_path, arguments)
-    else: 
-      error("Unrecognised implementation type ", implementation)
-  else:
-    if solver_type == "full":
-      test_command = createNativeCommand(exe_path, arguments)
-    else:
-      error("Illegal solver type ", solver_type, "for full test")
-      
-  return (test_command, version_directory)
+  return {"implementation": implementation,
+          "version_directory": version_directory,
+          "exe_path": exe_path,
+          "arguments": arguments}
 
-def runTestInstance(test_command, log_directory, fname, iteration):
+def createFullTestInstance(instance, isIncremental=False):
+  parameters = helperCreateTestInstance(instance)
+  
+  solver_type = parameters["implementation"]["type"]
+  if solver_type == "full":
+    test_command = createNativeCommand(parameters["exe_path"],
+                                       parameters["arguments"])
+    return (test_command, parameters["version_directory"])
+  else:
+    error("Illegal solver type ", solver_type, "for full test")
+
+def createIncrementalTestInstance(instance, isIncremental=False):
+  parameters = helperCreateTestInstance(instance)
+  
+  solver_type = parameters["implementation"]["type"]
+  exe_path = parameters["exe_path"]
+  arguments = parameters["arguments"]
+  test_command = None
+  if solver_type == "full":
+    test_command = createWrapperCommand(exe_path, arguments)
+  elif solver_type == "incremental":
+    test_command = createNativeCommand(exe_path, arguments)
+  else: 
+    error("Unrecognised implementation type ", implementation)
+      
+  return (test_command, parameters["version_directory"])
+
+def runTestInstance(test_name, test_command, log_directory, fname, iteration):
   input_path = os.path.join(config.DATASET_ROOT, fname)
   dirname = os.path.relpath(input_path, config.DATASET_ROOT)
   log_subdirectory = os.path.join(log_directory, dirname)
@@ -188,9 +201,9 @@ def runTestInstance(test_command, log_directory, fname, iteration):
       # directory already created if not first time we've been run
       pass
     
-    prefix = fname + "_" + str(iteration)
-    out_path = os.path.join(log_directory, prefix + ".out")
-    err_path = os.path.join(log_directory, prefix + ".err")
+    prefix = test_name + "_" + str(iteration)
+    out_path = os.path.join(log_subdirectory, prefix + ".out")
+    err_path = os.path.join(log_subdirectory, prefix + ".err")
     with open(err_path, 'w') as err_file:      
       running_command = test_command(input_file, out_path)
       
@@ -226,18 +239,20 @@ def runFullTest(case_name, case_config, result_file):
   result_writer.writeheader()
   iterations = case_config["iterations"]
   
+  tests = case_config["tests"]
+  test_instances = {test_name : createFullTestInstance(tests[test_name])
+                   for test_name in tests}
+  
   for fname in case_config["files"]:
     print("\t", fname, ": ", end="")
     
     for i in range(iterations):
       print(i, " ", end="")
       
-      tests = case_config["tests"]
-      test_instances = {test_name : createTestInstance(tests[test_name])
-                       for test_name in tests}
       for test_name, (test_command, version_directory) in test_instances.items():
         log_directory = os.path.join(version_directory, "log", case_name)
-        times = list(runTestInstance(test_command, log_directory, fname, i))
+        run = runTestInstance(test_name, test_command, log_directory, fname, i)
+        times = list(run)
         
         assert(len(times) == 1)
         algorithm_time, time_elapsed = times[0]
@@ -259,22 +274,22 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
   result_writer.writeheader()
   iterations = case_config["iterations"]
   
+  tests = case_config["tests"]
+  test_instances = {test_name : createIncrementalTestInstance(tests[test_name])
+                   for test_name in tests}
+  
   for fname in case_config["files"]:
     print("\t", fname, ": ", end="")
     
     for i in range(iterations):
       print(i, " ", end="")
       
-      tests = case_config["tests"]
-      test_instances = {test_name : createTestInstance(tests[test_name], 
-                                                       isIncremental=True)
-                       for test_name in tests}
       for test_name, (test_command, version_directory) in test_instances.items():
         log_directory = os.path.join(version_directory, "log", case_name)
         
         delta_id = 0
         for (algorithm_time, time_elapsed) in \
-                         runTestInstance(test_command, log_directory, fname, i):
+              runTestInstance(test_name, test_command, log_directory, fname, i):
           result = { "test": test_name,
                      "file": fname,
                      "delta_id": delta_id, 
@@ -287,9 +302,102 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
         
     print("")
 
+def runSimulator(case_name, test_name, test_instance,
+                 trace_name, trace_config, trace_spec, iteration):
+  parameters = helperCreateTestInstance(test_instance)
+  log_directory = os.path.join(parameters["version_directory"], "log",
+                               case_name, trace_name)
+  
+  solver_type = parameters["implementation"]["type"]
+  incremental = None
+  if solver_type == "full":
+    incremental = False
+  elif solver_type == "incremental":
+    incremental = True
+  else:
+    error("Unrecognised solver type ", solver_type)
+  
+  simulator = config.GOOGLE_TRACE_SIMULATOR
+  
+  ### Configuration for the trace  
+  simulator = simulator.bake("-trace_path", trace_spec["dir"])
+  simulator = simulator.bake("-runtime", trace_config["runtime"])
+  simulator = simulator.bake("-num_files_to_process", trace_spec["num_files"])
+  
+  ### Configuration for the solver
+  simulator = simulator.bake("-flow_scheduling_binary", parameters["exe_path"])
+  simulator = simulator.bake("-flow_scheduling_args", 
+                             " ".join(parameters["arguments"]))
+  simulator = simulator.bake("-incremental_flow", incremental)
+  
+  ### Setup pipe for statistics output from the simulator
+  (stats_read, stats_write) = os.pipe()
+  stats_file = os.fdopen(stats_read, 'r')
+  simulator.bake("-stats_file", "/dev/fd/" + str(stats_write))
+  
+  ### Set up logging
+  try:
+    os.makedirs(log_directory)
+  except OSError:
+    # directory already created if not first time we've been run
+    pass
+  
+  prefix = test_name + "_" + str(iteration)
+  out_path = os.path.join(log_directory, prefix + ".out")
+  err_path = os.path.join(log_directory, prefix + ".err")
+  
+  ### Run the simulator and parse output
+  running_simulator = simulator(_out=out_path, _err=err_path)
+  
+  fieldnames = ["cluster_timestamp", "algorithm_time", 
+                "flowsolver_time", "total_time"]
+  csv_reader = csv.DictReader(stats_file, fieldnames)
+  for row in csv_reader:
+    yield row
+  
+  ### Clean up  
+  close(stats_file)
+  os.close(stats_read)
+  os.close(stats_write)
+  
+  if running_command.exit_code != 0:
+    raise ExitCodeException(result.exit_code)
+
 def runIncrementalOnlineTest(case_name, case_config, result_file):
-  # TODO
-  error("Unsupported.")
+  fieldnames = ["test", "trace", "delta_id", "cluster_timestamp", "iteration",
+                "algorithm_time", "flowsolver_time", "total_time"]
+  result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
+  result_writer.writeheader()
+  
+  
+  iterations = case_config["iterations"]
+  tests = case_config["tests"]
+  
+  for trace_config in case_config["traces"]:
+    trace_name = trace_config["name"]
+    trace_spec = config.TRACE_DATASET[trace_name]
+    
+    print("\t", trace_name, ": ", end="")
+    
+    for i in range(iterations):
+      print(i, " ", end="")
+      
+      for (test_name, test_instance) in tests.items():
+        for row in runSimulator(case_name, test_name, test_instance,
+                                trace_name, trace_config, trace_spec, i):
+          result = { "test": test_name,
+                     "trace": trace_name,
+                     "delta_id": delta_id, 
+                     "iteration": i,
+                     "cluster_timestamp": row["cluster_timestamp"],
+                     "algorithm_time": row["algorithm_time"],
+                     "flowsolver_time": row["flowsolver_time"],
+                     "total_time": row["total_time"] }
+          result_writer.writerow(result)
+          result_file.flush()
+          delta_id += 1
+        
+    print("")
 
 def runTests(tests):
   for case_name, case_config in tests.items():

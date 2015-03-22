@@ -3,12 +3,13 @@
 # Example config file
 # Mock-up only
 
-import os
+import os, sh
 
 from config.common import *
 
 WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
 RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
+FIRMAMENT_ROOT = os.path.join(PROJECT_ROOT, "..", "firmament")
 MAKE_FLAGS = []
 
 try:
@@ -16,6 +17,12 @@ try:
   from config.benchmark_local import *
 except ImportError:
   pass
+
+##### Executables
+ 
+GOOGLE_TRACE_SIMULATOR_PATH = os.path.join(FIRMAMENT_ROOT, 
+                      "build", "sim", "trace-extract", "google_trace_simulator")
+GOOGLE_TRACE_SIMULATOR = sh.Command(GOOGLE_TRACE_SIMULATOR_PATH)
 
 ##### Dataset
 
@@ -366,8 +373,12 @@ def percentRuntime(p):
 
 INCREMENTAL_TESTS_ONLINE = {
   "development_only_incremental_online": {
-    "trace": "tiny_trace",
-    "runtime": RUNTIME_MAX,
+    "traces": [
+      {
+       "name": "tiny_trace",
+       "runtime": RUNTIME_MAX
+      },
+    ],
     "iterations": 1,
     "tests": {
       "my": {
