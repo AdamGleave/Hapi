@@ -371,6 +371,53 @@ RUNTIME_MAX = 2**64 - 1
 def percentRuntime(p):
   return TRACE_START + (TRACE_LENGTH - TRACE_START) * p
 
+INCREMENTAL_TESTS_HYBRID = {
+  "development_only_incremental_hybrid": {
+    "traces": [
+      {
+       "name": "tiny_trace",
+       "runtime": RUNTIME_MAX
+      },
+    ],
+    "granularity": 10, # in microseconds
+    "iterations": 3,
+    "tests": {
+      "my": {
+        "implementation": "ap_incremental_latest",
+        "arguments": [],
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": [],
+      },
+    },
+  },        
+  "incremental_vs_cs_hybrid": {
+    "traces": [
+      {
+        "name": "small_trace",
+        "runtime": RUNTIME_MAX
+      },
+    ],
+    "granularity": 10, # in microseconds
+    "iterations": 5,
+    "tests": {
+      "my_incremental": {
+        "implementation": "ap_incremental_latest",
+        "arguments": []
+      },
+      "my_costscaling": {
+        "implementation": "cs_latest",
+        "arguments": []
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+    },
+  },                    
+}
+
 INCREMENTAL_TESTS_ONLINE = {
   "development_only_incremental_online": {
     "traces": [
@@ -392,31 +439,12 @@ INCREMENTAL_TESTS_ONLINE = {
       },
     },
   },
-  "incremental_vs_cs_online": {
-    "traces": [
-     {
-       "name": "small_trace",
-       "runtime": RUNTIME_MAX
-      },
-    ],
-    "granularity": 10, # in microseconds
-    "iterations": 5,
-    "tests": {
-      "my_incremental": {
-        "implementation": "ap_incremental_latest",
-        "arguments": []
-      },
-      "my_costscaling": {
-        "implementation": "cs_latest",
-        "arguments": []
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-        "arguments": []
-      },
-    },
-  },
+  "incremental_vs_cs_online": INCREMENTAL_TESTS_HYBRID["incremental_vs_cs_hybrid"]
 }
 
-TESTS = mergeDicts([FULL_TESTS, INCREMENTAL_TESTS_OFFLINE, INCREMENTAL_TESTS_ONLINE], 
-                   ["full", "incremental_offline", "incremental_online"])
+TESTS = mergeDicts(
+  [FULL_TESTS, 
+   INCREMENTAL_TESTS_OFFLINE, 
+   INCREMENTAL_TESTS_HYBRID,
+   INCREMENTAL_TESTS_ONLINE], 
+  ["full", "incremental_offline", "incremental_hybrid", "incremental_online"])

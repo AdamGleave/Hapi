@@ -190,20 +190,25 @@ def createIncrementalTestInstance(instance, isIncremental=False):
       
   return (test_command, parameters["version_directory"])
 
-def runTestInstance(test_name, test_command, log_directory, fname, iteration):
+def runTestInstance(test_name, test_command, log_directory, fname, iteration,
+                    log_fname=None):
   input_path = os.path.join(config.DATASET_ROOT, fname)
-  dirname = os.path.relpath(input_path, config.DATASET_ROOT)
-  log_subdirectory = os.path.join(log_directory, dirname)
+  
+  if not log_fname:
+    log_fname = fname
+  log_subpath = os.path.join(config.DATASET_ROOT, log_fname)
+  dirname = os.path.relpath(log_subpath, config.DATASET_ROOT)
+  log_directory = os.path.join(log_directory, dirname)
   with open(input_path, 'r') as input_file:
     try:
-      os.makedirs(log_subdirectory)
+      os.makedirs(log_directory)
     except OSError:
       # directory already created if not first time we've been run
       pass
     
-    prefix = test_name + "_" + str(iteration)
-    out_path = os.path.join(log_subdirectory, prefix + ".out")
-    err_path = os.path.join(log_subdirectory, prefix + ".err")
+    prefix = test_name + "-offline_" + str(iteration)
+    out_path = os.path.join(log_directory, prefix + ".out")
+    err_path = os.path.join(log_directory, prefix + ".err")
     with open(err_path, 'w') as err_file:      
       running_command = test_command(input_file, out_path)
       
@@ -303,7 +308,8 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
     print("")
 
 def runSimulator(case_name, case_config, test_name, test_instance,
-                 trace_name, trace_config, trace_spec, iteration):
+                 trace_name, trace_config, trace_spec, iteration, 
+                 stats=False, generate_deltas=False):
   parameters = helperCreateTestInstance(test_instance)
   log_directory = os.path.join(parameters["version_directory"], "log",
                                case_name, trace_name)
@@ -344,35 +350,98 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     # directory already created if not first time we've been run
     pass
   
-  prefix = test_name + "_" + str(iteration)
+  prefix = test_name + "-online_" + str(iteration)
   out_path = os.path.join(log_directory, prefix + ".out")
   err_path = os.path.join(log_directory, prefix + ".err")
   
+  ### Record deltas for offline tests
+  if generate_deltas:
+    delta_file = os.path.join(log_directory, prefix + ".imin") 
+    simulator = simulator.bake("-graph_output_file", delta_file)
+    yield delta_file
+  
   ### Setup pipe for statistics output from the simulator
-  fifo_path = os.path.join(log_directory, prefix + ".stats_fifo")
-  if os.path.exists(fifo_path):
-    print("WARNING: removing stale FIFO ", fifo_path)
-    os.unlink(fifo_path)
-  os.mkfifo(fifo_path)
-  simulator = simulator.bake("-stats_file", fifo_path)
+  if stats:
+    fifo_path = os.path.join(log_directory, prefix + ".stats_fifo")
+    if os.path.exists(fifo_path):
+      print("WARNING: removing stale FIFO ", fifo_path)
+      os.unlink(fifo_path)
+    os.mkfifo(fifo_path)
+    simulator = simulator.bake("-stats_file", fifo_path)
   
   ### Run the simulator and parse output
   with open(err_path, 'w') as err_file:
     print("Executing ", simulator, file=err_file)
-    running_simulator = simulator(_out=out_path, _err=err_file, _bg=True)
+    running_simulator = simulator(_out=out_path, _err=err_file.buffer, _bg=True)
   
-    with open(fifo_path, 'r') as stats_file:
-      csv_reader = csv.DictReader(stats_file)
-      for row in csv_reader:
-        yield row
+    if stats:
+      with open(fifo_path, 'r') as stats_file:
+        csv_reader = csv.DictReader(stats_file)
+        for row in csv_reader:
+          yield row
     
     running_simulator.wait()
   
   ### Clean up  
-  os.unlink(fifo_path)
+  if stats:
+    os.unlink(fifo_path)
   
   if running_simulator.exit_code != 0:
     raise ExitCodeException(result.exit_code)
+
+def runIncrementalHybridTest(case_name, case_config, result_file): 
+  fieldnames = ["test", "trace", "delta_id", 
+                "iteration", "algorithm_time", "total_time"]
+  result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
+  result_writer.writeheader()
+  iterations = case_config["iterations"]
+  
+  tests = case_config["tests"]
+  test_instances = {test_name : createIncrementalTestInstance(tests[test_name])
+                   for test_name in tests}
+  
+  for trace_config in case_config["traces"]:
+    trace_name = trace_config["name"]
+    trace_spec = config.TRACE_DATASET[trace_name]
+    trace_files = {}
+    
+    print("\t", trace_name, " - online: ", end="")
+    
+    for (test_name, test_instance) in tests.items(): 
+      result = runSimulator(case_name, case_config, test_name, test_instance,
+                  trace_name, trace_config, trace_spec, 0, generate_deltas=True)
+      result = list(result)
+      assert(len(result) == 1)
+      
+      trace_files[test_name] = result[0]
+      
+      print(test_name, end=" ")
+        
+    print("/ offline: ", end="")
+    for i in range(iterations):
+      print(i, " ", end="")
+      
+      for test_name, (test_command, version_directory) in test_instances.items():
+        log_directory = os.path.join(version_directory, "log", case_name)
+        
+        delta_id = 0
+        input_graph = trace_files[test_name]
+        log_fname = os.path.relpath(os.path.join(log_directory, test_name),
+                                    input_graph)
+        for (algorithm_time, time_elapsed) in runTestInstance(
+                                         test_name, test_command, log_directory,
+                                         input_graph, i, log_fname=log_fname):
+          result = { "test": test_name,
+                     "trace": trace_name,
+                     "delta_id": delta_id, 
+                     "iteration": i,
+                     "algorithm_time": algorithm_time,
+                     "total_time": time_elapsed }
+          result_writer.writerow(result)
+          result_file.flush()
+          delta_id += 1
+        
+    print("")
 
 def runIncrementalOnlineTest(case_name, case_config, result_file):
   fieldnames = ["test", "trace", "delta_id", "cluster_timestamp", "iteration",
@@ -395,7 +464,7 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
       for (test_name, test_instance) in tests.items():
         row_number = 0
         for row in runSimulator(case_name, case_config, test_name, test_instance,
-                                trace_name, trace_config, trace_spec, i):
+                           trace_name, trace_config, trace_spec, i, stats=True):
           result = { "test": test_name,
                      "trace": trace_name,
                      "delta_id": row_number, 
@@ -421,6 +490,8 @@ def runTests(tests):
         runFullTest(case_name, case_config, result_file)
       elif test_type == "incremental_offline":
         runIncrementalOfflineTest(case_name, case_config, result_file)
+      elif test_type == "incremental_hybrid":
+        runIncrementalHybridTest(case_name, case_config, result_file)
       elif test_type == "incremental_online":
         runIncrementalOnlineTest(case_name, case_config, result_file)
       else:
