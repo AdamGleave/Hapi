@@ -357,15 +357,16 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   simulator = simulator.bake("-stats_file", fifo_path)
   
   ### Run the simulator and parse output
-  print("Executing ", simulator)
-  running_simulator = simulator(_out=out_path, _err=err_path, _bg=True)
+  with open(err_path, 'w') as err_file:
+    print("Executing ", simulator, file=err_file)
+    running_simulator = simulator(_out=out_path, _err=err_file, _bg=True)
   
-  with open(fifo_path, 'r') as stats_file:
-    csv_reader = csv.DictReader(stats_file)
-    for row in csv_reader:
-      yield row
-  
-  running_simulator.wait()
+    with open(fifo_path, 'r') as stats_file:
+      csv_reader = csv.DictReader(stats_file)
+      for row in csv_reader:
+        yield row
+    
+    running_simulator.wait()
   
   ### Clean up  
   os.unlink(fifo_path)
