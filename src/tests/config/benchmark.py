@@ -185,7 +185,7 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "incremental_min_cost",
     "path": "bin/incremental_min_cost",
-    "arguments": ["augmenting_path"]
+    "arguments": []
    },
 }
 
@@ -329,7 +329,7 @@ INCREMENTAL_TESTS_OFFLINE = {
       },
     },
   },
-  "incremental_vs_cs": {
+  "incremental_vs_cs_offline": {
     "files": INCREMENTAL_DATASET["google_small_trace"],
     "iterations": 10,
     "tests": {
@@ -388,6 +388,29 @@ INCREMENTAL_TESTS_ONLINE = {
       "goldberg": {
         "implementation": "cs_goldberg",
         "arguments": [],
+      },
+    },
+  },
+  "incremental_vs_cs_online": {
+    "traces": [
+     {
+       "name": "small_trace",
+       "runtime": RUNTIME_MAX
+      },
+    ],
+    "iterations": 5,
+    "tests": {
+      "my_incremental": {
+        "implementation": "ap_incremental_latest",
+        "arguments": []
+      },
+      "my_costscaling": {
+        "implementation": "cs_latest",
+        "arguments": []
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
       },
     },
   },
