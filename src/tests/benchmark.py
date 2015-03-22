@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import config.benchmark as config
-import sh, shutil, csv, os, sys, time
+import os, sys, time 
+import csv, hashlib, sh, shutil 
 
 def error(*args):
   print(*args, file=sys.stderr)
@@ -308,11 +309,11 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
     print("")
 
 def runSimulator(case_name, case_config, test_name, test_instance,
-                 trace_name, trace_config, trace_spec, iteration, 
-                 stats=False, generate_deltas=False):
+                 trace_name, trace_config, trace_spec, iteration, type):
+  assert(type == "hybrid" or type == "online")
+  
   parameters = helperCreateTestInstance(test_instance)
-  log_directory = os.path.join(parameters["version_directory"], "log",
-                               case_name, trace_name)
+  simulator = config.GOOGLE_TRACE_SIMULATOR
   
   solver_type = parameters["implementation"]["type"]
   incremental = None
@@ -322,8 +323,44 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     incremental = True
   else:
     error("Unrecognised solver type ", solver_type)
+    
+  ### Set up logging
+  log_directory = os.path.join(parameters["version_directory"], "log",
+                               case_name, trace_name)
+  try:
+    os.makedirs(log_directory)
+  except OSError:
+    # directory already created if not first time we've been run
+    pass
   
-  simulator = config.GOOGLE_TRACE_SIMULATOR
+  prefix = test_name + "-online_" + str(iteration)
+  out_path = os.path.join(log_directory, prefix + ".out")
+  err_path = os.path.join(log_directory, prefix + ".err")
+  
+  ### Record deltas for offline tests
+  if type == "hybrid":
+    trace_directory = os.path.join(parameters["version_directory"], "trace", 
+                                   trace_name, 
+                                   parameters["implementation"]["target"])
+    try:
+      os.makedirs(trace_directory)
+    except OSError:
+      # directory already created if not first time we've been run
+      pass
+    
+    # We must never generate the same trace path for two invocations which could
+    # produce *different* results. Different algorithms may certainly produce  
+    # different solutions, and hence different traces. Parameters may also 
+    # effect this. 
+    cli = " ".join([parameters["exe_path"]] + parameters["arguments"])
+    hash = hashlib.md5(cli.encode('utf-8'))
+    
+    delta_file = os.path.join(trace_directory, hash.hexdigest() + ".imin")
+    if os.path.exists(delta_file): 
+      yield (delta_file, "cached")
+    else:
+      yield (delta_file, "generating") 
+    simulator = simulator.bake("-graph_output_file", delta_file) 
   
   ### Configuration for the trace  
   simulator = simulator.bake("-trace_path", trace_spec["dir"])
@@ -342,26 +379,9 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   # as setting FLAGS_incremental_flow, and then a positional argument False.
   # So have to construct the argument string ourselves
   simulator = simulator.bake("-incremental_flow=" + str(incremental))
-    
-  ### Set up logging
-  try:
-    os.makedirs(log_directory)
-  except OSError:
-    # directory already created if not first time we've been run
-    pass
-  
-  prefix = test_name + "-online_" + str(iteration)
-  out_path = os.path.join(log_directory, prefix + ".out")
-  err_path = os.path.join(log_directory, prefix + ".err")
-  
-  ### Record deltas for offline tests
-  if generate_deltas:
-    delta_file = os.path.join(log_directory, prefix + ".imin") 
-    simulator = simulator.bake("-graph_output_file", delta_file)
-    yield delta_file
   
   ### Setup pipe for statistics output from the simulator
-  if stats:
+  if type == "online":
     fifo_path = os.path.join(log_directory, prefix + ".stats_fifo")
     if os.path.exists(fifo_path):
       print("WARNING: removing stale FIFO ", fifo_path)
@@ -374,7 +394,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     print("Executing ", simulator, file=err_file)
     running_simulator = simulator(_out=out_path, _err=err_file.buffer, _bg=True)
   
-    if stats:
+    if type == "online":
       with open(fifo_path, 'r') as stats_file:
         csv_reader = csv.DictReader(stats_file)
         for row in csv_reader:
@@ -383,7 +403,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     running_simulator.wait()
   
   ### Clean up  
-  if stats:
+  if type == "online":
     os.unlink(fifo_path)
   
   if running_simulator.exit_code != 0:
@@ -409,13 +429,15 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
     
     for (test_name, test_instance) in tests.items(): 
       result = runSimulator(case_name, case_config, test_name, test_instance,
-                  trace_name, trace_config, trace_spec, 0, generate_deltas=True)
+                  trace_name, trace_config, trace_spec, 0, type="hybrid")
       result = list(result)
       assert(len(result) == 1)
       
-      trace_files[test_name] = result[0]
-      
-      print(test_name, end=" ")
+      trace_files[test_name], status = result[0]
+          
+      print(test_name, 
+            "*" if status == "cached" else "",
+            sep="", end=" ")
         
     print("/ offline: ", end="")
     for i in range(iterations):
@@ -464,7 +486,7 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
       for (test_name, test_instance) in tests.items():
         row_number = 0
         for row in runSimulator(case_name, case_config, test_name, test_instance,
-                           trace_name, trace_config, trace_spec, i, stats=True):
+                           trace_name, trace_config, trace_spec, i, type="online"):
           result = { "test": test_name,
                      "trace": trace_name,
                      "delta_id": row_number, 
