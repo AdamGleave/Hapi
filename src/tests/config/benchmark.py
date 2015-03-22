@@ -379,6 +379,7 @@ INCREMENTAL_TESTS_ONLINE = {
        "runtime": RUNTIME_MAX
       },
     ],
+    "granularity": 10, # in microseconds
     "iterations": 1,
     "tests": {
       "my": {
@@ -398,6 +399,7 @@ INCREMENTAL_TESTS_ONLINE = {
        "runtime": RUNTIME_MAX
       },
     ],
+    "granularity": 10, # in microseconds
     "iterations": 5,
     "tests": {
       "my_incremental": {

@@ -302,7 +302,7 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
         
     print("")
 
-def runSimulator(case_name, test_name, test_instance,
+def runSimulator(case_name, case_config, test_name, test_instance,
                  trace_name, trace_config, trace_spec, iteration):
   parameters = helperCreateTestInstance(test_instance)
   log_directory = os.path.join(parameters["version_directory"], "log",
@@ -324,6 +324,9 @@ def runSimulator(case_name, test_name, test_instance,
   simulator = simulator.bake("-runtime", trace_config["runtime"])
   simulator = simulator.bake("-num_files_to_process", trace_spec["num_files"])
   
+  ### General parameters
+  simulator = simulator.bake("-bin_time_duration", case_config["granularity"])
+  
   ### Configuration for the solver
   simulator = simulator.bake("-flow_scheduling_binary", parameters["exe_path"])
   arguments = parameters["arguments"]
@@ -333,12 +336,7 @@ def runSimulator(case_name, test_name, test_instance,
   # as setting FLAGS_incremental_flow, and then a positional argument False.
   # So have to construct the argument string ourselves
   simulator = simulator.bake("-incremental_flow=" + str(incremental))
-  
-  ### Setup pipe for statistics output from the simulator
-  (stats_read, stats_write) = os.pipe()
-  stats_file = os.fdopen(stats_read, 'r')
-  simulator = simulator.bake("-stats_file", "/dev/fd/" + str(stats_write))
-  
+    
   ### Set up logging
   try:
     os.makedirs(log_directory)
@@ -350,24 +348,29 @@ def runSimulator(case_name, test_name, test_instance,
   out_path = os.path.join(log_directory, prefix + ".out")
   err_path = os.path.join(log_directory, prefix + ".err")
   
+  ### Setup pipe for statistics output from the simulator
+  fifo_path = os.path.join(log_directory, prefix + ".stats_fifo")
+  if os.path.exists(fifo_path):
+    print("WARNING: removing stale FIFO ", fifo_path)
+    os.unlink(fifo_path)
+  os.mkfifo(fifo_path)
+  simulator = simulator.bake("-stats_file", fifo_path)
+  
   ### Run the simulator and parse output
   print("Executing ", simulator)
-  running_simulator = simulator(_out=out_path, _err=err_path)
+  running_simulator = simulator(_out=out_path, _err=err_path, _bg=True)
   
-  fieldnames = ["cluster_timestamp", "algorithm_time", 
-                "flowsolver_time", "total_time"]
-  csv_reader = csv.DictReader(stats_file, fieldnames)
-  for row in csv_reader:
-    yield row
+  with open(fifo_path, 'r') as stats_file:
+    csv_reader = csv.DictReader(stats_file)
+    for row in csv_reader:
+      yield row
   
   running_simulator.wait()
   
   ### Clean up  
-  close(stats_file)
-  os.close(stats_read)
-  os.close(stats_write)
+  os.unlink(fifo_path)
   
-  if running_command.exit_code != 0:
+  if running_simulator.exit_code != 0:
     raise ExitCodeException(result.exit_code)
 
 def runIncrementalOnlineTest(case_name, case_config, result_file):
@@ -375,7 +378,6 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
                 "algorithm_time", "flowsolver_time", "total_time"]
   result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
   result_writer.writeheader()
-  
   
   iterations = case_config["iterations"]
   tests = case_config["tests"]
@@ -390,11 +392,12 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
       print(i, " ", end="")
       
       for (test_name, test_instance) in tests.items():
-        for row in runSimulator(case_name, test_name, test_instance,
+        row_number = 0
+        for row in runSimulator(case_name, case_config, test_name, test_instance,
                                 trace_name, trace_config, trace_spec, i):
           result = { "test": test_name,
                      "trace": trace_name,
-                     "delta_id": delta_id, 
+                     "delta_id": row_number, 
                      "iteration": i,
                      "cluster_timestamp": row["cluster_timestamp"],
                      "algorithm_time": row["algorithm_time"],
@@ -402,7 +405,7 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
                      "total_time": row["total_time"] }
           result_writer.writerow(result)
           result_file.flush()
-          delta_id += 1
+          row_number += 1
         
     print("")
 
