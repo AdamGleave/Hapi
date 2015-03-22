@@ -1930,7 +1930,7 @@ int main (int argc, char **argv)
   
   
   printf ("c time:  %15.2f     cost:  %15.0f\n", t, cost);
-  fprintf(stderr, "ALGOTIME: %f\n", t);
+  fprintf(stderr, "ALGOTIME: %.6f\n", t);
   
   printf ("c refines:    %10ld     discharges: %10ld\n",
 	  n_refine, n_discharge);
