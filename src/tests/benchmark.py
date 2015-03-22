@@ -326,14 +326,18 @@ def runSimulator(case_name, test_name, test_instance,
   
   ### Configuration for the solver
   simulator = simulator.bake("-flow_scheduling_binary", parameters["exe_path"])
-  simulator = simulator.bake("-flow_scheduling_args", 
-                             " ".join(parameters["arguments"]))
-  simulator = simulator.bake("-incremental_flow", incremental)
+  arguments = parameters["arguments"]
+  if arguments:
+    simulator = simulator.bake("-flow_scheduling_args", " ".join(arguments))
+  # Note "-incremental_flow False" will not work; GFlags will interpret this
+  # as setting FLAGS_incremental_flow, and then a positional argument False.
+  # So have to construct the argument string ourselves
+  simulator = simulator.bake("-incremental_flow=" + str(incremental))
   
   ### Setup pipe for statistics output from the simulator
   (stats_read, stats_write) = os.pipe()
   stats_file = os.fdopen(stats_read, 'r')
-  simulator.bake("-stats_file", "/dev/fd/" + str(stats_write))
+  simulator = simulator.bake("-stats_file", "/dev/fd/" + str(stats_write))
   
   ### Set up logging
   try:
@@ -347,6 +351,7 @@ def runSimulator(case_name, test_name, test_instance,
   err_path = os.path.join(log_directory, prefix + ".err")
   
   ### Run the simulator and parse output
+  print("Executing ", simulator)
   running_simulator = simulator(_out=out_path, _err=err_path)
   
   fieldnames = ["cluster_timestamp", "algorithm_time", 
@@ -354,6 +359,8 @@ def runSimulator(case_name, test_name, test_instance,
   csv_reader = csv.DictReader(stats_file, fieldnames)
   for row in csv_reader:
     yield row
+  
+  running_simulator.wait()
   
   ### Clean up  
   close(stats_file)
