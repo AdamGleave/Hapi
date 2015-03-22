@@ -21,7 +21,7 @@
 #include "dynamic_maintain_optimality.h"
 #include "dimacs.h"
 
-#define TIMER_FORMAT "ALGOTIME: %w\n"
+const static std::string TIMER_FORMAT = "ALGOTIME: %w\n";
 
 using namespace flowsolver;
 

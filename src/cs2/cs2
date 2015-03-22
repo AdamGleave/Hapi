@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# This may look useless. However, CS2 will not work when invoked directly by
+# the test suite, this fixes it. Unclear what causes this: the test suite works
+# fine with every other program.
+BASE_DIR=`dirname $BASH_SOURCE` 
+$BASE_DIR/cs2.exe $*

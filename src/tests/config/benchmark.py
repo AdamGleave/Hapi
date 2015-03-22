@@ -117,7 +117,7 @@ FULL_IMPLEMENTATIONS = {
    },
   "cs_goldberg": {
     "version": "master",
-    "target": "cs2",
+    "target": "cs2.exe",
     "path": "cs2/cs2",
     "arguments" : []
    },
