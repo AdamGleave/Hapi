@@ -20,4 +20,7 @@ TEST_GRAPHS = prefix_list("clusters",
                              ["graph_4m_2crs_8j.in", "graph_4m_2crs_10j.in",
                               "graph_100m_8j_100t_10p.in", 
                               "graph_1000m_32j_100t_10p.in"])
-              + ["natural/google_trace/google_all.in"])
+              + ["natural/google_trace/google_all.in"]) + \
+              prefix_list("general/synthetic",
+                          ["netgen/generated/netgen_sr_08a.min", 
+                           "natural/road_flow_01_DC_a.min"])
