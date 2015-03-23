@@ -8,32 +8,19 @@
 
 namespace flowsolver {
 
-RELAX::RELAX(ResidualNetwork &g)
-																						: g(g), num_nodes(g.getNumNodes()) {
-	potentials.assign(num_nodes + 1, 0);
-	predecessors.resize(num_nodes + 1);
-	// note flow is initially zero (default in ResidualNetwork),
-	// and potentials initialized to constant zero
+RELAX::RELAX(ResidualNetwork &g) : g(g) {
+	potentials.assign(g.getNumNodes() + 1, 0);
+
+	// note flow is initially zero (default in ResidualNetwork).
+	// potentials we initialize to zero explicitly.
 }
 
 RELAX::~RELAX() { }
 
-// TODO: code duplication
-// SOMEDAY(adam): potentially returning a big object, will compiler inline this?
-std::queue<Arc *> RELAX::predecessorPath
-			(uint32_t source, uint32_t sink, const std::vector<uint32_t>& parents) {
-	std::deque<Arc *> path;
-	uint32_t cur, prev;
-
-	cur = sink;
-	while (cur != source) {
-		prev = parents[cur];
-		Arc *arc = g.getArc(prev, cur);
-		path.push_front(arc);
-		cur = prev;
-	}
-
-	return std::queue<Arc *>(path);
+void RELAX::run() {
+	// create a pseudoflow satisfying reduced-cost optimality conditions
+  init();
+  reoptimize();
 }
 
 void RELAX::init() {
@@ -46,12 +33,6 @@ void RELAX::init() {
 			g.pushFlow(arc.getSrcId(), arc.getDstId(), arc.getCapacity());
 		}
 	}
-}
-
-void RELAX::run() {
-	// create a pseudoflow satisfying reduced-cost optimality conditions
-  init();
-  reoptimize();
 }
 
 // PRECONDITION: tree_nodes non-empty
@@ -192,12 +173,11 @@ void RELAX::adjust_potential() {
 }
 
 void RELAX::adjust_flow(uint32_t src, uint32_t dst) {
-	std::queue<Arc*> predecessor_path = predecessorPath(src, dst, predecessors);
-	ResidualNetworkUtil::augmentPath(g, predecessor_path);
-	// TODO: check we don't need to zero predecessors
+	ResidualNetworkUtil::augmentPath(g, src, dst, predecessors);
 }
 
-// currently used for debugging only: can check it agrees with computed value
+// unused. retained since it could be valuable for debugging (can check
+// computed value agrees with that computed online by update_residual_cut)
 uint64_t RELAX::compute_residual_cut() {
 	uint64_t tree_residual_cut = 0;
 	for (auto it = beginCutArcs(), end = endCutArcs(); it != end; ++it) {
@@ -236,7 +216,10 @@ void RELAX::update_residual_cut(uint32_t new_node) {
 
 // SOMEDAY(adam): handle networks with no feasible solutions elegantly
 void RELAX::reoptimize() {
-	// TODO: need to grow predecessors, etc. as graph grows
+	// do this here rather than in constructor, since number of nodes may change
+	// between runs. Note DynamicMaintainOptimality will resize potentials for us
+	predecessors.resize(g.getNumNodes() + 1);
+
 	const std::set<uint32_t> &sources = g.getSources();
 	while (!sources.empty()) {
 		// SOMEDAY: can we use a heuristic to choose the source to attain a speedup?
@@ -262,7 +245,6 @@ void RELAX::reoptimize() {
 		tree_residual_cut = 0;
 		update_residual_cut(source);
 
-		// TODO: don't need tree at all at this point, can simplify
 		if (tree_excess > tree_residual_cut) {
 			adjust_potential();
 			// this may have changed tree_residual_cut, recompute

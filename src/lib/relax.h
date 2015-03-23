@@ -69,9 +69,6 @@ private:
 	ResidualNetwork &g;
 	std::vector<uint64_t> potentials;
 	std::vector<uint32_t> predecessors;
-	// TODO: no longer constant
-	// update augmenting path too?
-	const uint32_t num_nodes;
 
 	std::set<uint32_t> tree_nodes;
 	uint64_t tree_excess;

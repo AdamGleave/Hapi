@@ -37,7 +37,6 @@ private:
 
 	ResidualNetwork &g;
 	std::vector<uint64_t> potentials;
-	const uint32_t num_nodes;
 };
 
 } /* namespace flowsolver */

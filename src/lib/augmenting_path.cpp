@@ -199,31 +199,13 @@ public:
 	}
 };
 
-AugmentingPath::AugmentingPath(ResidualNetwork &g)
-																						: g(g), num_nodes(g.getNumNodes()) {
-	potentials.assign(num_nodes + 1, 0);
+AugmentingPath::AugmentingPath(ResidualNetwork &g) : g(g) {
+	potentials.assign(g.getNumNodes() + 1, 0);
 	// note flow is initially zero (default in ResidualNetwork),
 	// and potentials initialized to constant zero
 }
 
 AugmentingPath::~AugmentingPath() { }
-
-// SOMEDAY(adam): potentially returning a big object, will compiler inline this?
-std::queue<Arc *> AugmentingPath::predecessorPath
-			(uint32_t source, uint32_t sink, const std::vector<uint32_t>& parents) {
-	std::deque<Arc *> path;
-	uint32_t cur, prev;
-
-	cur = sink;
-	while (cur != source) {
-		prev = parents[cur];
-		Arc *arc = g.getArc(prev, cur);
-		path.push_front(arc);
-		cur = prev;
-	}
-
-	return std::queue<Arc *>(path);
-}
 
 void AugmentingPath::init() {
 	// saturate all negative cost arcs, so they drop out of the residual network
@@ -275,8 +257,7 @@ void AugmentingPath::reoptimize() {
 		// augment flow along path
 		VLOG(1) << "Augmenting flow ";
 		const std::vector<uint32_t>& parents = shortest_paths.getParents();
-		std::queue<Arc*> augmenting_path = predecessorPath(source, sink, parents);
-		ResidualNetworkUtil::augmentPath(g, augmenting_path);
+		ResidualNetworkUtil::augmentPath(g, source, sink, parents);
 	}
 }
 
