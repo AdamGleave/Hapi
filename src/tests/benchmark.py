@@ -157,7 +157,9 @@ def helperCreateTestInstance(instance):
   exe_path = os.path.join(version_directory,
                           config.BUILD_ROOT,
                           implementation["path"])
-  arguments = implementation["arguments"] + instance["arguments"]
+  arguments = implementation["arguments"]
+  if "arguments" in instance:
+     arguments += instance["arguments"]
   
   return {"implementation": implementation,
           "version_directory": version_directory,

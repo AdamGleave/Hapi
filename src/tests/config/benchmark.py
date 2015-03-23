@@ -102,25 +102,31 @@ FULL_IMPLEMENTATIONS = {
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments" : ["cost_scaling"]
-   },
+  },
+  "relax_latest": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["relax"]
+  },
    "ap_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments" : ["augmenting_path"]
-   },
+  },
   "cc_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments" : ["cycle_cancelling"]
-   },
+  },
   "cs_goldberg": {
     "version": "master",
     "target": "cs2.exe",
     "path": "cs2/cs2",
     "arguments" : []
-   },
+  },
   "relax_frangioni": {
     "version": "master",
     "target": "RelaxIV",
@@ -144,31 +150,37 @@ FULL_IMPLEMENTATIONS = {
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments" : ["cost_scaling"]
-   },
+  },
    "parser_set": {
      "version": "04db7f8e109ab695f6bafc11d95a1cdd8646d6e3",
      "target": "find_min_cost",
      "path": "bin/find_min_cost",
      "arguments" : ["cost_scaling"]
-   },
+  },
    "ap_bigheap": {
      "version": "1540fc0",
      "target": "find_min_cost",
      "path": "bin/find_min_cost",
      "arguments" : ["augmenting_path"]
-   },
+  },
    "ap_smallheap_vector": {
      "version": "41c6852",
      "target": "find_min_cost",
      "path": "bin/find_min_cost",
      "arguments" : ["augmenting_path"]
-   },
+  },
    "ap_smallheap_map": {
      "version": "cd42c6e",
      "target": "find_min_cost",
      "path": "bin/find_min_cost",
      "arguments" : ["augmenting_path"]
-   },                
+  },
+  "relax_firstworking": {
+    "version": "f2cc904",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["relax"]
+  },                
 }
 
 LEMON_ALGOS = ["scc", "mmcc", "cat", "ssp", "cas", "cos", "ns"]
@@ -201,11 +213,9 @@ FULL_TESTS = {
     "tests": {
       "my": {
         "implementation": "cc_latest",
-        "arguments": []
       },
       "goldberg": {
         "implementation": "cs_goldberg",
-        "arguments": []
       },
     },
   },
@@ -215,11 +225,9 @@ FULL_TESTS = {
     "tests": {
       "wave": {
         "implementation": "cs_wave",
-        "arguments": []
       },
       "fifo": {
         "implementation": "cs_vertexqueue",
-        "arguments": []
       },
     },
   },
@@ -239,11 +247,9 @@ FULL_TESTS = {
     "tests": {
       "set": {
         "implementation": "parser_set",
-        "arguments": []
       },
       "getarc": {
         "implementation": "parser_getarc",
-        "arguments": []
       },
     },
   },
@@ -253,15 +259,12 @@ FULL_TESTS = {
     "tests": {
       "cost_scaling": {
         "implementation": "cs_latest",
-        "arguments": []
       },
       "my_augmenting_path": {
         "implementation": "ap_latest",
-        "arguments": []
       },
       "lemon_augmenting_path": {
         "implementation": "lemon_ssp",
-        "arguments": []
       }
     },
   },
@@ -282,15 +285,12 @@ FULL_TESTS = {
     "tests": {
       "big": {
         "implementation": "ap_bigheap",
-        "arguments": []
       },
       "small_vector": {
         "implementation": "ap_smallheap_vector",
-        "arguments": []
       },
       "small_map": {
         "implementation": "ap_smallheap_map",
-        "arguments": []
       },
     },
   },
@@ -300,18 +300,36 @@ FULL_TESTS = {
     "tests": {
       "goldberg": {
         "implementation": "cs_goldberg",
-        "arguments": []
       },
       "relaxiv": {
         "implementation": "relax_frangioni",
-        "arguments": []
       },
       "my_costscaling": {
         "implementation": "cs_latest",
-        "arguments": []
       },
     }
-  }
+  },
+  "relax": {
+    "files": FULL_DATASET["synthetic_small"],
+    "iterations": 3,
+    "tests": {
+      "relax_mine": {
+        "implementation": "relax_latest",
+      },  
+      "relax_original": {
+        "implementation": "relax_firstworking",
+      },
+      "ap_mine": {
+        "implementation": "ap_latest",
+      },
+      "cs_goldberg": {
+        "implementation": "cs_goldberg",
+      },
+      "relax_frangioni": {
+        "implementation": "relax_frangioni",
+      },
+    },
+  },
 }
 
 INCREMENTAL_TESTS_OFFLINE = {
@@ -321,11 +339,9 @@ INCREMENTAL_TESTS_OFFLINE = {
     "tests": {
       "my": {
         "implementation": "ap_incremental_latest",
-        "arguments": []
       },
       "goldberg": {
         "implementation": "cs_goldberg",
-        "arguments": []
       },
     },
   },
@@ -335,15 +351,12 @@ INCREMENTAL_TESTS_OFFLINE = {
     "tests": {
       "my_incremental": {
         "implementation": "ap_incremental_latest",
-        "arguments": []
       },
       "my_costscaling": {
         "implementation": "cs_latest",
-        "arguments": []
       },
       "goldberg": {
         "implementation": "cs_goldberg",
-        "arguments": []
       },
     },
   },
