@@ -153,7 +153,7 @@ public:
 		while (map_it == vec_it->end()) {
 			// end of map, go on to next value in vector
 			// (may need to do this repeatedly if maps are empty)
-			vec_it++;
+			++vec_it;
 			if (vec_it == g->arcs.end()) {
 				// no elements left to iterate over: end
 				break;

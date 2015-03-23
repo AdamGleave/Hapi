@@ -4,9 +4,11 @@ project(${PROJECT_NAME_STR} C CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
+set(GNU_LIKE_FLAGS "-Wall -Wextra -pedantic -std=c++11 -g")
 if(CMAKE_COMPILER_IS_GNUCXX)
-  # TODO: -O2 removed. Want to make optimisation and debug flags configurable
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -ansi -pedantic -std=c++11 -g")
+  set(CMAKE_CXX_FLAGS ${GNU_LIKE_FLAGS})
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS ${GNU_LIKE_FLAGS})
 endif()
 
 # treated as system include folder
