@@ -129,6 +129,22 @@ RELAX::cut_arcs_iterator RELAX::endCutArcs() {
 	return cut_arcs_iterator(*this, true);
 }
 
+ResidualNetwork::iterator RELAX::beginCacheCutArcs() {
+	return ResidualNetwork::iterator(&tree_cut_arcs);
+}
+
+ResidualNetwork::iterator RELAX::endCacheCutArcs() {
+	return ResidualNetwork::iterator(&tree_cut_arcs, true);
+}
+
+ResidualNetwork::const_iterator RELAX::beginCacheCutArcs() const {
+	return ResidualNetwork::const_iterator(&tree_cut_arcs);
+}
+
+ResidualNetwork::const_iterator RELAX::endCacheCutArcs() const {
+	return ResidualNetwork::const_iterator(&tree_cut_arcs, true);
+}
+
 int64_t RELAX::compute_reduced_cost(Arc *arc, bool allow_negative) {
 	uint32_t src_id = arc->getSrcId(), dst_id = arc->getDstId();
 	int64_t reduced_cost = arc->getCost()
@@ -180,16 +196,14 @@ void RELAX::adjust_flow(uint32_t src, uint32_t dst) {
 // computed value agrees with that computed online by update_residual_cut)
 uint64_t RELAX::compute_residual_cut() {
 	uint64_t tree_residual_cut = 0;
-	for (auto it = beginCutArcs(), end = endCutArcs(); it != end; ++it) {
-		Arc *arc = *it;
-		if (compute_reduced_cost(arc) == 0) {
-			tree_residual_cut += arc->getCapacity();
-		}
+	for (auto it = beginCacheCutArcs(), end = endCacheCutArcs(); it != end; ++it) {
+		const Arc &arc = *it;
+		tree_residual_cut += arc.getCapacity();
 	}
 	return tree_residual_cut;
 }
 
-void RELAX::update_residual_cut(uint32_t new_node) {
+void RELAX::update_cut(uint32_t new_node) {
 	std::unordered_map<uint32_t, Arc*> adjacencies = g.getAdjacencies(new_node);
 	for (auto it = adjacencies.begin(), end = adjacencies.end();
 			 it != end; ++it) {
@@ -200,21 +214,35 @@ void RELAX::update_residual_cut(uint32_t new_node) {
 		if (reduced_cost == 0) {
 			uint64_t dst_id = it->first;
 			if (tree_nodes.count(dst_id) == 0) {
-				// arc is from new_node to non-tree node
-				// so adding new_node to tree *increases* residual cut
-				tree_residual_cut += arc->getCapacity();
+				// arc is from new_node to non-tree node; so add to cut
+				int64_t capacity = arc->getCapacity();
+				if (capacity > 0) {
+					tree_residual_cut += arc->getCapacity();
+					tree_cut_arcs[new_node][dst_id] = arc;
+				} else {
+					// ignore -- not in residual network
+				}
 			} else {
-				// arc is from new_node to another tree node
-				// so adding new_node to tree *decreases* residual cut,
-				// since we can no longer include that arc in the sum
+				// arc is from new_node to another tree node; remove from cut
 				Arc *rev_arc = g.getArc(dst_id, new_node);
-				tree_residual_cut -= rev_arc->getCapacity();
+				int64_t capacity = rev_arc->getCapacity();
+				if (capacity > 0) {
+					tree_residual_cut -= rev_arc->getCapacity();
+					tree_cut_arcs[dst_id].erase(new_node);
+				} else {
+					// ignore -- not in residual network
+				}
 			}
 		}
 	}
 }
 
-// SOMEDAY(adam): handle networks with no feasible solutions elegantly
+void RELAX::reset_cut() {
+	tree_residual_cut = 0;
+	tree_cut_arcs.clear();
+	tree_cut_arcs.resize(g.getNumNodes() + 1);
+}
+
 void RELAX::reoptimize() {
 	// do this here rather than in constructor, since number of nodes may change
 	// between runs. Note DynamicMaintainOptimality will resize potentials for us
@@ -242,40 +270,40 @@ void RELAX::reoptimize() {
 
 		// sum of residual capacity of *zero reduced-cost* arcs from
 		// tree to non-tree nodes, i.e. crossing the tree cut.
-		tree_residual_cut = 0;
-		update_residual_cut(source);
+		reset_cut();
+		update_cut(source);
 
 		if (tree_excess > tree_residual_cut) {
 			adjust_potential();
 			// this may have changed tree_residual_cut, recompute
-			tree_residual_cut = 0;
-			update_residual_cut(source);
+			reset_cut();
+			update_cut(source);
 		}
 
 		while (tree_excess <= tree_residual_cut) {
 			// build the tree
 
-			// find an arc crossing the cut, with zero reduced cost
-			Arc *crossing_arc = NULL;
-			for (auto it = beginCutArcs(), end = endCutArcs(); it != end; ++it) {
-				Arc *arc = *it;
-				if (compute_reduced_cost(arc) == 0) {
-					// we've found what we were looking for
-					crossing_arc = arc;
+			ResidualNetwork::const_iterator it = beginCacheCutArcs(),
+					                            end = endCacheCutArcs();
+			for (;it != end; ++it) {
+				const Arc &arc = *it;
+				if (arc.getCapacity() > 0) {
 					break;
 				}
 			}
 
-			CHECK_NOTNULL(crossing_arc);
+			CHECK(it != end) << "no zero reduced cost arc crossing cut";
 
-			uint32_t dst_id = crossing_arc->getDstId();
+			const Arc &crossing_arc = *it;
+
+			uint32_t dst_id = crossing_arc.getDstId();
 			int64_t balance = g.getBalance(dst_id);
-			predecessors[dst_id] = crossing_arc->getSrcId();
+			predecessors[dst_id] = crossing_arc.getSrcId();
 			if (balance >= 0) {
 				// also an excess node, so can be added to tree
 				tree_nodes.insert(dst_id);
 
-				update_residual_cut(dst_id);
+				update_cut(dst_id);
 				tree_excess += balance;
 			} else {
 				// cannot build tree any further; adjust flows and end

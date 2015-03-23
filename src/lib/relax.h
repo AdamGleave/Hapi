@@ -47,9 +47,14 @@ private:
 
 	int64_t compute_reduced_cost(Arc *arc, bool allow_negative=false);
 	uint64_t compute_residual_cut();
-	void update_residual_cut(uint32_t new_node);
+	void reset_cut();
+	void update_cut(uint32_t new_node);
 	cut_arcs_iterator beginCutArcs();
 	cut_arcs_iterator endCutArcs();
+	ResidualNetwork::iterator beginCacheCutArcs();
+	ResidualNetwork::iterator endCacheCutArcs();
+	ResidualNetwork::const_iterator beginCacheCutArcs() const;
+	ResidualNetwork::const_iterator endCacheCutArcs() const;
 
 	void adjust_potential();
 	void adjust_flow(uint32_t src_id, uint32_t dst_id);
@@ -66,6 +71,8 @@ private:
 	std::set<uint32_t> tree_nodes;
 	uint64_t tree_excess;
 	uint64_t tree_residual_cut;
+	// TODO(adam): cache the ones with non-zero reduced cost too? (but separately)
+	std::vector<std::unordered_map<uint32_t, Arc*>> tree_cut_arcs;
 };
 
 } /* namespace flowsolver */

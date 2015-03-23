@@ -98,11 +98,9 @@ class ResidualNetwork::const_noconst_iterator : public std::iterator
 		 typename std::conditional<is_const_iterator, const Arc, Arc>::type>
 {
 private:
-	typedef typename std::conditional
-			<is_const_iterator, const ResidualNetwork *, ResidualNetwork *>
-					::type FlowNetworkType;
-	typedef typename std::conditional
-			<is_const_iterator, const Arc &, Arc &>::type ArcType;
+	typedef typename std::vector<std::unordered_map<uint32_t, Arc*>> AT;
+	typedef typename std::conditional<is_const_iterator, const AT, AT>::type
+			    *AdjacencyType;
 
 	typedef typename std::conditional<is_const_iterator,
 			std::vector<std::unordered_map<uint32_t, Arc*>>::const_iterator,
@@ -112,39 +110,40 @@ private:
 					std::unordered_map<uint32_t, Arc*>::const_iterator,
 						std::unordered_map<uint32_t, Arc*>::iterator>::type
 					MapIterator;
-	typename std::conditional<is_const_iterator, const Arc, Arc> value_type;
 
-	FlowNetworkType g;
+	AdjacencyType arcs;
 	VectorIterator vec_it;
 	MapIterator map_it;
 
 public:
-	const_noconst_iterator() : g(0) { }
+	typedef typename std::conditional<is_const_iterator, const Arc, Arc>::type value_type;
 
-	const_noconst_iterator(FlowNetworkType g) : g(g) {
-		vec_it = g->arcs.begin();
+	const_noconst_iterator() : arcs(0) { }
+
+	const_noconst_iterator(AdjacencyType arcs) : arcs(arcs) {
+		vec_it = arcs->begin();
 		map_it = vec_it->begin();
 
 		// The first element of the vector may be an empty map: if so, skip until
 		// we find an element. But if arcs is completely empty, do nothing.
-		if (vec_it != g->arcs.end()) {
-			// g->arcs not empty
+		if (vec_it != arcs->end()) {
+			// arcs not empty
 			nextValid();
 		}
 	}
 
-	const_noconst_iterator(FlowNetworkType g, bool) : g(g) {
+	const_noconst_iterator(AdjacencyType arcs, bool) : arcs(arcs) {
 		// for end sentinel
-		vec_it = g->arcs.end();
+		vec_it = arcs->end();
 	}
 
 	// Copy constructor. Implicit conversion from regular iterator to
 	// const_iterator.
 	const_noconst_iterator(const const_noconst_iterator<false>& other) :
-		g(other.g), vec_it(other.vec_it), map_it(other.map_it) {}
+		arcs(other.arcs), vec_it(other.vec_it), map_it(other.map_it) {}
 
-	ArcType operator*() const {
-		VLOG(3) << "Returning " << (vec_it - g->arcs.begin()) << "->" << map_it->first;
+	value_type &operator*() const {
+		VLOG(3) << "Returning " << (vec_it - arcs->begin()) << "->" << map_it->first;
 		return *(map_it->second);
 	}
 
@@ -154,7 +153,7 @@ public:
 			// end of map, go on to next value in vector
 			// (may need to do this repeatedly if maps are empty)
 			++vec_it;
-			if (vec_it == g->arcs.end()) {
+			if (vec_it == arcs->end()) {
 				// no elements left to iterate over: end
 				break;
 			}
@@ -179,7 +178,7 @@ public:
 	bool operator==(const const_noconst_iterator<is_const_iterator>& it)
 			const {
 		if (vec_it == it.vec_it) {
-			if (vec_it == g->arcs.end()) {
+			if (vec_it == arcs->end()) {
 				// End iterator not unique.
 				// The end sentinel has map_it set to default value.
 				// By contrast, the end iterator reached by successive

@@ -256,19 +256,19 @@ bool ResidualNetwork::validID(uint32_t id) const {
 }
 
 ResidualNetwork::iterator ResidualNetwork::begin() {
-	return iterator(this);
+	return iterator(&arcs);
 }
 
 ResidualNetwork::const_iterator ResidualNetwork::begin() const {
-	return const_iterator(this);
+	return const_iterator(&arcs);
 }
 
 ResidualNetwork::iterator ResidualNetwork::end() {
-	return iterator(this, true);
+	return iterator(&arcs, true);
 }
 
 ResidualNetwork::const_iterator ResidualNetwork::end() const {
-	return const_iterator(this, true);
+	return const_iterator(&arcs, true);
 }
 
 // this, the equality and inequality operator are only used by unit tests.
