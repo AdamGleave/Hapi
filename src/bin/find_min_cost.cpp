@@ -4,6 +4,7 @@
 #include "augmenting_path.h"
 #include "cost_scaling.h"
 #include "cycle_cancelling.h"
+#include "relax.h"
 
 #include <cstdint>
 #include <iostream>
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]) {
 	// match on command names
 	if (cmd == "augmenting_path") {
 		// augmenting_path command has no options
-		po::options_description desc("cycle cancelling options");
+		po::options_description desc("augmenting path options");
 		po::store(po::command_line_parser(opts).options(desc).run(), vm);
 
 		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
@@ -84,23 +85,7 @@ int main(int argc, char *argv[]) {
 		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
 
 		return 0;
-	} else if (cmd == "cycle_cancelling")
-	{
-		// cycle_cancelling command has no options
-		po::options_description desc("cycle cancelling options");
-		po::store(po::command_line_parser(opts).options(desc).run(), vm);
-
-		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
-		t.start();
-		CycleCancelling cc(*g);
-		cc.run();
-		t.stop();
-		t.report();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
-
-		return 0;
-	}
-	else if (cmd == "cost_scaling")
+	} else if (cmd == "cost_scaling")
 	{
 		// cost_scaling command options
 		po::options_description desc("cost scaling options");
@@ -161,6 +146,34 @@ int main(int argc, char *argv[]) {
 		delete cc;
 		LOG_IF(ERROR, !success) << "No feasible solution.";
 		DIMACSExporter<FlowNetwork>(*g, std::cout).writeFlow();
+
+		return 0;
+	} else if (cmd == "cycle_cancelling") {
+		// cycle_cancelling command has no options
+		po::options_description desc("cycle cancelling options");
+		po::store(po::command_line_parser(opts).options(desc).run(), vm);
+
+		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
+		t.start();
+		CycleCancelling cc(*g);
+		cc.run();
+		t.stop();
+		t.report();
+		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+
+		return 0;
+	} else if (cmd == "relax") {
+		// augmenting_path command has no options
+		po::options_description desc("relax options");
+		po::store(po::command_line_parser(opts).options(desc).run(), vm);
+
+		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
+		t.start();
+		RELAX ap(*g);
+		ap.run();
+		t.stop();
+		t.report();
+		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
 
 		return 0;
 	} else {

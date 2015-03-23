@@ -4,8 +4,9 @@ REFERENCE_PROGRAM = sh.Command(REFERENCE_PROGRAM_PATH) \
                     .bake(*REFERENCE_PROGRAM_ARGUMENTS)
                     
 TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "find_min_cost"))
-TEST_PROGRAM_ARGUMENTS = ["augmenting_path",
-                          "cost_scaling",
+TEST_PROGRAM_ARGUMENTS = [#"augmenting_path",
+                          #"cost_scaling",
+                          "relax",
                           #"cycle_cancelling"
                          ]
 

@@ -50,10 +50,16 @@ private:
 		std::unordered_map<uint32_t, Arc*>::const_iterator arcs_it, arcs_it_end;
 	};
 
+	void init();
+
+	int64_t compute_reduced_cost(Arc *arc, bool allow_negative=false);
+	uint64_t compute_residual_cut();
+	void update_residual_cut(uint32_t new_node);
 	cut_arcs_iterator beginCutArcs();
 	cut_arcs_iterator endCutArcs();
 
-	void init();
+	void adjust_potential();
+	void adjust_flow(uint32_t src_id, uint32_t dst_id);
 
 	// returns true if feasible solution exists, and updates g accordingly;
 	// false if no feasible solution, g left in undefined state
@@ -62,8 +68,14 @@ private:
 
 	ResidualNetwork &g;
 	std::vector<uint64_t> potentials;
+	std::vector<uint32_t> predecessors;
+	// TODO: no longer constant
+	// update augmenting path too?
 	const uint32_t num_nodes;
+
 	std::set<uint32_t> tree_nodes;
+	uint64_t tree_excess;
+	uint64_t tree_residual_cut;
 };
 
 } /* namespace flowsolver */
