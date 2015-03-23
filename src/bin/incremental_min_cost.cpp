@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 	std::cout.flush();
 
 	// now solve incremental problem
-	DynamicMaintainOptimality dynamic(*g, ap.getPotentials());
+	DynamicMaintainOptimality dynamic(*g, ap);
 	DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality>
 	                              incremental_importer(std::cin, dynamic);
 

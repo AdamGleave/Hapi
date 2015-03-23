@@ -13,13 +13,13 @@
 
 namespace flowsolver {
 
-void ResidualNetworkUtil::predecessorPath(ResidualNetwork &g,
+std::queue<Arc *> ResidualNetworkUtil::predecessorPath(ResidualNetwork &g,
 		         uint32_t src, uint32_t dst, const std::vector<uint32_t>& parents) {
 	std::deque<Arc *> path;
 	uint32_t cur, prev;
 
-	cur = sink;
-	while (cur != source) {
+	cur = dst;
+	while (cur != src) {
 		prev = parents[cur];
 		Arc *arc = g.getArc(prev, cur);
 		path.push_front(arc);
@@ -72,7 +72,7 @@ void ResidualNetworkUtil::augmentPath
 
 void ResidualNetworkUtil::augmentPath(ResidualNetwork &g,
 		         uint32_t src, uint32_t dst, const std::vector<uint32_t>& parents) {
-	std::queue<Arc *> path = predecessorPath(g);
+	std::queue<Arc *> path = predecessorPath(g, src, dst, parents);
 	augmentPath(g, path);
 }
 

@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 
 	std::string command = argv[1];
 	typedef DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality> DIMACSImporter;
-	DynamicMaintainOptimality dynamic(*g, ap.getPotentials());
+	DynamicMaintainOptimality dynamic(*g, ap);
 	if (command == "incremental") {
 		// now solve incremental problem
 		t.start();

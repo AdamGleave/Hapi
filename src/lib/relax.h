@@ -5,27 +5,20 @@
 #include <vector>
 #include <queue>
 
+#include "incremental_solver.h"
 #include "residual_network.h"
 
-// TODO: write an interface for reoptimization/dynamic algorithms
 namespace flowsolver {
 
-class RELAX {
+class RELAX : public IncrementalSolver {
 public:
 	explicit RELAX(ResidualNetwork &g);
 	virtual ~RELAX();
 
-	// Performs RELAX algorithm from 'cold', i.e. on a network that has
-	// just been loaded
 	void run();
-	// Performs RELAX algorithm, on a network that already has a
-	// pseudoflow satisfying the reduced-cost optimality conditions.
 	void reoptimize();
-
-	// TODO(adam): better way of exposing this?
-	// note this allows potentials to be mutated
-	// needed by DynamicMaintainOptimality
-	std::vector<uint64_t> &getPotentials() {
+protected:
+	virtual std::vector<uint64_t> &getPotentials() override {
 		return potentials;
 	}
 private:

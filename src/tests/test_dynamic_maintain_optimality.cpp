@@ -9,9 +9,16 @@
 #include <gtest/gtest.h>
 #include <glog/logging.h>
 
-#include "augmenting_path.h"
 #include "dimacs.h"
 #include "residual_network.h"
+
+// Ye gods, the horror. It's the least bad option, honest.
+#define protected public
+#define private public
+#include "augmenting_path.h"
+#include "incremental_solver.h"
+#undef private
+#undef protected
 
 using namespace flowsolver;
 
@@ -73,6 +80,22 @@ protected:
 	std::vector<uint64_t> potentials;
 };
 
+class DummySolver : public IncrementalSolver {
+public:
+	DummySolver(std::vector<uint64_t> &potentials) : potentials(potentials) {}
+	void run() {
+		// no-op
+	}
+	void reoptimize() {
+		// no-op
+	}
+	std::vector<uint64_t> &getPotentials() {
+		return potentials;
+	}
+private:
+	std::vector<uint64_t> &potentials;
+};
+
 TEST_P(DynamicMaintainOptimalityTest, OptimalityInvariant) {
 	for (std::string incremental_fname : GetParam().incremental_fnames) {
 		std::cout << "Testing " << incremental_fname << std::endl;
@@ -84,7 +107,8 @@ TEST_P(DynamicMaintainOptimalityTest, OptimalityInvariant) {
 		// make a copy of the state we're about to modify
 		ResidualNetwork copy_g(*g);
 		std::vector<uint64_t> copy_potentials(potentials);
-		DynamicMaintainOptimality dynamic(copy_g, copy_potentials);
+		DummySolver solver(copy_potentials);
+		DynamicMaintainOptimality dynamic(copy_g, solver);
 		typedef DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality> DIMACSImporter;
 		DIMACSImporter(incremental_file, dynamic).read();
 

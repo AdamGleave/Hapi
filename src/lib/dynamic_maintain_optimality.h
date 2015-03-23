@@ -11,6 +11,7 @@
 #ifndef LIB_DYNAMIC_MAINTAIN_OPTIMALITY_H_
 #define LIB_DYNAMIC_MAINTAIN_OPTIMALITY_H_
 
+#include "incremental_solver.h"
 #include "residual_network.h"
 
 namespace flowsolver {
@@ -20,9 +21,8 @@ public:
 	// TODO(adam): Can I generalize this to different types of networks?
 	// Note we assume the following sign convention for reduced cost:
 	// RC(u,v) = C(u,v) - potentials[u] + potentials[v]
-	DynamicMaintainOptimality(ResidualNetwork &g,
-			                      std::vector<uint64_t> &potentials)
-                            : g(g), potentials(potentials) {};
+	DynamicMaintainOptimality(ResidualNetwork &g, IncrementalSolver &solver)
+                                  : g(g), potentials(solver.getPotentials()) {};
 	virtual ~DynamicMaintainOptimality() {};
 
 	const std::set<uint32_t>& getSinks() const;
