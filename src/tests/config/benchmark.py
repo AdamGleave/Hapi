@@ -415,6 +415,32 @@ INCREMENTAL_TESTS_HYBRID = {
         "arguments": []
       },
     },
+  },
+  "incremental_vs_cs_quick": {
+    "traces": [
+      {
+        "name": "small_trace",
+        # this runtime corresponds to the first 10,000 events
+        "runtime": 3995607400
+      },
+    ],
+    "granularity": 10, # in microseconds
+    "percentage": 1, # percentage of events to retain
+    "iterations": 5,
+    "tests": {
+      "my_incremental": {
+        "implementation": "ap_incremental_latest",
+        "arguments": []
+      },
+      "my_costscaling": {
+        "implementation": "cs_latest",
+        "arguments": []
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+    },
   },                    
 }
 

@@ -366,6 +366,8 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   simulator = simulator.bake("-trace_path", trace_spec["dir"])
   simulator = simulator.bake("-runtime", trace_config["runtime"])
   simulator = simulator.bake("-num_files_to_process", trace_spec["num_files"])
+  if "percentage" in trace_config:
+    simulator = simulator.bake("-percentage", trace_config["percentage"])
   
   ### General parameters
   simulator = simulator.bake("-bin_time_duration", case_config["granularity"])
@@ -392,6 +394,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   ### Run the simulator and parse output
   with open(err_path, 'w') as err_file:
     print("Executing ", simulator, file=err_file)
+    err_file.flush()
     running_simulator = simulator(_out=out_path, _err=err_file.buffer, _bg=True)
   
     if type == "online":
