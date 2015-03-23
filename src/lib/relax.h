@@ -15,8 +15,8 @@ public:
 	explicit RELAX(ResidualNetwork &g);
 	virtual ~RELAX();
 
-	void run();
-	void reoptimize();
+	virtual void run() override;
+	virtual void reoptimize() override;
 protected:
 	virtual std::vector<uint64_t> &getPotentials() override {
 		return potentials;

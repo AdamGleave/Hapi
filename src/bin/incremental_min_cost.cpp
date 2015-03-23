@@ -4,6 +4,7 @@
  * of the solution. */
 
 #include "augmenting_path.h"
+#include "relax.h"
 
 #include <iostream>
 #include <fstream>
@@ -37,16 +38,37 @@ int main(int argc, char *argv[]) {
 			("debug-partial-dir", po::value<std::string>(),
 			 "debug option: enable generation of partial traces,"
 			 " that is the state of the flow network before reoptimization but after"
-			 " the incremental changes, maintaining optimality (but not feasibility)");
+			 " the incremental changes, maintaining optimality (but not feasibility)")
+			 ("command", po::value<std::string>(),
+				"command to execute: augmenting_path or relax.");
+
+	po::positional_options_description pos;
+	pos.add("command", 1);
+
 	po::variables_map vm;
+
 	po::parsed_options parsed = po::command_line_parser(argc, argv).
 				options(global).
+				positional(pos).
 				run();
 	po::store(parsed, vm);
 
 	if (vm.count("help")) {
 		std::cout << global << std::endl;
 		return 0;
+	}
+
+	if (!vm.count("command")) {
+		std::cerr << "must specify command" << std::endl;
+		std::cerr << global << std::endl;
+		return -1;
+	}
+
+	std::string cmd = vm["command"].as<std::string>();
+	if (cmd != "augmenting_path" && cmd != "relax") {
+		std::cerr << "unrecognised comand: " << cmd << std::endl;
+		std::cerr << global << std::endl;
+		return -1;
 	}
 
 	std::string partial_dir;
@@ -75,9 +97,17 @@ int main(int argc, char *argv[]) {
                                                               (std::cin).read();
 
 	// solve full problem
+	IncrementalSolver *is = NULL;
 	t.start();
-	AugmentingPath ap(*g);
-	ap.run();
+	if (cmd == "augmenting_path") {
+		is = new AugmentingPath(*g);
+	} else if (cmd == "relax") {
+		is = new RELAX(*g);
+	} else {
+		// should have been caught during command-line parsing
+		assert(false);
+	}
+	is->run();
 	t.stop(); t.report();
 
 	DIMACSExporter<ResidualNetwork> exporter(*g, std::cout);
@@ -86,7 +116,7 @@ int main(int argc, char *argv[]) {
 	std::cout.flush();
 
 	// now solve incremental problem
-	DynamicMaintainOptimality dynamic(*g, ap);
+	DynamicMaintainOptimality dynamic(*g, *is);
 	DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality>
 	                              incremental_importer(std::cin, dynamic);
 
@@ -105,7 +135,7 @@ int main(int argc, char *argv[]) {
 			partial_exporter.writeFlow();
 		}
 
-		ap.reoptimize();
+		is->reoptimize();
 		t.stop();
 		t.report();
 		exporter.writeFlow();

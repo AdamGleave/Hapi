@@ -10,10 +10,10 @@ namespace flowsolver {
 class IncrementalSolver {
 public:
 	// Runs algorithm from 'cold', i.e. on a network that has just been loaded.
-	void run();
+	virtual void run() = 0;
 	// Reoptimizes. Network must have a pseudoflow satisfying the reduced-cost
 	// optimality conditions.
-	void reoptimize();
+	virtual void reoptimize() = 0;
 
 protected:
 	virtual std::vector<uint64_t> &getPotentials() = 0;
