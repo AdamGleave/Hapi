@@ -2293,6 +2293,14 @@ inline void MCFClass::WriteMCF( ostream &oStrm , int frmt )
     oStrm << tm << endl;
     }
 
+   // output node information - - - - - - - - - - - - - - - - - - - - - - - -
+
+   for(  Index i = 0 ; i < MCFn() ; ) {
+    cFNumber Dfcti = MCFDfct( i++ );
+    if( Dfcti )
+     oStrm << "n\t" << i << "\t" << - Dfcti << endl;
+    }
+
    // output arc information- - - - - - - - - - - - - - - - - - - - - - - - -
 
    for(  Index i = 0 ; i < MCFm() ; i++ )
@@ -2309,14 +2317,6 @@ inline void MCFClass::WriteMCF( ostream &oStrm , int frmt )
       oStrm << "\t" << MCFQCoef( i );
 
      oStrm << endl;
-     }
-
-   // output node information - - - - - - - - - - - - - - - - - - - - - - - -
-
-   for(  Index i = 0 ; i < MCFn() ; ) {
-    cFNumber Dfcti = MCFDfct( i++ );
-    if( Dfcti )
-     oStrm << "n\t" << i << "\t" << - Dfcti << endl;
     }
 
    break;
