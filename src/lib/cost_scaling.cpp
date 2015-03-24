@@ -9,6 +9,8 @@
 #include <boost/format.hpp>
 #include <glog/logging.h>
 
+// this code is useful for debug, but not used otherwise
+/*
 namespace {
 
 using namespace flowsolver;
@@ -64,6 +66,7 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 }
 
 } // namespace (unnamed)
+*/
 
 namespace flowsolver {
 
