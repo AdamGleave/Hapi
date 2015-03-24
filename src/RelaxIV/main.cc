@@ -37,6 +37,8 @@
 #include <sstream>
 #include <string.h>
 
+#include <glog/logging.h>
+
 #include "RelaxIV.h"
 #define MCFSOLVER RelaxIV
 
@@ -146,6 +148,8 @@ void SetParam( MCFClass *mcf )
 
 int main( int argc , char **argv )
 {
+ FLAGS_logtostderr = true;
+ google::InitGoogleLogging(argv[0]);
  // reading command line parameters - - - - - - - - - - - - - - - - - - - - -
 
  if( argc == 2 && (strcmp(argv[1],"--help") == 0)) {

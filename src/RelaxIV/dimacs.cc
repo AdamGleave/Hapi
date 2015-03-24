@@ -222,9 +222,10 @@ bool DIMACS::processLine(char type, const char *remainder) {
 														 << line_num;
 		// TODO(adam): is this right? this is excess not supply, but I think
 		// DelNode will adjust everything so it'll work out OK
-		MCFClass::FNumber deficit = mcf->DelNode(id);
-		VLOG(1) << "REM: Increasing deficit at sink by " << deficit;
+		MCFClass::FNumber deficit = mcf->MCFDfct(id - 1);
 		changeSinkDeficit(deficit);
+		mcf->DelNode(id);
+		VLOG(1) << "REM: Increasing deficit at sink by " << deficit;
 
 		if (id + 1 == arc_table.size()) {
 			arc_table.resize(id);

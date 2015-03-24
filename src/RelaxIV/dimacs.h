@@ -11,7 +11,7 @@
 #include <glog/logging.h>
 #include <boost/algorithm/string.hpp>
 
-#include "RelaxIV.h"
+#include "RelaxIV_incremental.h"
 
 namespace flowsolver_bertsekas {
 

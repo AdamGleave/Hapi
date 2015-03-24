@@ -8,10 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define DYNMC_MCF_RIV 3
-
-#include "RelaxIV.h"
-#include "RelaxIV.cc"
+#include "RelaxIV_incremental.h"
 
 #include "dimacs.h"
 
