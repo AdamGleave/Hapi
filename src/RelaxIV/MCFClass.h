@@ -1877,9 +1877,11 @@ class MCFClass {
  Index m;      ///< total number of arcs
  Index mmax;   ///< maximum number of arcs
 
+public:
  int status;   ///< return status, see the comments to MCFGetStatus() above.
                ///< Note that the variable is defined int to allow derived
                ///< classes to return their own specialized status codes
+protected:
  bool Senstv;  ///< true <=> the latest optimal solution should be exploited
 
  OPTtimers *MCFt;   ///< timer for performances evaluation

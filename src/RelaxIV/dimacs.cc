@@ -136,6 +136,14 @@ void DIMACS::ReadInitial(MCFClass::Index *out_tn, MCFClass::Index *out_tm,
 		 tEndn[ i ]--;
 		#endif
 
+		if (tU[i] == 0) {
+			// zero lower bound. skip.
+			// read one fewer arc than we expected
+			tm--;
+			// breaking skips, as have not yet updated i
+			break;
+		}
+
 		arc_table[tStartn[i]][tEndn[i]] = i;
 		// TODO(adam): how to handle reverse arcs properly?
 		arc_table[tEndn[i]][tStartn[i]] = i;
@@ -315,6 +323,9 @@ bool DIMACS::processLine(char type, const char *remainder) {
 
 			if (upper_bound == 0) {
 				mcf->DelArc(index);
+				// clear reverse arc
+				arc_table[dst].erase(src);
+				// clear forward arc
 				adjacencies.erase(it);
 			} else {
 				bool done_something = false;

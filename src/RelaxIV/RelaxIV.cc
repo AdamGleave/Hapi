@@ -1892,7 +1892,8 @@ MCFClass::FNumber RelaxIV::DelNode(cIndex name)
   
   FNumber dfct = Dfct[node];
 
-  Dfct[ node ] = 0;
+  Dfct[node] = 0;
+  B[node] = 0;
 
   if( node == n )
    do
@@ -2154,16 +2155,21 @@ void RelaxIV::DelArc( cIndex name )
   Index arc = name;
   delarci( ++arc );
 
+  // this indicates arc is free
+  // we don't strictly need this in case arc == m, but good practice
+  Startn[ arc ] = Inf<Index>();
   if( arc == m ) {
-   while( arc && ( RC[ arc ] == Inf<CNumber>() ) )
+   // decrease length of arc list so that tail is a valid arc
+   while( arc && ( RC[ arc ] == Inf<CNumber>() ) ) {
     arc--;
+   }
  
    m = arc;
-   }
-
-  Startn[ arc ] = Inf<Index>();
-  Endn[ arc ] = ffp;
-  ffp = arc;
+  } else {
+   // update free-pointer list
+	 Endn[ arc ] = ffp;
+	 ffp = arc;
+  }
  #else
   throw(
    MCFException( "RelaxIV::DelArc() not implemented if DYNMC_MCF_RIV < 3"
