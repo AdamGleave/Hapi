@@ -1929,7 +1929,7 @@ void RelaxIV::AddNode( cIndex name, cFNumber aDfct ) {
 				n++;
 
 				if( n >= nmax ) {
-				  return( Inf<Index>() );
+					LOG(FATAL) << "Out of memory: nodes.";
 				}
 		} else if (name > n + 1) {
 			LOG(FATAL) << "Illegal: attempting to grow graph by more than one node."
@@ -1968,13 +1968,16 @@ void RelaxIV::AddNode( cIndex name, cFNumber aDfct ) {
 MCFClass::Index RelaxIV::AddNode( cFNumber aDfct )
 {
  #if( DYNMC_MCF_RIV > 1 )
+ Index index;
  auto begin = free_nodes.begin();
  if (begin == free_nodes.end()) {
 	 // no free nodes
-	 AddNode(n + 1, aDfct);
+	 index = n+1;
  } else {
-	 AddNode(*begin, aDfct);
+	 index = *begin;
  }
+ AddNode(index, aDfct);
+ return index;
  #else
   throw(
    MCFException( "RelaxIV::AddNode() not implemented if DYNMC_MCF_RIV < 2"

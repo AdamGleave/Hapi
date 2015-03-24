@@ -93,7 +93,6 @@ void DIMACS::ReadInitial(MCFClass::Index *out_tn, MCFClass::Index *out_tm,
 		do {
 			 if( ! is.get( c ) )
 					 LOG(FATAL) << "LoadDMX: error reading the input stream";
-			 fprintf(stderr, "%c", c);
 		} while( c != '\n' );
 		break;
 
@@ -194,7 +193,6 @@ bool DIMACS::ReadDelta() {
 
 void DIMACS::adjustSinkCapacity(int64_t delta) {
 	MCFClass::FNumber sink_excess = mcf->B[SINK_NODE];
-	CHECK_LE(sink_excess, 0);
 	mcf->ChgDfct(SINK_NODE, sink_excess + delta);
 }
 

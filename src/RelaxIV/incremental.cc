@@ -11,6 +11,8 @@
 #define DYNMC_MCF_RIV 3
 
 #include "RelaxIV.h"
+#include "RelaxIV.cc"
+
 #include "dimacs.h"
 
 using namespace flowsolver_bertsekas;
@@ -116,8 +118,8 @@ int main(int, char *argv[]) {
 	google::InitGoogleLogging(argv[0]);
 
 	// initialize relevant classes
-	DIMACS dimacs(std::cin);
 	RelaxIV *mcf = new RelaxIV();
+	DIMACS dimacs(std::cin, mcf);
 	mcf->SetMCFTime();  // do timing
 
 	// load initial network

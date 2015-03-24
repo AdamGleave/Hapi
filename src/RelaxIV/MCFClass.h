@@ -2228,7 +2228,7 @@ inline void MCFClass::CheckDSol( void )
 
  FONumber QdrtcCmpnt = 0;  // the quadratic part of the objective
  for( Index i = 0 ; i < MCFm() ; i++ ) {
-  if( IsClosedArc( i ) )
+  if(IsClosedArc( i ) || IsDeletedArc(i))
    continue;
 
   cFONumber tXi = FONumber( tX[ i ] );

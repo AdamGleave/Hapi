@@ -18,16 +18,12 @@ namespace flowsolver_bertsekas {
 // TODO(adam): how to handle upper bound 0 arcs? may be worth representing
 class DIMACS {
 public:
-	DIMACS(istream &is) : is(is) {};
+	DIMACS(istream &is, RelaxIV *mcf) : is(is), mcf(mcf) {};
 	~DIMACS() {};
 
 	void ReadInitial(MCFClass::Index *out_tn, MCFClass::Index *out_tm,
     MCFClass::FRow *out_tU, MCFClass::CRow *out_tC, MCFClass::FRow *out_tDfct,
 	  MCFClass::Index_Set *out_tStartn, MCFClass::Index_Set *out_tEndn);
-
-	void setMCF(RelaxIV *mcf) {
-		this->mcf = mcf;
-	}
 
 	// returns true if read something, false otherwise
 	bool ReadDelta();
