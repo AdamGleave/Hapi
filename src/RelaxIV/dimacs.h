@@ -30,7 +30,7 @@ public:
 private:
 	const static MCFClass::Index SINK_NODE = 1;
 
-	void adjustSinkCapacity(int64_t delta);
+	void changeSinkDeficit(int64_t delta);
 	bool processLine(char type, const char *remainder);
 
 	std::istream &is;

@@ -1858,7 +1858,7 @@ void RelaxIV::ChgUCap( Index arc , cFNumber NCap )
 void RelaxIV::CloseArc( cIndex name )
 {
  #if( DYNMC_MCF_RIV )
-  delarci( name + 1 );
+  delarci( name + USENAME0 );
  #else
   throw(
    MCFException( "RelaxIV::CloseArc() not implemented if DYNMC_MCF_RIV < 1"
@@ -1870,7 +1870,7 @@ void RelaxIV::CloseArc( cIndex name )
 /*--------------------------------------------------------------------------*/
 
 // TODO(adam): DelArc rather than CloseArc?
-void RelaxIV::DelNode( cIndex name )
+MCFClass::FNumber RelaxIV::DelNode(cIndex name)
 {
  #if( DYNMC_MCF_RIV )
   Index node = name + USENAME0;
@@ -1888,6 +1888,8 @@ void RelaxIV::DelNode( cIndex name )
    arc = FIn[ node ];
    }
   
+  FNumber dfct = Dfct[node];
+
   Dfct[ node ] = 0;
 
   if( node == n )
@@ -1898,10 +1900,13 @@ void RelaxIV::DelNode( cIndex name )
   free_nodes.insert(name);
 
   status = MCFClass::kUnSolved;
+
+  return dfct;
  #else
   throw(
    MCFException( "RelaxIV::DelNode() not implemented if DYNMC_MCF_RIV < 1"
                  ) );
+  return 0;
  #endif
 
  }  // end( RelaxIV::DelNode )
@@ -1911,7 +1916,7 @@ void RelaxIV::DelNode( cIndex name )
 void RelaxIV::OpenArc( cIndex name )
 {
  #if( DYNMC_MCF_RIV > 1 )
-  addarci( name + 1 );
+  addarci( name + USENAME0 );
  #else
   throw(
    MCFException( "RelaxIV::OpenArc() not implemented if DYNMC_MCF_RIV < 2"
@@ -1938,11 +1943,17 @@ void RelaxIV::AddNode( cIndex name, cFNumber aDfct ) {
 			LOG(FATAL) << "Illegal: attempting to add node ID " << name
 					       << "already in use.";
 		}
-	} else if (!free_nodes.count(name)) {
-		LOG(FATAL) << "Illegal: attempting to add node ID " << name
-							 << "already in use.";
+	} else {
+		auto it = free_nodes.find(name);
+		if (it == free_nodes.end()) {
+			// not in free nodes
+			LOG(FATAL) << "Illegal: attempting to add node ID " << name
+									 << "already in use.";
+		} else {
+			// is in free nodes, remove it from the set as we're about to add it
+			free_nodes.erase(it);
+		}
 	}
-	// OK to add
 
   B[ name ] = aDfct;
   FOu[ name ] = FIn[ name ] = 0;
@@ -1972,7 +1983,7 @@ MCFClass::Index RelaxIV::AddNode( cFNumber aDfct )
  auto begin = free_nodes.begin();
  if (begin == free_nodes.end()) {
 	 // no free nodes
-	 index = n+1;
+	 index = n + 1;
  } else {
 	 index = *begin;
  }
@@ -1993,7 +2004,7 @@ MCFClass::Index RelaxIV::AddNode( cFNumber aDfct )
 void RelaxIV::ChangeArc( cIndex name , cIndex nSN , cIndex nEN )
 {
  #if( DYNMC_MCF_RIV > 2 )
-  Index arc = name + 1;
+  Index arc = name + USENAME0;
   if( RC[ arc ] < Inf<CNumber>() )  // the arc is currently open- - - - - - -
    if( status || ( ! Senstv ) ) {  // no need to reoptimize - - - - - - - - -
     delarci( arc );
@@ -3208,9 +3219,9 @@ inline void RelaxIV::delarci( cIndex arc )
   NxtIn[ arc2 ] = NxtIn[ arc ];
   }
 
- if( status || ( ! Senstv ) )
-  status = MCFClass::kUnSolved;
- else {
+ if( status || ( ! Senstv ) ) {
+	 status = MCFClass::kUnSolved;
+ } else {
   Dfct[ Startn[ arc ] ] -= X[ arc ];
   Dfct[ Endn[ arc ] ] += X[ arc ];
 

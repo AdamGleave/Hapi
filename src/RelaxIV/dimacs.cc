@@ -191,9 +191,10 @@ bool DIMACS::ReadDelta() {
 	return false;
 }
 
-void DIMACS::adjustSinkCapacity(int64_t delta) {
-	MCFClass::FNumber sink_excess = mcf->B[SINK_NODE];
-	mcf->ChgDfct(SINK_NODE, sink_excess + delta);
+void DIMACS::changeSinkDeficit(MCFClass::FNumber delta) {
+	MCFClass::FNumber sink_deficit = mcf->MCFDfct(SINK_NODE - 1);
+	mcf->ChgDfct(SINK_NODE, sink_deficit + delta);
+	VLOG(1) << "SINK DEFICIT: was " << sink_deficit << ", now " << sink_deficit + delta;
 }
 
 bool DIMACS::processLine(char type, const char *remainder) {
@@ -221,8 +222,13 @@ bool DIMACS::processLine(char type, const char *remainder) {
 														 << line_num;
 		// TODO(adam): is this right? this is excess not supply, but I think
 		// DelNode will adjust everything so it'll work out OK
-		adjustSinkCapacity(mcf->B[id]);
-		mcf->DelNode(id);
+		MCFClass::FNumber deficit = mcf->DelNode(id);
+		VLOG(1) << "REM: Increasing deficit at sink by " << deficit;
+		changeSinkDeficit(deficit);
+
+		if (id + 1 == arc_table.size()) {
+			arc_table.resize(id);
+		}
 		break;
 		}
 	case 'n':
@@ -234,16 +240,22 @@ bool DIMACS::processLine(char type, const char *remainder) {
 		num_matches = sscanf(remainder, "%u %ld", &id, &supply);
 		CHECK_EQ(num_matches, 2);
 
-		mcf->AddNode(id, supply);
+		mcf->AddNode(id, -supply);
 
 		// TODO: This is a bit of a hack - should I keep this?
 		// Firmament doesn't export changes in sink demand. To keep the problem
 		// balanced, increase demand at the sink whenever we add a new node.
 		CHECK_GE(supply, 0) << "only one node allowed to be a sink.";
 		// increase demand at sink by parameter supply
-		adjustSinkCapacity(-supply);
+		VLOG(1) << "ADD: increasing deficit at sink by " << supply;
+		changeSinkDeficit(supply);
+
+		if (id == arc_table.size()) {
+			arc_table.resize(id + 1);
 		}
 		break;
+		}
+
 	case 'x':
 		{
 		// change of an existing arc;
@@ -288,12 +300,12 @@ bool DIMACS::processLine(char type, const char *remainder) {
 				mcf->DelArc(index);
 			} else {
 				bool done_something = false;
-				MCFClass::FNumber current_upper_bound = mcf->U[index];
+				MCFClass::FNumber current_upper_bound = mcf->MCFUCap(index);
 				if (current_upper_bound != upper_bound) {
 					mcf->ChgUCap(index, upper_bound);
 					done_something = true;
 				}
-				MCFClass::CNumber current_cost = mcf->C[index];
+				MCFClass::CNumber current_cost = mcf->MCFCost(index);
 				if (current_cost != cost) {
 					mcf->ChgCost(index, cost);
 					done_something = true;

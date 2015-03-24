@@ -148,6 +148,9 @@ int main(int, char *argv[]) {
 
   // solve network, output results, read delta, repeat
 	do {
+		std::cout << "c GRAPH" << endl;
+		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
+		std::cout << "c END GRAPH" << endl;
 		mcf->SolveMCF();
 		bool success = process_result(mcf);
 		if (!success) {

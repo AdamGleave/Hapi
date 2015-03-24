@@ -1673,7 +1673,7 @@ class MCFClass {
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-   virtual void DelNode( cIndex name ) = 0;
+   virtual FNumber DelNode( cIndex name ) = 0;
 
 /**< Delete the node `name'.
 
@@ -1683,7 +1683,9 @@ class MCFClass {
 
    Il furthermore `name' is the last node, the number of nodes as reported by
    MCFn() is reduced by at least one, until the n-th node is not a deleted
-   one. */
+   one.
+
+   Returns the deficit at `name` before deletion. */
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

@@ -89,10 +89,6 @@
 
 #include <unordered_set>
 
-namespace flowsolver_bertsekas {
-class DIMACS;
-}
-
 /*--------------------------------------------------------------------------*/
 /*--------------------------------- MACROS ---------------------------------*/
 /*--------------------------------------------------------------------------*/
@@ -477,7 +473,7 @@ class RelaxIV : public MCFClass {
 
    inline bool IsClosedArc( cIndex name );
 
-   void DelNode( cIndex name );
+   FNumber DelNode( cIndex name );
 
    void OpenArc( cIndex name );
 
@@ -796,8 +792,6 @@ class RelaxIV : public MCFClass {
  static Index maxmmax;    // max value of nmax among all the instances
 
 /*--------------------------------------------------------------------------*/
-
- friend class flowsolver_bertsekas::DIMACS;
 };  // end( class RelaxIV )
 
 /* @} end( group( RELAXIV_CLASSES ) ) */
