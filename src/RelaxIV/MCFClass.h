@@ -39,6 +39,13 @@
 /*--------------------------------------------------------------------------*/
 /*--------------------------------- MACROS ---------------------------------*/
 /*--------------------------------------------------------------------------*/
+
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
+
 /** @defgroup MCFCLASS_MACROS Compile-time switches in MCFClass.h
     These macros control some important details of the class interface.
     Although using macros for activating features of the interface is not
@@ -986,7 +993,7 @@ class MCFClass {
 /** @name Getting unboundedness certificate
    @{ */
 
-   virtual Index MCFGetUnbCycl( Index_Set Pred , Index_Set ArcPred )
+   virtual Index MCFGetUnbCycl(Index_Set UNUSED(Pred), Index_Set UNUSED(ArcPred))
    {
     return( Inf<Index>() );
     }
@@ -1034,7 +1041,7 @@ class MCFClass {
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-   virtual void MCFPutState( MCFStatePtr S ) {}
+   virtual void MCFPutState(MCFStatePtr UNUSED(S)) {}
 
 /**< Restore the solver to the state in which it was when the state `S' was
    created with MCFGetState() [see above].
@@ -1335,7 +1342,7 @@ class MCFClass {
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-   virtual CNumber MCFQCoef( cIndex i )
+   virtual CNumber MCFQCoef( cIndex UNUSED(i) )
 
 /**< Return the quadratic coefficients of the cost of the i-th arc. Note that
    the method is *not* pure virtual: an implementation is provided for "pure
@@ -1517,8 +1524,8 @@ class MCFClass {
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-   virtual void ChgQCoef( cCRow NQCoef = NULL , cIndex_Set nms = NULL ,
-                          cIndex strt = 0 , Index stp = Inf<Index>() )
+   virtual void ChgQCoef( cCRow NQCoef = NULL , cIndex_Set UNUSED(nms) = NULL ,
+                    cIndex UNUSED(strt) = 0 , Index UNUSED(stp) = Inf<Index>() )
 
 /**< Change the quadratic coefficients of the arc costs. In particular,
    change the coefficients that are:
@@ -1549,7 +1556,7 @@ class MCFClass {
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-   virtual void ChgQCoef(  Index arc , cCNumber NQCoef )
+   virtual void ChgQCoef(  Index UNUSED(arc) , cCNumber NQCoef )
 
 /**< Change the quadratic coefficient of the cost of the i-th arc.
 
