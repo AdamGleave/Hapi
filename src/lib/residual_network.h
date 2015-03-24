@@ -41,7 +41,7 @@ public:
 	 *  getNumNodesPresent() decreases but getNumNodes() is unchanged.
 	 */
 	uint32_t getNumNodes() const;
-	uint32_t getNumNodesPresent() const;
+	uint32_t getNumNodesAllocated() const;
 	uint32_t getNumArcs() const;
 	int64_t getBalance(uint32_t id) const;
 	int64_t getSupply(uint32_t id) const;

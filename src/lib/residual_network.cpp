@@ -60,7 +60,7 @@ uint32_t ResidualNetwork::getNumNodes() const {
 	return arcs.size() - 1;
 }
 
-uint32_t ResidualNetwork::getNumNodesPresent() const {
+uint32_t ResidualNetwork::getNumNodesAllocated() const {
 	return num_nodes;
 }
 
