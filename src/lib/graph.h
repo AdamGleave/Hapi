@@ -23,7 +23,7 @@ public:
 
 	BOOST_CONCEPT_USAGE(Graph) {
 		// needed for DIMACS import
-		X graph(10);
+		X graph(10, 21);
 		graph.addArc(1, 2, 42, 5);
 		flowsolver::Arc &arc = *graph.getArc(1,2);
 		graph.setSupply(1, 20);

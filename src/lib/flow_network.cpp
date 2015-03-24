@@ -11,6 +11,9 @@ FlowNetwork::FlowNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	arcs.resize(num_nodes + 1);
 }
 
+FlowNetwork::FlowNetwork(uint32_t num_nodes, uint32_t)
+                                                     : FlowNetwork(num_nodes) {}
+
 FlowNetwork::FlowNetwork(const FlowNetwork &g)
   : num_nodes(g.num_nodes), num_arcs(g.num_arcs), balances(g.balances) {
 	// deep copy of arcs

@@ -14,8 +14,11 @@ ResidualNetwork::ResidualNetwork(uint32_t num_nodes) : num_nodes(num_nodes) {
 	arcs.resize(num_nodes + 1);
 }
 
+ResidualNetwork::ResidualNetwork(uint32_t num_nodes, uint32_t)
+                                                 : ResidualNetwork(num_nodes) {}
+
 ResidualNetwork::ResidualNetwork(const FlowNetwork &g)
-																					  : ResidualNetwork(g.getNumNodes()) {
+											                      : ResidualNetwork(g.getNumNodes()) {
 	// FlowNetwork stores each arc once
 	for (const Arc &arc : g) {
 		addArc(arc.getSrcId(), arc.getDstId(), arc.getCapacity(), arc.getCost());

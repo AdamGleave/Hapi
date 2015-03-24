@@ -99,7 +99,7 @@ protected:
 			CHECK(num_matches == 3);
 			CHECK(strcmp(problem, "min") == 0);
 
-			g = new T(num_nodes);
+			g = new T(num_nodes, num_arcs);
 			arcs_seen.resize(num_nodes + 1);
 			break;
 		case 'n':

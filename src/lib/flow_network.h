@@ -18,8 +18,10 @@ class FlowNetwork;
 namespace flowsolver {
 
 class FlowNetwork {
-public:
+private:
 	explicit FlowNetwork(uint32_t num_nodes);
+public:
+	FlowNetwork(uint32_t num_nodes, uint32_t num_arcs);
 	FlowNetwork(const FlowNetwork &g);
 	FlowNetwork(const ResidualNetwork &g);
 	virtual ~FlowNetwork();

@@ -20,8 +20,10 @@ class ResidualNetwork;
 namespace flowsolver {
 
 class ResidualNetwork {
-public:
+private:
 	explicit ResidualNetwork(uint32_t num_nodes);
+public:
+	ResidualNetwork(uint32_t num_nodes, uint32_t num_arcs);
 	ResidualNetwork(const ResidualNetwork &g);
 	ResidualNetwork(const FlowNetwork &g);
 	virtual ~ResidualNetwork();
