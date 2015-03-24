@@ -22,47 +22,25 @@ protected:
 		return potentials;
 	}
 private:
-	class cut_arcs_iterator
-		  : public std::iterator<std::forward_iterator_tag, std::uint32_t>  {
-	public:
-		cut_arcs_iterator(RELAX &algo);
-		cut_arcs_iterator(RELAX &algo, bool);
-		Arc* operator*() const;
-		cut_arcs_iterator operator++();
-		cut_arcs_iterator operator++(int);
-		bool operator==(const cut_arcs_iterator &it);
-		bool operator!=(const cut_arcs_iterator &it);
-
-	private:
-		void updateArcsIt();
-		void nextValid();
-
-		RELAX &algo;
-		std::set<uint32_t>::const_iterator node_it;
-		uint32_t cur_node;
-		std::unordered_map<uint32_t, Arc*>::const_iterator arcs_it, arcs_it_end;
-	};
-
 	void init();
 
-	int64_t compute_reduced_cost(Arc *arc, bool allow_negative=false);
-	uint64_t compute_residual_cut();
+	ResidualNetwork::iterator beginZeroCostCut();
+	ResidualNetwork::iterator endZeroCostCut();
+	ResidualNetwork::const_iterator beginZeroCostCut() const;
+	ResidualNetwork::const_iterator endZeroCostCut() const;
+	ResidualNetwork::iterator beginPositiveCostCut();
+	ResidualNetwork::iterator endPositiveCostCut();
+	ResidualNetwork::const_iterator beginPositiveCostCut() const;
+	ResidualNetwork::const_iterator endPositiveCostCut() const;
+
 	void reset_cut();
 	void update_cut(uint32_t new_node);
-	cut_arcs_iterator beginCutArcs();
-	cut_arcs_iterator endCutArcs();
-	ResidualNetwork::iterator beginCacheCutArcs();
-	ResidualNetwork::iterator endCacheCutArcs();
-	ResidualNetwork::const_iterator beginCacheCutArcs() const;
-	ResidualNetwork::const_iterator endCacheCutArcs() const;
+
+	int64_t compute_reduced_cost(const Arc &arc, bool allow_negative=false);
+	uint64_t compute_residual_cut();
 
 	void adjust_potential();
 	void adjust_flow(uint32_t src_id, uint32_t dst_id);
-
-	// returns true if feasible solution exists, and updates g accordingly;
-	// false if no feasible solution, g left in undefined state
-	std::queue<Arc *> predecessorPath(uint32_t source, uint32_t sink,
-																					const std::vector<uint32_t>& parents);
 
 	ResidualNetwork &g;
 	std::vector<uint64_t> potentials;
@@ -71,8 +49,8 @@ private:
 	std::set<uint32_t> tree_nodes;
 	uint64_t tree_excess;
 	uint64_t tree_residual_cut;
-	// TODO(adam): cache the ones with non-zero reduced cost too? (but separately)
-	std::vector<std::unordered_map<uint32_t, Arc*>> tree_cut_arcs;
+	std::vector<std::unordered_map<uint32_t, Arc*>>
+	                         tree_cut_arcs_zero_cost, tree_cut_arcs_positive_cost;
 };
 
 } /* namespace flowsolver */
