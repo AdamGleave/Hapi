@@ -1688,6 +1688,7 @@ class MCFClass {
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
    virtual Index AddNode( cFNumber aDfct ) = 0;
+   virtual void AddNode( cIndex name, cFNumber aDfct ) = 0;
 
 /**< Add a new node with deficit aDfct, returning its name. Inf<Index>() is
    returned if there is no room for a new node. Remember that the node names

@@ -87,6 +87,12 @@
 
 #include "MCFClass.h"
 
+#include <unordered_set>
+
+namespace flowsolver_bertsekas {
+class DIMACS;
+}
+
 /*--------------------------------------------------------------------------*/
 /*--------------------------------- MACROS ---------------------------------*/
 /*--------------------------------------------------------------------------*/
@@ -112,7 +118,10 @@
 
 /*----------------------------- DYNMC_MCF_RIV ------------------------------*/
 
+#ifndef DYNMC_MCF_RIV
+// default
 #define DYNMC_MCF_RIV 0
+#endif
 
 /**< Decides if the graph topology (arcs, nodes) can be changed.
    If DYNMC_MCF_RIV > 0, the methods of the public interface of class that
@@ -473,6 +482,7 @@ class RelaxIV : public MCFClass {
    void OpenArc( cIndex name );
 
    Index AddNode( cFNumber aDfct );
+   void AddNode( cIndex name, cFNumber aDfct );
 
    void ChangeArc( cIndex name ,
 		   cIndex nSS = Inf<Index>() , cIndex nEN = Inf<Index>() );
@@ -525,7 +535,7 @@ class RelaxIV : public MCFClass {
 /*--                                                                      --*/
 /*--------------------------------------------------------------------------*/
 
- private:
+ protected:
 
 /*--------------------------------------------------------------------------*/
 /*---------------------------- PRIVATE TYPES -------------------------------*/
@@ -744,6 +754,10 @@ class RelaxIV : public MCFClass {
   Index_Set NxtIn;
  #endif
 
+#if (DYNMC_MCF_RIV > 1)
+  std::unordered_set<Index> free_nodes;
+#endif
+
  #if( AUCTION || ( DYNMC_MCF_RIV > 1 ) )
   static RelaxIV *PiOwnr;  // the instance who calculated Pi the last time
                            // (NULL if they have not been computed)
@@ -783,7 +797,8 @@ class RelaxIV : public MCFClass {
 
 /*--------------------------------------------------------------------------*/
 
- };  // end( class RelaxIV )
+ friend class flowsolver_bertsekas::DIMACS;
+};  // end( class RelaxIV )
 
 /* @} end( group( RELAXIV_CLASSES ) ) */
 /*--------------------------------------------------------------------------*/

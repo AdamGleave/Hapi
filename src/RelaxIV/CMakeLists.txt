@@ -1,6 +1,8 @@
-if(CMAKE_COMPILER_IS_GNUCXX)
-  # Disable warnings. 
-  # This is ugly external code (translated from Fortran!) which I cannot change.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-all")
-endif()
+# Disable warnings for the external code. It was translated from Fortran, and
+# I cannot change it.
+set_source_files_properties(RelaxIV.cc PROPERTIES COMPILE_FLAGS "-Wno-all")
+set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS "-Wno-all")
+
 add_executable (RelaxIV RelaxIV.cc main.cc) 
+add_executable (incremental incremental.cc RelaxIV.cc dimacs.cc)
+target_link_libraries (incremental PUBLIC ${GLOG_LIBRARY}) 

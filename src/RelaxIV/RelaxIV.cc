@@ -1869,6 +1869,7 @@ void RelaxIV::CloseArc( cIndex name )
 
 /*--------------------------------------------------------------------------*/
 
+// TODO(adam): DelArc rather than CloseArc?
 void RelaxIV::DelNode( cIndex name )
 {
  #if( DYNMC_MCF_RIV )
@@ -1893,6 +1894,8 @@ void RelaxIV::DelNode( cIndex name )
    do
     n--;
    while( FOu[ n ] == FIn[ n ] );
+
+  free_nodes.insert(name);
 
   status = MCFClass::kUnSolved;
  #else
@@ -1919,30 +1922,59 @@ void RelaxIV::OpenArc( cIndex name )
 
 /*--------------------------------------------------------------------------*/
 
-MCFClass::Index RelaxIV::AddNode( cFNumber aDfct )
-{
- #if( DYNMC_MCF_RIV > 1 )
-  if( n == nmax )
-   return( Inf<Index>() );
+void RelaxIV::AddNode( cIndex name, cFNumber aDfct ) {
+#if( DYNMC_MCF_RIV > 1 )
+	if (free_nodes.empty()) {
+		if (name == n + 1) {
+				n++;
 
-  n++;
+				if( n >= nmax ) {
+				  return( Inf<Index>() );
+				}
+		} else if (name > n + 1) {
+			LOG(FATAL) << "Illegal: attempting to grow graph by more than one node."
+								 << "Index " << name << " with " << n << " nodes.";
+		} else {
+			LOG(FATAL) << "Illegal: attempting to add node ID " << name
+					       << "already in use.";
+		}
+	} else if (!free_nodes.count(name)) {
+		LOG(FATAL) << "Illegal: attempting to add node ID " << name
+							 << "already in use.";
+	}
+	// OK to add
 
-  B[ n ] = aDfct;
-  FOu[ n ] = FIn[ n ] = 0;
+  B[ name ] = aDfct;
+  FOu[ name ] = FIn[ name ] = 0;
 
   if( status || ( ! Senstv ) )
    status = MCFClass::kUnSolved;
   else {
-   Dfct[ n ] = aDfct;
-   tfstou[ n ] = tfstin[ n ] = 0;
+   Dfct[ name ] = aDfct;
+   tfstou[ name ] = tfstin[ name ] = 0;
 
    #if( P_ALLOC )
     if( PiOwnr == this )
-     Pi[ n ] = 0;
+     Pi[ name ] = 0;
    #endif
    }
+ #else
+  throw(
+   MCFException( "RelaxIV::AddNode() not implemented if DYNMC_MCF_RIV < 2"
+                 ) );
+ #endif
+}
 
-  return( n - USENAME0 );
+MCFClass::Index RelaxIV::AddNode( cFNumber aDfct )
+{
+ #if( DYNMC_MCF_RIV > 1 )
+ auto begin = free_nodes.begin();
+ if (begin == free_nodes.end()) {
+	 // no free nodes
+	 AddNode(n + 1, aDfct);
+ } else {
+	 AddNode(*begin, aDfct);
+ }
  #else
   throw(
    MCFException( "RelaxIV::AddNode() not implemented if DYNMC_MCF_RIV < 2"

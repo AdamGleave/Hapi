@@ -1,0 +1,158 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+#include <glog/logging.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#define DYNMC_MCF_RIV 3
+
+#include "RelaxIV.h"
+#include "dimacs.h"
+
+using namespace flowsolver_bertsekas;
+
+void compute_reserved_memory(MCFClass::Index &num_nodes,
+		                         MCFClass::Index &num_arcs) {
+	// TODO(adam): less crude method of reserving memory
+	num_nodes *= 2;
+	num_arcs *= 2;
+}
+
+template<class T>
+inline T ABS( const T x )
+{
+ return( x >= T( 0 ) ? x : -x );
+}
+
+int main(int, char *argv[]) {
+	FLAGS_logtostderr = true;
+	google::InitGoogleLogging(argv[0]);
+
+	// initialize relevant classes
+	DIMACS dimacs(std::cin);
+	RelaxIV *mcf = new RelaxIV();
+	mcf->SetMCFTime();  // do timing
+
+	// load initial network
+	MCFClass::Index     tn, tm; // number of nodes & arcs
+	MCFClass::FRow      tU; // arc upper capacities
+	MCFClass::CRow      tC; // arc costs
+	MCFClass::FRow      tDfct; // node deficits
+	MCFClass::Index_Set tStartn, tEndn; // arc start & end nodes
+
+	dimacs.ReadInitial(&tn, &tm, &tU, &tC, &tDfct, &tStartn, &tEndn);
+
+	// load network
+	MCFClass::Index num_nodes_reserved = tn, num_arcs_reserved = tm;
+	compute_reserved_memory(num_nodes_reserved, num_arcs_reserved);
+	mcf->LoadNet(num_nodes_reserved, num_arcs_reserved, tn, tm,
+			           tU, tC, tDfct, tStartn, tEndn);
+
+	delete[] tU;
+	delete[] tDfct;
+	delete[] tStartn;
+	delete[] tEndn;
+	delete[] tC;
+
+	// TODO(adam): is this necessary? copied from main.cc
+  // set "reasonable" values for the epsilons, if any - - - - - - - - - - - -
+
+  MCFClass::FNumber eF = 1;
+  for( register MCFClass::Index i = mcf->MCFm() ; i-- ; )
+   eF = max( eF , ABS( mcf->MCFUCap( i ) ) );
+
+  for( register MCFClass::Index i = mcf->MCFn() ; i-- ; )
+   eF = max( eF , ABS( mcf->MCFDfct( i ) ) );
+
+  MCFClass::CNumber eC = 1;
+  for( register MCFClass::Index i = mcf->MCFm() ; i-- ; )
+   eC = max( eC , ABS( mcf->MCFCost( i ) ) );
+
+  ((MCFClass*)mcf)->SetPar( RelaxIV::kEpsFlw, (double) numeric_limits<MCFClass::FNumber>::epsilon() * eF *
+		  mcf->MCFm() * 10);  // the epsilon for flows
+
+  ((MCFClass*)mcf)->SetPar( RelaxIV::kEpsCst, (double) numeric_limits<MCFClass::CNumber>::epsilon() * eC *
+		  mcf->MCFm() * 10);  // the epsilon for costs
+
+  // solve full problem
+	mcf->SolveMCF();
+
+  // output results - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	// TODO(adam): should measure wall time for fair comparison
+  switch( mcf->MCFGetStatus() ) {
+   case( MCFClass::kOK ):
+	{
+    double tu, ts;
+    mcf->TimeMCF( tu , ts );
+    std::cerr << "Solution time (s): user " << tu << ", system " << ts << endl;
+    // output overall time for benchmark suite
+    std::cerr << "ALGOTIME: " << mcf->TimeMCF() << endl;
+
+     if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
+	 ( numeric_limits<MCFClass::FNumber>::is_integer == 0 ) ) {
+      std::cout.setf( ios::scientific, ios::floatfield );
+      std::cout.precision( 12 );
+      }
+
+     // cost of solution
+     std::cout << "s " << mcf->MCFGetFO() << endl;
+
+     MCFClass::Index m = mcf->MCFm();
+     MCFClass::FRow x = new MCFClass::FNumber[m];
+     MCFClass::Index_Set active_arcs = new MCFClass::Index[m];
+     mcf->MCFGetX(x, active_arcs);
+     MCFClass::Index_Set start = new MCFClass::Index[m];
+     MCFClass::Index_Set end = new MCFClass::Index[m];
+     mcf->MCFArcs(start, end, active_arcs);
+     for(MCFClass::Index i = 0;
+    		 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
+    	 std::cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
+     }
+
+     delete[] x;
+     MCFClass::CRow pi = new MCFClass::CNumber[ mcf->MCFn() ];
+     mcf->MCFGetPi( pi );
+     for( MCFClass::Index i = 0 ; i < mcf->MCFn() ; i++ )
+      std::cout << "p " << i << " " << pi[ i ] << endl;
+     delete[] pi;
+
+    // check solution
+    mcf->CheckPSol();
+    mcf->CheckDSol();
+
+    std::cout << "c EOI" << endl;
+    break;
+  }
+   case( MCFClass::kUnfeasible ):
+    std::cout << "MCF problem unfeasible." << endl;
+    break;
+   case( MCFClass::kUnbounded ):
+    std::cout << "MCF problem unbounded." << endl;
+    break;
+   default:
+    std::cout << "Error in the MCF solver." << endl;
+   }
+  std::cout.flush();
+
+	/*// now solve incremental problem
+	DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality>
+	                              incremental_importer(std::cin, dynamic);
+
+	// process stream of incremental deltas, solving incremental problem
+	// TODO: am including time spent parsing in reported ALGOTIME
+	while (incremental_importer.read()) {
+		// TODO: reoptimize
+		exporter.writeFlow();
+		std::cout << "c EOI" << std::endl;
+		std::cout.flush();
+
+		// TODO: report time
+	}*/
+
+	return 0;
+}
