@@ -88,6 +88,13 @@ void DIMACS::ReadInitial(MCFClass::Index *out_tn, MCFClass::Index *out_tm,
 		 LOG(FATAL) << "LoadDMX: error reading deficit";
 
 		tDfct[ j - 1 ] -= Dfctj;
+
+		// skip over node type
+		do {
+			 if( ! is.get( c ) )
+					 LOG(FATAL) << "LoadDMX: error reading the input stream";
+			 fprintf(stderr, "%c", c);
+		} while( c != '\n' );
 		break;
 
 	 case( 'a' ):  // description of an arc - - - - - - - - - - - - - - - - - -
@@ -136,7 +143,7 @@ void DIMACS::ReadInitial(MCFClass::Index *out_tn, MCFClass::Index *out_tm,
 		break;
 
 	 default:  // invalid code- - - - - - - - - - - - - - - - - - - - - - - - -
-		LOG(FATAL) << "LoadDMX: invalid code";
+		LOG(FATAL) << "LoadDMX: invalid code " << c;
 
 	 }  // end( switch( c ) )
 	}  // end( for( ever ) )
