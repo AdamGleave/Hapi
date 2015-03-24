@@ -146,13 +146,15 @@ int main(int, char *argv[]) {
   // solve network, output results, read delta, repeat
 	do {
 		std::cout << "c GRAPH" << endl;
+		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
 		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
-		std::cout << "c END GRAPH" << endl;
 		mcf->SolveMCF();
+		std::cout << "c END GRAPH" << endl;
 		bool success = process_result(mcf);
 		if (!success) {
 			return -1;
 		}
+		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
 		std::cout << "c EOI" << endl;
 		std::cout.flush();
 	} while (dimacs.ReadDelta());

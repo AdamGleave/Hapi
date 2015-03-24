@@ -2298,23 +2298,23 @@ inline void MCFClass::WriteMCF( ostream &oStrm , int frmt )
    for(  Index i = 0 ; i < MCFn() ; ) {
     cFNumber Dfcti = MCFDfct( i++ );
     if( Dfcti )
-     oStrm << "n\t" << i << "\t" << - Dfcti << endl;
+     oStrm << "n " << i << " " << - Dfcti << endl;
     }
 
    // output arc information- - - - - - - - - - - - - - - - - - - - - - - - -
 
    for(  Index i = 0 ; i < MCFm() ; i++ )
     if( ( ! IsClosedArc( i ) ) && ( ! IsDeletedArc( i ) ) ) {
-     oStrm << "a\t";
+     oStrm << "a ";
      #if( USENAME0 )
-      oStrm << MCFSNde( i ) + 1 << "\t" << MCFENde( i ) + 1 << "\t";
+      oStrm << MCFSNde( i ) + 1 << " " << MCFENde( i ) + 1 << " ";
      #else
-      oStrm << MCFSNde( i ) << "\t" << MCFENde( i ) << "\t";
+      oStrm << MCFSNde( i ) << " " << MCFENde( i ) << " ";
      #endif
-     oStrm << "0\t" << MCFUCap( i ) << "\t" << MCFCost( i );
+     oStrm << "0 " << MCFUCap( i ) << " " << MCFCost( i );
 
      if( frmt == kQDimacs )
-      oStrm << "\t" << MCFQCoef( i );
+      oStrm << " " << MCFQCoef( i );
 
      oStrm << endl;
     }

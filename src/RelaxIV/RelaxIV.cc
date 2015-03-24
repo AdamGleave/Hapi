@@ -1901,7 +1901,10 @@ MCFClass::FNumber RelaxIV::DelNode(cIndex name)
 
   free_nodes.insert(name);
 
-  status = MCFClass::kUnSolved;
+  // TODO(adam): this previously set it to unsolved unconditionally, why?
+  if (status || (!Senstv)) {
+  	status = MCFClass::kUnSolved;
+  }
 
   return dfct;
  #else

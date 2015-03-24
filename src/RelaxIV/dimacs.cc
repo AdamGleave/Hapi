@@ -137,6 +137,8 @@ void DIMACS::ReadInitial(MCFClass::Index *out_tn, MCFClass::Index *out_tm,
 		#endif
 
 		arc_table[tStartn[i]][tEndn[i]] = i;
+		// TODO(adam): how to handle reverse arcs properly?
+		arc_table[tEndn[i]][tStartn[i]] = i;
 
 		i++;
 		break;
@@ -185,6 +187,8 @@ bool DIMACS::ReadDelta() {
 		if (!more_data) {
 			return true;
 		}
+		std::cout << "c " << type << remainder << endl;
+		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
 	}
 
 	// EOF read
@@ -227,6 +231,17 @@ bool DIMACS::processLine(char type, const char *remainder) {
 		mcf->DelNode(id);
 		VLOG(1) << "REM: Increasing deficit at sink by " << deficit;
 
+		std::unordered_map<uint32_t, MCFClass::Index> &adjacencies = arc_table[id];
+		// clear reverse arcs
+		for (auto it = adjacencies.begin(), end = adjacencies.end();
+				 it != end; ++it) {
+      uint32_t dst_id = it->first;
+      arc_table[dst_id].erase(id);
+      VLOG(2) << "Erasing arc " << dst_id << "->" << id;
+		}
+		// clear forward arcs
+		arc_table[id].clear();
+
 		if (id + 1 == arc_table.size()) {
 			arc_table.resize(id);
 		}
@@ -265,7 +280,7 @@ bool DIMACS::processLine(char type, const char *remainder) {
 		MCFClass::FNumber lower_bound, upper_bound;
 		MCFClass::CNumber cost;
 		num_matches = sscanf(remainder, "%u %u %ld %ld %ld",
-						 &src, &dst, &lower_bound, &upper_bound, &cost);
+						             &src, &dst, &lower_bound, &upper_bound, &cost);
 		CHECK_EQ(num_matches, 5);
 
 		CHECK_EQ(lower_bound, 0);
@@ -292,6 +307,7 @@ bool DIMACS::processLine(char type, const char *remainder) {
 				CHECK(index != MCFClass::Inf<MCFClass::Index>()) << "out of arc memory.";
 
 				arc_table[src][dst] = index;
+				arc_table[dst][src] = index;
 			}
 		} else {
 			// arc already exists
@@ -299,6 +315,7 @@ bool DIMACS::processLine(char type, const char *remainder) {
 
 			if (upper_bound == 0) {
 				mcf->DelArc(index);
+				adjacencies.erase(it);
 			} else {
 				bool done_something = false;
 				MCFClass::FNumber current_upper_bound = mcf->MCFUCap(index);
@@ -339,6 +356,7 @@ bool DIMACS::processLine(char type, const char *remainder) {
 				CHECK(index != MCFClass::Inf<MCFClass::Index>()) << "out of arc memory.";
 
 				arc_table[src][dst] = index;
+				arc_table[dst][src] = index;
 			} else {
 				LOG(WARNING) << "ignoring add of arc " << src << "->" << dst
 										 << " which already exists.";
