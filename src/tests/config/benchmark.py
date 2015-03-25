@@ -483,6 +483,10 @@ INCREMENTAL_TESTS_HYBRID = {
         "implementation": "relaxfi_latest",
         "arguments": [] 
       },
+      "relaxfi_firstworking": {
+        "implementation": "relaxfi_firstworking",
+        "arguments": [] 
+      },
       "goldberg": {
         "implementation": "cs_goldberg",
         "arguments": []
