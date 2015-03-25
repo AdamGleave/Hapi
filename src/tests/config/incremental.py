@@ -5,6 +5,8 @@ TEST_PROGRAM_ARGUMENTS = ["augmenting_path", "relax"]
 
 TEST_PROGRAMS = { name : TEST_PROGRAM.bake(name)
                   for name in TEST_PROGRAM_ARGUMENTS }
+TEST_PROGRAMS["relax_frangioni"] = sh.Command(
+                             os.path.join(BUILD_ROOT, "RelaxIV", "incremental"))
 
 HANDMADE_INCREMENTAL_DIR = os.path.join("clusters", "synthetic", 
                                         "firmament", "incremental")
