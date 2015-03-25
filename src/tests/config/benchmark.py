@@ -207,8 +207,8 @@ INCREMENTAL_IMPLEMENTATIONS = {
   },
   "relaxfi_firstworking": {
     "version": "2aae245",
-    "target": "RelaxIV_incremental",
-    "path": "RelaxIV/RelaxIV_incremental",
+    "target": "incremental",
+    "path": "RelaxIV/incremental",
     "arguments": []
   },
 }
