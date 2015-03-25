@@ -87,8 +87,8 @@ def build(version, targets):
   saved_cwd = os.getcwd()
   
   directory = os.path.join(config.WORKING_DIRECTORY, version)
-  build_directory = os.path.join(directory, config.BUILD_ROOT)
-  source_directory = os.path.join(directory, config.SOURCE_ROOT)
+  build_directory = os.path.join(directory, config.BUILD_PREFIX)
+  source_directory = os.path.join(directory, config.SOURCE_PREFIX)
   log_directory = os.path.join(directory, "log") 
   
   try:
@@ -155,7 +155,7 @@ def helperCreateTestInstance(instance):
   
   version_directory = versionDirectory(implementation["version"])
   exe_path = os.path.join(version_directory,
-                          config.BUILD_ROOT,
+                          config.BUILD_PREFIX,
                           implementation["path"])
   arguments = implementation["arguments"]
   if "arguments" in instance:
