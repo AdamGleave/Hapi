@@ -117,7 +117,6 @@ int main(int, char *argv[]) {
 	// initialize relevant classes
 	RelaxIV *mcf = new RelaxIV();
 	DIMACS dimacs(std::cin, mcf);
-	mcf->SetMCFTime();  // do timing
 
 	// load initial network
 	MCFClass::Index     tn, tm; // number of nodes & arcs
@@ -145,16 +144,28 @@ int main(int, char *argv[]) {
 
   // solve network, output results, read delta, repeat
 	do {
+#ifdef DEBUG
 		std::cout << "c GRAPH" << endl;
 		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
 		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
+#endif
+
+		mcf->SetMCFTime();  // reset timer
 		mcf->SolveMCF();
+
+#ifdef DEBUG
 		std::cout << "c END GRAPH" << endl;
+#endif
+
 		bool success = process_result(mcf);
 		if (!success) {
 			return -1;
 		}
+
+#ifdef DEBUG
 		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
+#endif
+
 		std::cout << "c EOI" << endl;
 		std::cout.flush();
 	} while (dimacs.ReadDelta());
