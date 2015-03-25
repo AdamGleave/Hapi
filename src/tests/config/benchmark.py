@@ -372,6 +372,20 @@ INCREMENTAL_TESTS_OFFLINE = {
       },
     },
   },
+  "relaxfi_vs_best_offline": {
+    "files": INCREMENTAL_DATASET["google_small_trace"],
+    "iterations": 5,
+    "tests": {
+      "relaxfi": {
+        "implementation": "relaxfi_latest",
+        "arguments": [] 
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+    },
+  },
 }
 
 TRACE_ROOT = "/data/adam/"
