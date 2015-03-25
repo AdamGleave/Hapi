@@ -1,12 +1,12 @@
 c === Add core vertex to the graph.
-d 0 0 5
+n 25 0
 c === Arc from machine to core
-a 15 0 0 1 25
+a 15 25 0 1 25
 c === Arc from core to sink
-a 0 24 0 1 0
+a 25 24 0 1 0
 c === Preference arcs from tasks to the core
-a 7 0 0 1 37
-a 4 0 0 1 39
+a 7 25 0 1 37
+a 4 25 0 1 39
 c === Preference arcs from equiv classes to the core
-a 8 0 0 1 30
+a 8 25 0 1 30
 c EOI
