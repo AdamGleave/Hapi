@@ -148,7 +148,6 @@ int main(int, char *argv[]) {
 		std::cout << "c GRAPH" << endl;
 		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
 		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
-		mcf->status = MCFClass::kUnSolved;
 		mcf->SolveMCF();
 		std::cout << "c END GRAPH" << endl;
 		bool success = process_result(mcf);
