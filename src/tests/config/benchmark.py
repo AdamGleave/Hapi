@@ -199,6 +199,18 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "path": "bin/incremental_min_cost",
     "arguments": []
    },
+  "relaxfi_latest": {
+    "version": "master",
+    "target": "RelaxIV_incremental",
+    "path": "RelaxIV/RelaxIV_incremental",
+    "arguments": []
+  },
+  "relaxfi_firstworking": {
+    "version": "2aae245",
+    "target": "RelaxIV_incremental",
+    "path": "RelaxIV/RelaxIV_incremental",
+    "arguments": []
+  },
 }
 
 IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS],
@@ -454,7 +466,29 @@ INCREMENTAL_TESTS_HYBRID = {
         "arguments": []
       },
     },
-  },                    
+  },
+  "relaxfi_vs_best_quick": {
+    "traces": [
+      {
+        "name": "small_trace",
+        # this runtime corresponds to the first 10,000 events
+        "runtime": 3995607400
+      },
+    ],
+    "granularity": 10, # in microseconds
+    "percentage": 1, # percentage of events to retain
+    "iterations": 5,
+    "tests": {
+      "relaxfi": {
+        "implementation": "relaxfi_latest",
+        "arguments": [] 
+      },
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+    },
+  },                                       
 }
 
 INCREMENTAL_TESTS_ONLINE = {
