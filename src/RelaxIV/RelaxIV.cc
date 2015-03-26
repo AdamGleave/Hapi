@@ -134,6 +134,13 @@ RelaxIV::RelaxIV( cIndex nmx , cIndex mmx )
          :
          MCFClass( nmx , mmx )
 {
+	Pi = new CNumber[1];
+	Pi--;
+
+	#if( AUCTION || ( DYNMC_MCF_RIV > 1 ) )
+	 PiOwnr = NULL;
+	#endif
+
  // allocate memory - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
  if( nmax && mmax )
@@ -4474,12 +4481,12 @@ MCFClass::Index RelaxIV::maxmmax = 0;
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #if( P_ALLOC )
- RelaxIV *RelaxIV::PiOwnr = NULL;
+// RelaxIV *RelaxIV::PiOwnr = NULL;
 #endif
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-MCFClass::CRow       RelaxIV::Pi = NULL;
+//MCFClass::CRow       RelaxIV::Pi = NULL;
 
 RelaxIV::Bool_Vec    RelaxIV::mark = NULL;
 MCFClass::Index_Set  RelaxIV::save = NULL;

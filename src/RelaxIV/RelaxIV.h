@@ -759,13 +759,13 @@ private:
 #endif
 
  #if( AUCTION || ( DYNMC_MCF_RIV > 1 ) )
-  static RelaxIV *PiOwnr;  // the instance who calculated Pi the last time
+  RelaxIV *PiOwnr;  // the instance who calculated Pi the last time
                            // (NULL if they have not been computed)
  #endif
 
  // static members- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- static CRow Pi;          // node Potentials
+ CRow Pi;          // node Potentials
 
  static Bool_Vec mark;    // various temporaries for multinode iterations
  static Index_Set save;
