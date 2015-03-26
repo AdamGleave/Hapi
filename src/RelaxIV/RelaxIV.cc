@@ -137,6 +137,8 @@ RelaxIV::RelaxIV( cIndex nmx , cIndex mmx )
 	Pi = new CNumber[1];
 	Pi--;
 
+	FO = 0;
+
 	#if( AUCTION || ( DYNMC_MCF_RIV > 1 ) )
 	 PiOwnr = NULL;
 	#endif
@@ -3317,8 +3319,11 @@ inline void RelaxIV::addarci( cIndex arc )
    tfstou[ sn ] = arc;
    tnxtin[ arc ] = tfstin[ en ];
    tfstin[ en ] = arc;
-   }
+  } else {
+   tnxtou[ arc ] = arc;
+   tnxtin[ arc ] = arc;
   }
+ }
 
  // update FS & BS: this *must* be done *after* the call to cmptprices()- - -
 
