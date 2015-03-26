@@ -49,6 +49,37 @@ void set_parameters(MCFClass *mcf) {
 		  mcf->MCFm() * 10);  // the epsilon for costs
 }
 
+void writeFlow(MCFClass *mcf) {
+	 if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
+      ( numeric_limits<MCFClass::FNumber>::is_integer == 0 ) ) {
+		std::cout.setf( ios::scientific, ios::floatfield );
+		std::cout.precision( 12 );
+		}
+
+	 // cost of solution
+	 std::cout << "s " << mcf->MCFGetFO() << endl;
+
+	 MCFClass::Index m = mcf->MCFm();
+	 MCFClass::FRow x = new MCFClass::FNumber[m];
+	 MCFClass::Index_Set active_arcs = new MCFClass::Index[m];
+	 mcf->MCFGetX(x, active_arcs);
+	 MCFClass::Index_Set start = new MCFClass::Index[m];
+	 MCFClass::Index_Set end = new MCFClass::Index[m];
+	 mcf->MCFArcs(start, end, active_arcs);
+	 for(MCFClass::Index i = 0;
+			 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
+		 std::cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
+	 }
+
+	 delete[] x;
+	 MCFClass::CRow pi = new MCFClass::CNumber[mcf->MCFn()];
+	 ((RelaxIV *)mcf)->cmptprices();
+	 mcf->MCFGetPi( pi );
+	 for(MCFClass::Index i = 1; i <= mcf->MCFn() ; i++)
+		std::cout << "p " << i << " " << pi[i-1] << endl;
+	 delete[] pi;
+}
+
 bool process_result(MCFClass *mcf) {
 	// TODO(adam): should measure wall time for fair comparison
 	switch( mcf->MCFGetStatus() ) {
@@ -60,33 +91,7 @@ bool process_result(MCFClass *mcf) {
 		// output overall time for benchmark suite
 		std::cerr << "ALGOTIME: " << mcf->TimeMCF() << endl;
 
-		 if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
-	       ( numeric_limits<MCFClass::FNumber>::is_integer == 0 ) ) {
-			std::cout.setf( ios::scientific, ios::floatfield );
-			std::cout.precision( 12 );
-			}
-
-		 // cost of solution
-		 std::cout << "s " << mcf->MCFGetFO() << endl;
-
-		 MCFClass::Index m = mcf->MCFm();
-		 MCFClass::FRow x = new MCFClass::FNumber[m];
-		 MCFClass::Index_Set active_arcs = new MCFClass::Index[m];
-		 mcf->MCFGetX(x, active_arcs);
-		 MCFClass::Index_Set start = new MCFClass::Index[m];
-		 MCFClass::Index_Set end = new MCFClass::Index[m];
-		 mcf->MCFArcs(start, end, active_arcs);
-		 for(MCFClass::Index i = 0;
-				 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
-			 std::cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
-		 }
-
-		 delete[] x;
-		 MCFClass::CRow pi = new MCFClass::CNumber[ mcf->MCFn() ];
-		 mcf->MCFGetPi( pi );
-		 for( MCFClass::Index i = 0 ; i < mcf->MCFn() ; i++ )
-			std::cout << "p " << i << " " << pi[ i ] << endl;
-		 delete[] pi;
+		writeFlow(mcf);
 
 		// check solution
 		mcf->CheckPSol();
@@ -96,9 +101,14 @@ bool process_result(MCFClass *mcf) {
 		break;
 	}
 	 case( MCFClass::kUnfeasible ):
-		std::cerr << "MCF problem unfeasible." << endl;
+	{
+		RelaxIV *relax = dynamic_cast<RelaxIV *>(mcf);
+		std::cerr << "MCF problem unfeasible: error node = "
+				      << relax->error_node << ", error info = " << relax->error_info
+							<< endl;
 	  return false;
 		break;
+	}
 	 case( MCFClass::kUnbounded ):
 		std::cerr << "MCF problem unbounded." << endl;
 	  return false;
@@ -143,14 +153,20 @@ int main(int, char *argv[]) {
 	set_parameters(mcf);
 
   // solve network, output results, read delta, repeat
+	bool first_time = true;
 	do {
 #ifdef DEBUG
 		std::cout << "c GRAPH" << endl;
-		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
 		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
 #endif
 
-		mcf->SetMCFTime();  // reset timer
+		//mcf->SetMCFTime();  // reset timer
+		if (!first_time) {
+			mcf->CheckDSol(false);
+		}
+		first_time = false;
+		writeFlow(mcf);
+		//mcf->status = MCFClass::kUnSolved;
 		mcf->SolveMCF();
 
 #ifdef DEBUG
@@ -161,10 +177,6 @@ int main(int, char *argv[]) {
 		if (!success) {
 			return -1;
 		}
-
-#ifdef DEBUG
-		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
-#endif
 
 		std::cout << "c EOI" << endl;
 		std::cout.flush();
