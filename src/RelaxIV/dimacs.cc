@@ -170,6 +170,76 @@ void DIMACS::ReadInitial(MCFClass::Index *out_tn, MCFClass::Index *out_tm,
  *out_tEndn = tEndn;
 }
 
+RelaxIV::RIVState *DIMACS::ReadState(istream &input,
+		                                 MCFClass::Index n, MCFClass::Index m) {
+	RelaxIV::RIVState *state = new RelaxIV::RIVState(m);
+  memset(state->Flow, 0, sizeof(MCFClass::FNumber) * m);
+	MCFClass::FRow tPi = new MCFClass::FNumber[n + 1];
+	memset(tPi, 0, sizeof(MCFClass::FNumber) * (n+1));
+
+	std::string line;
+
+	while (getline(input, line)) {
+		line_num++;
+
+		std::istringstream iss (line);
+		std::string first;
+		iss >> first;
+		CHECK_EQ(first.length(), 1)
+			<< "type not single character at L" << line_num;
+		char type = first[0];
+
+		std::ostringstream oss;
+		oss << iss.rdbuf();
+		// WARNING: Do NOT 'simplify' this to oss.str().c_str()
+		// If you do, oss.str() will be a temporary, and will be deallocated
+		// immediately afterwards. This will lead to subtle memory access bugs.
+		std::string oss_str = oss.str();
+		const char *remainder = oss_str.c_str();
+
+		switch (type) {
+		case 'c':
+		case 's':
+			// ignore
+			break;
+		case 'f':
+		{
+			uint32_t src_id, dst_id;
+			MCFClass::FNumber flow;
+			int num_matches = sscanf(remainder, "%u %u %ld", &src_id, &dst_id, &flow);
+			CHECK_EQ(num_matches, 3);
+
+			MCFClass::Index index = arc_table[src_id][dst_id];
+			state->Flow[index] = flow;
+
+			break;
+		}
+		case 'p':
+		{
+			uint32_t node_id;
+			MCFClass::FNumber potential;
+			int num_matches = sscanf(remainder, "%u %ld", &node_id, &potential);
+			CHECK_EQ(num_matches, 2);
+
+			tPi[node_id] = potential;
+			break;
+		}
+		default:
+			LOG(FATAL) << "Unrecognised type " << type;
+			break;
+		}
+	}
+
+	// compute reduced cost from potentials
+	for (MCFClass::Index i = 0; i < m; i++) {
+		MCFClass::Index src_id = mcf->MCFSNde(i);
+		MCFClass::Index dst_id = mcf->MCFENde(i);
+		state->RedCost[i] = mcf->MCFCost(i) + tPi[src_id] - tPi[dst_id];
+	}
+
+	return state;
+}
+
 bool DIMACS::ReadDelta() {
 	std::string line;
 

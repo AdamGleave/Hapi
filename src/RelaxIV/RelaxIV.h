@@ -544,6 +544,7 @@ class RelaxIV : public MCFClass {
 
 /*--------------------------------------------------------------------------*/
 
+ public:
    class RIVState : public MCFClass::MCFState {
     public:
 
@@ -553,6 +554,7 @@ class RelaxIV : public MCFClass {
      FRow Flow;
      CRow RedCost;
      };
+ protected:
 
 /*--------------------------------------------------------------------------*/
 /*-------------------------- PRIVATE METHODS -------------------------------*/

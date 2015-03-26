@@ -25,6 +25,9 @@ public:
     MCFClass::FRow *out_tU, MCFClass::CRow *out_tC, MCFClass::FRow *out_tDfct,
 	  MCFClass::Index_Set *out_tStartn, MCFClass::Index_Set *out_tEndn);
 
+	RelaxIV::RIVState *ReadState(istream &state,
+			                         MCFClass::Index n, MCFClass::Index m);
+
 	// returns true if read something, false otherwise
 	bool ReadDelta();
 private:
