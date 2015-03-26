@@ -145,12 +145,19 @@ int main(int argc, char *argv[]) {
 	}
 
 	DIMACSFlowPotentialImporter<ResidualNetwork>(state, *g, *is).read();
-
-	is->run();
-
 	DIMACSPotentialExporter<ResidualNetwork> exporter(*g, std::cout, *is);
-
+	std::cout << "c IMPORTED GRAPH" << std::endl;
+	exporter.write();
+	std::cout << "c IMPORTED FLOW" << std::endl;
 	exporter.writeFlow();
+	std::cout << "c IMPORTED POTENTIALS" << std::endl;
+	exporter.writePotentials();
+
+	is->reoptimize();
+
+	std::cout << "c PRIMAL SOLUTION" << std::endl;
+	exporter.writeFlow();
+	std::cout << "c DUAL SOLUTION" << std::endl;
 	exporter.writePotentials();
 
 	std::cout << "c EOI" << std::endl;

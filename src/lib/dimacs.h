@@ -254,10 +254,9 @@ protected:
     		} else if (potential < 0) {
     			sign_seen = -1;
     		}
-    	} else {
-    		potential = sign_seen * potential;
-    		CHECK_GE(potential, 0);
     	}
+			potential = sign_seen * potential;
+			CHECK_GE(potential, 0);
 
     	potentials[node_id] = potential;
 
