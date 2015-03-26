@@ -6,6 +6,10 @@
 
 namespace flowsolver {
 
+template<class T> class DIMACSFlowPotentialImporter;
+template<class T> class DIMACSPotentialExporter;
+class ResidualNetwork;
+
 // interface
 class IncrementalSolver {
 public:
@@ -21,6 +25,8 @@ protected:
 	virtual ~IncrementalSolver() {}
 
 	friend class DynamicMaintainOptimality;
+	friend class DIMACSFlowPotentialImporter<ResidualNetwork>;
+	friend class DIMACSPotentialExporter<ResidualNetwork>;
 };
 
 } /* namespace flowsolver */

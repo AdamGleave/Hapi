@@ -62,6 +62,9 @@ public:
 
 	void setSupply(uint32_t id, int64_t supply);
 	void pushFlow(uint32_t src, uint32_t dst, int64_t amount);
+	// favour use of the above method, but this is needed for interface
+	// compatibility with FlowNetwork, used in DIMACSFlowImporter
+	void pushFlow(Arc &arc, uint32_t src_id, int64_t amount);
 
 	bool operator==(const ResidualNetwork &g) const;
 	bool operator!=(const ResidualNetwork &g) const;

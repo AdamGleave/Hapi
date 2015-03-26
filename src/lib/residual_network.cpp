@@ -254,6 +254,12 @@ void ResidualNetwork::pushFlow(uint32_t src, uint32_t dst, int64_t amount) {
 	changeBalance(dst, amount);
 }
 
+
+void ResidualNetwork::pushFlow(Arc& arc, uint32_t src_id, int64_t amount) {
+	pushFlow(src_id, arc.getDstId(), amount);
+}
+
+
 bool ResidualNetwork::validID(uint32_t id) const {
 	return id < arcs.size() && free_nodes.count(id) == 0;
 }

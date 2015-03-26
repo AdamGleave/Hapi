@@ -23,6 +23,8 @@
 #include "arc.h"
 #include "graph.h"
 
+#include "incremental_solver.h"
+
 namespace flowsolver {
 
 class DIMACSImporter {
@@ -178,7 +180,7 @@ public:
 		return solution;
 	}
 protected:
-	bool processLine(char type, const char *remainder) final {
+	virtual bool processLine(char type, const char *remainder) {
 		int num_matches = -1;
 		switch (type) {
 		case 'c':
@@ -220,6 +222,55 @@ protected:
 	T &g;
 	int64_t solution = 0;
 	bool solution_seen = false;
+};
+
+template<class T>
+class DIMACSFlowPotentialImporter : public DIMACSFlowImporter<T> {
+	BOOST_CONCEPT_ASSERT((DynamicGraph<T>));
+public:
+  DIMACSFlowPotentialImporter(std::istream &is, T &g, IncrementalSolver &solver)
+             : DIMACSFlowImporter<T>(is, g), potentials(solver.getPotentials()) {};
+
+protected:
+  virtual bool processLine(char type, const char *remainder) override {
+  	int sign_seen = 0;
+    switch (type) {
+    case 'p':
+    {
+    	uint32_t node_id;
+    	int64_t potential;
+    	int num_matches = sscanf(remainder, "%u %ld", &node_id, &potential);
+    	CHECK_EQ(num_matches, 2);
+
+    	// some solvers have RC(i,j) = C(i,j) - P[i] + P[j]
+    	// others convention RC(i,j) = C(i,j) + P[i] - P[j]
+    	// This results in different signs for potentials P. Try and detect which
+    	// convention is in use. (We use the former one for our solver.)
+    	// N.B. We assume all potentials have the same sign. This needn't be the
+    	// case, but is for all solvers I've seen.
+    	if (sign_seen == 0) {
+    		if (potential > 0) {
+    			sign_seen = 1;
+    		} else if (potential < 0) {
+    			sign_seen = -1;
+    		}
+    	} else {
+    		potential = sign_seen * potential;
+    		CHECK_GE(potential, 0);
+    	}
+
+    	potentials[node_id] = potential;
+
+    	return true;
+    	break;
+    }
+    default:
+    	return DIMACSFlowImporter<T>::processLine(type, remainder);
+    	break;
+    }
+  }
+
+  std::vector<uint64_t> &potentials;
 };
 
 template<class T>
@@ -280,9 +331,26 @@ public:
 			}
 		}
 	}
-private:
+protected:
 	const T &g;
 	std::ostream &os;
+};
+
+template<class T>
+class DIMACSPotentialExporter : public DIMACSExporter<T> {
+public:
+	DIMACSPotentialExporter(const T &g, std::ostream &os,
+			                    IncrementalSolver &solver) : DIMACSExporter<T>(g, os),
+													                potentials(solver.getPotentials()) {};
+
+	void writePotentials() {
+		for (size_t i = 1; i <= this->g.getNumNodes(); i++) {
+			std::cout << "p " << i << " " << potentials[i] << std::endl;
+		}
+	}
+
+protected:
+	std::vector<uint64_t> &potentials;
 };
 
 template<class T>

@@ -7,7 +7,6 @@
 
 #include "cycle_cancelling.h"
 
-#include "dimacs.h"
 #include "residual_network_util.h"
 
 namespace flowsolver {
