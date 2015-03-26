@@ -648,9 +648,9 @@ class RelaxIV : public MCFClass {
 #endif
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-
- inline void cmptprices( void );
-
+public:
+ void cmptprices( void );
+private:
 /*--------------------------------------------------------------------------*/
 
  inline void MemAlloc( void );
@@ -701,6 +701,7 @@ class RelaxIV : public MCFClass {
   #endif
  #endif
 
+public:
  Index error_node;        // error handling variables: if the problem is
  Index error_info;        // found to be unfeasible, these variables contain
                           // a description of the kind of unfeasibility and
@@ -726,6 +727,7 @@ class RelaxIV : public MCFClass {
                           //   the starting node of the iteration;
                           // 8 problem has been detected unfeasible in
                           //   Auction() initialization.
+private:
 
  // potentially static members, depending on SAME_GRPH_RIV - - - - - - - - - -
 

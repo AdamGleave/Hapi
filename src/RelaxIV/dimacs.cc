@@ -195,8 +195,9 @@ bool DIMACS::ReadDelta() {
 		if (!more_data) {
 			return true;
 		}
+#ifdef DEBUG
 		std::cout << "c " << type << remainder << endl;
-		std::cout << "c STATUS: " << mcf->MCFGetStatus() << endl;
+#endif
 	}
 
 	// EOF read
@@ -207,6 +208,11 @@ void DIMACS::changeSinkDeficit(MCFClass::FNumber delta) {
 	MCFClass::FNumber sink_deficit = mcf->MCFDfct(SINK_NODE - 1);
 	mcf->ChgDfct(SINK_NODE, sink_deficit + delta);
 	VLOG(1) << "SINK DEFICIT: was " << sink_deficit << ", now " << sink_deficit + delta;
+}
+
+void hint_to_debugger() {
+	// make it easy for me to break here
+	return;
 }
 
 bool DIMACS::processLine(char type, const char *remainder) {
@@ -221,6 +227,8 @@ bool DIMACS::processLine(char type, const char *remainder) {
 
 		if (comment == "EOI") {
 			return false;
+		} else if (comment == "SOI 1423338560") {
+			hint_to_debugger();
 		}
 		// otherwise can ignore comments
 		break;

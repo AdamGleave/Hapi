@@ -4,6 +4,8 @@ set_source_files_properties(RelaxIV_incremental.cc PROPERTIES COMPILE_FLAGS "-Wn
 set_source_files_properties(RelaxIV.cc PROPERTIES COMPILE_FLAGS "-Wno-all")
 set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS "-Wno-all")
 
+add_definitions(-DDEBUG)
+
 add_executable (RelaxIV RelaxIV.cc main.cc)
 target_link_libraries (RelaxIV PUBLIC ${GLOG_LIBRARY}) 
 add_executable (RelaxIV_incremental incremental.cc RelaxIV_incremental.cc dimacs.cc)

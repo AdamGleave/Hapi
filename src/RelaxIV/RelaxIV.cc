@@ -1894,6 +1894,7 @@ MCFClass::FNumber RelaxIV::DelNode(cIndex name)
 
   Dfct[node] = 0;
   B[node] = 0;
+  Pi[node] = 0;
 
   if( node == n )
    do
@@ -3326,7 +3327,7 @@ inline void RelaxIV::addarci( cIndex arc )
 
 /*--------------------------------------------------------------------------*/
 
-inline void RelaxIV::cmptprices( void )
+void RelaxIV::cmptprices( void )
 {
  CRow tPi = Pi + n;
  for( ; tPi > Pi ; )
