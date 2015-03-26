@@ -163,9 +163,9 @@ int main(int, char *argv[]) {
 		//mcf->SetMCFTime();  // reset timer
 		if (!first_time) {
 			mcf->CheckDSol(false);
+			writeFlow(mcf);
 		}
 		first_time = false;
-		writeFlow(mcf);
 		//mcf->status = MCFClass::kUnSolved;
 		mcf->SolveMCF();
 
