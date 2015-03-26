@@ -8,7 +8,12 @@ add_definitions(-DDEBUG)
 
 add_executable (RelaxIV RelaxIV.cc main.cc)
 target_link_libraries (RelaxIV PUBLIC ${GLOG_LIBRARY}) 
+
 add_executable (RelaxIV_incremental incremental.cc RelaxIV_incremental.cc dimacs.cc)
 target_link_libraries (RelaxIV_incremental PUBLIC ${GLOG_LIBRARY})
+
 add_executable (debug_init_state debug_init_state.cc RelaxIV_incremental.cc dimacs.cc)
-target_link_libraries (debug_init_state PUBLIC ${GLOG_LIBRARY})  
+target_link_libraries (debug_init_state PUBLIC ${GLOG_LIBRARY})
+
+add_executable (compare_internal_state compare_internal_state.cc RelaxIV_incremental.cc dimacs.cc)
+target_link_libraries (compare_internal_state PUBLIC ${GLOG_LIBRARY})    
