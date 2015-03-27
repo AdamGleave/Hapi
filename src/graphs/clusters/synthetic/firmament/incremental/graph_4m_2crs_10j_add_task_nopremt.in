@@ -1,5 +1,5 @@
 c === Adds task vertex to the graph. The graph has a low cost of not being scheduled.
-a 29 1
+n 29 1
 c === Arc from source
 a 1 29 0 1 0
 c === Arc to unscheduled
