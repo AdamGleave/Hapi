@@ -8,4 +8,7 @@ add_executable (RelaxIV RelaxIV.cc main.cc)
 target_link_libraries (RelaxIV PUBLIC ${GLOG_LIBRARY}) 
 
 add_executable (RelaxIV_incremental incremental.cc RelaxIV_incremental.cc dimacs.cc)
-target_link_libraries (RelaxIV_incremental PUBLIC ${GLOG_LIBRARY}) 
+target_link_libraries (RelaxIV_incremental PUBLIC ${GLOG_LIBRARY})
+
+add_executable (RelaxIV_snapshots snapshots.cc RelaxIV_incremental.cc dimacs.cc)
+target_link_libraries (RelaxIV_snapshots PUBLIC ${GLOG_LIBRARY}) 
