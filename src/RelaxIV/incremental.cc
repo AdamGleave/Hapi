@@ -27,28 +27,6 @@ inline T ABS( const T x )
  return( x >= T( 0 ) ? x : -x );
 }
 
-void set_parameters(MCFClass *mcf) {
-	// TODO(adam): is this necessary? copied from main.cc
-  // set "reasonable" values for the epsilons, if any - - - - - - - - - - - -
-
-  MCFClass::FNumber eF = 1;
-  for( register MCFClass::Index i = mcf->MCFm() ; i-- ; )
-   eF = max( eF , ABS( mcf->MCFUCap( i ) ) );
-
-  for( register MCFClass::Index i = mcf->MCFn() ; i-- ; )
-   eF = max( eF , ABS( mcf->MCFDfct( i ) ) );
-
-  MCFClass::CNumber eC = 1;
-  for( register MCFClass::Index i = mcf->MCFm() ; i-- ; )
-   eC = max( eC , ABS( mcf->MCFCost( i ) ) );
-
-  mcf->SetPar( RelaxIV::kEpsFlw, (double) numeric_limits<MCFClass::FNumber>::epsilon() * eF *
-		  mcf->MCFm() * 10);  // the epsilon for flows
-
-  mcf->SetPar( RelaxIV::kEpsCst, (double) numeric_limits<MCFClass::CNumber>::epsilon() * eC *
-		  mcf->MCFm() * 10);  // the epsilon for costs
-}
-
 void writeFlow(MCFClass *mcf) {
 	 if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
       ( numeric_limits<MCFClass::FNumber>::is_integer == 0 ) ) {
@@ -148,9 +126,6 @@ int main(int, char *argv[]) {
 	delete[] tStartn;
 	delete[] tEndn;
 	delete[] tC;
-
-	// set sensible values for epsilons
-	set_parameters(mcf);
 
   // solve network, output results, read delta, repeat
 	do {
