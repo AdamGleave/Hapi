@@ -4261,6 +4261,7 @@ inline void RelaxIV::AllocateNodeTemporaries ( void ) {
 
 	 #if( P_ALLOC )
 		delete[] ++Pi;
+		PiOwnr = NULL;
 	 #endif
 
 	 delete[] ++DDNeg;
