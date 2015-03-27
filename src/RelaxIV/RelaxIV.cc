@@ -1881,14 +1881,14 @@ MCFClass::FNumber RelaxIV::DelNode(cIndex name)
   Index arc = FOu[ node ];
 
   while( arc ) {
-   CloseArc( arc );
+   DelArc( arc - 1 );
    arc = FOu[ node ];
    }
 
   arc = FIn[ node ];
 
   while( arc ) {
-   CloseArc( arc );
+   DelArc( arc - 1 );
    arc = FIn[ node ];
    }
   
@@ -1938,25 +1938,26 @@ void RelaxIV::OpenArc( cIndex name )
 
 void RelaxIV::AddNode( cIndex name, cFNumber aDfct ) {
 #if( DYNMC_MCF_RIV > 1 )
+	Index node = name + USENAME0;
 	if (free_nodes.empty()) {
-		if (name == n + 1) {
+		if (node == n + 1) {
 				n++;
 
 				if( n >= nmax ) {
 					LOG(FATAL) << "Out of memory: nodes.";
 				}
-		} else if (name > n + 1) {
+		} else if (node > n + 1) {
 			LOG(FATAL) << "Illegal: attempting to grow graph by more than one node."
-								 << "Index " << name << " with " << n << " nodes.";
+								 << "Index " << node << " with " << n << " nodes.";
 		} else {
-			LOG(FATAL) << "Illegal: attempting to add node ID " << name
+			LOG(FATAL) << "Illegal: attempting to add node ID " << node
 					       << "already in use.";
 		}
 	} else {
-		auto it = free_nodes.find(name);
+		auto it = free_nodes.find(node);
 		if (it == free_nodes.end()) {
 			// not in free nodes
-			LOG(FATAL) << "Illegal: attempting to add node ID " << name
+			LOG(FATAL) << "Illegal: attempting to add node ID " << node
 									 << "already in use.";
 		} else {
 			// is in free nodes, remove it from the set as we're about to add it
@@ -1964,18 +1965,18 @@ void RelaxIV::AddNode( cIndex name, cFNumber aDfct ) {
 		}
 	}
 
-  B[ name ] = aDfct;
-  FOu[ name ] = FIn[ name ] = 0;
+  B[ node ] = aDfct;
+  FOu[ node ] = FIn[ node ] = 0;
 
   if( status || ( ! Senstv ) )
    status = MCFClass::kUnSolved;
   else {
-   Dfct[ name ] = aDfct;
-   tfstou[ name ] = tfstin[ name ] = 0;
+   Dfct[ node ] = aDfct;
+   tfstou[ node ] = tfstin[ node ] = 0;
 
    #if( P_ALLOC )
     if( PiOwnr == this )
-     Pi[ name ] = 0;
+     Pi[ node ] = 0;
    #endif
    }
  #else
@@ -1996,8 +1997,8 @@ MCFClass::Index RelaxIV::AddNode( cFNumber aDfct )
  } else {
 	 index = *begin;
  }
- AddNode(index, aDfct);
- return index;
+ AddNode(index - USENAME0, aDfct);
+ return index - USENAME0;
  #else
   throw(
    MCFException( "RelaxIV::AddNode() not implemented if DYNMC_MCF_RIV < 2"
