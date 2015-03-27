@@ -397,15 +397,22 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   with open(err_path, 'w') as err_file:
     print("Executing ", simulator, file=err_file)
     err_file.flush()
-    running_simulator = simulator(_out=out_path, _err=err_file.buffer, _bg=True)
-  
-    if type == "online":
-      with open(fifo_path, 'r') as stats_file:
-        csv_reader = csv.DictReader(stats_file)
-        for row in csv_reader:
-          yield row
     
-    running_simulator.wait()
+    with open(out_path, 'w') as out_file:
+      # WARNING: Do not replace this to just  call _out=out_path directly.
+      # Normally this would work OK, but out_file is a FIFO. sh is annoying
+      # and doesn't close FDs. So we'd never read EOF, and would get stuck. 
+      running_simulator = simulator(_out=out_file.buffer, _err=err_file.buffer,
+                                    _bg=True)
+    
+      if type == "online":
+        with open(fifo_path, 'r') as stats_file:
+          csv_reader = csv.DictReader(stats_file)
+          for row in csv_reader:
+            if type == "online":
+              yield row
+      
+      running_simulator.wait()
   
   ### Clean up  
   if type == "online":

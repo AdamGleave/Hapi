@@ -197,7 +197,13 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "incremental_min_cost",
     "path": "bin/incremental_min_cost",
-    "arguments": []
+    "arguments": ["augmenting_path"],
+   },
+   "relax_incremental_latest": {
+    "version": "master",
+    "target": "incremental_min_cost",
+    "path": "bin/incremental_min_cost",
+    "arguments": ["relax"],
    },
   "relaxfi_latest": {
     "version": "master",
