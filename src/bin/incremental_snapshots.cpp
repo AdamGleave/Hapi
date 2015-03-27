@@ -3,8 +3,6 @@
  * and solves it using an incremental approach. Outputs DIMACS representation
  * of the solution. */
 
-#include "augmenting_path.h"
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -14,10 +12,7 @@
 #include <glog/logging.h>
 
 #include "residual_network.h"
-#include "dynamic_maintain_optimality.h"
 #include "dimacs.h"
-
-#define TIMER_FORMAT "ALGOTIME: %w\n"
 
 using namespace flowsolver;
 
