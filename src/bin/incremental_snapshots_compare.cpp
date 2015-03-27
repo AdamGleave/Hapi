@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 				      << "[incremental input] [snapshot input]" << std::endl
 							<< "verifies graphs in snapshot file agree with those produced "
 							<< "by processing incremental input." << std::endl;
-		return -1;
+		return 1;
 	}
 
 	std::string incremental_input_path(argv[1]);
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 			std::cout << "c SNAPSHOT (actual)" << std::endl;
 			DIMACSExporter<ResidualNetwork>(*snapshot_graph, std::cout).write();
 
-			return -1;
+			return 42;
 		}
 
 		incremental_read = incremental_delta.read();
@@ -88,6 +88,5 @@ int main(int argc, char *argv[]) {
 		CHECK_EQ(incremental_read, snapshot_read) << "different number of iterations";
 	}
 
-	std::cout << "Test passed." << std::endl;
 	return 0;
 }

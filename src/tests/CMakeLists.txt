@@ -15,6 +15,9 @@ add_test(dynamic_maintain_optimality test_dynamic_maintain_optimality)
 add_test(NAME flowsolver_full_tests 
          COMMAND ./test_algorithms.py
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-add_test(NAME flowsolver_incremental_tests 
-         COMMAND ./test_incremental.py
+add_test(NAME flowsolver_incremental_graph_tests 
+         COMMAND ./test_incremental_graph.py
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME flowsolver_incremental_solver_tests 
+         COMMAND ./test_incremental_solver.py
          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

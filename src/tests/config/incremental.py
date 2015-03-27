@@ -1,13 +1,25 @@
 from config.common import *
 
-TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "incremental_min_cost"))
-#TEST_PROGRAM_ARGUMENTS = ["augmenting_path", "relax"]
-TEST_PROGRAM_ARGUMENTS = []
+### Incremental graph
 
-TEST_PROGRAMS = { name : TEST_PROGRAM.bake(name)
-                  for name in TEST_PROGRAM_ARGUMENTS }
-TEST_PROGRAMS["relax_frangioni"] = sh.Command(os.path.join(PROJECT_ROOT,
+SNAPSHOTS_COMPARE = sh.Command(os.path.join(PROJECT_ROOT, BUILD_PREFIX, "bin",
+                                            "incremental_snapshots_compare"))
+GRAPH_TEST_PROGRAMS = {"relaxiv": sh.Command(os.path.join(PROJECT_ROOT,
+                         BUILD_PREFIX, "RelaxIV", "RelaxIV_snapshots"))
+                      }
+FIFO_FNAME = "snapshots.fifo"
+
+### Incremental solver
+SOLVER_TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "incremental_min_cost"))
+#TEST_PROGRAM_ARGUMENTS = ["augmenting_path", "relax"]
+SOLVER_TEST_PROGRAM_ARGUMENTS = []
+
+SOLVER_TEST_PROGRAMS = { name : SOLVER_TEST_PROGRAM.bake(name)
+                         for name in SOLVER_TEST_PROGRAM_ARGUMENTS }
+SOLVER_TEST_PROGRAMS["relax_frangioni"] = sh.Command(os.path.join(PROJECT_ROOT,
                                         BUILD_PREFIX, "RelaxIV", "incremental"))
+
+### Dataset
 
 HANDMADE_INCREMENTAL_DIR = os.path.join("clusters", "synthetic", 
                                         "firmament", "incremental")

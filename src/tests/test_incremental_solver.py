@@ -35,9 +35,9 @@ if __name__ == "__main__":
         
         delta_path = os.path.join(config.DATASET_ROOT, delta_fname)
         common.runTest(sh.cat.bake(main_graph_path, delta_path),
-                       config.TEST_PROGRAMS, runReferenceCommand, runCommand)
+                   config.SOLVER_TEST_PROGRAMS, runReferenceCommand, runCommand)
     else:
       # We're not concatenating everything here, but we still use the feature
       # that concatenateFiles rewinds the file for each test
       common.runTest(sh.cat.bake(main_graph_path),
-                     config.TEST_PROGRAMS, runReferenceCommand, runCommand)
+                   config.SOLVER_TEST_PROGRAMS, runReferenceCommand, runCommand)
