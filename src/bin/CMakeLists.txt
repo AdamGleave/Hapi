@@ -12,13 +12,6 @@ target_link_libraries(incremental_min_cost PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(incremental_min_cost PRIVATE ${GLOG_LIBRARY})
 target_link_libraries(incremental_min_cost PUBLIC ${PROJECT_NAME_STR})
 
-add_executable (relax_potential_dbg relax_potential_dbg.cpp)
-set_target_properties(relax_potential_dbg PROPERTIES
-                                    INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-target_link_libraries(relax_potential_dbg PRIVATE ${Boost_LIBRARIES})
-target_link_libraries(relax_potential_dbg PRIVATE ${GLOG_LIBRARY})
-target_link_libraries(relax_potential_dbg PUBLIC ${PROJECT_NAME_STR})
-
 add_executable (incremental_snapshots incremental_snapshots.cpp)
 set_target_properties(incremental_snapshots PROPERTIES
                                     INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})

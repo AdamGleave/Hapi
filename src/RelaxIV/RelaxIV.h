@@ -544,7 +544,6 @@ class RelaxIV : public MCFClass {
 
 /*--------------------------------------------------------------------------*/
 
- public:
    class RIVState : public MCFClass::MCFState {
     public:
 
@@ -554,7 +553,6 @@ class RelaxIV : public MCFClass {
      FRow Flow;
      CRow RedCost;
      };
- protected:
 
 /*--------------------------------------------------------------------------*/
 /*-------------------------- PRIVATE METHODS -------------------------------*/
@@ -650,9 +648,9 @@ class RelaxIV : public MCFClass {
 #endif
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-public:
- void cmptprices( void );
-private:
+
+ inline void cmptprices( void );
+
 /*--------------------------------------------------------------------------*/
 
  inline void MemAlloc( void );
@@ -703,7 +701,6 @@ private:
   #endif
  #endif
 
-public:
  Index error_node;        // error handling variables: if the problem is
  Index error_info;        // found to be unfeasible, these variables contain
                           // a description of the kind of unfeasibility and
@@ -729,7 +726,6 @@ public:
                           //   the starting node of the iteration;
                           // 8 problem has been detected unfeasible in
                           //   Auction() initialization.
-private:
 
  // potentially static members, depending on SAME_GRPH_RIV - - - - - - - - - -
 
@@ -759,13 +755,13 @@ private:
 #endif
 
  #if( AUCTION || ( DYNMC_MCF_RIV > 1 ) )
-  RelaxIV *PiOwnr;  // the instance who calculated Pi the last time
+  static RelaxIV *PiOwnr;  // the instance who calculated Pi the last time
                            // (NULL if they have not been computed)
  #endif
 
  // static members- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- CRow Pi;          // node Potentials
+ static CRow Pi;          // node Potentials
 
  static Bool_Vec mark;    // various temporaries for multinode iterations
  static Index_Set save;

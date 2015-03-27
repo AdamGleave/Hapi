@@ -153,20 +153,13 @@ int main(int, char *argv[]) {
 	set_parameters(mcf);
 
   // solve network, output results, read delta, repeat
-	bool first_time = true;
 	do {
 #ifdef DEBUG
 		std::cout << "c GRAPH" << endl;
 		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
 #endif
 
-		//mcf->SetMCFTime();  // reset timer
-		if (!first_time) {
-			mcf->CheckDSol(false);
-			writeFlow(mcf);
-		}
-		first_time = false;
-		//mcf->status = MCFClass::kUnSolved;
+		mcf->SetMCFTime();  // reset timer
 		mcf->SolveMCF();
 
 #ifdef DEBUG

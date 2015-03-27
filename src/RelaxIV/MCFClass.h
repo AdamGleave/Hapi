@@ -1129,7 +1129,7 @@ class MCFClass {
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-   inline void CheckDSol(bool after_solve=true);
+   inline void CheckDSol( void );
 
 /**< Check that the dual solution returned by the solver is dual feasible.
    (to within the tolerances set by SetPar(kEps****) [see above], if any). Also,
@@ -2211,9 +2211,9 @@ inline void MCFClass::CheckPSol( void )
 
 /*--------------------------------------------------------------------------*/
 
-inline void MCFClass::CheckDSol(bool after_solve)
+inline void MCFClass::CheckDSol( void )
 {
- CRow tPi = new CNumber[MCFn()];
+ CRow tPi = new CNumber[ MCFn() ];
  MCFGetPi( tPi );
 
  FONumber BY = 0;
@@ -2248,18 +2248,8 @@ inline void MCFClass::CheckDSol(bool after_solve)
   if( LTZ( tRC[ i ] , EpsCst ) ) {
    BY += FONumber( tRC[ i ] ) * FONumber( MCFUCap( i ) );
 
-   if( LT( tX[ i ] , MCFUCap( i ) , EpsFlw ) ) {
-  	 std::ostringstream error;
-		 error << "Complementary Slackness violated (CheckDSol), " << "by arc "
-		       << i << "(" << MCFSNde(i) << "->" << MCFENde(i) << ") with "
-					 << "reduced cost " << tRC[i] << " and flow " << tX[i]
-					 << " < " << MCFUCap(i) << " upper bound";
-		 std::string *error_str = new std::string();
-		 *error_str = error.str();
-		 const char *str = error_str->c_str();
-		 throw(MCFException(str));
-   }
-
+   if( LT( tX[ i ] , MCFUCap( i ) , EpsFlw ) )
+    throw( MCFException( "Csomplementary Slackness violated (CheckDSol)" ) );
    }
   else
    if( GTZ( tRC[ i ] , EpsCst ) && GTZ( tX[ i ] , EpsFlw ) )
@@ -2274,12 +2264,9 @@ inline void MCFClass::CheckDSol(bool after_solve)
  #endif
  delete[] tPi;
 
- if (after_solve) {
-	 BY -= ( MCFGetFO() + QdrtcCmpnt / 2 );
-	 if( ( BY >= 0 ? BY : - BY ) > EpsCst * MCFn() )
-	  throw( MCFException( "Objective function value is wrong (CheckDSol)" ) );
- }
-
+ BY -= ( MCFGetFO() + QdrtcCmpnt / 2 );
+ if( ( BY >= 0 ? BY : - BY ) > EpsCst * MCFn() )
+  throw( MCFException( "Objective function value is wrong (CheckDSol)" ) );
 
  }  // end( CheckDSol )
 
