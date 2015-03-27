@@ -117,7 +117,7 @@ int main(int, char *argv[]) {
 
 	// load network
 	MCFClass::Index num_nodes_reserved = tn, num_arcs_reserved = tm;
-	compute_reserved_memory(num_nodes_reserved, num_arcs_reserved);
+	//compute_reserved_memory(num_nodes_reserved, num_arcs_reserved);
 	mcf->LoadNet(num_nodes_reserved, num_arcs_reserved, tn, tm,
 			           tU, tC, tDfct, tStartn, tEndn);
 

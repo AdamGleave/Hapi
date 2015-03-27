@@ -676,9 +676,20 @@ protected:
 
 /*--------------------------------------------------------------------------*/
 
+ inline void AllocateNodeTemporaries ( void );
+ inline void AllocateArcTemporaries ( void );
+
  inline void MemAlloc( void );
 
  inline void MemDeAlloc( void );
+
+#if ( DYNMC_MCF_RIV > 1)
+ inline void MemGrowNodes( MCFClass::Index new_nmax );
+#endif
+
+#if (DYNMC_MCF_RIV > 2)
+ inline void MemGrowArcs( MCFClass::Index new_mmax );
+#endif
 
 /*--------------------------------------------------------------------------*/
 /*----------------------- PRIVATE DATA STRUCTURES  -------------------------*/

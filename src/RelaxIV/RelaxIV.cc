@@ -1941,17 +1941,17 @@ void RelaxIV::AddNode( cIndex name, cFNumber aDfct ) {
 	Index node = name + USENAME0;
 	if (free_nodes.empty()) {
 		if (node == n + 1) {
-				n++;
+			n++;
 
-				if( n >= nmax ) {
-					LOG(FATAL) << "Out of memory: nodes.";
-				}
+		  if( n > nmax ) {
+			  MemGrowNodes(n);
+		  }
 		} else if (node > n + 1) {
-			LOG(FATAL) << "Illegal: attempting to grow graph by more than one node."
-								 << "Index " << node << " with " << n << " nodes.";
+		LOG(FATAL) << "Illegal: attempting to grow graph by more than one node."
+							 << "Index " << node << " with " << n << " nodes.";
 		} else {
 			LOG(FATAL) << "Illegal: attempting to add node ID " << node
-					       << "already in use.";
+								 << "already in use.";
 		}
 	} else {
 		auto it = free_nodes.find(node);
@@ -2200,11 +2200,13 @@ MCFClass::Index RelaxIV::AddArc( cIndex Start , cIndex End , cFNumber aU ,
    arc = ffp;
    }
 
-  if( ! arc )
-   if( m < mmax ) 
-    arc = ++m;
-   else
-    return( Inf<Index>() );
+  if( ! arc ) {
+  	// no free arcs
+  	arc = ++m;
+  	if (m > mmax) {
+  		MemGrowArcs(m);
+  	}
+  }
 
   // insert new arc in position arc - - - - - - - - - - - - - - - - - - - - -
 
@@ -4245,6 +4247,96 @@ void RelaxIV::auction( void )
 
 /*--------------------------------------------------------------------------*/
 
+inline void RelaxIV::AllocateNodeTemporaries ( void ) {
+ if( maxnmax < nmax ) {  // allocating node-wise temporaries- - - - - - - - -
+	maxnmax = nmax;
+
+	if( mark ) {
+	 #if( AUCTION )
+		delete[] ++SB_arc;
+		delete[] ++FpushB;
+		delete[] ++extend_arc;
+		delete[] ++SB_level;
+	 #endif
+
+	 #if( P_ALLOC )
+		delete[] ++Pi;
+	 #endif
+
+	 delete[] ++DDNeg;
+	 delete[] ++DDPos;
+	 delete[] ++queue;
+	 delete[] ++scan;
+	 delete[] ++mark;
+	 delete[] label;
+	 delete[] ++Prdcsr;
+	 }
+
+	Prdcsr = new SIndex[ nmax ];
+	label  = new Index[ nmax ];
+	mark   = new bool[ nmax ];
+	scan   = new bool[ nmax ];
+	queue  = new Index[ nmax ];
+	DDPos  = new FNumber[ nmax ];
+	DDNeg  = new FNumber[ nmax ];
+
+	Prdcsr--;
+	mark--;
+	scan--;
+	queue--;
+	DDPos--;
+	DDNeg--;
+
+	#if( P_ALLOC )
+	 Pi = new CNumber[ nmax ];
+	 Pi--;
+	#endif
+
+	#if( AUCTION )
+	 SB_level   = new CNumber[ nmax ];
+	 extend_arc = new SIndex[ nmax ];
+
+	 FpushF = label;
+
+	 FpushB = new Index[ nmax ];
+	 SB_arc = new SIndex[ nmax ];
+
+	 SB_level--;
+	 extend_arc--;
+	 FpushF--;
+	 FpushB--;
+	 SB_arc--;
+	#endif
+
+	}  // end if( allocating node-wise temporaries )
+}
+
+inline void RelaxIV::AllocateArcTemporaries ( void ) {
+ if( maxmmax < mmax ) {  // allocating arc-wise temporaries - - - - - - - - -
+	maxmmax = mmax;
+
+	if( save ) {
+	 #if( AUCTION )
+		delete[] ++NxtpushB;
+		delete[] ++NxtpushF;
+	 #endif
+
+	 delete[] save;
+	 }
+
+	save = new Index[ mmax ];
+
+	#if( AUCTION )
+	 NxtpushF = new Index[ mmax ];
+	 NxtpushB = new Index[ mmax ];
+
+	 NxtpushF--;
+	 NxtpushB--;
+	#endif
+
+	}  // end if( allocating arc-wise temporaries )
+}
+
 inline void RelaxIV::MemAlloc( void )
 {
  #if( SAME_GRPH_RIV )
@@ -4282,91 +4374,8 @@ inline void RelaxIV::MemAlloc( void )
    NxtOu--;
    }
 
- if( maxnmax < nmax ) {  // allocating node-wise temporaries- - - - - - - - -
-  maxnmax = nmax;
-
-  if( mark ) {
-   #if( AUCTION )
-    delete[] ++SB_arc;
-    delete[] ++FpushB;
-    delete[] ++extend_arc;
-    delete[] ++SB_level;
-   #endif
-
-   #if( P_ALLOC )
-    delete[] ++Pi;
-   #endif
-
-   delete[] ++DDNeg;
-   delete[] ++DDPos;
-   delete[] ++queue;
-   delete[] ++scan;
-   delete[] ++mark;
-   delete[] label;
-   delete[] ++Prdcsr;
-   }
-
-  Prdcsr = new SIndex[ nmax ];
-  label  = new Index[ nmax ];
-  mark   = new bool[ nmax ];
-  scan   = new bool[ nmax ];
-  queue  = new Index[ nmax ];
-  DDPos  = new FNumber[ nmax ];
-  DDNeg  = new FNumber[ nmax ];
-
-  Prdcsr--;
-  mark--;
-  scan--;
-  queue--;
-  DDPos--;
-  DDNeg--;
-
-  #if( P_ALLOC )
-   Pi = new CNumber[ nmax ];
-   Pi--;
-  #endif
-
-  #if( AUCTION )
-   SB_level   = new CNumber[ nmax ];
-   extend_arc = new SIndex[ nmax ];
-
-   FpushF = label;
-
-   FpushB = new Index[ nmax ];
-   SB_arc = new SIndex[ nmax ];
-
-   SB_level--;
-   extend_arc--;
-   FpushF--;
-   FpushB--;
-   SB_arc--;
-  #endif
-
-  }  // end if( allocating node-wise temporaries )
-
- if( maxmmax < mmax ) {  // allocating arc-wise temporaries - - - - - - - - -
-  maxmmax = mmax;
-
-  if( save ) {
-   #if( AUCTION )
-    delete[] ++NxtpushB;
-    delete[] ++NxtpushF;
-   #endif
-
-   delete[] save;
-   }
-
-  save = new Index[ mmax ];
-
-  #if( AUCTION )
-   NxtpushF = new Index[ mmax ];
-   NxtpushB = new Index[ mmax ];
-
-   NxtpushF--;
-   NxtpushB--;
-  #endif
-
-  }  // end if( allocating arc-wise temporaries )
+ AllocateNodeTemporaries();
+ AllocateArcTemporaries();
 
  // allocating flows, reduced costs, potentials etc - - - - - - - - - - - - -
 
@@ -4386,7 +4395,7 @@ inline void RelaxIV::MemAlloc( void )
  Dfct--;
  B--;
 
- // allocating "restricted" (to balanecd arcs) BS and FS- - - - - - - - - - -
+ // allocating "restricted" (to balanced arcs) BS and FS- - - - - - - - - - -
 
  tfstin = new Index[ nmax ];
  tnxtin = new Index[ mmax ];
@@ -4454,6 +4463,83 @@ inline void RelaxIV::MemDeAlloc( void )
    }
 
  }  // end( MemDeAlloc )
+
+/*--------------------------------------------------------------------------*/
+
+#if (DYNMC_MCF_RIV > 1)
+template<class T>
+inline void growArray(T **array,
+		                  MCFClass::Index old_size, MCFClass::Index new_size) {
+	CHECK_GE(new_size, old_size);
+
+	// all the pointers are to *before* the array to simplify indexing
+	// (YUCK. This was not my choice.)
+	T *old_array = *array + 1;
+	T *new_array = new T[new_size];
+	memcpy(new_array, old_array, sizeof(T)*new_size);
+
+	*array = new_array - 1;
+}
+
+inline MCFClass::Index computeNewSize
+                      (MCFClass::Index cur_size, MCFClass::Index min_new_size) {
+	// always at least double the size of the array
+	// (the choice of a factor of 2 here isn't too important, but an exponential
+	// increase is necessary to ensure that resizes take linear amortized time)
+	return std::max(cur_size * 2, min_new_size);
+}
+
+inline void RelaxIV::MemGrowNodes( MCFClass::Index new_nmax )
+{
+  CHECK_GE(new_nmax, nmax);
+  Index old_nmax = nmax;
+  nmax = computeNewSize(old_nmax, new_nmax);
+
+  growArray(&FIn, old_nmax, nmax);
+  growArray(&FOu, old_nmax, nmax);
+
+  AllocateNodeTemporaries();
+
+  // allocating flows, reduced costs, potentials etc - - - - - - - - - - - - -
+
+  growArray(&Dfct, old_nmax, nmax);
+  growArray(&B, old_nmax, nmax);
+
+  // allocating "restricted" (to balanced arcs) BS and FS- - - - - - - - - - -
+
+  growArray(&tfstin, old_nmax, nmax);
+ 	growArray(&tfstou, old_nmax, nmax);
+}
+#endif
+
+#if (DYNMC_MCF_RIV > 2)
+inline void RelaxIV::MemGrowArcs ( MCFClass::Index new_mmax ) {
+  CHECK_GE(new_mmax, mmax);
+  Index old_mmax = mmax;
+  mmax = computeNewSize(old_mmax, new_mmax);
+
+  growArray(&Startn, old_mmax, mmax);
+  growArray(&Endn, old_mmax, mmax);
+
+  growArray(&NxtIn, old_mmax, mmax);
+  growArray(&NxtOu, old_mmax, mmax);
+
+	AllocateArcTemporaries();
+
+	// allocating flows, reduced costs, potentials etc - - - - - - - - - - - - -
+
+	growArray(&X, old_mmax, mmax);
+	growArray(&U, old_mmax, mmax);
+	growArray(&Cap, old_mmax, mmax);
+	growArray(&RC, old_mmax, mmax);
+	growArray(&C, old_mmax, mmax);
+
+	// allocating "restricted" (to balanced arcs) BS and FS- - - - - - - - - - -
+
+	growArray(&tnxtin, old_mmax, mmax);
+	growArray(&tnxtou, old_mmax, mmax);
+}
+#endif
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------- STATIC MEMBERS -------------------------------*/
