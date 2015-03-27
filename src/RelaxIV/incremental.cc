@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 
+#include <boost/timer/timer.hpp>
 #include <glog/logging.h>
 
 #include <sys/types.h>
@@ -11,6 +12,8 @@
 #include "RelaxIV_incremental.h"
 
 #include "dimacs.h"
+
+const static std::string TIMER_FORMAT = "ALGOTIME: %w\n";
 
 using namespace flowsolver_bertsekas;
 
@@ -62,12 +65,6 @@ bool process_result(MCFClass *mcf) {
 	switch( mcf->MCFGetStatus() ) {
 	 case( MCFClass::kOK ):
 	{
-		double tu, ts;
-		mcf->TimeMCF( tu , ts );
-		std::cerr << "Solution time (s): user " << tu << ", system " << ts << endl;
-		// output overall time for benchmark suite
-		std::cerr << "ALGOTIME: " << mcf->TimeMCF() << endl;
-
 		writeFlow(mcf);
 
 		// check solution
@@ -127,6 +124,8 @@ int main(int, char *argv[]) {
 	delete[] tEndn;
 	delete[] tC;
 
+	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
+
   // solve network, output results, read delta, repeat
 	do {
 #ifdef DEBUG
@@ -134,8 +133,9 @@ int main(int, char *argv[]) {
 		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
 #endif
 
-		mcf->SetMCFTime();  // reset timer
+		t.start();
 		mcf->SolveMCF();
+		t.stop(); t.report();
 
 #ifdef DEBUG
 		std::cout << "c END GRAPH" << endl;

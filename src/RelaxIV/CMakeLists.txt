@@ -10,10 +10,10 @@ add_executable (RelaxIV RelaxIV.cc main.cc)
 target_link_libraries (RelaxIV PUBLIC ${GLOG_LIBRARY}) 
 
 add_executable (RelaxIV_incremental incremental.cc RelaxIV_incremental.cc dimacs.cc)
-target_link_libraries (RelaxIV_incremental PUBLIC ${GLOG_LIBRARY})
+target_link_libraries (RelaxIV_incremental PRIVATE ${GLOG_LIBRARY} ${Boost_LIBRARIES})
 
 add_executable (RelaxIV_snapshots snapshots.cc RelaxIV_incremental.cc dimacs.cc)
-target_link_libraries (RelaxIV_snapshots PUBLIC ${GLOG_LIBRARY})
+target_link_libraries (RelaxIV_snapshots PRIVATE ${GLOG_LIBRARY})
 
 add_executable(test_dynamic_memory test_dynamic_memory.cc RelaxIV_incremental.cc dimacs.cc)
 target_link_libraries(test_dynamic_memory PRIVATE ${GLOG_LIBRARY} gtest gtest_main)
