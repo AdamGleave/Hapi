@@ -73,7 +73,6 @@ void writeFlow(MCFClass *mcf) {
 
 	 delete[] x;
 	 MCFClass::CRow pi = new MCFClass::CNumber[mcf->MCFn()];
-	 ((RelaxIV *)mcf)->cmptprices();
 	 mcf->MCFGetPi( pi );
 	 for(MCFClass::Index i = 1; i <= mcf->MCFn() ; i++)
 		std::cout << "p " << i << " " << pi[i-1] << endl;
@@ -103,9 +102,10 @@ bool process_result(MCFClass *mcf) {
 	 case( MCFClass::kUnfeasible ):
 	{
 		RelaxIV *relax = dynamic_cast<RelaxIV *>(mcf);
-		std::cerr << "MCF problem unfeasible: error node = "
-				      << relax->error_node << ", error info = " << relax->error_info
-							<< endl;
+		std::cerr << "MCF problem unfeasible: "
+				      << "error node = " << relax->GetErrorNode()
+							<< ", error info = " << relax->GetErrorInfo()
+							<< std::endl;
 	  return false;
 		break;
 	}

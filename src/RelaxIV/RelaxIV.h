@@ -85,6 +85,11 @@
 /*------------------------------ INCLUDES ----------------------------------*/
 /*--------------------------------------------------------------------------*/
 
+// forward declaration
+namespace flowsolver_bertsekas {
+   class DIMACS;
+}
+
 #include "MCFClass.h"
 
 #include <unordered_set>
@@ -364,6 +369,20 @@ class RelaxIV : public MCFClass {
    void MCFPutState( MCFClass::MCFStatePtr S );
 
 /*--------------------------------------------------------------------------*/
+
+   inline MCFClass::Index GetErrorNode( void );
+
+/**< In event status is kUnfeasible, returns the node where the error
+ *   was detected. */
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+   inline MCFClass::Index GetErrorInfo( void );
+
+/**< In event status is kUnfeasible, returns which step in the algorithm the
+ *   error was detected. */
+
+/*--------------------------------------------------------------------------*/
 /*-------------- METHODS FOR READING THE DATA OF THE PROBLEM ---------------*/
 /*--------------------------------------------------------------------------*/
 
@@ -513,6 +532,22 @@ class RelaxIV : public MCFClass {
  #endif
 
 /*--------------------------------------------------------------------------*/
+
+class RIVState : public MCFClass::MCFState {
+public:
+
+	RIVState( cIndex m );
+	~RIVState();
+
+protected:
+	FRow Flow;
+	CRow RedCost;
+
+	friend class RelaxIV;
+	friend class flowsolver_bertsekas::DIMACS;
+};
+
+/*--------------------------------------------------------------------------*/
 /*------------------------------ DESTRUCTOR --------------------------------*/
 /*--------------------------------------------------------------------------*/
 
@@ -541,18 +576,6 @@ class RelaxIV : public MCFClass {
   typedef SIndex          *SIndex_Set;       ///< set (array) of SIndex
   typedef const SIndex    cSIndex;           ///< a read-only SIndex
   typedef cSIndex        *cSIndex_Set;       ///< read-only SIndex array
-
-/*--------------------------------------------------------------------------*/
-
-   class RIVState : public MCFClass::MCFState {
-    public:
-
-     RIVState( cIndex m );
-     ~RIVState();
-
-     FRow Flow;
-     CRow RedCost;
-     };
 
 /*--------------------------------------------------------------------------*/
 /*-------------------------- PRIVATE METHODS -------------------------------*/
@@ -826,6 +849,18 @@ inline void RelaxIV::GetPar( int par, int &val )
  else
   MCFClass::GetPar( par , val );
  }
+
+/*--------------------------------------------------------------------------*/
+
+inline MCFClass::Index RelaxIV::GetErrorNode( void ) {
+	return error_node;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+inline MCFClass::Index RelaxIV::GetErrorInfo( void ) {
+	return error_info;
+}
 
 /*--------------------------------------------------------------------------*/
 
