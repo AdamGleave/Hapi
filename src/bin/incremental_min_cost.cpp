@@ -121,9 +121,7 @@ int main(int argc, char *argv[]) {
 	                              incremental_importer(std::cin, dynamic);
 
 	// process stream of incremental deltas, solving incremental problem
-	// TODO: am including time spent parsing in reported ALGOTIME
 	uint64_t num_iterations = 0;
-	t.start();
 	while (incremental_importer.read()) {
 		if (!partial_dir.empty()) {
 			// generate debug trace before reoptimization
@@ -134,7 +132,7 @@ int main(int argc, char *argv[]) {
 			partial_exporter.write();
 			partial_exporter.writeFlow();
 		}
-
+		t.start();
 		is->reoptimize();
 		t.stop();
 		t.report();

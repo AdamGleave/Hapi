@@ -99,6 +99,10 @@ int main(int, char *argv[]) {
 	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
 
+	// timer
+	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
+	t.stop();
+
 	// initialize relevant classes
 	RelaxIV *mcf = new RelaxIV();
 	DIMACS dimacs(std::cin, mcf);
@@ -113,10 +117,13 @@ int main(int, char *argv[]) {
 	dimacs.ReadInitial(&tn, &tm, &tU, &tC, &tDfct, &tStartn, &tEndn);
 
 	// load network
+	t.start();
 	MCFClass::Index num_nodes_reserved = tn, num_arcs_reserved = tm;
 	compute_reserved_memory(num_nodes_reserved, num_arcs_reserved);
 	mcf->LoadNet(num_nodes_reserved, num_arcs_reserved, tn, tm,
 			           tU, tC, tDfct, tStartn, tEndn);
+
+	t.stop();
 
 	delete[] tU;
 	delete[] tDfct;
@@ -124,16 +131,14 @@ int main(int, char *argv[]) {
 	delete[] tEndn;
 	delete[] tC;
 
-	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
-
   // solve network, output results, read delta, repeat
+	t.resume();
 	do {
 #ifdef DEBUG
 		std::cout << "c GRAPH" << endl;
 		mcf->WriteMCF(std::cout, MCFClass::kDimacs);
 #endif
 
-		t.start();
 		mcf->SolveMCF();
 		t.stop(); t.report();
 
@@ -148,6 +153,8 @@ int main(int, char *argv[]) {
 
 		std::cout << "c EOI" << endl;
 		std::cout.flush();
+
+		t.start();
 	} while (dimacs.ReadDelta());
 
 	return 0;
