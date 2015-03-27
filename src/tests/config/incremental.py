@@ -1,7 +1,8 @@
 from config.common import *
 
 TEST_PROGRAM = sh.Command(os.path.join(EXECUTABLE_DIR, "incremental_min_cost"))
-TEST_PROGRAM_ARGUMENTS = ["augmenting_path", "relax"]
+#TEST_PROGRAM_ARGUMENTS = ["augmenting_path", "relax"]
+TEST_PROGRAM_ARGUMENTS = []
 
 TEST_PROGRAMS = { name : TEST_PROGRAM.bake(name)
                   for name in TEST_PROGRAM_ARGUMENTS }

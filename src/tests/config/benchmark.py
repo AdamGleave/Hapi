@@ -205,10 +205,12 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "path": "RelaxIV/RelaxIV_incremental",
     "arguments": []
   },
+  # Incremental version. Includes bugfix to solve uninitialized value access
+  # in tfstin/tnxtin/etc. 
   "relaxfi_firstworking": {
-    "version": "2aae245",
+    "version": "b5721bb",
     "target": "incremental",
-    "path": "RelaxIV/incremental",
+    "path": "RelaxIV/RelaxIV_incremental",
     "arguments": []
   },
 }
@@ -485,8 +487,8 @@ INCREMENTAL_TESTS_HYBRID = {
     "traces": [
       {
         "name": "small_trace",
-        # this runtime corresponds to the first 10,000 events
         "percentage": 1, # percentage of events to retain
+        # this runtime corresponds to the first 10,000 events
         "runtime": 3995607400,
       },
     ],
@@ -497,8 +499,25 @@ INCREMENTAL_TESTS_HYBRID = {
         "implementation": "relaxfi_latest",
         "arguments": [] 
       },
-      "relaxfi_firstworking": {
-        "implementation": "relaxfi_firstworking",
+      "goldberg": {
+        "implementation": "cs_goldberg",
+        "arguments": []
+      },
+    },
+  },
+  "relaxfi_vs_best": {
+    "traces": [
+      {
+        "name": "small_trace",
+        # this runtime corresponds to the first 10,000 events
+        "runtime": 3995607400,
+      },
+    ],
+    "granularity": 10, # in microseconds
+    "iterations": 5,
+    "tests": {
+      "relaxfi": {
+        "implementation": "relaxfi_latest",
         "arguments": [] 
       },
       "goldberg": {
