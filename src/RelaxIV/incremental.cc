@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 
+#include <boost/program_options.hpp>
 #include <boost/timer/timer.hpp>
 #include <glog/logging.h>
 
@@ -30,7 +31,7 @@ inline T ABS( const T x )
  return( x >= T( 0 ) ? x : -x );
 }
 
-void writeFlow(MCFClass *mcf) {
+void writeFlow(MCFClass *mcf, bool potentials) {
 	 if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
       ( numeric_limits<MCFClass::FNumber>::is_integer == 0 ) ) {
 		std::cout.setf( ios::scientific, ios::floatfield );
@@ -51,35 +52,39 @@ void writeFlow(MCFClass *mcf) {
 			 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
 		 std::cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
 	 }
-
 	 delete[] x;
-	 MCFClass::CRow pi = new MCFClass::CNumber[mcf->MCFn()];
-	 mcf->MCFGetPi( pi );
-	 for(MCFClass::Index i = 1; i <= mcf->MCFn() ; i++)
-		std::cout << "p " << i << " " << pi[i-1] << endl;
-	 delete[] pi;
+
+	 if (potentials) {
+		 MCFClass::CRow pi = new MCFClass::CNumber[mcf->MCFn()];
+		 mcf->MCFGetPi( pi );
+		 for(MCFClass::Index i = 1; i <= mcf->MCFn() ; i++)
+			std::cout << "p " << i << " " << pi[i-1] << endl;
+		 delete[] pi;
+	 }
 }
 
-bool process_result(MCFClass *mcf) {
-	// TODO(adam): should measure wall time for fair comparison
+bool process_result(RelaxIV *mcf, bool flow, bool potentials) {
 	switch( mcf->MCFGetStatus() ) {
 	 case( MCFClass::kOK ):
 	{
-		writeFlow(mcf);
+	  if (flow) {
+	  	writeFlow(mcf, potentials);
+	  }
 
+#ifdef DEBUG
 		// check solution
 		mcf->CheckPSol();
 		mcf->CheckDSol();
+#endif
 
 		return true;
 		break;
 	}
 	 case( MCFClass::kUnfeasible ):
 	{
-		RelaxIV *relax = dynamic_cast<RelaxIV *>(mcf);
 		std::cerr << "MCF problem unfeasible: "
-				      << "error node = " << relax->GetErrorNode()
-							<< ", error info = " << relax->GetErrorInfo()
+				      << "error node = " << mcf->GetErrorNode()
+							<< ", error info = " << mcf->GetErrorInfo()
 							<< std::endl;
 	  return false;
 		break;
@@ -95,8 +100,42 @@ bool process_result(MCFClass *mcf) {
 	 }
 }
 
-int main(int, char *argv[]) {
+int main(int argc, char *argv[]) {
+	// parse command line arguments
+	namespace po = boost::program_options;
+
+	po::options_description global("Global options");
+
+	global.add_options()
+		("help", "produce help message")
+		("flow", po::value<bool>()->default_value(true), "Output flow solution.")
+		("potentials", po::bool_switch()->default_value(false),
+		 "Output dual solution. Must be used in conjunction with flow.")
+		("quiet", po::bool_switch()->default_value(false),
+		 "Suppress all but the highest priority logging messages.");
+
+	po::variables_map vm;
+
+	po::parsed_options parsed = po::command_line_parser(argc, argv).
+				options(global).
+				run();
+	po::store(parsed, vm);
+
+	if (vm.count("help")) {
+		std::cout << global << std::endl;
+		return 0;
+	}
+
+	bool flow = vm["flow"].as<bool>();
+	bool potentials = vm["potentials"].as<bool>();
+	bool quiet = vm["quiet"].as<bool>();
+
+	// initialise logging
+
 	FLAGS_logtostderr = true;
+	if (quiet) {
+		FLAGS_minloglevel = google::ERROR;
+	}
 	google::InitGoogleLogging(argv[0]);
 
 	// timer
@@ -146,7 +185,7 @@ int main(int, char *argv[]) {
 		std::cout << "c END GRAPH" << endl;
 #endif
 
-		bool success = process_result(mcf);
+		bool success = process_result(mcf, flow, potentials);
 		if (!success) {
 			return -1;
 		}
