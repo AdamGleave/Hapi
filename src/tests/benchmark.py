@@ -131,8 +131,11 @@ class ExitCodeException(Exception):
 
 def createNativeCommand(exe_path, arguments):
   native_command = sh.Command(exe_path).bake(*arguments)
-  def runCommand(input_file, output_path):
-    return native_command(_in=input_file, _in_bufsize=config.BUFFER_SIZE, 
+  def runCommand(input_path, output_path):
+    # Due to a quirk of sh's design, having cat pipe the file contents is
+    # *considerably* faster than using _in directly (in which case Python
+    # will have to read everything in, and then echo it out. Seriously slow.)
+    return native_command(sh.cat(input_path, _piped="direct"),
                           _out=output_path, _iter="err")
   return runCommand
 
@@ -140,13 +143,11 @@ def createWrapperCommand(exe_path, arguments):
   '''full solver to be used as incremental'''
   snapshots = config.SNAPSHOT_CREATOR_PROGRAM
   command = config.SNAPSHOT_SOLVER_PROGRAM.bake(exe_path, *arguments)
-  # output can be BIG, Python slow. This significantly speeds up computation.
-  # (Yes, this is a hack.)
-  def runCommand(input_file, output_path):
+  def runCommand(input_path, output_path):
+    # See createNativeCommand for why I'm using cat
     return command(
-      snapshots(_in=input_file, _in_bufsize=config.BUFFER_SIZE,
-                _piped="direct"),
-          _out=output_path, _iter="err")
+                snapshots(sh.cat(input_path, _piped="direct"), _piped="direct"), 
+                _out=output_path, _iter="err")
   return runCommand
 
 def helperCreateTestInstance(instance):
@@ -166,7 +167,7 @@ def helperCreateTestInstance(instance):
           "exe_path": exe_path,
           "arguments": arguments}
 
-def createFullTestInstance(instance, isIncremental=False):
+def createFullTestInstance(instance):
   parameters = helperCreateTestInstance(instance)
   
   solver_type = parameters["implementation"]["type"]
@@ -177,16 +178,19 @@ def createFullTestInstance(instance, isIncremental=False):
   else:
     error("Illegal solver type ", solver_type, "for full test")
 
-def createIncrementalTestInstance(instance, isIncremental=False):
+def createIncrementalTestInstance(instance):
   parameters = helperCreateTestInstance(instance)
   
-  solver_type = parameters["implementation"]["type"]
+  implementation = parameters["implementation"]
+  solver_type = implementation["type"]
   exe_path = parameters["exe_path"]
   arguments = parameters["arguments"]
   test_command = None
   if solver_type == "full":
     test_command = createWrapperCommand(exe_path, arguments)
   elif solver_type == "incremental":
+    if "offline_arguments" in implementation:
+      arguments += implementation["offline_arguments"]
     test_command = createNativeCommand(exe_path, arguments)
   else: 
     error("Unrecognised implementation type ", implementation)
@@ -202,41 +206,45 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
   log_subpath = os.path.join(config.DATASET_ROOT, log_fname)
   dirname = os.path.relpath(log_subpath, config.DATASET_ROOT)
   log_directory = os.path.join(log_directory, dirname)
-  with open(input_path, 'r') as input_file:
-    try:
-      os.makedirs(log_directory)
-    except OSError:
-      # directory already created if not first time we've been run
-      pass
+  
+  if not(os.path.exists(input_path)):
+    print("Cannot open ", input_path, "for reading", file=sys.stderr)
+    sys.exit(1)
     
-    prefix = test_name + "-offline_" + str(iteration)
-    out_path = os.path.join(log_directory, prefix + ".out")
-    err_path = os.path.join(log_directory, prefix + ".err")
-    with open(err_path, 'w') as err_file:      
-      running_command = test_command(input_file, out_path)
-      
-      start_time = time.time()
-      
-      prefix = "ALGOTIME: "
-      for error_line in running_command:
-        if error_line.find(prefix) == 0:
-          # record algorithm running time
-          algorithm_running_time = error_line[len(prefix):].strip()
-          
-          # record total time (includes parsing, etc)          
-          end_time = time.time()
-          # TODO: Is this an accurate way of measuring the total times?
-          time_elapsed = end_time - start_time
-          
-          yield((algorithm_running_time, time_elapsed))
-          
-          # reset timer
-          start_time = time.time()
-        else:
-          err_file.write(error_line)
-      
-    if running_command.exit_code != 0:
-      raise ExitCodeException(result.exit_code)
+  try:
+    os.makedirs(log_directory)
+  except OSError:
+    # directory already created if not first time we've been run
+    pass
+  
+  prefix = test_name + "-offline_" + str(iteration)
+  out_path = os.path.join(log_directory, prefix + ".out")
+  err_path = os.path.join(log_directory, prefix + ".err")
+  with open(err_path, 'w') as err_file:      
+    running_command = test_command(input_path, out_path)
+    
+    start_time = time.time()
+    
+    prefix = "ALGOTIME: "
+    for error_line in running_command:
+      if error_line.find(prefix) == 0:
+        # record algorithm running time
+        algorithm_running_time = error_line[len(prefix):].strip()
+        
+        # record total time (includes parsing, etc)          
+        end_time = time.time()
+        # TODO: Is this an accurate way of measuring the total times?
+        time_elapsed = end_time - start_time
+        
+        yield((algorithm_running_time, time_elapsed))
+        
+        # reset timer
+        start_time = time.time()
+      else:
+        err_file.write(error_line)
+    
+  if running_command.exit_code != 0:
+    raise ExitCodeException(result.exit_code)
 
 # SOMEDAY: Ugly how logic and IO are intermixed here. You could perhaps switch
 # to putting the logic in a generator, and iterate over the results yielded
