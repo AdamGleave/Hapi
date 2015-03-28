@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <math.h>
 #include <string.h>
 #include <assert.h>
@@ -1850,7 +1851,8 @@ void cs2_cost_restart (double *obj_ad)
 #endif
 
 #ifdef PRINT_ANS
-void print_solution(node *ndp, arc *arp, long nmin, double *cost)
+void print_solution(node *ndp, arc *arp, long nmin, double *cost,
+		                bool potentials)
 {
   node *i;
   arc *a;
@@ -1871,16 +1873,16 @@ void print_solution(node *ndp, arc *arp, long nmin, double *cost)
 	}
     }
 
-#ifdef COMP_DUALS
-  /* find minimum price */
-  cost2 = MAX_32;
-  FOR_ALL_NODES_i {
-    cost2 = MIN(*cost, i->price);
+  if (potentials) {
+  	/* find minimum price */
+		cost2 = MAX_32;
+		FOR_ALL_NODES_i {
+			cost2 = MIN(*cost, i->price);
+		}
+		FOR_ALL_NODES_i {
+			printf("p %7ld %7.2lld\n", N_NODE(i), i->price - cost2);
+		}
   }
-  FOR_ALL_NODES_i {
-    printf("p %7ld %7.2lld\n", N_NODE(i), i->price - cost2);
-  }
-#endif
 
   printf("c\n");
 }
@@ -1889,7 +1891,6 @@ void print_solution(node *ndp, arc *arp, long nmin, double *cost)
 int main (int argc, char **argv)
 
 {
-
   double t;
   arc *arp;
   node *ndp;
@@ -1901,8 +1902,35 @@ int main (int argc, char **argv)
   long f_sc;
   long *cap;
   
-  
-  f_sc = (long) (( argc > 1 ) ? atoi( argv[1] ): SCALE_DEFAULT);
+  bool flow = true, potentials = false;
+  f_sc = SCALE_DEFAULT;
+  int opt;
+  while ((opt = getopt(argc, argv, "f:ps:")) != -1) {
+  	switch (opt) {
+  	case 'f':
+  		if (strcmp(optarg, "true") == 0) {
+  			flow = true;
+  		} else if (strcmp(optarg, "false") == 0) {
+  			flow = false;
+  		} else {
+  			fprintf(stderr, "error: unrecognized argument to -f: %s\n", optarg);
+  			return -1;
+  		}
+  		break;
+  	case 'p':
+  		potentials = true;
+  		break;
+  	case 's':
+  		f_sc = atoi(optarg);
+  		break;
+  	default:
+  		fprintf(stderr, "usage: %s [-f true|false] [-p] [-s scale]\n"
+			                "\t-f print flows? Default true."
+			                "\t-p print potentials? Default false. Only active if -f."
+			                "\t-s custom scaling factor.", argv[0]);
+  		return -1;
+  	}
+  }
   
   printf ("c CS 4.6\n");
   printf ("c Commercial use requires a licence\n");
@@ -1957,9 +1985,9 @@ int main (int argc, char **argv)
     printf("ERROR: CS violation\n");
 #endif
   
-#ifdef PRINT_ANS
-  print_solution(ndp, arp, nmin, &cost);
-#endif
+  if (flow) {
+  	print_solution(ndp, arp, nmin, &cost, potentials);
+  }
 
   free(cap);
   free(nodes - nmin);

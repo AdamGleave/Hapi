@@ -37,6 +37,7 @@
 #include <sstream>
 #include <string.h>
 
+#include <boost/program_options.hpp>
 #include <glog/logging.h>
 
 #include "RelaxIV.h"
@@ -148,26 +149,44 @@ void SetParam( MCFClass *mcf )
 
 int main( int argc , char **argv )
 {
- FLAGS_logtostderr = true;
- google::InitGoogleLogging(argv[0]);
+	// initialise logging
+	FLAGS_logtostderr = true;
+	google::InitGoogleLogging(argv[0]);
+
+	// parse command line arguments
+	namespace po = boost::program_options;
+
+	po::options_description global("Global options");
+
+	global.add_options()
+		("help", "produce help message")
+		("flow", po::value<bool>()->default_value(true), "Output flow solution.")
+		("potentials", po::bool_switch()->default_value(false),
+		 "Output dual solution. Must be used in conjunction with flow.");
+
+	po::variables_map vm;
+
+	po::parsed_options parsed = po::command_line_parser(argc, argv).
+				options(global).
+				run();
+	po::store(parsed, vm);
+
+	if (vm.count("help")) {
+		std::cout << global << std::endl;
+		return 0;
+	}
+
+	bool flow = vm["flow"].as<bool>();
+	bool potentials = vm["potentials"].as<bool>();
  // reading command line parameters - - - - - - - - - - - - - - - - - - - - -
 
  if( argc == 2 && (strcmp(argv[1],"--help") == 0)) {
-  cerr << "Usage: MCFSolve [input file] [<output MPS file>]" << endl;
+  cerr << "Usage: MCFSolve" << endl;
   return( -1 );
   }
 
  // opening input stream- - - - - - - - - - - - - - - - - - - - - - - - - - -
-
- ifstream iFile;
- if (argc > 1) {
-	 iFile.open(argv[1]);
-	 if( ! iFile ) {
-	   cerr << "ERROR: opening input file " << argv[ 1 ] << endl;
-	   return( -1 );
-	 }
- }
- istream &input = (argc > 1) ? iFile : cin;
+ istream &input = cin;
 
 
  try {
@@ -220,35 +239,39 @@ int main( int argc , char **argv )
     cerr << "ALGOTIME: " << mcf->TimeMCF() << endl;
     #if( PRINT_RESULTS )
     {
-     if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
-	 ( numeric_limits<MCFClass::FNumber>::is_integer == 0 ) ) {
-      cout.setf( ios::scientific, ios::floatfield );
-      cout.precision( 12 );
-      }
+    	if (flow) {
+				if( ( numeric_limits<MCFClass::CNumber>::is_integer == 0 ) ||
+					 ( numeric_limits<MCFClass::FNumber>::is_integer == 0 ) ) {
+							cout.setf( ios::scientific, ios::floatfield );
+							cout.precision( 12 );
+							}
 
-     // cost of solution
-     cout << "s " << mcf->MCFGetFO() << endl;
+						 // cost of solution
+						 cout << "s " << mcf->MCFGetFO() << endl;
 
-     MCFClass::Index m = mcf->MCFm();
-     MCFClass::FRow x = new MCFClass::FNumber[m];
-     MCFClass::Index_Set active_arcs = new MCFClass::Index[m];
-     mcf->MCFGetX(x, active_arcs);
-     MCFClass::Index_Set start = new MCFClass::Index[m];
-     MCFClass::Index_Set end = new MCFClass::Index[m];
-     mcf->MCFArcs(start, end, active_arcs);
-     for(MCFClass::Index i = 0;
-    		 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
-    	 cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
-     }
+						 MCFClass::Index m = mcf->MCFm();
+						 MCFClass::FRow x = new MCFClass::FNumber[m];
+						 MCFClass::Index_Set active_arcs = new MCFClass::Index[m];
+						 mcf->MCFGetX(x, active_arcs);
+						 MCFClass::Index_Set start = new MCFClass::Index[m];
+						 MCFClass::Index_Set end = new MCFClass::Index[m];
+						 mcf->MCFArcs(start, end, active_arcs);
+						 for(MCFClass::Index i = 0;
+								 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
+							 cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
+						 }
+						 delete[] x;
 
-     delete[] x;
-     MCFClass::CRow pi = new MCFClass::CNumber[ mcf->MCFn() ];
-     mcf->MCFGetPi( pi );
-     for( MCFClass::Index i = 0 ; i < mcf->MCFn() ; i++ )
-      cout << "p " << i << " " << pi[ i ] << endl;
-     delete[] pi;
-     }
-    #endif
+						 if (potentials) {
+							 MCFClass::CRow pi = new MCFClass::CNumber[ mcf->MCFn() ];
+							 						 mcf->MCFGetPi( pi );
+							 						 for( MCFClass::Index i = 0 ; i < mcf->MCFn() ; i++ )
+							 							cout << "p " << i << " " << pi[ i ] << endl;
+							 						 delete[] pi;
+						 }
+			  }
+    	}
+     #endif
 
     // check solution
     mcf->CheckPSol();
@@ -263,13 +286,6 @@ int main( int argc , char **argv )
     break;
    default:
     cout << "Error in the MCF solver." << endl;
-   }
-
-  // output the problem in MPS format - - - - - - - - - - - - - - - - - - - -
-
-  if( argc > 2 ) {
-   ofstream oFile( argv[ 2 ] );
-   mcf->WriteMCF( oFile , MCFClass::kMPS );
    }
 
   // destroy the object - - - - - - - - - - - - - - - - - - - - - - - - - - -

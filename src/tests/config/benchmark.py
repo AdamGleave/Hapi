@@ -101,37 +101,37 @@ FULL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments" : ["cost_scaling"]
+    "arguments" : ["cost_scaling", "--quiet", "--flow", "false"]
   },
   "relax_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments": ["relax"]
+    "arguments": ["relax", "--quiet", "--flow", "false"]
   },
    "ap_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments" : ["augmenting_path"]
+    "arguments" : ["augmenting_path", "--quiet", "--flow", "false"]
   },
   "cc_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments" : ["cycle_cancelling"]
+    "arguments" : ["cycle_cancelling", "--quiet", "--flow", "false"]
   },
   "cs_goldberg": {
     "version": "master",
     "target": "cs2.exe",
     "path": "cs2/cs2",
-    "arguments" : []
+    "arguments" : ["-f", "false"]
   },
   "relax_frangioni": {
     "version": "master",
     "target": "RelaxIV",
     "path": "RelaxIV/RelaxIV",
-    "arguments": []
+    "arguments": ["--flow", "false"]
   },
   "cs_wave": {
    "version": "cs_wave",
@@ -192,25 +192,28 @@ for algo in LEMON_ALGOS:
     "arguments": ["-" + algo]
   }
   
+MY_INCREMENTAL_OFFLINE_ARGS = ["--flow", "false"]
 INCREMENTAL_IMPLEMENTATIONS = {
   "ap_incremental_latest": {
     "version": "master",
     "target": "incremental_min_cost",
     "path": "bin/incremental_min_cost",
     "arguments": ["augmenting_path"],
+    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
    },
    "relax_incremental_latest": {
     "version": "master",
     "target": "incremental_min_cost",
     "path": "bin/incremental_min_cost",
     "arguments": ["relax"],
+    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
    },
   "relaxfi_latest": {
     "version": "master",
     "target": "RelaxIV_incremental",
     "path": "RelaxIV/RelaxIV_incremental",
     "arguments": ["--quiet"],
-    "offline_arguments": ["--flow", "false"],
+    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
   },
   # Incremental version. Includes bugfix to solve uninitialized value access
   # in tfstin/tnxtin/etc. 
