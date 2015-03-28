@@ -27,9 +27,7 @@ const static std::string TIMER_FORMAT = "ALGOTIME: %w\n";
 using namespace flowsolver;
 
 int main(int argc, char *argv[]) {
-	FLAGS_logtostderr = true;
-	google::InitGoogleLogging(argv[0]);
-
+	// parse command line arguments
 	namespace po = boost::program_options;
 
 	po::options_description global("Global options");
@@ -39,8 +37,13 @@ int main(int argc, char *argv[]) {
 			 "debug option: enable generation of partial traces,"
 			 " that is the state of the flow network before reoptimization but after"
 			 " the incremental changes, maintaining optimality (but not feasibility)")
-			 ("command", po::value<std::string>(),
-				"command to execute: augmenting_path or relax.");
+			("flow", po::value<bool>()->default_value(true), "Output flow solution.")
+			("potentials", po::bool_switch()->default_value(false),
+			 "Output dual solution. Must be used in conjunction with flow.")
+			("quiet", po::bool_switch()->default_value(false),
+			 "Suppress all but the highest priority logging messages.")
+			("command", po::value<std::string>(),
+			 "command to execute: augmenting_path or relax.");
 
 	po::positional_options_description pos;
 	pos.add("command", 1);
@@ -88,6 +91,18 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	bool flow = vm["flow"].as<bool>();
+	bool potentials = vm["potentials"].as<bool>();
+	bool quiet = vm["quiet"].as<bool>();
+
+	// initialise logging
+
+	FLAGS_logtostderr = true;
+	if (quiet) {
+		FLAGS_minloglevel = google::ERROR;
+	}
+	google::InitGoogleLogging(argv[0]);
+
 	// for timing algorithms
 	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
 	t.stop();
@@ -110,8 +125,13 @@ int main(int argc, char *argv[]) {
 	is->run();
 	t.stop(); t.report();
 
-	DIMACSExporter<ResidualNetwork> exporter(*g, std::cout);
-	exporter.writeFlow();
+	DIMACSPotentialExporter<ResidualNetwork> exporter(*g, *is, std::cout);
+	if (flow) {
+		exporter.writeFlow();
+		if (potentials) {
+			exporter.writePotentials();
+		}
+	}
 	std::cout << "c EOI" << std::endl;
 	std::cout.flush();
 
@@ -128,15 +148,22 @@ int main(int argc, char *argv[]) {
 			std::string fname = partial_dir + "/debug-"
 					                  + std::to_string(num_iterations) + ".min";
 			std::ofstream partial_file(fname);
-			DIMACSExporter<ResidualNetwork> partial_exporter(*g, partial_file);
+			DIMACSPotentialExporter<ResidualNetwork> partial_exporter(*g, *is,
+					                                                      partial_file);
 			partial_exporter.write();
 			partial_exporter.writeFlow();
+			partial_exporter.writePotentials();
 		}
 		t.start();
 		is->reoptimize();
 		t.stop();
 		t.report();
-		exporter.writeFlow();
+		if (flow) {
+			exporter.writeFlow();
+			if (potentials) {
+				exporter.writePotentials();
+			}
+		}
 		std::cout << "c EOI" << std::endl;
 		std::cout.flush();
 		t.start();

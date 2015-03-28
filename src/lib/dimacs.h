@@ -338,9 +338,8 @@ protected:
 template<class T>
 class DIMACSPotentialExporter : public DIMACSExporter<T> {
 public:
-	DIMACSPotentialExporter(const T &g, std::ostream &os,
-			                    IncrementalSolver &solver) : DIMACSExporter<T>(g, os),
-													                potentials(solver.getPotentials()) {};
+	DIMACSPotentialExporter(const T &g, IncrementalSolver &solver, std::ostream &os)
+              : DIMACSExporter<T>(g, os), potentials(solver.getPotentials()) {};
 
 	void writePotentials() {
 		for (size_t i = 1; i <= this->g.getNumNodes(); i++) {

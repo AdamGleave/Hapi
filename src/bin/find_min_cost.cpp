@@ -25,9 +25,6 @@
 using namespace flowsolver;
 
 int main(int argc, char *argv[]) {
-	FLAGS_logtostderr = true;
-	google::InitGoogleLogging(argv[0]);
-
 	// for timing algorithms
 	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
 	t.stop();
@@ -38,6 +35,10 @@ int main(int argc, char *argv[]) {
 
 	po::options_description global("Global options");
 	global.add_options()
+			("help", "produce help message")
+			("flow", po::value<bool>()->default_value(true), "Output flow solution.")
+			("quiet", po::bool_switch()->default_value(false),
+			 "Suppress all but the highest priority logging messages.")
 			("command", po::value<std::string>(), "command to execute")
 			("subargs", po::value<std::vector<std::string> >(), "Arguments for command");
 
@@ -65,6 +66,16 @@ int main(int argc, char *argv[]) {
 	}
 	std::string cmd = vm["command"].as<std::string>();
 
+	bool flow = vm["flow"].as<bool>();
+	bool quiet = vm["quiet"].as<bool>();
+
+	// initialise logging
+	FLAGS_logtostderr = true;
+	if (quiet) {
+		FLAGS_minloglevel = google::ERROR;
+	}
+	google::InitGoogleLogging(argv[0]);
+
 	// Collect all the unrecognized options from the first pass. This will include the
 	// (positional) command name, so we need to erase that.
 	std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
@@ -82,7 +93,9 @@ int main(int argc, char *argv[]) {
 		ap.run();
 		t.stop();
 		t.report();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		if (flow) {
+			DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		}
 
 		return 0;
 	} else if (cmd == "cost_scaling")
@@ -145,7 +158,10 @@ int main(int argc, char *argv[]) {
 		t.report();
 		delete cc;
 		LOG_IF(ERROR, !success) << "No feasible solution.";
-		DIMACSExporter<FlowNetwork>(*g, std::cout).writeFlow();
+
+		if (flow) {
+			DIMACSExporter<FlowNetwork>(*g, std::cout).writeFlow();
+		}
 
 		return 0;
 	} else if (cmd == "cycle_cancelling") {
@@ -159,7 +175,10 @@ int main(int argc, char *argv[]) {
 		cc.run();
 		t.stop();
 		t.report();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+
+		if (flow) {
+			DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		}
 
 		return 0;
 	} else if (cmd == "relax") {
@@ -173,7 +192,10 @@ int main(int argc, char *argv[]) {
 		ap.run();
 		t.stop();
 		t.report();
-		DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+
+		if (flow) {
+			DIMACSExporter<ResidualNetwork>(*g, std::cout).writeFlow();
+		}
 
 		return 0;
 	} else {

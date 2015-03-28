@@ -6,8 +6,8 @@ set_source_files_properties(RelaxIV_incremental.cc PROPERTIES COMPILE_FLAGS "-Wn
 set_source_files_properties(RelaxIV.cc PROPERTIES COMPILE_FLAGS "-Wno-all")
 set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS "-Wno-all")
 
-add_executable (RelaxIV RelaxIV.cc main.cc)
-target_link_libraries (RelaxIV PUBLIC ${GLOG_LIBRARY}) 
+add_executable (RelaxIV_original RelaxIV.cc main.cc)
+target_link_libraries (RelaxIV_original PUBLIC ${GLOG_LIBRARY}) 
 
 add_executable (RelaxIV_incremental incremental.cc RelaxIV_incremental.cc dimacs.cc)
 target_link_libraries (RelaxIV_incremental PRIVATE ${GLOG_LIBRARY} ${Boost_LIBRARIES})
@@ -17,5 +17,4 @@ target_link_libraries (RelaxIV_snapshots PRIVATE ${GLOG_LIBRARY})
 
 add_executable(test_dynamic_memory test_dynamic_memory.cc RelaxIV_incremental.cc dimacs.cc)
 target_link_libraries(test_dynamic_memory PRIVATE ${GLOG_LIBRARY} gtest gtest_main)
-
 add_test(relaxiv_dynamic_memory test_dynamic_memory) 

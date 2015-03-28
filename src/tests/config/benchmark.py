@@ -209,7 +209,8 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "RelaxIV_incremental",
     "path": "RelaxIV/RelaxIV_incremental",
-    "arguments": []
+    "arguments": ["--quiet"],
+    "offline_arguments": ["--flow", "false"],
   },
   # Incremental version. Includes bugfix to solve uninitialized value access
   # in tfstin/tnxtin/etc. 
