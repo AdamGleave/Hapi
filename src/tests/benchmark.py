@@ -225,11 +225,17 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
     
     start_time = time.time()
     
-    prefix = "ALGOTIME: "
+    algotime_prefix = "ALGOTIME: "
     for error_line in running_command:
-      if error_line.find(prefix) == 0:
+      if error_line == "STARTTIME\n":
+        # Reset timer. We will not always receive STARTTIME, only when there
+        # is some overhead we want to discount. For example, snapshot_solver
+        # outputs STARTTIME immediately before launching the solver. This way,
+        # we can discount the time taken to generate the snapshots themselves.
+        start_time = time.time()
+      elif error_line.find(algotime_prefix) == 0:
         # record algorithm running time
-        algorithm_running_time = error_line[len(prefix):].strip()
+        algorithm_running_time = error_line[len(algotime_prefix):].strip()
         
         # record total time (includes parsing, etc)          
         end_time = time.time()

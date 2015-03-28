@@ -22,7 +22,13 @@ void exportGraph(DIMACSExporter<ResidualNetwork> &exporter) {
 	std::cout.flush();
 }
 
-int main(int, char *argv[]) {
+int main(int argc, char *argv[]) {
+	// initialise logging
+	if (argc == 2 && strcmp(argv[1], "quiet") == 0) {
+			FLAGS_minloglevel = google::ERROR;
+	} else if (argc > 1) {
+		fprintf(stderr, "usage: %s [quiet]\n", argv[0]);
+	}
 	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
 

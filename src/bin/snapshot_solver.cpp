@@ -1,3 +1,7 @@
+#include <iostream>
+#include <sstream>
+#include <string>
+
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -101,30 +105,57 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	char line[1024];
 	int infd[2];
 	pid_t child;
 
-	while (true) {
-		if (fgets(line, sizeof(line), stdin) == NULL) {
-			// EOF
-			return 0;
-		} // there's some data, launch a solver
-
-		child = ExecCommandSync(&argv[1], infd);
-		FILE *child_stdin = fdopen(infd[1], "w");
-		fprintf(child_stdin, "%s", line);
-
-		while (fgets(line, sizeof(line), stdin)) {
-			if (strcmp(line, "c EOI\n") == 0) {
+	std::stringstream buffer(std::ios::in|std::ios::out);
+	std::string line;
+	while (std::cin.good()) {
+		std::getline(std::cin, line);
+		while (std::cin.good()) {
+			if (line == "c EOI") {
+				// end of iteration
 				break;
 			} else {
-				// write to pipe
-				fprintf(child_stdin, "%s", line);
+				// input to solver, add to buffer
+				buffer << line << std::endl;
 			}
+
+			std::getline(std::cin, line);
 		}
-		// send EOF to child process
+
+		if (buffer.str().empty()) {
+			// no data read. don't break, could just be an empty iteration.
+			continue;
+		}
+
+		// Tell benchmark to start timing from here. This lets us exclude, in the
+		// total time measurement, the overhead of the snapshot generator.
+		//
+		// We also exclude the time spent creating the process. This has the benefit
+		// that it allows more direct comparison with an incremental solver. We
+		// could write a full solver that would always stay active, after all.
+		//
+		// However, there is the disadvantage this excludes some of the time
+		// spent parsing.
+		//
+		// N.B. Snapshot generator really slow, so the buffering is critical.
+		fprintf(stderr, "STARTTIME\n");
+		fflush(stderr);
+
+		// Launch solver
+		child = ExecCommandSync(&argv[1], infd);
+		FILE *child_stdin = fdopen(infd[1], "w");
+
+		// Send the graph across
+		fprintf(child_stdin, "%s", buffer.str().c_str());
+		// EOF needed to indicate graph is finished
 		fclose(child_stdin);
+
+		// Reset state
+		buffer.str(""); // empty contents
+		buffer.clear(); // reset flags
+
 		// wait for results
 		if (!WaitForFinish(child)) {
 			LOG(FATAL) << "Process terminated abnormally.";
