@@ -9,7 +9,7 @@ from config.common import *
 
 WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
 RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
-FIRMAMENT_ROOT = os.path.join(PROJECT_ROOT, "..", "firmament")
+FIRMAMENT_ROOT = os.path.join(os.path.dirname(PROJECT_ROOT), "firmament")
 MAKE_FLAGS = []
 
 try:
@@ -25,9 +25,11 @@ GOOGLE_TRACE_SIMULATOR_PATH = os.path.join(FIRMAMENT_ROOT,
 GOOGLE_TRACE_SIMULATOR = sh.Command(GOOGLE_TRACE_SIMULATOR_PATH)
 
 ##### Dataset
+# Note these variables are not used by the suite at all. They are provided
+# for convenience within the config, to allow us to reference particular sets
+# of files by a short name.
 
-# This variable is not used by the suite at all: it is just for convenience
-# within the config for referencing particular files
+### Full graphs
 FULL_DATASET = {
   ### Networks representing clusters
   
@@ -83,324 +85,23 @@ FULL_DATASET = {
   "goto_sr": graphGlob("general/synthetic/goto/goto_sr_*.min"),
 }
 
-FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] + FULL_DATASET["synthetic_large"]
+FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
+                          + FULL_DATASET["synthetic_large"]
 
 all_files = set()
 for files in FULL_DATASET.values():
   all_files.update(files)
 FULL_DATASET["all"] = all_files
 
+### Incremental graphs
 INCREMENTAL_DATASET = {
-  "google_tiny_trace": ["clusters/natural/google_trace/tiny_trace.imin"],
-  "google_small_trace": ["clusters/natural/google_trace/small_trace.imin"],
+  # Not real data, and too small to be useful. Good for testing benchmark script.
+  "development_only": ["clusters/natural/google_trace/tiny_trace.imin"],
+  # CS2 on the small Google trace. Only the first 7 deltas.
+  "google_small_trace_truncated": ["clusters/natural/google_trace/small_trace.imin"],
 }
 
-##### Implementations
-FULL_IMPLEMENTATIONS = {
-  "cs_latest": {
-    "version": "master",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments" : ["cost_scaling", "--quiet", "--flow", "false"]
-  },
-  "relax_latest": {
-    "version": "master",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments": ["relax", "--quiet", "--flow", "false"]
-  },
-   "ap_latest": {
-    "version": "master",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments" : ["augmenting_path", "--quiet", "--flow", "false"]
-  },
-  "cc_latest": {
-    "version": "master",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments" : ["cycle_cancelling", "--quiet", "--flow", "false"]
-  },
-  "cs_goldberg": {
-    "version": "master",
-    "target": "cs2.exe",
-    "path": "cs2/cs2",
-    "arguments" : ["-f", "false"]
-  },
-  "relax_frangioni": {
-    "version": "master",
-    "target": "RelaxIV",
-    "path": "RelaxIV/RelaxIV",
-    "arguments": ["--flow", "false"]
-  },
-  "cs_wave": {
-   "version": "cs_wave",
-   "target": "find_min_cost",
-   "path": "bin/find_min_cost",
-   "arguments" : ["cost_scaling"]
-  },
-  "cs_vertexqueue": {
-   "version": "5784157",
-   "target": "find_min_cost",
-   "path": "bin/find_min_cost",
-   "arguments" : ["cost_scaling"]
-  },
-  "parser_getarc": {
-    "version": "5682b385315a2175b6890b4183185f233b094e28",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments" : ["cost_scaling"]
-  },
-   "parser_set": {
-     "version": "04db7f8e109ab695f6bafc11d95a1cdd8646d6e3",
-     "target": "find_min_cost",
-     "path": "bin/find_min_cost",
-     "arguments" : ["cost_scaling"]
-  },
-   "ap_bigheap": {
-     "version": "1540fc0",
-     "target": "find_min_cost",
-     "path": "bin/find_min_cost",
-     "arguments" : ["augmenting_path"]
-  },
-   "ap_smallheap_vector": {
-     "version": "41c6852",
-     "target": "find_min_cost",
-     "path": "bin/find_min_cost",
-     "arguments" : ["augmenting_path"]
-  },
-   "ap_smallheap_map": {
-     "version": "cd42c6e",
-     "target": "find_min_cost",
-     "path": "bin/find_min_cost",
-     "arguments" : ["augmenting_path"]
-  },
-  "relax_firstworking": {
-    "version": "f2cc904",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments": ["relax"]
-  },                
-}
-
-LEMON_ALGOS = ["scc", "mmcc", "cat", "ssp", "cas", "cos", "ns"]
-for algo in LEMON_ALGOS:
-  FULL_IMPLEMENTATIONS["lemon_" + algo] = {
-    "version": "master",
-    "target": "lemon_min_cost",
-    "path": "bin/lemon_min_cost",
-    "arguments": ["-" + algo]
-  }
-  
-MY_INCREMENTAL_OFFLINE_ARGS = ["--flow", "false"]
-INCREMENTAL_IMPLEMENTATIONS = {
-  "ap_incremental_latest": {
-    "version": "master",
-    "target": "incremental_min_cost",
-    "path": "bin/incremental_min_cost",
-    "arguments": ["augmenting_path"],
-    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
-   },
-   "relax_incremental_latest": {
-    "version": "master",
-    "target": "incremental_min_cost",
-    "path": "bin/incremental_min_cost",
-    "arguments": ["relax"],
-    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
-   },
-  "relaxfi_latest": {
-    "version": "master",
-    "target": "RelaxIV_incremental",
-    "path": "RelaxIV/RelaxIV_incremental",
-    "arguments": ["--quiet"],
-    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
-  },
-  # Incremental version. Includes bugfix to solve uninitialized value access
-  # in tfstin/tnxtin/etc. 
-  "relaxfi_firstworking": {
-    "version": "b5721bb",
-    "target": "incremental",
-    "path": "RelaxIV/RelaxIV_incremental",
-    "arguments": []
-  },
-}
-
-IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS],
-                            ["full", "incremental"])
-
-##### Test cases
-
-FULL_TESTS = {
-  "development_only_full": {
-    "files": FULL_DATASET["development_only"],
-    "iterations": 1,
-    "tests": {
-      "my": {
-        "implementation": "cc_latest",
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-      },
-    },
-  },
-  "wave_vs_fifo": {
-    "files": FULL_DATASET["synthetic"],
-    "iterations": 5,
-    "tests": {
-      "wave": {
-        "implementation": "cs_wave",
-      },
-      "fifo": {
-        "implementation": "cs_vertexqueue",
-      },
-    },
-  },
-  "scaling_factor": {
-    "files": FULL_DATASET["all"],
-    "iterations": 5,
-    "tests": { 
-      str(x): {
-        "implementation": "cs_latest",
-        "arguments": ["--scaling--factor", x]
-      } for x in range(2,32)
-    }
-  },
- "dimacs_parser_set_vs_getarc": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
-    "iterations": 5,
-    "tests": {
-      "set": {
-        "implementation": "parser_set",
-      },
-      "getarc": {
-        "implementation": "parser_getarc",
-      },
-    },
-  },
-  "augmenting_vs_costscaling": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
-    "iterations": 3,
-    "tests": {
-      "cost_scaling": {
-        "implementation": "cs_latest",
-      },
-      "my_augmenting_path": {
-        "implementation": "ap_latest",
-      },
-      "lemon_augmenting_path": {
-        "implementation": "lemon_ssp",
-      }
-    },
-  },
-  # Big heap: keeps all vertices in the priority queue. O(n) to create, but
-  # all operations are O(n lg n) afterwards.
-  # Small heap: keeps only vertices with finite distance in priority queue.
-  # O(1) to create, but has to pay insertion cost. Operations cheaper provided
-  # there are vertices not in queue.
-  # Performance will ultimately depend on how many vertices get explored before
-  # Djikstra quits.
-  # Additionally, have the choice between maintaining the reverse index
-  # as a vector or a map. Vector will give guaranteed O(1) lookup, and we 
-  # don't care about the memory consumption, but map may actually perform 
-  # better since it can be better cached.
-  "augmenting_big_vs_small_heap": {
-    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
-    "iterations": 5,
-    "tests": {
-      "big": {
-        "implementation": "ap_bigheap",
-      },
-      "small_vector": {
-        "implementation": "ap_smallheap_vector",
-      },
-      "small_map": {
-        "implementation": "ap_smallheap_map",
-      },
-    },
-  },
-  "best_head_to_head": {
-    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
-    "iterations": 5,
-    "tests": {
-      "goldberg": {
-        "implementation": "cs_goldberg",
-      },
-      "relaxiv": {
-        "implementation": "relax_frangioni",
-      },
-      "my_costscaling": {
-        "implementation": "cs_latest",
-      },
-    }
-  },
-  "relax": {
-    "files": FULL_DATASET["synthetic_small"],
-    "iterations": 3,
-    "tests": {
-      "relax_mine": {
-        "implementation": "relax_latest",
-      },  
-      "relax_original": {
-        "implementation": "relax_firstworking",
-      },
-      "ap_mine": {
-        "implementation": "ap_latest",
-      },
-      "cs_goldberg": {
-        "implementation": "cs_goldberg",
-      },
-      "relax_frangioni": {
-        "implementation": "relax_frangioni",
-      },
-    },
-  },
-}
-
-INCREMENTAL_TESTS_OFFLINE = {
-  "development_only_incremental_offline": {
-    "files": INCREMENTAL_DATASET["google_tiny_trace"],
-    "iterations": 1,
-    "tests": {
-      "my": {
-        "implementation": "ap_incremental_latest",
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-      },
-    },
-  },
-  "incremental_vs_cs_offline": {
-    "files": INCREMENTAL_DATASET["google_small_trace"],
-    "iterations": 10,
-    "tests": {
-      "my_incremental": {
-        "implementation": "ap_incremental_latest",
-      },
-      "my_costscaling": {
-        "implementation": "cs_latest",
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-      },
-    },
-  },
-  "relaxfi_vs_best_offline": {
-    "files": INCREMENTAL_DATASET["google_small_trace"],
-    "iterations": 5,
-    "tests": {
-      "relaxfi": {
-        "implementation": "relaxfi_latest",
-        "arguments": [] 
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-        "arguments": []
-      },
-    },
-  },
-}
-
-TRACE_ROOT = "/data/adam/"
+### Google cluster trace(s)
 TRACE_DATASET = {
   "tiny_trace": 
   {
@@ -419,11 +120,303 @@ TRACE_START = 600*SECOND
 TRACE_LENGTH = 2506199602822
 RUNTIME_MAX = 2**64 - 1
 
+FIRST_10K_EVENTS = 3995607400
 def percentRuntime(p):
-  return TRACE_START + (TRACE_LENGTH - TRACE_START) * p
+  return TRACE_START + (TRACE_LENGTH - TRACE_START) * (p / 100.0)
 
-INCREMENTAL_TESTS_HYBRID = {
-  "development_only_incremental_hybrid": {
+##### Implementations
+
+### Full solvers
+FULL_IMPLEMENTATIONS = {
+  ### My implementations - latest
+  "ap_latest": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments" : ["augmenting_path", "--quiet", "--flow", "false"]
+  },
+  "cc_latest": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments" : ["cycle_cancelling", "--quiet", "--flow", "false"]
+  },
+  "cs_latest": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments" : ["cost_scaling", "--quiet", "--flow", "false"]
+  },
+  "relax_latest": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["relax", "--quiet", "--flow", "false"]
+  },
+
+  ### Reference implementations
+  ### (Not all of them -- LEMON included below)
+  "cs_goldberg": {
+    "version": "master",
+    "target": "cs2.exe",
+    "path": "cs2/cs2",
+    "arguments" : ["-f", "false"]
+  },
+  "relax_frangioni": {
+    "version": "master",
+    "target": "RelaxIV",
+    "path": "RelaxIV/RelaxIV",
+    "arguments": ["--flow", "false"]
+  },
+                        
+  ### My implementations - specific versions
+  ### These are used for testing particular optimisations which have been applied
+  
+  # Augmenting path    
+  "ap_bigheap": {
+     "version": "1540fc0",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+  },
+   "ap_smallheap_vector": {
+     "version": "41c6852",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+  },
+   "ap_smallheap_map": {
+     "version": "cd42c6e",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+  }, 
+  # Cost scaling
+  "cs_wave": {
+   "version": "cs_wave",
+   "target": "find_min_cost",
+   "path": "bin/find_min_cost",
+   "arguments" : ["cost_scaling"]
+  },
+  "cs_vertexqueue": {
+   "version": "5784157",
+   "target": "find_min_cost",
+   "path": "bin/find_min_cost",
+   "arguments" : ["cost_scaling"]
+  },
+  # Parser
+  "parser_getarc": {
+    "version": "5682b38",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments" : ["cost_scaling"]
+  },
+   "parser_set": {
+     "version": "04db7f8",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["cost_scaling"]
+  },
+  # RELAX
+  "relax_firstworking": {
+    "version": "f2cc904",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["relax"]
+  },                
+}
+
+# Reference implementations - LEMON
+LEMON_ALGOS = ["scc", "mmcc", "cat", "ssp", "cas", "cos", "ns"]
+for algo in LEMON_ALGOS:
+  FULL_IMPLEMENTATIONS["lemon_" + algo] = {
+    "version": "master",
+    "target": "lemon_min_cost",
+    "path": "bin/lemon_min_cost",
+    "arguments": ["-" + algo]
+  }
+
+### Incremental solvers
+MY_INCREMENTAL_OFFLINE_ARGS = ["--flow", "false"]
+INCREMENTAL_IMPLEMENTATIONS = {
+  ### My solvers - latest
+  "ap_latest": {
+    "version": "master",
+    "target": "incremental_min_cost",
+    "path": "bin/incremental_min_cost",
+    "arguments": ["augmenting_path"],
+    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
+   },
+   "relax_latest": {
+    "version": "master",
+    "target": "incremental_min_cost",
+    "path": "bin/incremental_min_cost",
+    "arguments": ["relax"],
+    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
+   },
+  ### RELAX Frangioni with incremental additions
+  # Latest
+  "relaxf_latest": {
+    "version": "master",
+    "target": "RelaxIV_incremental",
+    "path": "RelaxIV/RelaxIV_incremental",
+    "arguments": ["--quiet"],
+    "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
+  },
+  # First version that fully works. Includes bugfix to solve uninitialized value
+  # access in tfstin/tnxtin/etc. 
+  "relaxf_firstworking": {
+    "version": "b5721bb",
+    "target": "incremental",
+    "path": "RelaxIV/RelaxIV_incremental",
+    "arguments": []
+  },
+}
+
+IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS],
+                             ["full", "incremental"], ["f", "i"])
+
+##### Test cases
+
+### Tests on full graphs, comparing only full solvers
+FULL_TESTS = {
+  # For testing benchmark suite only
+  "development_only": {
+    "files": FULL_DATASET["development_only"],
+    "iterations": 1,
+    "tests": {
+      "my": {
+        "implementation": "f_cc_latest",
+      },
+      "goldberg": {
+        "implementation": "f_cs_goldberg",
+      },
+    },
+  },
+              
+  ### Optimisation tests
+  ## Augmenting path
+               
+  # Big heap: keeps all vertices in the priority queue. O(n) to create, but
+  # all operations are O(n lg n) afterwards.
+  # Small heap: keeps only vertices with finite distance in priority queue.
+  # O(1) to create, but has to pay insertion cost. Operations cheaper provided
+  # there are vertices not in queue.
+  # Performance will ultimately depend on how many vertices get explored before
+  # Djikstra quits.
+  # Additionally, have the choice between maintaining the reverse index
+  # as a vector or a map. Vector will give guaranteed O(1) lookup, and we 
+  # don't care about the memory consumption, but map may actually perform 
+  # better since it can be better cached.
+  "ap_big_vs_small_heap": {
+    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
+    "iterations": 5,
+    "tests": {
+      "big": {
+        "implementation": "f_ap_bigheap",
+      },
+      "small_vector": {
+        "implementation": "f_ap_smallheap_vector",
+      },
+      "small_map": {
+        "implementation": "f_ap_smallheap_map",
+      },
+    },
+  },
+              
+  ## Cost scaling
+  "cs_wave_vs_fifo": {
+    "files": FULL_DATASET["synthetic"],
+    "iterations": 5,
+    "tests": {
+      "wave": {
+        "implementation": "f_cs_wave",
+      },
+      "fifo": {
+        "implementation": "f_cs_vertexqueue",
+      },
+    },
+  },
+  "cs_scaling_factor": {
+    "files": FULL_DATASET["all"],
+    "iterations": 5,
+    "tests": { 
+      str(x): {
+        "implementation": "f_cs_latest",
+        "arguments": ["--scaling--factor", x]
+      } for x in range(2,32)
+    }
+  },
+              
+ ## DIMACS parser
+ "parser_set_vs_getarc": {
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "iterations": 5,
+    "tests": {
+      "set": {
+        "implementation": "f_parser_set",
+      },
+      "getarc": {
+        "implementation": "f_parser_getarc",
+      },
+    },
+  },
+ 
+  ### Comparison tests
+}
+
+INCREMENTAL_TESTS_OFFLINE = {
+  # For testing benchmark suite only.
+  "development_only": {
+    "files": INCREMENTAL_DATASET["development_only"],
+    "iterations": 1,
+    "tests": {
+      "my": {
+        "implementation": "i_ap_latest",
+      },
+      "goldberg": {
+        "implementation": "f_cs_goldberg",
+      },
+    },
+  },
+                            
+  # 
+  "incremental_vs_cs": {
+    "files": INCREMENTAL_DATASET["google_small_trace_truncated"],
+    "iterations": 10,
+    "tests": {
+      "my_incremental": {
+        "implementation": "i_ap_latest",
+      },
+      "my_costscaling": {
+        "implementation": "f_cs_latest",
+      },
+      "goldberg": {
+        "implementation": "f_cs_goldberg",
+      },
+    },
+  },
+  "relaxfi_vs_best": {
+    "files": INCREMENTAL_DATASET["google_small_trace_truncated"],
+    "iterations": 5,
+    "tests": {
+      "relaxfi": {
+        "implementation": "i_relaxf_latest",
+        "arguments": [] 
+      },
+      "goldberg": {
+        "implementation": "f_cs_goldberg",
+        "arguments": []
+      },
+    },
+  },
+}
+
+### Incremental tests: available either as hybrid, or pure online
+
+INCREMENTAL_TESTS_ANYONLINE = {
+  # Testing benchmark suite only.
+  "development_only": {
     "traces": [
       {
        "name": "tiny_trace",
@@ -434,138 +427,114 @@ INCREMENTAL_TESTS_HYBRID = {
     "iterations": 3,
     "tests": {
       "my": {
-        "implementation": "ap_incremental_latest",
+        "implementation": "i_ap_latest",
         "arguments": [],
       },
       "goldberg": {
-        "implementation": "cs_goldberg",
+        "implementation": "f_cs_goldberg",
         "arguments": [],
       },
     },
-  },        
-  "incremental_vs_cs_hybrid": {
+   },
+                               
+  ### Self comparisons
+  ### How does the performance of an incremental solver compare to using the
+  ### same solver in a non-incremental mode? Similarly, what proportion of work
+  ### must the incremental solver do?
+  "ap_same": {
+    # Augmenting path is slow. Give it a small dataset.
     "traces": [
       {
-        "name": "small_trace",
-        "runtime": RUNTIME_MAX
-      },
+       "name": "small_trace",
+       "runtime": FIRST_10K_EVENTS,
+       "percentage": 1
+      }
     ],
-    "granularity": 10, # in microseconds
+    "granularity": 10,
     "iterations": 5,
     "tests": {
-      "my_incremental": {
-        "implementation": "ap_incremental_latest",
-        "arguments": []
-      },
-      "my_costscaling": {
-        "implementation": "cs_latest",
-        "arguments": []
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-        "arguments": []
-      },
+      "full":           { "implementation": "f_ap_latest" },
+      "incremental":    { "implementation": "i_ap_latest" },
     },
   },
-  "incremental_vs_cs_quick": {
+  "relax_same": {
+    # This implementation of RELAX is 4-5x faster than augmenting path.
+    # But still too slow for a large dataset.
     "traces": [
       {
-        "name": "small_trace",
-        "percentage": 1, # percentage of events to retain
-        # this runtime corresponds to the first 10,000 events
-        "runtime": 3995607400
-      },
+       "name": "small_trace",
+       "runtime": FIRST_10K_EVENTS,
+       "percentage": 1
+      }
     ],
-    "granularity": 10, # in microseconds
+    "granularity": 10,
     "iterations": 5,
     "tests": {
-      "my_incremental": {
-        "implementation": "ap_incremental_latest",
-        "arguments": []
-      },
-      "my_costscaling": {
-        "implementation": "cs_latest",
-        "arguments": []
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-        "arguments": []
-      },
+      "full":           { "implementation": "f_relax_latest" },
+      "incremental":    { "implementation": "i_relax_latest" },
     },
   },
-  "relaxfi_vs_best_quick": {
+  "relaxf_same": {
+    # This is the optimised version of RELAX. Give it a full-size dataset.
     "traces": [
       {
-        "name": "small_trace",
-        "percentage": 1, # percentage of events to retain
-        # this runtime corresponds to the first 10,000 events
-        "runtime": 3995607400,
-      },
+       "name": "small_trace",
+       "runtime": FIRST_10K_EVENTS,
+      }
     ],
-    "granularity": 10, # in microseconds
+    "granularity": 10,
     "iterations": 5,
     "tests": {
-      "relaxfi": {
-        "implementation": "relaxfi_latest",
-        "arguments": [] 
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-        "arguments": []
-      },
+      "full":           { "implementation": "f_relax_frangioni" },
+      "incremental":    { "implementation": "i_relaxf_latest" },
     },
   },
-  "relaxfi_vs_best": {
+  
+  ### Comparisons between types
+  # Evaluation against the best of my (unoptimized) implementations.
+  "my_head_to_head": {
+    # Give them a small dataset
     "traces": [
       {
-        "name": "small_trace",
-        # this runtime corresponds to the first 10,000 events
-        "runtime": 3995607400,
-      },
+       "name": "small_trace",
+       "runtime": FIRST_10K_EVENTS,
+       "percentage": 1
+      }
     ],
-    "granularity": 10, # in microseconds
+    "granularity": 10,
     "iterations": 5,
     "tests": {
-      "relaxfi": {
-        "implementation": "relaxfi_latest",
-        "arguments": [] 
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-        "arguments": []
-      },
+      "full":           { "implementation": "f_cs_latest" },
+      "incremental":    { "implementation": "i_relax_latest" },
+    }
+  },
+  
+  # Fight against the best optimized implementations.
+  # Goldberg for full solver, modified RelaxIV for incremental solver.
+  "optimized_head_to_head": {
+    # These implementations can handle a full-size dataset
+    "traces": [
+      {
+       "name": "small_trace",
+       "runtime": FIRST_10K_EVENTS,
+      }
+    ],
+    "granularity": 10,
+    "iterations": 5,
+    "tests": {
+      "full":           { "implementation": "f_cs_goldberg" },
+      "incremental":    { "implementation": "i_relaxf_latest" },
     },
-  },                                       
+  },                                  
 }
 
-INCREMENTAL_TESTS_ONLINE = {
-  "development_only_incremental_online": {
-    "traces": [
-      {
-       "name": "tiny_trace",
-       "runtime": RUNTIME_MAX
-      },
-    ],
-    "granularity": 10, # in microseconds
-    "iterations": 1,
-    "tests": {
-      "my": {
-        "implementation": "ap_incremental_latest",
-        "arguments": [],
-      },
-      "goldberg": {
-        "implementation": "cs_goldberg",
-        "arguments": [],
-      },
-    },
-  },
-  "incremental_vs_cs_online": 
-    INCREMENTAL_TESTS_HYBRID["incremental_vs_cs_hybrid"].copy()
-}
+INCREMENTAL_TESTS_HYBRID = INCREMENTAL_TESTS_ANYONLINE.copy()
+INCREMENTAL_TESTS_ONLINE = INCREMENTAL_TESTS_ANYONLINE.copy()
 
 TESTS = mergeDicts(
   [FULL_TESTS, 
    INCREMENTAL_TESTS_OFFLINE, 
    INCREMENTAL_TESTS_HYBRID,
    INCREMENTAL_TESTS_ONLINE], 
-  ["full", "incremental_offline", "incremental_hybrid", "incremental_online"])
+  ["full", "incremental_offline", "incremental_hybrid", "incremental_online"],
+  ["f", "iof", "ihy", "ion"])

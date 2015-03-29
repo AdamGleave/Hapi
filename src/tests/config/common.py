@@ -43,24 +43,15 @@ def graphGlob(pathname):
   return list(map(lambda x : os.path.relpath(x, DATASET_ROOT), fnames))
 
 # For merging dictionaries, and tagging elements
-def mergeDicts(dicts, tags):
-  assert(len(dicts) == len(tags))
-  for i in range(len(dicts)):
-    for j in range(len(dicts)):
-      if i == j:
-        continue
-      duplicate_keys = set(dicts[i].keys()) & set(dicts[j].keys())
-      if duplicate_keys:
-        print("ERROR: Same name used in implementation ",
-              tags[i], " and ", tags[j], ": ", duplicate_keys, file=sys.stderr)
-        sys.exit(1)
+def mergeDicts(dicts, tags, prefix):
+  assert(len(dicts) == len(tags) == len(prefix))
       
-  # no overlapping keys
   result = {}
-  for (dict,tag) in zip(dicts,tags):
-    # N.B. Mutates as side-effect, this is OK or even desirable though
-    for v in dict.values():
+  for (dict,tag,prefix) in zip(dicts,tags,prefix):
+    new_dict = {k : v.copy() for (k,v) in dict.items()}
+    for v in new_dict.values():
       v.update({"type": tag})
-    result.update(dict)
+    new_dict = {prefix + "_" + k : v for (k,v) in new_dict.items()}
+    result.update(new_dict)
   
   return result
