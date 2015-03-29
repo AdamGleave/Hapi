@@ -1,7 +1,33 @@
 \chapter{Introduction} \label{chap:intro}
 
 \section{Motivation} \label{sec:intro-motivation}
-1 page. Why distributed scheduling is important. Why systems such as Quincy/Firmament are beneficial. Drawback: too slow. Solution: this project (hopefully). 
+Clusters of commodity machines have become the dominant approach for high-throughput computing. With the adoption of cloud computing, increasing number of applications must be designed to run across clusters rather than individual machines. Making efficient use of these \emph{warehouse-scale computers} is a major challenge in distributed systems research, with considerable practical implications~\cite{WarehouseScale:2009}.
+
+The choice of distributed scheduler has significant ramifications on cluster performance, being responsible for coordinating the activities of all machines in the cluster. Much as an operating system scheduler chooses which thread to run on each CPU core, a distributed scheduler controls what task runs on each computational node.
+
+Producing a schedule in a distributed systems environment is considerably more complicated than on a single machine, however. For one, the number of tasks being scheduled is orders of magnitude greater. Moreover, distributed environments have many more parameters which need to be taken into account to determine an efficient schedule.
+
+%Major web companies carefully guard the details of their schedulers as trade secrets, making it difficult to evaluate the state of the art. Most public implementations are rather primitive, however, and it seems unlikely that proprietary implementations are that far ahead. Hadoop, by far the most widely used distributed systems framework, used a FIFO scheduler until 2008. Whilst it now supports other schedulers, these are only marginally more sophisticated. The Hadoop Fair Scheduler provides, as the name suggests, good fairness properties. But it makes no attempt to achieve other desirable properties, such as producing schedules with high data locality.
+
+% Challenge of building complex schedulers, both in terms of runtime and engineering.
+%Widely used distributed schedulers for the most part ignore this complexity. They typically achieve only a handful of desirable policy objectives, and do not allow the administrator to choose the trade-off between competing objectives. For example, the Hadoop Fair Scheduler is very popular the administrator little ability to trade-off between competin. The Hadoop Fair Scheduler, for example, whilst indeed achieving its objective of fairness makes no attempt to Hadoop, by far the most popular distributed systems framework, offerssupported only a FIFO scheduling mechanism until 2008. It now supports many more
+
+
+%The most popular approach to dealing with this complexity  dominant approach in open-source distributed systems frameworks can Commonly used schedulers have 
+%In order Commonly used schedulers take Widely used distributed systems frameworks 
+
+
+%All these scheduling schemes suffer from a fatal flaw. Their policy is `one size fits all', with administrators having little control over the policy. 
+
+The Quincy system was developed at Microsoft Research to address these problems~\cite{Isard:2009}. Unlike traditional schedulers, Quincy builds an explicit model of the data centre, incorporating knowledge of both the resources available at each node and the capacity of the interconnect between nodes. The data centre and the tasks to be scheduled are then represented as a flow network. Solving the flow problem yields a schedule.
+
+By modelling the data centre explicitly, Quincy naturally takes into account the idiosyncrasies of different data centres. For example, one cluster may have limited network capacity, whereas another may have an extremely fast interconnect. In the former, data locality would be much more of a concern than in the latter.
+
+This removes some of the need for custom configuration, but by no means all. Fortunately, Quincy is exceedingly flexible. Whereas most schedulers have a hard-coded policy, in Quincy the policy is determined by a cost model, a procedure assigning a cost to each arc in the flow network.
+
+Unfortunately, Quincy suffers from one key problem which has limited its adoption. Solving the flow problem, needed to produce the schedule, is extremely computationally expensive.  For many applications, the resulting scheduling latency is prohibitive. Even where this may not be the case, there are concerns about the scalability of the technique. Clusters look set to continue to grow in size, whereas scalar performance of processors is believed to have mostly peaked.
+
+In this dissertation, I explore techniques to improve the performance of flow solving algorithms on networks produced by Quincy-style systems. This will allow these so-called 'flow scheduling' systems to be used in practice, with the consequent performance and efficiency gains for warehouse-scale computers.
 
 \section{Challenges} \label{sec:intro-challenges}
 Considerable body of material to learn. Reference implementations have been heavily hand-optimised: hard to beat. 
