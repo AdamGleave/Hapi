@@ -175,6 +175,14 @@
 \def\l@subparagraph{\@dottedtocline{6}{18em}{7em}}
 \makeatother
 
+% Make nameref work with titlesec
+\makeatletter
+\def\ttl@useclass#1#2{%
+	\@ifstar
+	{\ttl@labeltrue\@dblarg{#1{#2}}}% {\ttl@labelfalse#1{#2}[]}%
+	{\ttl@labeltrue\@dblarg{#1{#2}}}}
+\makeatother
+
 \begin{document}
 
 %\bibliographystyle{acm}		% used ieeetr in the proposal
