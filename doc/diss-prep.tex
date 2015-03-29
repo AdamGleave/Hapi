@@ -8,17 +8,250 @@ Overview of what the task is.
 Explanation of how Quincy-style systems work. Expressing data centre as a flow network.
 
 \section{Flow networks} \label{prep-flow}
-What flow networks are. The min-cost max-flow problem.
 
-\subsection{Definition} \label{prep-flow-definition}
-What flow networks are. Introduce notation which you'll use throughout rest of document.
+% SOMEDAY: Have an introduction here? Or have you in effect introduced flow networks already when talking about Quincy?
 
-\subsection{The min-cost max-flow problem} \label{prep-flow-problem}
-What I'm trying to solve. Formally define it.
+\subsection{Definitions and notation}
 
-\subsection{Properties}
-\label{prep-flow-results}
-MAYBE -- theorems/results/definitions used in later algorithms. I think it's best to define them right before discussing a particular algorithm, but some things (such as $\epsilon$-optimality) are common to multiple algorithms, so may be best 'uplifted' here.
+A \emph{flow network} is a weakly connected\footnotemark directed graph $G=(V,E)$.
+\footnotetext{A directed graph is weakly connected if the undirected graph formed by replacing all directed edges with undirected edges is itself connected.}
+
+Each arc $(i,j)\in E$ has an associated \emph{capacity} (or \emph{upper	bound}\footnotemark) $u_{ij}$, and a \emph{cost} $c_{ij}$.
+\footnotetext{Some authors also include a lower bound $l_{ij}$. These will not feature in the problems we consider. Moreover, any network featuring lower bounds can be transformed into an equivalent one where all lower bounds are zero. (TODO: citation)}
+
+Each node $i\in V$ has an associated supply/demand $b_{i}$. Node $i$ is said to be a \emph{supply node} if $b_{i}>0$, a \emph{demand
+	node }if $b_{i}<0$ and a \emph{transshipment node }if $b(i)=0$.
+
+The problems we will consider involve finding a solution vector $\mathbf{x}$,
+specifying the flow $x_{ij}$ at each arc $(i,j)\in E$. A solution
+$\mathbf{x}$ is \emph{feasible, }and we say it is a \emph{flow}, if it satisfies
+capacity constraints at every arc:
+
+\begin{equation}
+0\leq x_{ij}\leq u_{ij}\:\forall(i,j)\in E
+\end{equation}\label{eq:capacity-constraints}
+
+and flow conservation at each node:
+
+\begin{equation}
+\sum_{j\::\:(i,j)\in E}x_{ij}-\sum_{j\::\:(j,i)\in E}x_{ji}=b(i)\:\forall i\in V
+\end{equation} \label{eq:flow-conservation}
+
+That is, the net flow out of the node is exactly equal to the supply
+at that node (which may be negative.)
+
+\subsection{Assumptions}
+
+We will assume all the quantities above are integers. A network with rational quantities can be transformed into an equivalent integral network, by multiplying throughout by the greatest common denominator. Meanwhile, flow algorithms are not guaranteed to terminate on irrational data. Fortunately, the networks produced by systems such as Quincy are naturally integral, since quantities such as resource consumption in a data centre
+are inherently discrete.
+
+Without loss of generality, we will also assume that all arc costs
+are non-negative\footnotemark. Note capacities are non-negative by definition.
+\footnotetext{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}}
+
+The above two assumptions together imply that all quantities are natural
+numbers\footnotemark. We can therefore represent them by unsigned integer data types in computer code.
+\footnotetext{To avoid confusion, I will follow the convention $0\in\mathbb{N}$ throughout this document.}
+
+
+\subsection{The minimum-cost flow problem\label{sec:prep-flow-mcf}}
+
+The well-known maximum flow problem involves finding a solution vector
+$\mathbf{x}$ subject to constraints (1) and (2), i.e. finding a feasible
+flow.
+
+Our focus will be on a generalization of this, known as the minimum
+cost problem. Formally, it is:
+
+\[
+\mbox{minimise}\ s(\mathbf{x})=\sum_{(i,j)\in E}c_{ij}x_{ij}
+\]
+where $\mathbf{x}$ is constrained to be a feasible flow. A feasible
+flow $\mathbf{x}$ minimizing the above quantity is said to be \emph{optimal}.
+
+In general, there may be no feasible solution to a network. For example,
+the problem may be imbalanced: $\sum_{i\in V}b_{i}\neq0$. All networks
+produced by the Quincy system are guaranteed to be solvable, however,
+so this does not concern us. Consequently, I will assume in subsequent
+discussions that networks are feasible, unless stated otherwise%
+\footnote{For robustness, however, all algorithms implemented as part of this
+	project do detect if a network is infeasible.%
+}.
+
+
+\subsubsection{Application to flow scheduling}
+
+In the context of systems such as Quincy, a solution to the maximum
+flow problem provides a schedule for each task. However, this schedule
+could be of low quality. For example, it might leave most tasks unscheduled,
+and computational nodes idle.
+
+A solution to the minimum-cost flow problem, by contrast, guarantees
+a schedule which makes most efficient uses of the computational resources
+of the cluster, subject to a policy defined by the cost model. This
+is precisely the property we require.
+
+
+\subsection{Pseudoflows}
+
+Whilst all flow algorithms must return a feasible solution, many operate
+by manipulating \emph{pseudoflows} in intermediate stages. A pseudoflow
+is a vector $\mathbf{x}$ which satisfies the capacity constraints
+(1), but which may not satisfy flow conservation (2).
+
+We define the \emph{excess} at a node $i\in V$ to be:
+
+\[
+e_{i}=b_{i}+\sum_{j\::\:(j,i)\in E}x_{ji}-\sum_{j\::\:(i,j)\in E}x_{ij}
+\]
+
+
+Node i is said to be an \emph{excess node} if $e_{i}>0$, and a \emph{deficit
+	node} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$
+is said to be \emph{balanced}. Note flow conservation holds if and
+only if all nodes are balanced.
+
+
+\subsection{Residual networks}
+
+Also important to many flow algorithms is the notion of \emph{residual}
+\emph{networks. }The residual network is defined with respect to the
+original flow network $G$ and a (pseudo)flow $\mathbf{x}$, and is
+denoted by $G_{\mathbf{x}}$. Informally, it represents the actions
+an algorithm can take to modify the (pseudo)flow $\mathbf{x}$. In
+the case where $\mathbf{x=0},$ we have $G_{\mathbf{0}}=G$.
+
+Formally, we define $G_{\mathbf{x}}=\left(V,E_{\mathbf{x}}\right)$
+to be a directed graph where:
+\[
+E_{\mathbf{x}}=\left\{ (i,j)\in V^{2}\::\:(i,j)\in E\land x_{ij}<u_{ij}\right\} \cup\left\{ (j,i)\in V^{2}\::\:(j,i)\in E\land x_{ij}>0\right\} 
+\]
+
+
+The former set consists of \emph{forward arcs}, which were present
+in the original flow network. An arc $(i,j)$ which is saturated,
+i.e. $x_{ij}=u_{ij}$, drops out of the residual network. The latter
+set consists of \emph{backward arcs}, the reverse of arcs in the original
+network. Only arcs with positive flow in the original network have
+a corresponding backwards arc.
+
+We define the \emph{residual capacity} of an arc $(i,j)\in E_{\mathbf{x}}$
+to be:
+
+\[
+r_{ij}=\begin{cases}
+u_{ij}-x_{ij} & ,\:(i,j)\:\mbox{is a forward arc}\\
+x_{ij} & ,\:(i,j)\:\mbox{is a reverse arc}
+\end{cases}
+\]
+
+
+We define the cost of a forward arc $(i,j)$ to be $c_{ij}$, and
+a reverse arc $(j,i)$ to be $-c_{ij}$.
+
+
+\subsection{Reduced cost and duality}
+
+We may associate with each node $i\in V$ a \emph{potential}, $\pi_{i}$.
+The \emph{reduced cost} of an arc $(i,j)\in E$ with respect to a
+potential $\boldsymbol{\pi}$ is defined as:
+
+\[
+c_{ij}^{\boldsymbol{\pi}}=c_{ij}-\pi_{i}+\pi_{j}
+\]
+
+
+Every linear programming problem, referred to as a \emph{primal} problem,
+can be converted to a \emph{dual} problem. Solutions to the dual problem
+give an upper bound on the objective value of the primal problem.
+
+The primal version of the minimum-cost flow problem is stated in \ref{sec:prep-flow-mcf}.
+The dual problem is:
+
+\[
+\mathrm{maximise}\; w(\boldsymbol{\pi})=\sum_{i\in V}b_{i}\pi_{i}-\sum_{(i,j)\in E}\max\left(0,-c_{ij}^{\pi}\right)u_{ij}
+\]
+
+
+with no constraints on $\boldsymbol{\pi}$.
+
+It can be computationally more efficient to solve the dual problem
+rather than the primal problem. Many flow algorithms adopt a dual
+approach, or a hybrid of a primal and dual approach.
+
+
+\subsection{Optimality conditions}
+
+Below, I give conditions on a solution vector $\mathbf{x}$ which
+imply it is optimal. These conditions suggest algorithms for solving
+the problem. Moreover, they can be used in testing, to verify that
+a solution is indeed optimal.
+
+
+\subsubsection{Reduced cost optimality conditions}
+
+Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
+to the minimum-cost flow problem if and only if there exists a node
+potential vector $\boldsymbol{\pi}$ such that that the reduced cost
+of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
+
+\begin{equation}
+c_{ij}^{\boldsymbol{\pi}}\geq0\:\forall(i,j)\in E_{\mathbf{x}}
+\end{equation}
+\label{eq:rc-optimality}
+
+
+\subsubsection{Complementary slackness optimality conditions}
+
+Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
+to the minimum-cost flow problem if and only if there exists a node
+potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
+
+\begin{equation}
+\text{if \ensuremath{c_{ij}^{\pi}>0}, then \ensuremath{x_{ij}=0}}
+\end{equation}
+
+
+\begin{equation}
+\text{if \ensuremath{c_{ij}^{\pi}<0}, then \ensuremath{x_{ij}=u_{ij}}}
+\end{equation}
+
+
+\begin{equation}
+\text{if \ensuremath{c_{ij}^{\pi}=0}, then \ensuremath{0\leq x_{ij}\leq u_{ij}}}
+\end{equation}
+
+
+
+\paragraph{Discussion}
+
+Note the reduced cost optimality conditions are stated in terms of
+the residual network, whereas these are stated in terms of the original
+flow network. The two conditions can easily be seen to be equivalent
+by expanding out \ref{eq:rc-optimality} using the definition of the
+residual network.
+
+
+\subsection{Asymptotic complexity}
+
+Some notation will be useful when it comes to analysing the complexity
+of algorithms. 
+
+Let $n=|V|$ and $m=|E|$ denote the number of nodes and arcs respectively.
+
+The running time of algorithms depends not just on the size of the
+network, but also on the magnitudes of input data. Let $U$ denote
+the largest node supply/demand, or arc capacity:
+\begin{equation}
+U=\max\left(\max\left\{ |b_{i}|\::\: i\in V\right\} ,\max\left\{ u_{ij}\::\:\left(i,j\right)\in E\right\} \right)
+\end{equation}
+
+
+and let $C$ denote the largest arc cost:
+
+\begin{equation}
+C=\max\left\{ c_{ij}\::\:(i,j)\in E\right\} 
+\end{equation}
 
 \section{Software engineering} \label{sec:prep-sweng}
 

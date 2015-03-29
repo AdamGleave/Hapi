@@ -5,6 +5,7 @@ perf.data.old
 .pydevproject
 .settings/
 *.pyc
+*~
 
 tmp/
 
