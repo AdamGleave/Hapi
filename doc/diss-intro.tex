@@ -3,34 +3,26 @@
 \section{Motivation} \label{sec:intro-motivation}
 Clusters of commodity machines have become the dominant approach for high-throughput computing. With the adoption of cloud computing, increasing number of applications must be designed to run across clusters rather than individual machines. Making efficient use of these \emph{warehouse-scale computers} is a major challenge in distributed systems research, with considerable practical implications~\cite{WarehouseScale:2009}.
 
-The choice of distributed scheduler has significant ramifications on cluster performance, being responsible for coordinating the activities of all machines in the cluster. Much as an operating system scheduler chooses which thread to run on each CPU core, a distributed scheduler controls what task runs on each computational node.
+The scheduler coordinates the cluster, choosing the tasks to run on each machine. This can have considerable ramifications on cluster performance and efficiency. For example, throughput is significantly improved by taking into account \emph{data locality}: scheduling tasks on machines close to where their input data is stored. 
 
-Producing a schedule in a distributed systems environment is considerably more complicated than on a single machine, however. For one, the number of tasks being scheduled is orders of magnitude greater. Moreover, distributed environments have many more parameters which need to be taken into account to determine an efficient schedule.
+Despite their importance, widely-used schedulers leave much to be desired. I would identify two major drawbacks. The first is failing to adapt to different hardware. Some clusters have considerably higher bandwidth interconnects than others. Data locality will be more important in the latter case than the former. The second issue is a lack of policy flexibility. Every application has a unique set of requirements: it should be possible to specify a weighted set of goals to optimize for.
 
-%Major web companies carefully guard the details of their schedulers as trade secrets, making it difficult to evaluate the state of the art. Most public implementations are rather primitive, however, and it seems unlikely that proprietary implementations are that far ahead. Hadoop, by far the most widely used distributed systems framework, used a FIFO scheduler until 2008. Whilst it now supports other schedulers, these are only marginally more sophisticated. The Hadoop Fair Scheduler provides, as the name suggests, good fairness properties. But it makes no attempt to achieve other desirable properties, such as producing schedules with high data locality.
+Hadoop, by far the most widely used distributed systems framework, is an excellent example. The Hadoop Fair Scheduler (HFS), as the name suggests, has excellent fairness properties: different users will receive equal shares of the cluster's resources. However, it makes no attempt to achieve data locality. Research systems exist that can provide both~\cite{Zaharia:2010}. However, we would struggle to find a system which could support a third objective, highlighting policy inflexibility. And apart from rudimentary knowledge as to the total number of computational nodes, the HFS runs entirely blind to the underlying hardware.
 
-% Challenge of building complex schedulers, both in terms of runtime and engineering.
-%Widely used distributed schedulers for the most part ignore this complexity. They typically achieve only a handful of desirable policy objectives, and do not allow the administrator to choose the trade-off between competing objectives. For example, the Hadoop Fair Scheduler is very popular the administrator little ability to trade-off between competin. The Hadoop Fair Scheduler, for example, whilst indeed achieving its objective of fairness makes no attempt to Hadoop, by far the most popular distributed systems framework, offerssupported only a FIFO scheduling mechanism until 2008. It now supports many more
+The Quincy system, developed at Microsoft Research, was designed to address these problems~\cite{Isard:2009}. Quincy builds an explicit model of the data centre, incorporating knowledge about the underlying computational and network hardware. The data centre and the tasks to be scheduled are then represented as a flow network. Solutions to the flow problem correspond to schedules for the tasks.
 
+By modelling the data centre explicitly, Quincy naturally takes into account the idiosyncrasies of different data centres, addressing the first problem. Quincy is also exceedingly flexible, as it does not assume any particular policy. Instead, a cost model must be specified, a procedure to assign a cost to each arc in the network. This allows the policy to be tweaked to achieve a variety of different objectives.
 
-%The most popular approach to dealing with this complexity  dominant approach in open-source distributed systems frameworks can Commonly used schedulers have 
-%In order Commonly used schedulers take Widely used distributed systems frameworks 
+Whilst this so-called "flow scheduling" approach has proven extremely versatile, it has one key weakness. Solving the minimum-cost flow problem to produce an optimal schedule is computationally extremely expensive. This makes the scheduling latency prohibitive for many applications. Even where the latency is tolerable currently, there are concerns about the scalability of the technique. Clusters look set to continue to grow in size. By contrast, the scalar performance of processors is believed to have mostly peaked, and flow algorithms are difficult to parallelise.
 
-
-%All these scheduling schemes suffer from a fatal flaw. Their policy is `one size fits all', with administrators having little control over the policy. 
-
-The Quincy system was developed at Microsoft Research to address these problems~\cite{Isard:2009}. Unlike traditional schedulers, Quincy builds an explicit model of the data centre, incorporating knowledge of both the resources available at each node and the capacity of the interconnect between nodes. The data centre and the tasks to be scheduled are then represented as a flow network. Solving the flow problem yields a schedule.
-
-By modelling the data centre explicitly, Quincy naturally takes into account the idiosyncrasies of different data centres. For example, one cluster may have limited network capacity, whereas another may have an extremely fast interconnect. In the former, data locality would be much more of a concern than in the latter.
-
-This removes some of the need for custom configuration, but by no means all. Fortunately, Quincy is exceedingly flexible. Whereas most schedulers have a hard-coded policy, in Quincy the policy is determined by a cost model, a procedure assigning a cost to each arc in the flow network.
-
-Unfortunately, Quincy suffers from one key problem which has limited its adoption. Solving the flow problem, needed to produce the schedule, is extremely computationally expensive.  For many applications, the resulting scheduling latency is prohibitive. Even where this may not be the case, there are concerns about the scalability of the technique. Clusters look set to continue to grow in size, whereas scalar performance of processors is believed to have mostly peaked.
-
-In this dissertation, I explore techniques to improve the performance of flow solving algorithms on networks produced by Quincy-style systems. This will allow these so-called 'flow scheduling' systems to be used in practice, with the consequent performance and efficiency gains for warehouse-scale computers.
+In this dissertation, I explore techniques to improve the performance of flow solving algorithms on networks produced by Quincy-style systems. Significant speed-up will enable flow scheduling systems to be adopted in practice, with the consequent performance and efficiency gains in computer clusters.
 
 \section{Challenges} \label{sec:intro-challenges}
-Considerable body of material to learn. Reference implementations have been heavily hand-optimised: hard to beat. 
+Research into the minimum-cost flow problem has been active since the 1950s, owing to its numerous practical applications. There is therefore a considerable body of existing work on the problem, described further in \vref{sec:intro-related-work}. It will be necessary for me to assimilate this large body of existing material before I can attempt to improve upon it.
+
+Given that many seasoned researchers have spent their careers working on this problem, it will be difficult to achieve significant performance improvements. Not only has there been considerable work in developing efficient algorithms, the reference implementations for these algorithms have been extensively hand-optimised.
+
+Whilst the task ahead is daunting, success will enable a new generation of schedulers, able to address the challenges which face today's major technology companies.
 
 \section{Related work} \label{sec:intro-related-work}
 Brief literature survey.
