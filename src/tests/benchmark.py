@@ -184,7 +184,7 @@ def createIncrementalTestInstance(instance):
   implementation = parameters["implementation"]
   solver_type = implementation["type"]
   exe_path = parameters["exe_path"]
-  arguments = parameters["arguments"]
+  arguments = parameters["arguments"].copy()
   test_command = None
   if solver_type == "full":
     test_command = createWrapperCommand(exe_path, arguments)
