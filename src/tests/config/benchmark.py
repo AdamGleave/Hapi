@@ -120,8 +120,9 @@ TRACE_START = 600*SECOND
 TRACE_LENGTH = 2506199602822
 RUNTIME_MAX = 2**64 - 1
 
-RUNTIME_50_ITERATIONS = 760953480
-RUNTIME_100_ITERATIONS = 870117760
+RUNTIME_50_ITERATIONS_1PER = 760953480
+RUNTIME_100_ITERATIONS_1PER = 870117760
+RUNTIME_100_ITERATIONS = 608159450
 FIRST_10K_EVENTS = 3995607400 # corresponds to 1470 iterations at 10 us
 def percentRuntime(p):
   return TRACE_START + (TRACE_LENGTH - TRACE_START) * (p / 100.0)
@@ -448,7 +449,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "traces": [
       {
        "name": "small_trace",
-       "runtime": RUNTIME_50_ITERATIONS,
+       "runtime": RUNTIME_50_ITERATIONS_1PER,
        "percentage": 1
       }
     ],
@@ -465,7 +466,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "traces": [
       {
        "name": "small_trace",
-       "runtime": RUNTIME_50_ITERATIONS,
+       "runtime": RUNTIME_50_ITERATIONS_1PER,
        "percentage": 1
       }
     ],
@@ -499,7 +500,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "traces": [
       {
        "name": "small_trace",
-       "runtime": RUNTIME_50_ITERATIONS,
+       "runtime": RUNTIME_50_ITERATIONS_1PER,
        "percentage": 1
       }
     ],
