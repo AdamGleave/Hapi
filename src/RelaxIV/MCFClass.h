@@ -1981,6 +1981,12 @@ inline void MCFClass::LoadDMX( istream &DMXs , bool IsQuad )
      throw( MCFException( "LoadDMX: error reading deficit" ) );
 
     tDfct[ j - 1 ] -= Dfctj;
+
+		// skip over node type, if present
+		do {
+			 if( !DMXs.get( c ) )
+			    throw ( MCFException( "LoadDMX: error reading the input stream" ) );
+		} while( c != '\n' );
     break;
 
    case( 'a' ):  // description of an arc - - - - - - - - - - - - - - - - - -
