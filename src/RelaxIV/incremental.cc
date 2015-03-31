@@ -196,5 +196,9 @@ int main(int argc, char *argv[]) {
 		t.start();
 	} while (dimacs.ReadDelta());
 
+	// Must stop timer. Otherwise it will stop automatically when it is destroyed
+	// and report a spurious time.
+	t.stop();
+
 	return 0;
 }
