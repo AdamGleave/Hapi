@@ -167,8 +167,8 @@ FULL_IMPLEMENTATIONS = {
   },
   "relax_frangioni": {
     "version": "master",
-    "target": "RelaxIV",
-    "path": "RelaxIV/RelaxIV",
+    "target": "RelaxIV_original",
+    "path": "RelaxIV/RelaxIV_original",
     "arguments": ["--flow", "false"]
   },
                         
