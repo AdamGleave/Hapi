@@ -18,12 +18,20 @@ The resulting scheduling latency is prohibitive for many applications. Even in s
 In this dissertation, I explore approaches to improve the performance of flow algorithms on networks produced by Quincy-style systems. My goal is to enable flow scheduling systems to scale to the largest clusters built today, as well as to still larger clusters which may be built in the foreseeable future. Moreover, I intend to reduce the scheduling latency to allow the system to be used with applications that have hard latency requirements. Together, this will enable flow scheduling systems to be adopted in practice, with the consequent performance and efficiency gains in computer clusters.
 
 \section{Challenges} \label{sec:intro-challenges}
-Research into the minimum-cost flow problem has been active since the 1950s, driven by its numerous practical applications. There is consequently considerable prior work from the past 60 years on this problem, which I describe further in~\S\ref{sec:intro-related-work}. It will be necessary for me to assimilate this large body of existing material before I can attempt to improve upon it.
+Research into the minimum-cost flow problem has been active for over 60 years. There is consequently considerable prior work on this problem, which I describe further in~\S\ref{sec:intro-related-work}. It will be necessary for me to assimilate this large body of existing material before I can attempt to improve upon it.
 
 Given that many seasoned researchers have spent their careers working on this problem, realising a significant performance improvement will be difficult. Not only has there been considerable work to develop efficient algorithms, the reference implementations for these algorithms have been extensively optimised.
 
 Whilst the task ahead is daunting, the reward is commensurate with the risk. Success will enable a new generation of schedulers, able to address the challenges facing today's major technology companies.
 
 \section{Related work} \label{sec:intro-related-work}
-% TBC
-Brief literature survey.
+
+Research into flow networks has been ongoing since the 1940s, driven by their numerous practical applications. New algorithms and implementation techniques continue to be devised up to the present day.
+
+The study of flow problems started with the transportation problem, a special case of the minimum-cost flow problem, with pioneering work conducted by Kantorovich in 1939~\cite{Kantorovich:1960}, Hitchcock in 1941~\cite{Hitchcock:1941} and Koopmans in 1949~\cite{Koopmans:1949}.
+
+This early work motivated the development of linear programming, which flow problems can be shown to reduce to. Indeed, the first statement of the general linear programming problem is due to Kantorovich~\cite{Kantorovich:1960}. Linear programming only became an established field with the publication in 1949 of Dantzig's seminal work on the now well-known simplex algorithm~\cite{Dantzig:1949}. One of the earliest applications of this method was to flow networks, with Dantzig specialising the simplex algorithm to the transportation problem in 1951~\cite{Dantzig:1951}.
+
+Growing interest in linear programming spurred study into flow networks. During the 1950s, researchers explored the minimum-cost flow problem and its specializations, such as the maximum-flow problem. By the end of the decade, there were specialist algorithms to solving these problems. Ford and Fulkerson developed a number of primal-dual combinatorial algorithms, whereas Dantzig continued his focus on simplex methods~\cite{FordFulkerson:1962,Dantzig:1962}.
+
+Given this early excitement, the field might be expected to have peaked soon after. However, if anything the pace of innovation has accelerated in recent years, with modern algorithms offering considerable performance gains. Unfortunately, it is not practical for me to discuss all the worthy work which has taken place over the last 60 years. In the rest of this section, I will focus my discussion around classes of algorithm which are of particular relevance to my project. In particular, I will not dwell on the many historical algorithms which have been supplanted by modern techniques, except where their development is especially instructive.

@@ -13,7 +13,7 @@ proposal.pdf: proposal.tex propbody.tex diss.bib
 progressreport.pdf: progressreport.tex progressbody.tex diss.bib
 	latexmk -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make progressreport.tex" progressreport.tex
 
-diss.pdf: diss.tex diss.bib
+diss.pdf: diss.tex diss-intro.tex diss-prep.tex diss-impl.tex diss-eval.tex diss-conc.tex diss.bib
 	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //' > diss-auto-wordcount.tex
 	latexmk -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diss.tex" diss.tex
 

@@ -215,13 +215,11 @@ The dual problem is:
 \mathrm{maximise}\; w(\boldsymbol{\pi})=\sum_{i\in V}b_{i}\pi_{i}-\sum_{(i,j)\in E}\max\left(0,-c_{ij}^{\pi}\right)u_{ij}
 \end{equation}
 
-
 with no constraints on $\boldsymbol{\pi}$.
 
 It can be computationally more efficient to solve the dual problem
 rather than the primal problem. Many flow algorithms adopt a dual
 approach, or a hybrid of a primal and dual approach.
-
 
 \subsubsection{Optimality conditions}
 
@@ -229,7 +227,6 @@ Below, I give conditions on a solution vector $\mathbf{x}$ which
 imply it is optimal. These conditions suggest algorithms for solving
 the problem. Moreover, they can be used in testing, to verify that
 a solution is indeed optimal.
-
 
 \paragraph{Reduced cost optimality conditions}
 
@@ -242,7 +239,6 @@ of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
 c_{ij}^{\boldsymbol{\pi}}\geq0\:\forall(i,j)\in E_{\mathbf{x}}
 \end{equation}
 
-
 \paragraph{Complementary slackness optimality conditions}
 
 Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
@@ -253,16 +249,13 @@ potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
 \text{if \ensuremath{c_{ij}^{\pi}>0}, then \ensuremath{x_{ij}=0}}
 \end{equation}
 
-
 \begin{equation}
 \text{if \ensuremath{c_{ij}^{\pi}<0}, then \ensuremath{x_{ij}=u_{ij}}}
 \end{equation}
 
-
 \begin{equation}
 \text{if \ensuremath{c_{ij}^{\pi}=0}, then \ensuremath{0\leq x_{ij}\leq u_{ij}}}
 \end{equation}
-
 
 \subparagraph{Discussion}
 
