@@ -389,10 +389,12 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   simulator = simulator.bake("-bin_time_duration", case_config["granularity"])
   
   ### Configuration for the solver
+  simulator = simulator.bake("-flow_scheduling_solver", "custom")
   simulator = simulator.bake("-flow_scheduling_binary", parameters["exe_path"])
   arguments = parameters["arguments"]
   if arguments:
-    simulator = simulator.bake("-flow_scheduling_args", " ".join(arguments))
+    simulator = simulator.bake("-custom_flow_scheduling_args", 
+                               " ".join(arguments))
   # Note "-incremental_flow False" will not work; GFlags will interpret this
   # as setting FLAGS_incremental_flow, and then a positional argument False.
   # So have to construct the argument string ourselves
