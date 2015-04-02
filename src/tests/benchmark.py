@@ -394,7 +394,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
                              config.COST_MODELS[cost_model])
   
   ### Configuration for the solver
-  simulator = simulator.bake("-flow_scheduling_solver", "custom")
+  simulator = simulator.bake("-solver", "custom")
   simulator = simulator.bake("-flow_scheduling_binary", parameters["exe_path"])
   arguments = parameters["arguments"]
   if arguments:
