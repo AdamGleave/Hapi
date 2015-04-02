@@ -387,6 +387,11 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   
   ### General parameters
   simulator = simulator.bake("-bin_time_duration", case_config["granularity"])
+  cost_model = config.DEFAULT_COST_MODEL
+  if "cost_model" in case_config:
+    cost_model = case_config["cost_model"]
+  simulator = simulator.bake("-flow_scheduling_cost_model",
+                             config.COST_MODELS[cost_model])
   
   ### Configuration for the solver
   simulator = simulator.bake("-flow_scheduling_solver", "custom")

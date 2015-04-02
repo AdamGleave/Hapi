@@ -417,6 +417,18 @@ INCREMENTAL_TESTS_OFFLINE = {
 
 ### Incremental tests: available either as hybrid, or pure online
 
+COST_MODELS = {
+               "trivial": 0,
+               "random": 1,
+               "sjf": 2,
+               "quincy": 3,
+               "whare": 4,
+               "coco": 5,
+               "octopus": 6
+}
+
+DEFAULT_COST_MODEL = "octopus"
+
 INCREMENTAL_TESTS_ANYONLINE = {
   # Testing benchmark suite only.
   "development_only": {
