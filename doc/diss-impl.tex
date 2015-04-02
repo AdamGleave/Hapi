@@ -30,11 +30,11 @@ Cite paper giving proof of correctness. State, with citation, time and space com
 
 \subsubsection{Heuristics}
 
-Maybe. Only if you have time to implement any!
+Summarise what they are, even if you don't have to implement them.
 
 \subsubsection{Optimisations}
 
-e.g. vertex vs wave
+e.g. vertex vs wave. Perhaps this should be merged with heuristics anyway?
 
 \subsection{An iterative approximation}
 
@@ -56,7 +56,7 @@ My code allows the two to be readily combined to produce different policies.
 
 Motivation. Most of the time the graph changes only a small amount. Existing approaches recompute from scratch. Can we re-use information?
 
-\subsection{Choice of algorithm}
+\subsection{Choice of algorithms}
 
 Explain why primal methods such as Goldberg's work poorly: require solution is feasible at all times. Dual methods better. Note these are slower when run on graph from scratch.
 
@@ -76,7 +76,9 @@ Cite paper giving proof of correctness. State, with citation, time and space com
 
 \subsubsection{Optimisations}
 
-\section{Input \& output}
+\section{Input and output}
+
+% Drop this section if short of space, or punt to appendix. Optimisations probably the most useful/interesting ones to talk about.
 
 Loading networks, exporting results. Neither interesting nor impressive, but it is a necessary part of the project. Keep it brief. (Or cut it entirely?)
 
@@ -96,9 +98,9 @@ Ignoring duplicates. Necessary for correctness. Slightly more interesting: check
 
 \subsection{Scheduling tasks}
 
-Show how solver can achieve original task, by integrating into a cluster scheduler. Justify the choice of Firmament (open source, VIP support). Keep it brief, it's not difficult to do.
+Show how solver can achieve original task, by integrating into a cluster scheduler. Choice of Firmament: can be briefly justified, but need not be at all (no real alternatives).
 
-\subsection{Benchmark suite} \label{sec:impl-benchmark}
+\section{Benchmark suite} \label{sec:impl-benchmark}
 
 Motivation. Automate common task. Improve quality of data collection: can run experiment many times with different parameters, no possibility of human error. 
 
