@@ -26,6 +26,13 @@ target_link_libraries(incremental_snapshots_compare PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(incremental_snapshots_compare PRIVATE ${GLOG_LIBRARY})
 target_link_libraries(incremental_snapshots_compare PUBLIC ${PROJECT_NAME_STR})
 
+add_executable (incremental_statistics incremental_statistics.cpp)
+set_target_properties(incremental_statistics PROPERTIES
+                                    INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+target_link_libraries(incremental_statistics PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(incremental_statistics PRIVATE ${GLOG_LIBRARY})
+target_link_libraries(incremental_statistics PUBLIC ${PROJECT_NAME_STR})
+
 add_executable (partial_incremental_min_cost partial_incremental_min_cost.cpp)
 set_target_properties(partial_incremental_min_cost PROPERTIES
                                     INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})

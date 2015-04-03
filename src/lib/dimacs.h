@@ -375,6 +375,39 @@ protected:
 	}
 };
 
+struct DIMACSIncrementalDeltaStatistics {
+	unsigned int node_additions, node_deletions;
+	unsigned int arc_additions, arc_deletions,
+	             arc_cost_changes, arc_cap_changes, arc_changes;
+	unsigned int noop_additions, noop_changes, noop_deletions;
+
+	unsigned int getTotalArcMutations() {
+		return arc_additions + arc_deletions + arc_changes;
+	}
+
+	unsigned int getTotalArcNoOps() {
+		return noop_additions + noop_changes + noop_deletions;
+	}
+
+	unsigned int getTotalArcEvents() {
+		return getTotalArcMutations() + getTotalArcNoOps();
+	}
+
+	unsigned int getTotalNodes() {
+		return node_additions + node_deletions;
+	}
+protected:
+	void reset() {
+		node_additions = node_deletions = 0;
+		arc_additions = arc_changes = arc_deletions = 0;
+		arc_cap_changes = arc_cost_changes = 0;
+		noop_additions = noop_changes = noop_deletions = 0;
+	}
+
+	template<class T>
+	friend class DIMACSIncrementalDeltaImporter;
+};
+
 template<class T>
 class DIMACSIncrementalDeltaImporter : public DIMACSImporter {
 	BOOST_CONCEPT_ASSERT((DynamicGraphCallbacks<T>));
@@ -384,6 +417,14 @@ public:
 
 	bool read() {
 		return DIMACSImporter::parse();
+	}
+
+	DIMACSIncrementalDeltaStatistics &getStatistics() {
+		return statistics;
+	}
+
+	void resetStatistics() {
+		statistics.reset();
 	}
 private:
 	const static uint32_t SINK_NODE = 1;
@@ -419,6 +460,8 @@ private:
 															 << line_num;
 			adjustSinkCapacity(g.getSupply(node_id));
 			g.removeNode(node_id);
+
+			statistics.node_deletions++;
 			break;
 			}
 		case 'n':
@@ -439,6 +482,8 @@ private:
 			CHECK_GE(supply, 0) << "only one node allowed to be a sink.";
 			// increase demand at sink by parameter supply
 			adjustSinkCapacity(-supply);
+
+			statistics.node_additions++;
 			}
 			break;
 		case 'x':
@@ -464,30 +509,41 @@ private:
 					// "still doesn't". That is, it wasn't an arc before, and still isn't.
 					LOG(WARNING) << "ignoring delete of non-existent arc "
 							         << src << "->" << dst;
+
+					statistics.noop_deletions++;
 				} else {
 					LOG(WARNING) << "converting change of non-existent arc "
 											 << src << "->" << dst << " to an add";
 					CHECK_EQ(lower_bound, 0);
 					g.addArc(src, dst, upper_bound, cost);
+
+					statistics.arc_additions++;
 				}
 				return true;
 			} else {
 				if (upper_bound == 0) {
 					g.removeArc(src, dst);
+					statistics.arc_deletions++;
 				} else {
 					bool done_something = false;
 					uint64_t current_upper_bound = arc->getCapacity();
 					if (current_upper_bound != upper_bound) {
 						g.changeArcCapacity(src, dst, upper_bound);
 						done_something = true;
+						statistics.arc_cap_changes++;
 					}
 					int64_t current_cost = arc->getCost();
 					if (current_cost != cost) {
 						g.changeArcCost(src, dst, cost);
 						done_something = true;
+						statistics.arc_cost_changes++;
 					}
-					LOG_IF(WARNING, !done_something) << "no-op arc change event "
-					    				                     << src << "->" << dst;
+					if (done_something) {
+						statistics.arc_changes++;
+					} else {
+						LOG(WARNING) << "no-op arc change event " << src << "->" << dst;
+						statistics.noop_changes++;
+					}
 				}
 			}
 			break;
@@ -507,8 +563,10 @@ private:
 			if (upper_bound == 0) {
 				LOG(WARNING) << "ignoring add of arc " << src << "->"
 						         << dst << " with zero upper-bound.";
+				statistics.noop_additions++;
 			} else {
 				g.addArc(src, dst, upper_bound, cost);
+				statistics.arc_additions++;
 			}
 			break;
 			}
@@ -518,7 +576,7 @@ private:
 	}
 
 	T &g;
-	uint32_t new_node_id = 0;
+	DIMACSIncrementalDeltaStatistics statistics;
 };
 
 } /* namespace flowsolver */
