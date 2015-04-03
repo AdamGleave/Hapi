@@ -14,6 +14,20 @@
   Url                      = {https://books.google.co.uk/books?id=ZLEmnwEACAAJ}
 }
 
+@Article{Bunnagel:1998,
+  Title                    = {Efficient implementation of the Goldberg--Tarjan minimum-cost flow algorithm},
+  Author                   = {B{\"u}nnagel, Ursula and Korte, Bernhard and Vygen, Jens},
+  Journal                  = {Optimization Methods and Software},
+  Year                     = {1998},
+  Number                   = {2},
+  Pages                    = {157--174},
+  Volume                   = {10},
+
+  Owner                    = {adam},
+  Publisher                = {Taylor \& Francis},
+  Timestamp                = {2015.04.03}
+}
+
 @Book{WarehouseScale:2009,
   Title                    = {The Datacenter as a Computer: An Introduction to the Design of Warehouse-Scale Machines},
   Author                   = {Luiz André Barroso and Urs Hölzle},
@@ -42,6 +56,16 @@
   Url                      = {http://dx.doi.org/10.1007/BF02288322}
 }
 
+@TechReport{Bertsekas:1979,
+  Title                    = {A distributed algorithm for the assignment problem},
+  Author                   = {Bertsekas, D. P.},
+  Institution              = {Lab for Information and Decision Systems, MIT},
+  Year                     = {1979},
+
+  Owner                    = {adam},
+  Timestamp                = {2015.04.03}
+}
+
 @TechReport{BertsekasTseng:94,
   Title                    = {RELAX-IV: A Faster Version of the RELAX Code for Solving Minimum Cost Flow Problems},
   Author                   = {Dimitri P. Bertsekas and Paul Tseng},
@@ -51,6 +75,16 @@
 
   Owner                    = {adam},
   Timestamp                = {2015.03.31}
+}
+
+@TechReport{Bland:1985,
+  Title                    = {On the Computational Behavior of a Polynomial-Time Network Flow Algorithm},
+  Author                   = {Bland, R and Jensen, D},
+  Institution              = {Cornell University Operations Research and Industrial Engineering},
+  Year                     = {1985},
+
+  Owner                    = {adam},
+  Timestamp                = {2015.04.03}
 }
 
 @Article{BertsekasMethod:1988,
@@ -174,13 +208,106 @@
   Url                      = {http://doi.acm.org/10.1145/28395.28397}
 }
 
-@Article{Goldberg:1992,
-  Title                    = {An Efficient Implementation Of A Scaling Minimum-Cost Flow Algorithm},
-  Author                   = {Andrew V. Goldberg},
+@InCollection{Goldberg:2008,
+  Title                    = {The Partial Augment-Relabel Algorithm for the Maximum Flow Problem},
+  Author                   = {Goldberg, Andrew V.},
+  Booktitle                = {Algorithms - ESA 2008},
+  Publisher                = {Springer Berlin Heidelberg},
+  Year                     = {2008},
+  Editor                   = {Halperin, Dan and Mehlhorn, Kurt},
+  Pages                    = {466-477},
+  Series                   = {Lecture Notes in Computer Science},
+  Volume                   = {5193},
+
+  Doi                      = {10.1007/978-3-540-87744-8_39},
+  ISBN                     = {978-3-540-87743-1},
+  Language                 = {English},
+  Owner                    = {adam},
+  Timestamp                = {2015.04.03},
+  Url                      = {http://dx.doi.org/10.1007/978-3-540-87744-8_39}
+}
+
+@Article{Goldberg:1997,
+  Title                    = {An efficient implementation of a scaling minimum-cost flow algorithm},
+  Author                   = {Goldberg, Andrew V},
   Journal                  = {Journal of Algorithms},
-  Year                     = {1992},
+  Year                     = {1997},
+  Number                   = {1},
   Pages                    = {1--29},
-  Volume                   = {22}
+  Volume                   = {22},
+
+  Owner                    = {adam},
+  Publisher                = {Elsevier},
+  Timestamp                = {2015.04.03}
+}
+
+@Article{Goldberg:1990,
+  Title                    = {Finding Minimum-cost Circulations by Successive Approximation},
+  Author                   = {Andrew V. Goldberg and Robert E. Tarjan},
+  Journal                  = {Mathematics of Operations Research},
+  Year                     = {1990},
+  Number                   = {3},
+  Pages                    = {430-466},
+  Volume                   = {15},
+
+  Abstract                 = { We develop a new approach to solving minimum-cost circulation problems. Our approach combines methods for solving the maximum flow problem with successive approximation techniques based on cost scaling. We measure the accuracy of a solution by the amount that the complementary slackness conditions are violated. We propose a simple minimum-cost circulation algorithm, one version of which runs in O(n3log(nC)) time on an n-vertex network with integer arc costs of absolute value at most C. By incorporating sophisticated data structures into the algorithm, we obtain a time bound of O(nm log(n2/m)log(nC)) on a network with m arcs. A slightly different use of our approach shows that a minimum-cost circulation can be computed by solving a sequence of O(n log(nC)) blocking flow problems. A corollary of this result is an O(n2(log n)log(nC))-time, m-processor parallel minimum-cost circulation algorithm. Our approach also yields strongly polynomial minimum-cost circulation algorithms. Our results provide evidence that the minimum-cost circulation problem is not much harder than the maximum flow problem. We believe that a suitable implementation of our method will perform extremely well in practice. },
+  Doi                      = {10.1287/moor.15.3.430},
+  Eprint                   = { 
+ http://dx.doi.org/10.1287/moor.15.3.430
+ 
+},
+  Owner                    = {adam},
+  Timestamp                = {2015.04.03},
+  Url                      = { 
+ http://dx.doi.org/10.1287/moor.15.3.430
+ 
+}
+}
+
+@Article{Goldberg:1989,
+  Title                    = {Finding Minimum-cost Circulations by Canceling Negative Cycles},
+  Author                   = {Goldberg, Andrew V. and Tarjan, Robert E.},
+  Journal                  = {J. ACM},
+  Year                     = {1989},
+
+  Month                    = oct,
+  Number                   = {4},
+  Pages                    = {873--886},
+  Volume                   = {36},
+
+  Acmid                    = {76368},
+  Address                  = {New York, NY, USA},
+  Doi                      = {10.1145/76359.76368},
+  ISSN                     = {0004-5411},
+  Issue_date               = {Oct. 1989},
+  Numpages                 = {14},
+  Owner                    = {adam},
+  Publisher                = {ACM},
+  Timestamp                = {2015.04.03},
+  Url                      = {http://doi.acm.org/10.1145/76359.76368}
+}
+
+@Article{Goldberg:1988,
+  Title                    = {A New Approach to the Maximum-flow Problem},
+  Author                   = {Goldberg, Andrew V. and Tarjan, Robert E.},
+  Journal                  = {J. ACM},
+  Year                     = {1988},
+
+  Month                    = oct,
+  Number                   = {4},
+  Pages                    = {921--940},
+  Volume                   = {35},
+
+  Acmid                    = {61051},
+  Address                  = {New York, NY, USA},
+  Doi                      = {10.1145/48014.61051},
+  ISSN                     = {0004-5411},
+  Issue_date               = {Oct. 1988},
+  Numpages                 = {20},
+  Owner                    = {adam},
+  Publisher                = {ACM},
+  Timestamp                = {2015.04.03},
+  Url                      = {http://doi.acm.org/10.1145/48014.61051}
 }
 
 @Article{Goldfarb:1992,
@@ -338,7 +465,7 @@
   Url                      = {http://dx.doi.org/10.1109/CCGrid.2011.55}
 }
 
-@Other{HadoopSchedulingIBM,
+@Online{HadoopSchedulingIBM,
   Title                    = {Scheduling in Hadoop},
   Author                   = {M. Tim Jones},
   Date                     = {2011-12-06},
@@ -378,16 +505,6 @@
   Url                      = {http://arxiv.org/abs/1207.6381}
 }
 
-@Article{Zolt:2012,
-  Title                    = {Efficient implementations of minimum-cost flow algorithms},
-  Author                   = {Kiraly, Zolt{\'a}n and Kovacs, P{\'e}ter},
-  Journal                  = {Acta Univ. Sapientiae},
-  Year                     = {2012},
-  Number                   = {1},
-  Pages                    = {67--118},
-  Volume                   = {4}
-}
-
 @Article{Klein:1967,
   Title                    = {A primal method for minimal cost flows with applications to the assignment and transportation problems},
   Author                   = {Klein, Morton},
@@ -411,6 +528,30 @@
   File                     = {:home/adam/Copy/courses/II/Project/Papers/1907301.pdf:pdf},
   Owner                    = {adam},
   Timestamp                = {2015.03.31}
+}
+
+@Article{Kovacs:2015,
+  Title                    = {Minimum-cost Flow Algorithms: An Experimental Evaluation},
+  Author                   = {Kov{\'{a}}cs},
+  Journal                  = {Optimization Methods Software},
+  Year                     = {2015},
+
+  Month                    = jan,
+  Number                   = {1},
+  Pages                    = {94--127},
+  Volume                   = {30},
+
+  Acmid                    = {2691957},
+  Address                  = {Bristol, PA, USA},
+  Doi                      = {10.1080/10556788.2014.895828},
+  ISSN                     = {1055-6788},
+  Issue_date               = {February 2015},
+  Keywords                 = {LEMON, efficient algorithms, experimental study, minimum-cost flows, network flows},
+  Numpages                 = {34},
+  Owner                    = {adam},
+  Publisher                = {Taylor \&amp; Francis, Inc.},
+  Timestamp                = {2015.04.03},
+  Url                      = {http://dx.doi.org/10.1080/10556788.2014.895828}
 }
 
 @TechReport{Lobel:1996,
@@ -447,7 +588,7 @@
   Url                      = {http://doi.acm.org/10.1145/2517349.2522716}
 }
 
-@Other{HadoopPoweredBy,
+@Online{HadoopPoweredBy,
   Title                    = {{PoweredBy} - Hadoop Wiki},
   Author                   = {Hadoop Project},
   Url                      = {http://wiki.apache.org/hadoop/PoweredBy},
@@ -463,6 +604,17 @@
 
   Owner                    = {adam},
   Timestamp                = {2015.03.31}
+}
+
+@InCollection{Rock:1980,
+  Title                    = {Scaling techniques for minimal cost network flows},
+  Author                   = {H. R\"{o}ck},
+  Booktitle                = {Discrete Structures and Algorithms},
+  Publisher                = {Hanser},
+  Year                     = {1980},
+
+  Owner                    = {adam},
+  Timestamp                = {2015.04.03}
 }
 
 @Article{Ramalingam:1996,
@@ -529,20 +681,6 @@
   Url                      = {http://dx.doi.org/10.1007/s00453-010-9401-5}
 }
 
-@Article{Schrijver1993,
-  Title                    = {Paths and Flows - A Historical Survey},
-  Author                   = {Schrijver, Alexander},
-  Journal                  = {CWI Quarterly},
-  Year                     = {1993},
-  Number                   = {3},
-  Pages                    = {169--183},
-  Volume                   = {6},
-
-  File                     = {:home/adam/Copy/courses/II/Project/Papers/10.1.1.57.966.pdf:pdf},
-  Owner                    = {adam},
-  Timestamp                = {2015.03.31}
-}
-
 @InProceedings{Sharma:2011,
   Title                    = {Modeling and Synthesizing Task Placement Constraints in Google Compute Clusters},
   Author                   = {Sharma, Bikash and Chudnovsky, Victor and Hellerstein, Joseph L. and Rifaat, Rasekh and Das, Chita R.},
@@ -562,6 +700,47 @@
   Location                 = {Cascais, Portugal},
   Numpages                 = {14},
   Url                      = {http://doi.acm.org/10.1145/2038916.2038919}
+}
+
+@Article{Sokkalingam:2000,
+  Title                    = {New polynomial-time cycle-canceling algorithms for minimum-cost flows},
+  Author                   = {Sokkalingam, P. T. and Ahuja, Ravindra K. and Orlin, James B.},
+  Journal                  = {Networks},
+  Year                     = {2000},
+  Number                   = {1},
+  Pages                    = {53--63},
+  Volume                   = {36},
+
+  Doi                      = {10.1002/1097-0037(200008)36:1<53::AID-NET6>3.0.CO;2-Y},
+  ISSN                     = {1097-0037},
+  Keywords                 = {minimum-cost flow problem, convex cost-flow problem, cycle-canceling algorithm, strongly polynomial algorithms, scaling algorithms, network flows},
+  Owner                    = {adam},
+  Publisher                = {John Wiley \& Sons, Inc.},
+  Timestamp                = {2015.04.03},
+  Url                      = {http://dx.doi.org/10.1002/1097-0037(200008)36:1<53::AID-NET6>3.0.CO;2-Y}
+}
+
+@Article{Tardos:1985,
+  Title                    = {A Strongly Polynomial Minimum Cost Circulation Algorithm},
+  Author                   = {Tardos, \'{E}va},
+  Journal                  = {Combinatorica},
+  Year                     = {1985},
+
+  Month                    = jul,
+  Number                   = {3},
+  Pages                    = {247--255},
+  Volume                   = {5},
+
+  Acmid                    = {7198},
+  Address                  = {Secaucus, NJ, USA},
+  Doi                      = {10.1007/BF02579369},
+  ISSN                     = {0209-9683},
+  Issue_date               = {1985},
+  Numpages                 = {9},
+  Owner                    = {adam},
+  Publisher                = {Springer-Verlag New York, Inc.},
+  Timestamp                = {2015.04.03},
+  Url                      = {http://dx.doi.org/10.1007/BF02579369}
 }
 
 @Article{Tarjan:1991,
@@ -596,17 +775,15 @@
   Url                      = {http://dx.doi.org/10.1002/net.3230010206}
 }
 
-@Misc{clusterdata:Wilkes2011,
+@Online{clusterdata:Wilkes2011,
   Title                    = {More {Google} cluster data},
-
   Author                   = {John Wilkes},
-  HowPublished             = {Google research blog},
   Month                    = Nov,
-  Note                     = {Posted at \url{http://googleresearch.blogspot.com/2011/11/more-google-cluster-data.html}.},
-  Year                     = {2011}
+  Year                     = {2011},
+  Url                      = {http://googleresearch.blogspot.com/2011/11/more-google-cluster-data.html}
 }
 
-@Other{HadoopFairSchedulerJIRA,
+@Online{HadoopFairSchedulerJIRA,
   Title                    = {The Hadoop fair scheduler},
   Author                   = {Matei Zaharia},
   Date                     = {2008-07-11},
@@ -647,3 +824,43 @@
   Url                      = {http://dl.acm.org/citation.cfm?id=1855741.1855744}
 }
 
+@Online{CS2:2009,
+  Title                    = {CS2 Software, Version 4.6},
+  Author                   = {IG Systems, Inc.},
+  Year                     = 2009,
+  Url                      = {https://github.com/iveney/cs2}
+}
+
+@Online{RelaxIV:2011,
+  Title                    = {MCFClass RelaxIV, Version 1.80},
+  Author                   = {A. Frangioni and C. Gentile and D. Bertsekas},
+  Year                     = {2011},
+  Url                      = {http://www.di.unipi.it/optimize/Software/MCF.html#RelaxIV}
+}
+
+@Online{LEMON:Software,
+  Title                    = {LEMON Graph Library},
+  Author                   = {B. Dezso and A. Juttner and P. K\"{o}vacs and A. Ladanyi and et al.},
+  Date                     = {2014-07-07},
+  Url                      = {https://lemon.cs.elte.hu/trac/lemon}
+}
+
+@article{LEMON:2011,
+	author = {Dezs, Bal\'{a}zs and J\"{u}ttner, Alp\'{a}r and Kov\'{a}cs, P{\'e}ter},
+	title = {LEMON - an Open Source C++ Graph Template Library},
+	journal = {Electron. Notes Theor. Comput. Sci.},
+	issue_date = {July, 2011},
+	volume = {264},
+	number = {5},
+	month = jul,
+	year = {2011},
+	issn = {1571-0661},
+	pages = {23--45},
+	numpages = {23},
+	url = {http://dx.doi.org/10.1016/j.entcs.2011.06.003},
+	doi = {10.1016/j.entcs.2011.06.003},
+	acmid = {2008137},
+	publisher = {Elsevier Science Publishers B. V.},
+	address = {Amsterdam, The Netherlands, The Netherlands},
+	keywords = {C++, design, graph, library, network, template},
+}

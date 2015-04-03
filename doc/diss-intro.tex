@@ -28,14 +28,14 @@ Whilst the task ahead is daunting, the reward is commensurate with the risk. Suc
 
 Research into flow networks has been ongoing since the 1940s, driven by their numerous practical applications. The area remains active, with new algorithms and implementation techniques being devised even today.
 
-Study of the area begin with the transportation problem, a special case of the minimum-cost flow problem. Kantorovich was the first to formulate the problem in 1939~\cite{Kantorovich:1960}, although his work did not receive recognition outside Russia until sometime later. Hitchcock was the first to study this problem in the Western world, publishing in 1941~\cite{Hitchcock:1941}. Koopmans followed in 1949, demonstrating the theory applied in an economic context~\cite{Koopmans:1949}. Kantorovich and Koopmans would later receive a Nobel prize for their research\footnotemark.
+Study of the area begin with the transportation problem, a special case of the minimum-cost flow problem. The problem was first formulated by Kantorovich in 1939~\cite{Kantorovich:1960}, although his work did not receive recognition outside Russia until sometime later. Study of the problem in the Western world began with Hitchcock in 1941~\cite{Hitchcock:1941}. Koopmans followed in 1949, demonstrating the theory applied in an economic context~\cite{Koopmans:1949}. Kantorovich and Koopmans would later receive a Nobel prize for their research\footnotemark.
 \footnotetext{Hitchcock missed out on the prize as it was awarded in 1975, after he had passed away.}
 
-This early work motivated the development of linear programming, which flow problems can be shown to reduce to. Indeed, the first statement of the general linear programming problem is due to Kantorovich~\cite{Kantorovich:1960}. Linear programming only became an established field with the publication in 1949 of Dantzig's seminal work on the now well-known simplex algorithm~\cite{Dantzig:1949}. One of the earliest applications of this method was to flow networks, with Dantzig specialising the simplex algorithm to the transportation problem in 1951~\cite{Dantzig:1951}.
+This early work motivated the development of linear programming, which flow problems can be shown to reduce to. Indeed, the first statement of the general linear programming problem is due to Kantorovich~\cite{Kantorovich:1960}. Linear programming became established  as a field with the publication in 1949 of Dantzig's seminal work on the now well-known simplex algorithm~\cite{Dantzig:1949}. One of the earliest applications of this method was to flow networks, with Dantzig specialising the simplex algorithm to the transportation problem in 1951~\cite{Dantzig:1951}.
 
 Growing interest in linear programming spurred study into flow networks. During the 1950s, researchers explored the minimum-cost flow problem and its specializations, such as the maximum-flow problem. By the end of the decade, there were specialist algorithms to solving these problems. Ford and Fulkerson developed a number of primal-dual combinatorial algorithms, whereas Dantzig continued his focus on simplex methods~\cite{FordFulkerson:1962,Dantzig:1962}.
 
-Given this early excitement, the field might be expected to have peaked soon after. However, if anything the pace of innovation has accelerated in recent years, with modern algorithms offering considerable performance gains. Unfortunately, it is not practical for me to discuss all the worthy work which has taken place over the last 60 years. For the rest of this section, I will focus on the algorithms available today which offer the highest performance.
+Given this early excitement, the field might be expected to have peaked soon after. However, if anything the pace of innovation has accelerated in recent years, with modern algorithms offering considerable performance gains. Unfortunately, it is not practical for me to discuss all the worthy work which has taken place over the last 60 years. For the rest of this section, I will focus on the algorithms available today offering the highest performance.
 
 \subsection{Network simplex}
 
@@ -44,24 +44,42 @@ The network simplex algorithm can claim to be the oldest flow solution methods s
 Significant improvements have been made to the algorithm over time, although the underlying technique remains the same. The generic network simplex algorithm is not guaranteed to run in polynomial time\footnotemark, however many variants have been devised with a polynomial bound~\cite{Tarjan:1991,Goldfarb:1992}. Apart from algorithmic improvements, there has also been considerable work to develop efficient implementations~\cite{Lobel:1996,Grigoriadis:1986}.
 \footnotetext{Although in practice it is typically rather efficient.}
 
-\subsection{Successive shortest path}
+\subsection{Successive shortest path} \label{sec:intro-related-work-ssp}
 
-This algorithm was invented independently by several authors~\cite{Jewell:1958,Iri:1960,BusackerGowen:1960}. Edmonds and Karp~\cite{Edmonds:1972} and Tomizawa~\cite{Tomizawa:1971} independently suggested a technique to maintain non-negative arc costs during the algorithm; this allows for more efficient shortest path computations, considerably improving its performance. The variant given by Edmonds and Karp is notable for having been the first solution method for the minimum-cost flow problem to run in (weakly) polynomial\footnotemark time.
+This algorithm was invented independently by several authors~\cite{Jewell:1958,Iri:1960,BusackerGowen:1960}. Edmonds and Karp~\cite{Edmonds:1972} and Tomizawa~\cite{Tomizawa:1971} independently suggested a technique to maintain non-negative arc costs during the algorithm; this allows for more efficient shortest path computations, considerably improving its performance. The variant given by Edmonds and Karp is notable for having been the first solution method for the minimum-cost flow problem to run in (weakly) polynomial time\footnotemark.
 
 \footnotetext{In a weakly polynomial algorithm, the maximum cost and capacity of arcs may feature in the polynomial bound. By contrast, for a (strongly) polynomial algorithm the bound is a function only of the dimensions of the problem: the number of vertices and arcs.}
 
-Whilst successive shortest path is of significant historical interest, its performance is inferior to those of more modern approaches. The relaxation algorithm is an approach of more recent vintage, developed in 1987 by Bertsekas and Tseng~\cite{BertsekasMethod:1988,BertsekasCodes:1988}. Its approach is inspired by Lagrangian relaxation, a technique used for solving integer programming problems. Perhaps surprisingly, it can be shown to be a special case of the successive shortest-path algorithm.
+Whilst successive shortest path is of significant historical interest, its performance is inferior to those of more modern approaches. The relaxation algorithm is an approach of more recent vintage, developed in 1987 by Bertsekas and Tseng~\cite{BertsekasMethod:1988,BertsekasCodes:1988,BertsekasTseng:94}. Its approach is inspired by Lagrangian relaxation, a technique used for solving integer programming problems. Perhaps surprisingly, it can be shown to be a special case of the successive shortest-path algorithm.
 
 The worst-case runtime complexity of the relaxation algorithm, whilst (weakly) polynomial, is considerably slower than many algorithms considered in this dissertation. But in practice, the algorithm is highly efficient on many problem instances, with computational benchmarks having found it to be the fastest solver for some types of network~\cite{KiralyKovacs:2012}.
 
 \subsection{Cycle cancelling}
 
-% Slightly later. Classic approach. Has some nice connections with maximum-flow.
+Originally proposed by Klein~\cite{Klein:1967}, the algorithm has inspired a large number of variants. Klein's version of the algorithm has disappointing performance, being in the worst case exponential in the size of the input. However, variants have improved on this by making careful choices as to which cycles to cancel.
+
+An important special-case is the minimum-mean cycle cancelling algorithm, devised by Goldberg and Tarjan~\cite{Goldberg:1989}, which is (strongly) polynomial. Whilst by no means the first polynomial time algorithm devised for the minimum-cost flow problem, it is one of the simplest.
+
+Research has continued into recent years, with Sokkalingam \textit{et al.}\ developing a variant with an improved asymptotic bound in 2000~\cite{Sokkalingam:2000}.
 
 \subsection{Cost scaling}
 
-% More modern approach, first algorithms only developed in 1980. Some of the best theoretical and practical performance.
+The most modern class of minimum-cost flow algorithms, cost scaling was first proposed in the 1980s by Rock~\cite{Rock:1980} and, independently, Bland and Jensen~\cite{Bland:1985}. Goldberg and Tarjan developed an improved method in 1990~\cite{Goldberg:1990}, using the concept of $\epsilon$-optimality due (independently) to Bertsekas~\cite{Bertsekas:1979} and Tardos~\cite{Tardos:1985}. This can be viewed as a generalisation of their well-known and highly successful push-relabel algorithm for the maximum flow problem~\cite{Goldberg:1988}.
+
+The algorithm by Goldberg and Tarjan offers some of the best theoretical and practical performance. Moreover, considerable work was done in the late 90s by Goldberg \textit{et al.} on developing efficient implementations of this algorithm, including using heuristics to guide the solver~\cite{Goldberg:1997,Bunnagel:1998}.
+
+Work has continued up until the present day. Goldberg published in 2008 an improved version of his famous push-relabel algorithm for the maximum flow problem~\cite{Goldberg:2008}. Kiraly and Kovacs demonstrated in 2012 that this approach can also be incorporated into the minimum-cost flow algorithm, with similar performance gains~\cite{KiralyKovacs:2012}.
 
 \subsection{Comparative evaluation}
 
-% Reference Kiraly & Kovacs
+As we have seen, many different classes of flow algorithm have been developed, each with a number of variants. The above list is by no means comprehensive: I have intentionally omitted the numerous other algorithms which have been supplanted by recent algorithmic advances.
+
+The goal of this project is to develop an algorithm which outperforms the current state of the art solvers, on the class of networks produced by flow schedulers. But how can we compare the current crop of algorithms, to identify the state of the art? 
+
+Asymptotic complexity can be a useful basis for evaluation, however this can be highly misleading. Flow algorithms usually considerably outperform their worst-case time complexity. The relaxation algorithm described in \S\ref{sec:intro-related-work-ssp} is perhaps the most extreme example of this: it is only weakly polynomial, but outperforms many strongly polynomial algorithms in practice.
+
+Consequently, comparison of flow algorithms is most often done by empirical benchmarks. I am indebted to the recent work of Kiraly and Kovacs, who conducted a comparative evaluation of minimum-cost flow algorithms across a variety of different classes of flow networks~\cite{KiralyKovacs:2012,Kovacs:2015}.
+
+In addition, I am grateful to various researchers in this field for having made their implementations freely available. These include CS2 for the cost-scaling algorithm~\cite{CS2:2009}, RelaxIV for the relaxation algorithm~\cite{RelaxIV:2011} and the LEMON optimisation library which implements most of the algorithms described above~\cite{LEMON:2011,LEMON:Software}. Evaluation of this project would have been considerably more challenging had these reference implementations not been available.
+
+% CS2 - GitHub mirror, RelaxIV - MCFClass, LEMON - homepage

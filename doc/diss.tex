@@ -47,6 +47,8 @@
 % TODO: What citation style should I use?
 \usepackage[backend=biber,bibencoding=UTF-8,style=numeric]{biblatex}
 \bibliography{diss.bib}
+\DeclareBibliographyCategory{cited}
+\AtEveryCitekey{\addtocategory{cited}{\thefield{entrykey}}}
 \usepackage{footnote}
 
 % Figures
@@ -185,6 +187,7 @@
 
 \begin{document}
 
+\nocite{*}                      % detect unused references
 %\bibliographystyle{acm}		% used ieeetr in the proposal
 								% what is the style guide consensus?
 
@@ -304,9 +307,12 @@ TODO
 \cleardoublepage
 
 % Bib and Appendices etc
-\printbibliography[heading=bibintoc]
+\printbibliography[heading=bibintoc,category=cited]
 
-% TODO: Enable for proofreading only
+% PROOFREAD
+\printbibliography[title={WARNING: Uncited},notcategory=cited]
+
+% PROOFREAD
 % % Index
 % \cleardoublepage
 % %\addcontentsline{toc}{chapter}{Index}
