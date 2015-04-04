@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
 			FLAGS_minloglevel = google::INFO;
 	} else if (argc > 1) {
 		fprintf(stderr, "usage: %s [quiet]\n", argv[0]);
+		return -1;
 	}
 	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
