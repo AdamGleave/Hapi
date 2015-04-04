@@ -22,7 +22,9 @@ except ImportError:
  
 GOOGLE_TRACE_SIMULATOR_PATH = os.path.join(FIRMAMENT_ROOT, 
                       "build", "sim", "trace-extract", "google_trace_simulator")
-GOOGLE_TRACE_SIMULATOR = sh.Command(GOOGLE_TRACE_SIMULATOR_PATH)
+GOOGLE_TRACE_SIMULATOR_ARGS = ["--logtostderr"]
+GOOGLE_TRACE_SIMULATOR = sh.Command(GOOGLE_TRACE_SIMULATOR_PATH) \
+                           .bake(*GOOGLE_TRACE_SIMULATOR_ARGS)
 
 ##### Dataset
 # Note these variables are not used by the suite at all. They are provided
@@ -251,14 +253,14 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "incremental_min_cost",
     "path": "bin/incremental_min_cost",
-    "arguments": ["augmenting_path"],
+    "arguments": ["augmenting_path", "--quiet"],
     "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
    },
    "relax_latest": {
     "version": "master",
     "target": "incremental_min_cost",
     "path": "bin/incremental_min_cost",
-    "arguments": ["relax"],
+    "arguments": ["relax", "--quiet"],
     "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
    },
   ### RELAX Frangioni with incremental additions
