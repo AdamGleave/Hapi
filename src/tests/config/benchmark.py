@@ -433,6 +433,8 @@ COST_MODELS = {
 }
 
 DEFAULT_COST_MODEL = "octopus"
+DEFAULT_BATCH_STEP = 10 # microseconds
+DEFAULT_TIME_FACTOR = 1 
 
 INCREMENTAL_TESTS_ANYONLINE = {
   # Testing benchmark suite only.
@@ -443,7 +445,6 @@ INCREMENTAL_TESTS_ANYONLINE = {
        "runtime": RUNTIME_MAX
       },
     ],
-    "granularity": 10, # in microseconds
     "iterations": 3,
     "tests": {
       "my": {
@@ -456,7 +457,19 @@ INCREMENTAL_TESTS_ANYONLINE = {
       },
     },
    },
-                               
+   "debug_firmament": {
+    "traces": [
+      {
+       "name": "small_trace",
+       "runtime": RUNTIME_100_ITERATIONS_1PER,
+       "percentage": 1,
+      }
+    ],
+    "iterations": 5,
+    "tests": {
+      "full": { "implementation": "f_cs_goldberg" },
+    },
+  },                           
   ### Self comparisons
   ### How does the performance of an incremental solver compare to using the
   ### same solver in a non-incremental mode? Similarly, what proportion of work
@@ -470,7 +483,6 @@ INCREMENTAL_TESTS_ANYONLINE = {
        "percentage": 1
       }
     ],
-    "granularity": 10,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_ap_latest" },
@@ -487,7 +499,6 @@ INCREMENTAL_TESTS_ANYONLINE = {
        "percentage": 1
       }
     ],
-    "granularity": 10,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_latest" },
@@ -502,7 +513,6 @@ INCREMENTAL_TESTS_ANYONLINE = {
        "runtime": RUNTIME_100_ITERATIONS,
       }
     ],
-    "granularity": 10,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_frangioni" },
@@ -521,7 +531,6 @@ INCREMENTAL_TESTS_ANYONLINE = {
        "percentage": 1
       }
     ],
-    "granularity": 10,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_cs_latest" },
@@ -538,7 +547,6 @@ INCREMENTAL_TESTS_ANYONLINE = {
        "runtime": RUNTIME_100_ITERATIONS,
       }
     ],
-    "granularity": 10,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },

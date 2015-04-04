@@ -393,7 +393,16 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     simulator = simulator.bake("-percentage", trace_config["percentage"])
   
   ### General parameters
-  simulator = simulator.bake("-bin_time_duration", case_config["granularity"])
+  if type == "online":
+    batch_step = config.DEFAULT_BATCH_STEP
+    if "batch_step" in case_config["batch_step"]:
+      batch_step = case_config["batch_step"]
+    simulator = simulator.bake("-batch_step", batch_step)
+  else:
+    online_factor = config.DEFAULT_ONLINE_FACTOR
+    if "online_factor" in case_config["online_factor"]:
+      online_factor = case_config["online_factor"]
+    simulator = simulator.bake("-online_factor", online_factor)
   cost_model = config.DEFAULT_COST_MODEL
   if "cost_model" in case_config:
     cost_model = case_config["cost_model"]
@@ -507,7 +516,7 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
 
 def runIncrementalOnlineTest(case_name, case_config, result_file):
   fieldnames = ["test", "trace", "delta_id", "cluster_timestamp", "iteration",
-                "algorithm_time", "flowsolver_time", "total_time"]
+      "scheduling_latency", "algorithm_time", "flowsolver_time", "total_time"]
   result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
   result_writer.writeheader()
   
@@ -532,6 +541,7 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
                      "delta_id": row_number, 
                      "iteration": i,
                      "cluster_timestamp": row["cluster_timestamp"],
+                     "scheduling_latency": row["scheduling_latency"],
                      "algorithm_time": row["algorithm_time"],
                      "flowsolver_time": row["flowsolver_time"],
                      "total_time": row["total_time"] }
