@@ -136,25 +136,29 @@ FULL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments" : ["augmenting_path", "--quiet", "--flow", "false"]
+    "arguments" : ["augmenting_path", "--quiet"],
+    "offline_arguments": ["--flow", "false"]
   },
   "cc_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments" : ["cycle_cancelling", "--quiet", "--flow", "false"]
+    "arguments" : ["cycle_cancelling", "--quiet"], 
+    "offline_arguments": ["--flow", "false"]
   },
   "cs_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments" : ["cost_scaling", "--quiet", "--flow", "false"]
+    "arguments": ["cost_scaling", "--quiet"],
+    "offline_arguments": ["--flow", "false"]
   },
   "relax_latest": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments": ["relax", "--quiet", "--flow", "false"]
+    "arguments": ["relax", "--quiet"],
+    "offline_arguments": ["--flow", "false"]
   },
 
   ### Reference implementations
@@ -163,13 +167,13 @@ FULL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "cs2.exe",
     "path": "cs2/cs2",
-    "arguments" : ["-f", "false"]
+    "offline_arguments" : ["-f", "false"]
   },
   "relax_frangioni": {
     "version": "master",
     "target": "RelaxIV_original",
     "path": "RelaxIV/RelaxIV_original",
-    "arguments": ["--flow", "false"]
+    "offline_arguments": ["--flow", "false"]
   },
                         
   ### My implementations - specific versions
@@ -272,7 +276,6 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "version": "b5721bb",
     "target": "incremental",
     "path": "RelaxIV/RelaxIV_incremental",
-    "arguments": []
   },
 }
 
@@ -523,7 +526,6 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_relax_latest" },
     }
   },
-  
   # Fight against the best optimized implementations.
   # Goldberg for full solver, modified RelaxIV for incremental solver.
   "optimized_head_to_head": {

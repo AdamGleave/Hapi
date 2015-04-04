@@ -158,7 +158,9 @@ def helperCreateTestInstance(instance):
   exe_path = os.path.join(version_directory,
                           config.BUILD_PREFIX,
                           implementation["path"])
-  arguments = implementation["arguments"]
+  arguments = []
+  if "arguments" in implementation:
+    arguments += implementation["arguments"]
   if "arguments" in instance:
      arguments += instance["arguments"]
   
@@ -170,10 +172,14 @@ def helperCreateTestInstance(instance):
 def createFullTestInstance(instance):
   parameters = helperCreateTestInstance(instance)
   
+  arguments = parameters["arguments"].copy()
+  if "offline_arguments" in implementation:
+    arguments += implementation["offline_arguments"]
+  
   solver_type = parameters["implementation"]["type"]
   if solver_type == "full":
     test_command = createNativeCommand(parameters["exe_path"],
-                                       parameters["arguments"])
+                                       arguments)
     return (test_command, parameters["version_directory"])
   else:
     error("Illegal solver type ", solver_type, "for full test")
@@ -185,12 +191,13 @@ def createIncrementalTestInstance(instance):
   solver_type = implementation["type"]
   exe_path = parameters["exe_path"]
   arguments = parameters["arguments"].copy()
+  if "offline_arguments" in implementation:
+    arguments += implementation["offline_arguments"]
+  
   test_command = None
   if solver_type == "full":
     test_command = createWrapperCommand(exe_path, arguments)
   elif solver_type == "incremental":
-    if "offline_arguments" in implementation:
-      arguments += implementation["offline_arguments"]
     test_command = createNativeCommand(exe_path, arguments)
   else: 
     error("Unrecognised implementation type ", implementation)
