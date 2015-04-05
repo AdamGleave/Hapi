@@ -2,25 +2,115 @@
 
 \section{Introduction}
 
-% The two approaches I'm taking: approximation, and incremental.
-% Link to Related Work / Challenges?
-% First, discuss the flow solving algorithms themselves.
-% Next, how they can be used in approximation and incremental mode.
-% Not all algorithms applicable in all cases: will discuss further in performance profile.
+As discussed in \S\ref{sec:intro-challenges} and \S\ref{sec:intro-related-work}, considerable research effort has been expended over the past 60 years to produce efficient flow algorithms. Developing a better general-purpose minimum-cost flow algorithm would be a considerable undertaking, more suited to a PhD than a Part II project. Rather than attempting to supplant prior work, my approach is to instead modify and extend it, in order to achieve improved performance in the special-case of networks produced by Quincy-like systems.
+
+Two strategies seemed particularly promising. We could loosen the constraints on the problem, finding \emph{approximate} solutions, discussed in \S\ref{sec:impl-approx}. All extant minimum-cost flow algorithms are designed to find optimal solutions. But for flow schedulers, we may want to trade optimality for reduced scheduling latency. The other strategy is to solve the problem \emph{incrementally}, discussed in \S\ref{sec:impl-incremental}. The network tends to remain mostly unchanged between successive invocations of the scheduler. Suppose a task is submitted: a node will be added, along with a handful of arcs, but no other changes will take place. Significant performance improvements can be realised in cases such as these by reoptimising from the last optimal solution found.
+
+These strategies are not solution methods in and of themselves. Rather, they suggest modifications that can be made to flow algorithms. Consequently, I will start this chapter by describing the implementation of several minimum-cost flow algorithms. Once I have described the standard algorithms implemented in this project, I will move on to discussing the two strategies in more detail. Note that algorithms vary in their suitability to the two strategies; justification will be provided where appropriate.
+
+% TODO: Asymptotic complexity summary somewhere?
 
 \section{Cycle cancelling algorithm}
 
+% Should try and keep fairly consistent structure between algorithms
+% Malte, Ionel seemed to think good to briefly discuss properties of the algorithm.
+% You'll also want to mention this in the strategies section, though.
+% It's important, so think OK to say it twice. But which will be the more detailed one?
+% I think depends: if it's specific to a particular algorithm, place it there. But if it's a more general point (e.g. primal vs dual), place it in strategy
+
+Cycle cancelling is the simplest algorithm we will consider. It has little to recommend it from a performance perspective: the original version due to Klein~\cite{Klein:1967}, the focus of this section, is exponential time in the worst case, although in practice its performance is often better than this. Variants have achieved strongly polynomial bounds~\cite{Goldberg:1989,Sokkalingam:2000}, but are still slower both theoretically and empirically than competing algorithms. However, it is a good starting point: it will help cast light on many of the techniques used in more sophisticated algorithms.
+
+\subsection{Algorithm description}
+
+Cycle cancelling is inspired by the following result: \\
+
+\begin{thm}[Negative cycle optimality conditions] \label{thm:optimality-neg-cycle}
+A flow $\mathbf{x}$ is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
+\end{thm}
+\begin{proof}
+This is a standard result in the literature; see, for example, \cite[p.~307]{Ahuja:1993}.
+\end{proof}
+
+\begin{algorithm}
+    \caption{Cycle cancelling algorithm}
+    \label{algo:cycle-cancelling}
+    \begin{algorithmic}
+        \State $\mathbf{x}\gets $ result of maximum-flow algorithm \Comment{establishes x feasible}
+        \While{$G_\mathbf{x}$ contains a negative cost cycle}
+        \State identify negative cost cycle $W$ \Comment{e.g. using Bellman-Ford}
+        \State $\delta \gets \min_{(i,j) \in W} r_{ij}$
+        \State augment $\delta$ units of flow along cycle $W$
+        \EndWhile{}
+    \end{algorithmic}
+\end{algorithm}
+
+The algorithm is initialised with a feasible flow $\mathbf{x}$, which can be found by any maximum-flow algorithm, such as Ford-Fulkerson~\cite{FordFulkerson:1956}. The feasibility of the solution $\mathbf{x}$ is maintained throughout the algorithm, and its cost is reduced. During each iteration of the algorithm, a directed cycle of negative cost is identified in the residual network $G_\mathbf{x}$ and \emph{cancelled} by pushing the maximum possible amount of flow along it. This will cause the cycle to 'drop out' of the residual network: one or more arcs along the cycle will be saturated, and so no longer present in the residual network. The algorithm terminates when no negative cost directed cycles remain.
+
+Note this generic version of the algorithm does not specify \emph{how} negative cycles are to be identified. I opted to use the well-known Bellman-Ford~\cite[p.~651]{CLRS:2009} algorithm for this purpose. Other, more efficient algorithms could be used. However, cycle cancelling was never going to be fast enough for my needs\footnotemark. I chose to implement it so as to have a known-working algorithm early in the project, simplifying subsequent testing. For this purpose, cycle cancelling using the Bellman-Ford algorithm is ideal.
+
+\footnotetext{The asymptotic complexity is considerably worse than that of competing algorithms, and computational benchmarks~\cite{KiralyKovacs:2012} were also unfavourable.}
+
+% x := output of max-flow algorithm
+% while residual network contains a negative cost directed cycle; do
+% identify negative cycle W
+%
+% done
+
+\subsection{Analysis}
+
+\subsubsection{Correctness}
+
+We will show that, if the algorithm terminates, it produces the correct result. \\
+
+\begin{lemma} \label{lemma:cycle-cancelling-invariant}
+Immediately before each iteration of the loop body, $\mathbf{x}$ is a feasible solution.
+\end{lemma} 
+\begin{proof}
+For the base case, $\mathbf{x}$ must be initially feasible, by correctness of the maximum-flow algorithm used.
+
+For the inductive case, suppose $\mathbf{x}$ is feasible immediately prior to an iteration of the loop body. The loop body pushes flow along a cycle. This maintains feasibility: the excess at the nodes along the cycle must remain zero, since any increase in the flow leaving the node is counterbalanced by an equal increase in the flow entering the node.
+\end{proof}
+
+\begin{cor}
+Upon termination, $\mathbf{x}$ is an optimal solution to the minimum-cost flow problem
+\end{cor}
+\begin{proof}
+By \cref{lemma:cycle-cancelling-invariant}, $\mathbf{x}$ is a feasible solution upon termination. The algorithm only terminates when no negative-cost directed cycles exist. It follows by \cref{thm:optimality-neg-cycle} that $\mathbf{x}$ is optimal.
+\end{proof}
+
+\subsubsection{Asymptotic complexity}
+
+We will now show that the algorithm always terminates, and provide a bound on its running time.\\
+
+\begin{thm} \label{thm:cycle-cancelling-termination}
+The algorithm terminates within $O(mCU)$ iterations.
+\end{thm}
+\begin{proof}
+Clearly $mCU$ is an upper bound on the cost of the initial flow. Each iteration of the algorithm identifies a negative cost cycle $w$. The cost of sending one unit of flow along this cycle is $c = \sum_{(i,j) \in w} c_{ij}$, which is strictly negative by definition. We send $\delta = \min_{(i,j) \in w} r_{ij}$ units of flow along the cycle. $\delta$ is strictly positive, otherwise the cycle would not exist in the \emph{residual} network. 
+
+The objective function value changes by $c\delta$. By \cref{assumption:network-integrality}, $c$ and $\delta$ must both be integral. So as $c\delta < 0$, we have $c\delta \leq 1$.
+
+Hence the cost decreases by at least one each iteration, and so the number of iterations is bounded by $O(mCU)$.
+\end{proof}
+
+\begin{cor} \label{corollary:cycle-cancelling-complexity}
+The asymptotic complexity is $O(nm^2CU)$.
+\end{cor}
+\begin{proof}
+Note that Bellman-Ford runs in $O(nm)$ time. Augmenting flow along the cycle is of cost linear in the length of the cycle, and so is certainly $O(m)$. Thus each iteration runs in $O(nm)$. By \cref{thm:cycle-cancelling-termination}, it follows the complexity of the algorithm is $O(nm^2CU)$.
+\end{proof}
+
 \section{Successive shortest path algorithm}
 
-\subsubsection{Algorithm description}
+\subsection{Algorithm description}
 
 Brief summary.
 
-\subsubsection{Analysis}
+\subsection{Analysis}
 
 Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
 
-\subsubsection{Optimisations}
+\subsection{Optimisations}
 
 \section{Relaxation algorithm}
 
@@ -72,7 +162,7 @@ No way to go from $\epsilon$-optimality to measure of accuracy. So must adopt he
 
 My code allows the two to be readily combined to produce different policies.
 
-\section{Incremental algorithms}
+\section{Incremental algorithms} \label{sec:impl-incremental}
 
 Motivation. Most of the time the graph changes only a small amount. Existing approaches recompute from scratch. Can we re-use information?
 

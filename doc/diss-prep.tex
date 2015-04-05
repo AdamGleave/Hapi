@@ -99,6 +99,7 @@ The above two assumptions together imply that all quantities are natural
 numbers\footnotemark. We can therefore represent them by unsigned integer data types in computer code.
 \footnotetext{To avoid confusion, I will follow the convention $0\in\mathbb{N}$ throughout this document.}
 
+%TODO: integrality assumption, label {assumption:network-integrality}
 
 \subsubsection{The minimum-cost flow problem} \label{sec:prep-flow-mcf}
 
@@ -124,7 +125,6 @@ discussions that networks are feasible, unless stated otherwise%
 
 \subsection{Scheduling using flows}
 
-% TBC: This is a ghost section, needs to be considerably beefed up
 In the context of systems such as Quincy, a solution to the maximum
 flow problem provides a schedule for each task. However, this schedule
 could be of low quality. For example, it might leave most tasks unscheduled,
@@ -134,6 +134,8 @@ A solution to the minimum-cost flow problem, by contrast, guarantees
 a schedule which makes most efficient uses of the computational resources
 of the cluster, subject to a policy defined by the cost model. This
 is precisely the property we require.
+
+TBC: Elaborate on this, currently a ghost section.
 
 \subsection{Further definitions and properties}
 
