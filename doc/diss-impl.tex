@@ -1,46 +1,66 @@
 \chapter{Implementation} \label{chap:impl}
 
-\section{Approximation algorithms} \label{sec:impl-approx}
+\section{Introduction}
 
-Motivation. Do we need optimality? Schedulers widely used in industry far from optimal: e.g. reference Hadoop's FIFO scheme. Trade-off: quality of solution, speed of scheduler. Optimality probably not justified.
+% The two approaches I'm taking: approximation, and incremental.
+% Link to Related Work / Challenges?
+% First, discuss the flow solving algorithms themselves.
+% Next, how they can be used in approximation and incremental mode.
+% Not all algorithms applicable in all cases: will discuss further in performance profile.
 
-\subsection{Choice of algorithm} \label{sec:impl-approx-choice}
+\section{Cycle cancelling algorithm}
 
-Why Goldberg's cost scaling. Iterative, so readily amenable to approximate solutions. So are others: e.g. cycle cancelling. But Goldberg is fastest: forward reference to benchmarks you've run, or just Kiraly \& Kovacs paper.
-
-\subsection{Goldberg's cost scaling} \label{sec:impl-approx-cs}
-
-Describe the algorithm. Can be brief: it's not work you've done, after all. But make sure to communicate how complicated the algorithm is.
+\section{Successive shortest path algorithm}
 
 \subsubsection{Algorithm description}
 
 Brief summary.
 
-\subsubsubsection{Data structures}
-
-\subsubsubsection{Push operation}
-
-\subsubsubsection{Relabel operation}
-
-\subsubsubsection{Complete algorithm}
-
 \subsubsection{Analysis}
 
 Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
 
-\subsubsection{Heuristics}
+\subsubsection{Optimisations}
+
+\section{Relaxation algorithm}
+
+\section{Cost scaling algorithm}
+
+Describe the algorithm. Can be brief: it's not work you've done, after all. But make sure to communicate how complicated the algorithm is.
+
+\subsection{Algorithm description}
+
+Brief summary.
+
+\subsubsection{Data structures}
+
+\subsubsection{Push operation}
+
+\subsubsection{Relabel operation}
+
+\subsubsection{Complete algorithm}
+
+\subsection{Analysis}
+
+Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
+
+\subsection{Heuristics}
 
 Summarise what they are, even if you don't have to implement them.
 
-\subsubsection{Optimisations}
+\subsection{Optimisations}
 
 e.g. vertex vs wave. Perhaps this should be merged with heuristics anyway?
+
+\section{Approximation algorithms} \label{sec:impl-approx}
+
+\subsection{Choice of algorithm} \label{sec:impl-approx-choice}
+
+Why Goldberg's cost scaling. Iterative, so readily amenable to approximate solutions. So are others: e.g. cycle cancelling. But Goldberg is fastest: forward reference to benchmarks you've run, or just Kiraly \& Kovacs paper.
 
 \subsection{An iterative approximation}
 
 Approximate algorithm yielded by ending iteration before optimality reached. We have a choice of termination condition.
-
-\subsubsection{Challenges} 
 
 No way to go from $\epsilon$-optimality to measure of accuracy. So must adopt heuristic approaches.
 
@@ -63,18 +83,6 @@ Explain why primal methods such as Goldberg's work poorly: require solution is f
 \subsection{Dual algorithms}
 
 Explain how an incremental solver can be built from (any) dual algorithm. Show how reduced cost optimality conditions can be preserved, whatever change occurs.
-
-\subsection{Augmenting path}
-
-\subsubsection{Algorithm description}
-
-Brief summary.
-
-\subsubsection{Analysis}
-
-Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
-
-\subsubsection{Optimisations}
 
 \section{Input and output}
 
@@ -101,6 +109,8 @@ Ignoring duplicates. Necessary for correctness. Slightly more interesting: check
 Show how solver can achieve original task, by integrating into a cluster scheduler. Choice of Firmament: can be briefly justified, but need not be at all (no real alternatives).
 
 \section{Benchmark suite} \label{sec:impl-benchmark}
+
+% TODO: Maybe include modifications to Firmament in this or a separate section
 
 Motivation. Automate common task. Improve quality of data collection: can run experiment many times with different parameters, no possibility of human error. 
 
