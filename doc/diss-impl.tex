@@ -102,15 +102,45 @@ Note that Bellman-Ford runs in $O(nm)$ time. Augmenting flow along the cycle is 
 
 \section{Successive shortest path algorithm}
 
+% Note this algorithm offers polynomial performance for Quincy-like graphs because it is independent of cost, whereas cycle cancelling is not
+This algorithm runs in weakly polynomial time. We will show, however, that it has a strongly polynomial time bound of $O(n^2)$ for the class of flow networks produced by Quincy-like systems. It lends itself readily to an incremental implementation (see \S\ref{sec:impl-incremental}), but is inappropriate for an approximate solver.
+
 \subsection{Algorithm description}
 
-Brief summary.
+\begin{algorithm}
+    \caption{Successive shortest path algorithm}
+    \label{algo:successive-shortest-path}
+    \begin{algorithmic}
+        \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
+        \While{mass balance constraints not satisfied}
+          \State choose node $s$ with $e(s) > 0$ and node $t$ with $e(t) < 0$
+          \State solve SSSP problem from $s$ to all other nodes, in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$
+          \State let $\mathbf{d}$ denote the vector of shortest path distances, s.t. $d_i$ is the shortest path from $s$ to $i\in V$
+          \State $\boldsymbol{\pi} \gets \boldsymbol{\pi} - \mathbf{d}$
+          \State let $P$ denote a shortest path from $s$ to $t$
+          \State $\delta \gets \min\left(e(s), e(t), \min\left\{ r_{ij} \::\: (i,j) \in P\right\}\right)$
+          \State augment $\delta$ units of flow along path $P$
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}
+
+The successive shortest path algorithm maintains a pseudoflow (see \S\ref{sec:prep-flow-pseudo}) $\mathbf{x}$ and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains the feasibility strives to achieve optimality.
+
+Initially, flow flow $\mathbf{x}$ and potentials $\boldsymbol{\pi}$ are both set to zero. Note $(\mathbf{x},\boldsymbol{\pi})=(\mathbf{0},\mathbf{0})$ satisfy reduced cost optimality. We have $G_{\boldsymbol{x}} = G_{\boldsymbol{0}} = G$, i.e. the residual and original network are the same. Moreover, all arc costs $c_{ij}$ are non-negative (by \cref{assumption:non-negative-arc-costs}) and so the reduced costs $c^{\boldsymbol{0}}_{ij}$ are also non-negative. Thus \cref{eq:optimality-reduced-cost} holds.
+
+At each iteration, the algorithm identifies a source node $s$ and sink node $t$. It then solves the single-source shortest-path (SSSP) problem~\cite{ch.~24,CLRS:2009} from $s$, finding distances $d$ from $s$ to all other nodes and building a shortest-path tree. Let $P$ denote the path from $s$ to $t$ in this resulting tree. The pseudoflow $\mathbf{x}$ is updated by augmenting along the path $P$: push as much flow as possible, limited by (a) supply at $s$ and demand at $t$ must remain non-negative and (b) the capacities of arcs along $P$. The potentials $\boldsymbol{\pi}$ are updated, by subtracting the shortest path distances $d$. This maintains reduced cost optimality, and also ensures that the reduced arc costs are non-negative\footnotemark.
+\footnotetext{This is a precondition of Djikstra's algorithm for single-source shortest path problems.}
+
+The algorithm terminates when no source nodes or sink nodes exist. At this point, the mass balance constraints \cref{eq:mass-balance} are balanced, and so the solution $\mathbf{x}$ is feasible (see \S\ref{sec:prep-flow-pseudo}). As the algorithm moreover maintains the invariant that $(\mathbf{x},\boldsymbol{\pi})$ satisfy reduced-cost optimality, it follows that $\mathbf{x}$ is also optimal. Thus $\mathbf{x}$ is a solution to the minimum-cost flow problem.
 
 \subsection{Analysis}
 
 Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
 
 \subsection{Optimisations}
+
+% Terminating Djikstra as soon as node permanently labeled
+% Choice of heap implementation
 
 \section{Relaxation algorithm}
 

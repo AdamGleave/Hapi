@@ -77,11 +77,11 @@ $\mathbf{x}$ is \emph{feasible}, and we say it is a \emph{flow}, if it satisfies
 0\leq x_{ij}\leq u_{ij}\:\forall(i,j)\in E
 \end{equation}\label{eq:capacity-constraints}
 
-and flow conservation at each node:
+and mass balance constraints at each node:
 
 \begin{equation}
 \sum_{j\::\:(i,j)\in E}x_{ij}-\sum_{j\::\:(j,i)\in E}x_{ji}=b(i)\:\forall i\in V
-\end{equation} \label{eq:flow-conservation}
+\end{equation} \label{eq:mass-balance}
 
 That is, the net flow out of the node is exactly equal to the supply
 at that node (which may be negative.)
@@ -145,12 +145,12 @@ TBC: Elaborate on this, currently a ghost section.
 
 \subsection{Further definitions and properties}
 
-\subsubsection{Pseudoflows}
+\subsubsection{Pseudoflows} \label{sec:prep-flow-pseudo}
 
 Whilst all flow algorithms must return a feasible solution, many operate
 by manipulating \emph{pseudoflows} in intermediate stages. A pseudoflow
 is a vector $\mathbf{x}$ which satisfies the capacity constraints
-(1), but which may not satisfy flow conservation (2).
+\cref{eq:capacity-constraints}, but which may not satisfy the mass balance constraints \cref{eq:mass-balance}.
 
 We define the \emph{excess} at a node $i\in V$ to be:
 
@@ -160,9 +160,8 @@ e_{i}=b_{i}+\sum_{j\::\:(j,i)\in E}x_{ji}-\sum_{j\::\:(i,j)\in E}x_{ij}
 
 Node i is said to be an \emph{excess node} if $e_{i}>0$, and a \emph{deficit
 	node} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$
-is said to be \emph{balanced}. Note flow conservation holds if and
+is said to be \emph{balanced}. Note the mass balance constraints hold if and
 only if all nodes are balanced.
-
 
 \subsubsection{Residual networks}
 
@@ -234,21 +233,22 @@ approach, or a hybrid of a primal and dual approach.
 Below, I give conditions on a solution vector $\mathbf{x}$ which
 imply it is optimal. These conditions suggest algorithms for solving
 the problem. Moreover, they can be used in testing, to verify that
-a solution is indeed optimal.
+a solution is indeed optimal.\\
 
-\paragraph{Reduced cost optimality conditions}
-
+\begin{thm}[Reduced cost optimality conditions] \label{thm:optimality-reduced-cost}
 Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
 to the minimum-cost flow problem if and only if there exists a node
 potential vector $\boldsymbol{\pi}$ such that that the reduced cost
 of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
 
-\begin{equation} \label{eq:rc-optimality}
+\begin{equation} \label{eq:optimality-reduced-cost}
 c_{ij}^{\boldsymbol{\pi}}\geq0\:\forall(i,j)\in E_{\mathbf{x}}
 \end{equation}
+\end{thm}
 
-\paragraph{Complementary slackness optimality conditions}
+~ % force paragraph break between theorems
 
+\begin{thm}[Complementary slackness optimality conditions]
 Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
 to the minimum-cost flow problem if and only if there exists a node
 potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
@@ -264,14 +264,15 @@ potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
 \begin{equation}
 \text{if \ensuremath{c_{ij}^{\pi}=0}, then \ensuremath{0\leq x_{ij}\leq u_{ij}}}
 \end{equation}
+\end{thm}
 
-\subparagraph{Discussion}
-
+\begin{remark}
 Note the reduced cost optimality conditions are stated in terms of
 the residual network, whereas these are stated in terms of the original
 flow network. The two conditions can easily be seen to be equivalent
-by expanding out equation \ref{eq:rc-optimality} using the definition of the
+by expanding out equation \ref{eq:optimality-reduced-cost} using the definition of the
 residual network.
+\end{remark}
 
 \subsubsection{Notation for complexity analysis}
 
