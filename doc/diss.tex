@@ -20,6 +20,9 @@
 \usepackage{csquotes}
 \usepackage[UKenglish]{babel}
 
+% Make list environments more configurable
+\usepackage{enumitem}
+
 % Hyperlinks
 % Note must load url before hyperref
 \usepackage[hyphens]{url}
@@ -162,9 +165,9 @@
 }
 \makeatother
 
+% Add new section level, subsubsubsection, in between subsubsection and paragraph
 \usepackage{titlesec}
 
-% Add new section level, subsubsubsection, in between subsubsection and paragraph
 \titleclass{\subsubsubsection}{straight}[\subsection]
 
 \newcounter{subsubsubsection}[subsubsection]

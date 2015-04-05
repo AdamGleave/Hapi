@@ -73,15 +73,15 @@ The problems we will consider involve finding a solution vector $\mathbf{x}$,
 specifying the flow $x_{ij}$ at each arc $(i,j)\in E$. A solution
 $\mathbf{x}$ is \emph{feasible}, and we say it is a \emph{flow}, if it satisfies capacity constraints at every arc:
 
-\begin{equation}
+\begin{equation} \label{eq:capacity-constraints}
 0\leq x_{ij}\leq u_{ij}\:\forall(i,j)\in E
-\end{equation}\label{eq:capacity-constraints}
+\end{equation}
 
 and mass balance constraints at each node:
 
-\begin{equation}
+\begin{equation} \label{eq:mass-balance}
 \sum_{j\::\:(i,j)\in E}x_{ij}-\sum_{j\::\:(j,i)\in E}x_{ji}=b(i)\:\forall i\in V
-\end{equation} \label{eq:mass-balance}
+\end{equation}
 
 That is, the net flow out of the node is exactly equal to the supply
 at that node (which may be negative.)

@@ -62,9 +62,9 @@ Note this generic version of the algorithm does not specify \emph{how} negative 
 
 We will show that, if the algorithm terminates, it produces the correct result. \\
 
-\begin{lemma} \label{lemma:cycle-cancelling-invariant}
-Immediately before each iteration of the loop body, $\mathbf{x}$ is a feasible solution.
-\end{lemma} 
+\begin{thm} \label{thm:cycle-cancelling-invariant}
+Immediately before each iteration of the loop, $\mathbf{x}$ is a feasible solution.
+\end{thm} 
 \begin{proof}
 For the base case, $\mathbf{x}$ must be initially feasible, by correctness of the maximum-flow algorithm used.
 
@@ -72,10 +72,10 @@ For the inductive case, suppose $\mathbf{x}$ is feasible immediately prior to an
 \end{proof}
 
 \begin{cor}
-Upon termination, $\mathbf{x}$ is an optimal solution to the minimum-cost flow problem
+Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem
 \end{cor}
 \begin{proof}
-By \cref{lemma:cycle-cancelling-invariant}, $\mathbf{x}$ is a feasible solution upon termination. The algorithm only terminates when no negative-cost directed cycles exist. It follows by \cref{thm:optimality-neg-cycle} that $\mathbf{x}$ is optimal.
+By \cref{thm:cycle-cancelling-invariant}, $\mathbf{x}$ is a feasible solution upon termination. The algorithm only terminates when no negative-cost directed cycles exist. It follows by \cref{thm:optimality-neg-cycle} that $\mathbf{x}$ is optimal.
 \end{proof}
 
 \subsubsection{Asymptotic complexity}
@@ -113,7 +113,7 @@ This algorithm runs in weakly polynomial time. We will show, however, that it ha
     \begin{algorithmic}
         \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
         \While{mass balance constraints not satisfied}
-          \State choose node $s$ with $e(s) > 0$ and node $t$ with $e(t) < 0$
+          \State choose node $s$ with $e(s) > 0$ and node $t$ with $e(t) < 0$\footnotemark
           \State solve SSSP problem from $s$ to all other nodes, in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$
           \State let $\mathbf{d}$ denote the vector of shortest path distances, s.t. $d_i$ is the shortest path from $s$ to $i\in V$
           \State $\boldsymbol{\pi} \gets \boldsymbol{\pi} - \mathbf{d}$
@@ -124,18 +124,62 @@ This algorithm runs in weakly polynomial time. We will show, however, that it ha
     \end{algorithmic}
 \end{algorithm}
 
+\footnotetext{Note in any feasible flow network, whilst mass balance constraints are unsatisfied there must exist both a source node $s$ and sink node $t$. If we ever encounter a situation where there is a source node but no sink, or vice-versa, the problem is infeasible as $\sum_v b(v) \neq 0$.}
+
 The successive shortest path algorithm maintains a pseudoflow (see \S\ref{sec:prep-flow-pseudo}) $\mathbf{x}$ and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains the feasibility strives to achieve optimality.
 
-Initially, flow flow $\mathbf{x}$ and potentials $\boldsymbol{\pi}$ are both set to zero. Note $(\mathbf{x},\boldsymbol{\pi})=(\mathbf{0},\mathbf{0})$ satisfy reduced cost optimality. We have $G_{\boldsymbol{x}} = G_{\boldsymbol{0}} = G$, i.e. the residual and original network are the same. Moreover, all arc costs $c_{ij}$ are non-negative (by \cref{assumption:non-negative-arc-costs}) and so the reduced costs $c^{\boldsymbol{0}}_{ij}$ are also non-negative. Thus \cref{eq:optimality-reduced-cost} holds.
-
-At each iteration, the algorithm identifies a source node $s$ and sink node $t$. It then solves the single-source shortest-path (SSSP) problem~\cite{ch.~24,CLRS:2009} from $s$, finding distances $d$ from $s$ to all other nodes and building a shortest-path tree. Let $P$ denote the path from $s$ to $t$ in this resulting tree. The pseudoflow $\mathbf{x}$ is updated by augmenting along the path $P$: push as much flow as possible, limited by (a) supply at $s$ and demand at $t$ must remain non-negative and (b) the capacities of arcs along $P$. The potentials $\boldsymbol{\pi}$ are updated, by subtracting the shortest path distances $d$. This maintains reduced cost optimality, and also ensures that the reduced arc costs are non-negative\footnotemark.
+Each iteration of the algorithm identifies a source node $s$ and sink node $t$. The single-source shortest-path (SSSP) problem~\cite{ch.~24,CLRS:2009} is then solved from $s$. The pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path to $t$, $P$. We are limited by the minimum residual capacity of arcs along the path $P$. Moreover, we opt to maintain a non-negative supply at $s$ and demand at $t$. This restriction ensures the magnitude of the excess at each node is monotonically decreasing. We also update the potentials $\boldsymbol{\pi}$. This maintains reduced cost optimality, and also ensures that the reduced costs are non-negative\footnotemark. The algorithm terminates when no source nodes or sink nodes exist.
 \footnotetext{This is a precondition of Djikstra's algorithm for single-source shortest path problems.}
-
-The algorithm terminates when no source nodes or sink nodes exist. At this point, the mass balance constraints \cref{eq:mass-balance} are balanced, and so the solution $\mathbf{x}$ is feasible (see \S\ref{sec:prep-flow-pseudo}). As the algorithm moreover maintains the invariant that $(\mathbf{x},\boldsymbol{\pi})$ satisfy reduced-cost optimality, it follows that $\mathbf{x}$ is also optimal. Thus $\mathbf{x}$ is a solution to the minimum-cost flow problem.
 
 \subsection{Analysis}
 
-Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
+\subsubsection{Correctness}
+
+First, we will show that the algorithm maintains reduced cost optimality, for which we will need a number of lemmas. We will then conclude, using the invariant and the terminating condition, that the algorithm will return a solution to the minimum-cost flow problem.\\
+
+\begin{lemma} \label{lemma:ssp-reduced-costs}
+Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions \cref{eq:optimality-reduced-cost} with respect to potentials $\boldsymbol{\pi}$. Let $\mathbf{d}$ represent the shortest path distances from a node $s \in V$ to all other nodes in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$. Then:
+    
+\begin{enumerate}[label=(\alph*)]
+  \item $\mathbf{x}$ also satisfies reduced cost optimality conditions with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
+  \item The reduced costs, $c^{\boldsymbol{\pi}'}_{ij}$, with respect to this new potential $\boldsymbol{\pi}'$, are zero for all arcs $(i,j)$ in the shortest-path tree rooted at $s \in V$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+See~\cite[p.~320]{Ahuja:1993}.
+\end{proof}
+
+\begin{cor} \label{cor:ssp-reduced-costs}
+Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $x$ by sending flow along a shortest path from node $s$ to some other node $k \in V$. Then $x'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
+\end{cor}
+\begin{proof}
+By \cref{lemma:ssp-reduced-costs}(a), $(\mathbf{x},\boldsymbol{\pi'}$ satisfies the reduced cost optimality conditions.
+
+Pushing flow along an arc $(i,j) \in G_{\mathbf{x}}$ might add its reversal $(j,i)$ in the residual network. Let $P$ be a shortest path from $s$ to $k$. By \cref{lemma:ssp-reduced-costs}(b), it follows that any arc $(i,j) \in P$ has $c^{\boldsymbol{\pi}'}_{ij} = 0$. So $c^{\boldsymbol{\pi}'}_{ji} = 0$. Thus any arcs that are added to the residual network by augmenting flow along $P$ have a zero reduced cost, and so still satisfy the reduced cost optimality conditions \cref{eq:optimality-reduced-cost}.
+\end{proof}
+
+\begin{thm} \label{thm:ssp-invariant}
+Immediately before each iteration of the loop, $(\mathbf{x},\boldsymbol{\pi})$ satisfies reduced cost optimality.
+\end{thm}
+\begin{proof} (Induction)
+    
+For the base case, note $(\mathbf{0},\mathbf{0})$ satisfy reduced cost optimality. We have $G_{\boldsymbol{0}} = G$, i.e. the residual and original network are the same. Moreover, all arc costs $c_{ij}$ are non-negative (by \cref{assumption:non-negative-arc-costs}) and so the reduced costs $c^{\boldsymbol{0}}_{ij}$ are also non-negative. Thus \cref{eq:optimality-reduced-cost} holds.
+
+Now, suppose the inductive hypothesis holds: reduced cost optimality holds immediately prior to execution of the loop body. The loop body computes a shortest path distances $s$ from a node $d$, updates $\boldsymbol{\pi}$ to become $\boldsymbol{\pi'}$ as defined in \cref{lemma:ssp-reduced-costs} and pushes flow along a shortest path from $s$ to another node, yielding a new flow $\mathbf{x}$ of the same form as $\mathbf{x'}$ in \cref{cor:ssp-reduced-costs}. It follows by \cref{cor:ssp-reduced-costs} that $(\mathbf{x},\boldsymbol{\pi})$ satisfy reduced cost optimality at the end of the loop body. Hence, the inductive hypothesis continues to hold.
+\end{proof}
+
+\begin{thm} \label{thm:ssp-correctness}
+Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
+\end{thm}
+\begin{proof}
+The algorithm terminates when the mass balance constraints \cref{eq:mass-balance} are satisfied. At this point, the solution $\mathbf{x}$ is feasible (see \S\ref{sec:prep-flow-pseudo}). 
+
+By \cref{thm:ssp-invariant}, we know the algorithm maintains the invariant that $\mathbf{x}$ satisfies reduced cost optimality. 
+
+It follows that $\mathbf{x}$ is both a feasible flow and optimal upon termination, so $\mathbf{x}$ is a solution of the minimum-cost flow problem.
+\end{proof}
+
+\subsubsection{Asymptotic complexity}
 
 \subsection{Optimisations}
 
