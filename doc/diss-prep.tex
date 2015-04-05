@@ -88,18 +88,24 @@ at that node (which may be negative.)
 
 \subsubsection{Assumptions}
 
-We will assume all the quantities above are integers. A network with rational quantities can be transformed into an equivalent integral network, by multiplying throughout by the greatest common denominator. Meanwhile, flow algorithms are not guaranteed to terminate on irrational data. Fortunately, the networks produced by systems such as Quincy are naturally integral, since quantities such as resource consumption in a data centre
-are inherently discrete.
+\begin{assumption}[Integrality] \label{assumption:integrality}
+All quantities defining the flow network take on only integer values.\end{assumption}
+    
+Note any network with rational quantities can be transformed into an equivalent integral network, by multiplying throughout by the greatest common denominator. Meanwhile, flow algorithms may not terminate on irrational data, so there is little point considering this case. Fortunately, the networks produced by systems such as Quincy are naturally integral, since quantities such as resource consumption in a data centre are inherently discrete. \\
 
-Without loss of generality, we will also assume that all arc costs
-are non-negative\footnotemark. Note capacities are non-negative by definition.
-\footnotetext{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}}
+\begin{assumption}[Non-negative arc costs] \label{assumption:non-negative-arc-costs}
+For all $(i,j) \in E$, $c_{ij} \geq 0$.\end{assumption}
 
-The above two assumptions together imply that all quantities are natural
-numbers\footnotemark. We can therefore represent them by unsigned integer data types in computer code.
+This assumption is without loss of generality\footnote{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}} \\
+
+\begin{cor}All quantities defining arcs take on only values from the natural numbers.\footnotemark
 \footnotetext{To avoid confusion, I will follow the convention $0\in\mathbb{N}$ throughout this document.}
+\end{cor}
+\begin{proof}
+Every arc is defined by its capacity and its cost. Capacities are non-negative by definition, and arc costs are non-negative by \cref{assumption:non-negative-arc-costs}. This together with \cref{assumption:integrality} guarantee capacities and costs are natural numbers.
+\end{proof}
 
-%TODO: integrality assumption, label {assumption:network-integrality}
+We can therefore use exclusively unsigned integer data types when representing arcs in computer code.
 
 \subsubsection{The minimum-cost flow problem} \label{sec:prep-flow-mcf}
 

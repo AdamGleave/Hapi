@@ -88,7 +88,7 @@ The algorithm terminates within $O(mCU)$ iterations.
 \begin{proof}
 Clearly $mCU$ is an upper bound on the cost of the initial flow. Each iteration of the algorithm identifies a negative cost cycle $w$. The cost of sending one unit of flow along this cycle is $c = \sum_{(i,j) \in w} c_{ij}$, which is strictly negative by definition. We send $\delta = \min_{(i,j) \in w} r_{ij}$ units of flow along the cycle. $\delta$ is strictly positive, otherwise the cycle would not exist in the \emph{residual} network. 
 
-The objective function value changes by $c\delta$. By \cref{assumption:network-integrality}, $c$ and $\delta$ must both be integral. So as $c\delta < 0$, we have $c\delta \leq 1$.
+The objective function value changes by $c\delta$. By \cref{assumption:integrality}, $c$ and $\delta$ must both be integral. So as $c\delta < 0$, we have $c\delta \leq 1$.
 
 Hence the cost decreases by at least one each iteration, and so the number of iterations is bounded by $O(mCU)$.
 \end{proof}
