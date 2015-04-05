@@ -84,7 +84,17 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amsfonts}
+\theoremstyle{plain}
+% Define theorem to be numbered by section
+% Make lemma and corollary share same counter
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{corollary}[thm]{Corollary}
+% Define style for definitions, remarks
 \theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
 
 % Customize Table of Contents. Don't include list of figures or table of contents in the table of contents. Do still show the bibliography.
 \usepackage[nottoc,notlof]{tocbibind}
