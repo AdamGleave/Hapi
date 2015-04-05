@@ -403,6 +403,11 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     if "online_factor" in case_config:
       online_factor = case_config["online_factor"]
     simulator = simulator.bake("-online_factor", online_factor)
+    
+    online_max_time = config.DEFAULT_ONLINE_MAX_TIME
+    if "online_max_time" in case_config:
+      online_max_time = case_config["online_max_time"]
+    simulator = simulator.bake("-online_max_time", online_max_time)
   cost_model = config.DEFAULT_COST_MODEL
   if "cost_model" in case_config:
     cost_model = case_config["cost_model"]

@@ -435,6 +435,7 @@ COST_MODELS = {
 DEFAULT_COST_MODEL = "octopus"
 DEFAULT_BATCH_STEP = 10 # microseconds
 DEFAULT_ONLINE_FACTOR = 1
+DEFAULT_ONLINE_MAX_TIME = 5 # seconds
 
 INCREMENTAL_TESTS_ANYONLINE = {
   # Testing benchmark suite only.
