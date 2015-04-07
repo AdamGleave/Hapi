@@ -387,8 +387,14 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   
   ### Configuration for the trace  
   simulator = simulator.bake("-trace_path", trace_spec["dir"])
-  simulator = simulator.bake("-runtime", trace_config["runtime"])
   simulator = simulator.bake("-num_files_to_process", trace_spec["num_files"])
+  if "runtime" in trace_config:
+    simulator = simulator.bake("-runtime", trace_config["runtime"])
+  if "num_events" in trace_config:
+    simulator = simulator.bake("-max_events", trace_config["num_events"])
+  if "scheduling_rounds" in trace_config:
+    simulator = simulator.bake("-max_scheduling_rounds",
+                               trace_config["scheduling_rounds"])
   if "percentage" in trace_config:
     simulator = simulator.bake("-percentage", trace_config["percentage"])
   
@@ -447,6 +453,8 @@ def runSimulator(case_name, case_config, test_name, test_instance,
       running_simulator = simulator(_out=out_file.buffer, _err=err_file.buffer,
                                     _bg=True)
     
+      # SOMEDAY(adam): if simulator dies, test script will hang waiting on
+      # reading FIFO, as exception will not be generated whilst blocked on IO
       if type == "online":
         with open(fifo_path, 'r') as stats_file:
           csv_reader = csv.DictReader(stats_file)
