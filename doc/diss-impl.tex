@@ -34,7 +34,7 @@ This is a standard result in the literature; see, for example, \cite[p.~307]{Ahu
 \begin{algorithm}
     \caption{Cycle cancelling algorithm}
     \label{algo:cycle-cancelling}
-    \begin{algorithmic}
+    \begin{algorithmic}[1]
         \State $\mathbf{x}\gets $ result of maximum-flow algorithm \Comment{establishes x feasible}
         \While{$G_\mathbf{x}$ contains a negative cost cycle}
         \State identify negative cost cycle $W$ \Comment{e.g. using Bellman-Ford}
@@ -49,12 +49,6 @@ The algorithm is initialised with a feasible flow $\mathbf{x}$, which can be fou
 Note this generic version of the algorithm does not specify \emph{how} negative cycles are to be identified. I opted to use the well-known Bellman-Ford~\cite[p.~651]{CLRS:2009} algorithm for this purpose. Other, more efficient algorithms could be used. However, cycle cancelling was never going to be fast enough for my needs\footnotemark. I chose to implement it so as to have a known-working algorithm early in the project, simplifying subsequent testing. For this purpose, cycle cancelling using the Bellman-Ford algorithm is ideal.
 
 \footnotetext{The asymptotic complexity is considerably worse than that of competing algorithms, and computational benchmarks~\cite{KiralyKovacs:2012} were also unfavourable.}
-
-% x := output of max-flow algorithm
-% while residual network contains a negative cost directed cycle; do
-% identify negative cycle W
-%
-% done
 
 \subsection{Analysis}
 
@@ -110,7 +104,7 @@ This algorithm runs in weakly polynomial time. We will show, however, that it ha
 \begin{algorithm}
     \caption{Successive shortest path algorithm}
     \label{algo:successive-shortest-path}
-    \begin{algorithmic}
+    \begin{algorithmic}[1]
         \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
         \While{mass balance constraints not satisfied}
           \State choose node $s$ with $e(s) > 0$ and node $t$ with $e(t) < 0$\footnotemark
@@ -124,12 +118,11 @@ This algorithm runs in weakly polynomial time. We will show, however, that it ha
     \end{algorithmic}
 \end{algorithm}
 
-\footnotetext{Note in any feasible flow network, whilst mass balance constraints are unsatisfied there must exist both a source node $s$ and sink node $t$. If we ever encounter a situation where there is a source node but no sink, or vice-versa, the problem is infeasible as $\sum_v b(v) \neq 0$.}
+\footnotetext{Note whilst mass balance constraints are unsatisfied there must exist both a source node $s$ and sink node $t$. This is since the total sum of excesses must equal the total sum of deficits, otherwise $\sum_v b(v) \neq 0$ and the problem is infeasible.}
 
 The successive shortest path algorithm maintains a pseudoflow (see \S\ref{sec:prep-flow-pseudo}) $\mathbf{x}$ and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains the feasibility strives to achieve optimality.
 
-Each iteration of the algorithm identifies a source node $s$ and sink node $t$. The single-source shortest-path (SSSP) problem~\cite{ch.~24,CLRS:2009} is then solved from $s$. The pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path to $t$, $P$. We are limited by the minimum residual capacity of arcs along the path $P$. Moreover, we opt to maintain a non-negative supply at $s$ and demand at $t$. This restriction ensures the magnitude of the excess at each node is monotonically decreasing. We also update the potentials $\boldsymbol{\pi}$. This maintains reduced cost optimality, and also ensures that the reduced costs are non-negative\footnotemark. The algorithm terminates when no source nodes or sink nodes exist.
-\footnotetext{This is a precondition of Djikstra's algorithm for single-source shortest path problems.}
+Each iteration of the algorithm identifies a source node $s$ and sink node $t$. The single-source shortest-path (SSSP) problem~\cite{ch.~24,CLRS:2009} is then solved from $s$. The pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path to $t$, $P$. We are limited by the minimum residual capacity of arcs along the path $P$. Moreover, we opt to maintain a non-negative supply at $s$ and demand at $t$. This restriction ensures the magnitude of the excess at each node is monotonically decreasing. We also update the potentials $\boldsymbol{\pi}$, to maintain reduced cost optimality. The algorithm terminates when no source nodes or sink nodes exist.
 
 \subsection{Analysis}
 
@@ -181,10 +174,77 @@ It follows that $\mathbf{x}$ is both a feasible flow and optimal upon terminatio
 
 \subsubsection{Asymptotic complexity}
 
+\begin{thm} \label{thm:ssp-complexity}
+Let $S(n,m,C)$ denote the time complexity of solving a single-source shortest path problem with non-negative arc costs, bounded above by $C$, over a network with $n$ nodes and $m$ arcs. Then the time complexity of successive shortest path is $O(nUS(n,m,C))$.
+\end{thm}
+\begin{proof}
+Each iteration of the loop body (lines 3-9) decreases the excess of some node $s$ by $k$ and the deficit of some node $t$ by $k$, whilst leaving the excess/deficit of other nodes unchanged. Consequently, the total excess and total deficit are both decreased by $k$. By \cref{assumption:integrality}, $k \geq 1$. So the number of iterations is bounded by the initial total excess. But this is bounded by $nU/2 = O(nU)$. So there are $O(nU)$ iterations.
+
+Within each iteration, the algorithm solves a single-source shortest-path problem on line 4. Since reduced cost optimality is maintained throughout the algorithm, the arc costs in the shortest-path problem are non-negative\footnotemark. Thus the cost of solving this problem is $S(n,m,C)$.
+\footnotetext{Algorithms such as Djikstra which assume non-negative arc lengths are asymptotically faster than more general algorithms such as Bellman-Ford.}
+
+The cost of line 3 is $O(n)$, line 6 $O(n)$ and line 8-9 $O(n)$ as the length of $P$ is bounded by $n-1$ (shortest path is acyclic). Certainly $S(n,m,C) = \Omega(n)$, so the cost of each iteration is $O(S(n,m,C))$.
+
+It follows that the overall time complexity of the algorithm is $O(nUS(n,m,C))$.
+\end{proof}
+
 \subsection{Optimisations}
 
-% Terminating Djikstra as soon as node permanently labeled
-% Choice of heap implementation
+% TBC: ap_big_vs_small_heap: keep all vertices in the priority queue, or just add them as needed? Performance will depend on how many vertices get explored before Djikstra quits.
+% Unclear whether best to put it here, or in the evaluation section, or both?
+
+\subsubsection{Choice of shortest-path algorithm}
+The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}. They differ in the heap data structure used to provide the priority queue needed by Djikstra. The asymptotically fastest are Fibonacci heaps, with $S(m,n,C) = O(m + n\lg n)$. By contrast, the widely used binary heap data structure gives $S(m,n,C) = O(m\lg n)$. 
+
+Fibonacci heap's have considerable implementation complexity, however: whilst asymptotically faster, the constant factor hidden by the asymptotic notation is much greater. Computational benchmarks have found them to be slower than binary heaps in practice, for all but the largest of graphs~\cite[p.~15]{KiralyKovacs:2012}. In any case, for the class of networks produced by Quincy-like systems, $m = O(n)$, and so the two are asymptotically equivalent. Given this, I opted for a binary heap implementation. The resulting the asymptotic complexity of my successive shortest path implementation is $O(nmU \lg n)$.
+
+\subsubsection{Terminating Djikstra's algorithm early}
+
+% TBC: Test this using benchmark suite and include in evaluation section? Doesn't seem like it'd be too difficult.
+It is possible to modify the successive shortest path algorithm to terminate Djikstra as soon as it permanently labels a deficit node $l$. Whilst not affecting asymptotic complexity, this may considerably improve performance in practice.
+
+\begin{lemma}
+Recall \cref{lemma:ssp-reduced-costs}. Let us redefine:
+\[\boldsymbol{\pi}'_{i}=\begin{cases}
+\boldsymbol{\pi}_{i}-d_{i} & ,\: i\:\mbox{permanently labelled}\\
+\boldsymbol{\pi}_{i}-d_{l} & ,\: \:\mbox{otherwise}
+\end{cases}\]
+
+The original result for (a) still holds. The result for (b) holds along the shortest path from $s$ to $l$\footnotemark.
+\footnotetext{Note that this is all that is needed for the correctness of the algorithm, as this is the only path along which we augment flow.}
+\end{lemma}
+\begin{proof}
+The original proof for the lemma (given in~\cite[p.~320]{Ahuja:1993}) uses the triangle inequality:
+\begin{equation} \label{eq:ssp-reduced-costs-triangle}
+d_j \leq d_i + c^{\boldsymbol{\pi}}_{ij}\:\forall(i,j)\in E_{\mathbf{x}}
+\end{equation}
+Terminating Djikstra's algorithm early, we only know the shortest-path distance to nodes which have been permanently labelled. But for any node $i$ not permanently labelled and node $l$ permanently labelled, the shortest path distances satisfy:
+\begin{equation} \label{eq:ssp-djikstra-labelled}
+d_i \geq d_l
+\end{equation}
+This is because were $d_i < d_l$ then $i$ must have been permanently labelled before $l$, which is a contradiction.
+
+Now, let us define: 
+\begin{equation} \label{eq:ssp-djikstra-distances}
+d'_{i}=\begin{cases}
+d_{i} & ,\: i\:\mbox{permanently labelled}\\
+d_{l} & ,\:\mbox{otherwise}
+\end{cases}
+\end{equation}
+
+Given \cref{eq:ssp-djikstra-labelled}, we know $\mathbf{d}'$ satisfies \cref{eq:ssp-reduced-costs-triangle}. The original proof for (a) thus still holds, as it makes no further assumptions on $\mathbf{d}'$.
+
+As for (b), every node $i$ along the shortest path from $s$ to $l$ has been permanently labelled, and so $d'_i = d_i$. Hence the original proof still holds along this path.
+\end{proof}
+
+Any constant shift in the potential for every node will leave reduced costs unchanged. So we may equivalently redefine:
+
+\[\boldsymbol{\pi}'_{i}=\begin{cases}
+\boldsymbol{\pi}_{i}-d_i+d_l & ,\: i\:\mbox{permanently labelled}\\
+\boldsymbol{\pi}_{i} & ,\: \:\mbox{otherwise}
+\end{cases}\]
+
+This is computationally more efficient, as we will not have to update the potential at any node which has not been permanently labelled (typically the majority of nodes).
 
 \section{Relaxation algorithm}
 
