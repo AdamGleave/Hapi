@@ -12,6 +12,8 @@ diss.bib.bak
 *.ilg
 *.ind
 *.lof
+*.loa
+*.lot
 *.fdb_latexmk
 *.run.xml
 *.txss

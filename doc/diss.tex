@@ -74,7 +74,10 @@
 \usepackage[section]{algorithm} % floating environment
 \usepackage{algpseudocode} % algorithmicx package
 % custom commands for algorithmicx
+\newcommand*\Let[2]{\State #1 $\gets$ #2}
 \newcommand{\Break}{\State \textbf{break} }
+\renewcommand{\algorithmicrequire}{\textbf{Precondition:}}
+\renewcommand{\algorithmicensure}{\textbf{Postcondition:}}
 %% Code listings
 \usepackage{listings}
 % default listings package configuration for highlighting C code
@@ -119,6 +122,9 @@
 
 % Customize Table of Contents. Don't include list of figures or table of contents in the table of contents. Do still show the bibliography.
 \usepackage[nottoc,notlof]{tocbibind}
+% This gives more control over lists of {figures,tables,...} sections
+% In particular, it by default disables the (unwanted )page break between them
+\usepackage{tocloft}
 
 % Proofreading
 \usepackage{showidx}
@@ -244,7 +250,7 @@
 \clearpage
 \vspace*{\fill}
 
-TODO: Back of cover sheet
+TBC: Back of cover sheet
 
 \vspace*{\fill}
 
@@ -273,17 +279,17 @@ TODO: Back of cover sheet
 \vspace*{-1em}
 \section*{Original aims of the project}
 
-TODO
+TBC
 
 \vspace*{-1em}
 \section*{Work completed}
 
-TODO
+TBC
 
 \vspace*{-1em}
 \section*{Special difficulties}
 
-TODO
+TBC
 
 \newpage
 
@@ -304,8 +310,9 @@ any substantial extent for a comparable purpose.
 
 \tableofcontents
 
-% Calling it list of algorithms or similar could be more appropriate?
+\listofalgorithms
 \listoffigures
+\listoftables
 
 \newpage
 \section*{Acknowledgements}
