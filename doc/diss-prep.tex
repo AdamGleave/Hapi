@@ -116,7 +116,7 @@ flow.
 Our focus will be on a generalization of this, known as the minimum
 cost problem. Formally, it is:
 
-\begin{equation}
+\begin{equation} \label{eq:mcf-primal-problem}
 \mbox{minimise}\ s(\mathbf{x})=\sum_{(i,j)\in E}c_{ij}x_{ij}
 \end{equation}
 where $\mathbf{x}$ is constrained to be a feasible flow. A feasible
@@ -200,7 +200,7 @@ We define the cost of a forward arc $(i,j)$ to be $c_{ij}$, and
 a reverse arc $(j,i)$ to be $-c_{ij}$.
 
 
-\subsubsection{Reduced cost and duality}
+\subsubsection{Reduced cost and duality} \label{sec:prep-flow-rc-and-dual}
 
 We may associate with each node $i\in V$ a \emph{potential}, $\pi_{i}$.
 The \emph{reduced cost} of an arc $(i,j)\in E$ with respect to a
@@ -215,8 +215,7 @@ Every linear programming problem, referred to as a \emph{primal} problem,
 can be converted to a \emph{dual} problem. Solutions to the dual problem
 give an upper bound on the objective value of the primal problem.
 
-The primal version of the minimum-cost flow problem is stated in \ref{sec:prep-flow-mcf}.
-The dual problem is:
+The primal version of the minimum-cost flow problem is stated in \S\ref{sec:prep-flow-mcf}. The dual problem is:
 
 \begin{equation}
 \mathrm{maximise}\; w(\boldsymbol{\pi})=\sum_{i\in V}b_{i}\pi_{i}-\sum_{(i,j)\in E}\max\left(0,-c_{ij}^{\pi}\right)u_{ij}
@@ -228,7 +227,7 @@ It can be computationally more efficient to solve the dual problem
 rather than the primal problem. Many flow algorithms adopt a dual
 approach, or a hybrid of a primal and dual approach.
 
-\subsubsection{Optimality conditions}
+\subsubsection{Optimality conditions} \label{prep:flow-optimality}
 
 Below, I give conditions on a solution vector $\mathbf{x}$ which
 imply it is optimal. These conditions suggest algorithms for solving
@@ -248,7 +247,7 @@ c_{ij}^{\boldsymbol{\pi}}\geq0\:\forall(i,j)\in E_{\mathbf{x}}
 
 ~ % force paragraph break between theorems
 
-\begin{thm}[Complementary slackness optimality conditions]
+\begin{thm}[Complementary slackness optimality conditions] \label{thm:optimality-complementary-slackness}
 Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
 to the minimum-cost flow problem if and only if there exists a node
 potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:

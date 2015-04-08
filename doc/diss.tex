@@ -69,9 +69,13 @@
 \graphicspath{figures/}
 \DeclareGraphicsExtensions{.pdf, .png, .jpg}
 
-% Pseudocode and code listings
+%%% Pseudocode and code listings
+%% Pseudocode
 \usepackage[section]{algorithm} % floating environment
 \usepackage{algpseudocode} % algorithmicx package
+% custom commands for algorithmicx
+\newcommand{\Break}{\State \textbf{break} }
+%% Code listings
 \usepackage{listings}
 % default listings package configuration for highlighting C code
 \lstset{
@@ -109,6 +113,9 @@
 \crefname{defn}{definition}{definitions}
 \crefname{assumption}{assumption}{assumptions}
 \crefname{remark}{remark}{remarks}
+% Some new operators
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
 
 % Customize Table of Contents. Don't include list of figures or table of contents in the table of contents. Do still show the bibliography.
 \usepackage[nottoc,notlof]{tocbibind}
