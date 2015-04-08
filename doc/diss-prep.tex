@@ -38,6 +38,8 @@ However, the information which is public suggests that the same basic approaches
 
 Despite considerable research effort, both in industry and academia, the traditional scheduler designs discussed above suffer from two major deficiencies. The first is a lack of policy flexibility. Hadoop attempts to solve this by allowing for an ecosystem of different schedulers, but this approach is limited. As we try to trade-off more objectives, there is a combinatorial explosion in the number of scheduler designs needed. The second problem is a failure to take the underlying cluster architecture into account when making scheduling decisions.
 
+% Nice example from Malte's PhD thesis of three-way relationship between data locality, fair resource sharing and scheduling delay. Could use this or something similar to illustrate this?
+
 Microsoft Research developed the Quincy system~\cite{Isard:2009} to address these problems. Working with the Dryad distributed execution engine~\cite{Isard:2007}\footnotemark, the Quincy scheduler builds a model of the cluster and the tasks. A flow network is generated from this model, with solving the flow problem dual to finding a schedule.
 \footnotetext{Dryad allows tasks ("computational vertices") to be connected together by communication "channels" to form an (acyclic) dataflow graph. Other computational frameworks, such as MapReduce and relational algebra, reduce to special cases of Dryad.}
 
@@ -52,6 +54,8 @@ It would be an overstatement to say that all policies can be expressed in this w
 \footnotetext{Note gang scheduling does not benefit systems such as Dryad. It is most useful when there is bidirectional communication between the two tasks. This would correspond to a cycle in the dataflow graph, which is explicitly disallowed.}
 
 However, cases such as these are the exception that proves the rule. In practice, the model is very powerful, allowing a range of scheduling policies to encoded in terms of cost models. Moreover, the policies naturally tend to adapt themselves to different cluster architectures, as the topology of the flow network will also adjust itself.
+
+% TBC: Add reference to Firmament
 
 \section{Flow networks} \label{prep-flow}
 
@@ -96,7 +100,11 @@ Note any network with rational quantities can be transformed into an equivalent 
 \begin{assumption}[Non-negative arc costs] \label{assumption:non-negative-arc-costs}
 For all $(i,j) \in E$, $c_{ij} \geq 0$.\end{assumption}
 
-This assumption is without loss of generality\footnote{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}} \\
+~
+
+\begin{remark} 
+This assumption is without loss of generality\footnote{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}}.
+\end{remark}
 
 \begin{cor}All quantities defining arcs take on only values from the natural numbers.\footnotemark
 \footnotetext{To avoid confusion, I will follow the convention $0\in\mathbb{N}$ throughout this document.}
@@ -131,17 +139,57 @@ discussions that networks are feasible, unless stated otherwise%
 
 \subsection{Scheduling using flows}
 
-In the context of systems such as Quincy, a solution to the maximum
-flow problem provides a schedule for each task. However, this schedule
-could be of low quality. For example, it might leave most tasks unscheduled,
-and computational nodes idle.
+% Previously have described the advantages of Quincy, and roughly its architecture, but not gone into any technical detail.
+% Intro: models scheduling as an optimisation problem, the minimum-cost flow problem.
+% Flow from tasks (source nodes) to machines or unscheduled aggregators, draining to a sink
+% Capacities specify possible scheduling states of tasks: e.g. enforce minimum number of tasks scheduled per job
+% Costs specify preferences
 
-A solution to the minimum-cost flow problem, by contrast, guarantees
-a schedule which makes most efficient uses of the computational resources
-of the cluster, subject to a policy defined by the cost model. This
-is precisely the property we require.
+Quincy and Firmament frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, consisting of a number of \emph{tasks}. Flow drains from task nodes to a sink node. Along its way, it passes either through a machine node (indicating the task is to be placed there) or a special job unscheduled aggregator node (indicating the task is to be left unscheduled).
 
-TBC: Elaborate on this, currently a ghost section.
+Arc capacities are used to restrict the possible scheduling states of tasks. The costs associated with arcs, by contrast, specify \emph{preferences} between possible scheduling assignments. Different scheduling policies can be encoded by varying the costs.
+
+\subsubsection{Network structure}
+%TBC: Table here would really help
+%TBC: Flow graphs really useful here! Illustrate each type of network.
+
+Each task $i$ in job $j$ is represented by a node $T_i^j$, with a single unit of supply. Machines are represented by nodes $M_l$, with arcs to a sink node $S$. Task nodes have arcs to machine nodes, with a cost specifying the preference of being scheduled on that machine.
+
+This approach is unrealistically simple. What if there are more tasks than can be scheduled? The flow problem would become unfeasible. We introduce \emph{unscheduled aggregators} $U^j$ for each job $j$, with an arc to $S$. Each task node $T_i^j$ also has an arc to its unscheduled aggregator $U_j$, with a cost specifying the penalty for being unscheduled.
+
+In the model above, every task has an arc to every machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark. Quincy makes the modification of introducing \emph{rack aggregator} nodes $R_k$, each with an arc to every machine in that rack. Moreover, there is a single \emph{cluster aggregator} $X$ with an arc to every rack aggregator\footnotemark. Each task then has a fixed number of arcs. Some of these may be to individual machines, some to rack aggregators and every task has an arc to the cluster aggregator. 
+\footnotetext{The number of arcs will scale linearly with the number of machines. But, of course, as the size of a cluster grows the number of tasks being scheduled will also tend to grow proportionally. So the number of arcs actually will tend to grow \emph{quadratically} with increases in the number of machines. Scalability is a key concern, making this is highly undesirable.}
+\footnotetext{Of course, this hierarchical scheme could be extended to any number of levels.}
+
+This scheme of rack aggregators is particularly suited to Quincy. Its cost model is based in large upon the amount of network bandwidth used by a task, which will be similar within a rack. This approach may work less well for other cost models. Firmament generalised this method by introducing \emph{equivalence classes}, both for task and machine\footnotemark nodes, with an aggregator node for entities within an equivalence class.
+\footnotetext{In fact, Firmament supports representing resources at a finer grain than machines: for example, an individual core. So machines may themselves be aggregator nodes.}
+
+\subsubsection{Capacities}
+
+Every arc leaving a task node $T_i^j$ has unit capacity. Note $T_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
+
+The arcs $M_l \to S$ from machine nodes to the sink node have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
+\footnotetext{In the original Quincy system, $K=1$. However, this is clearly a poor utilisation of modern multi-core machines. In fact, performance may often be improved by setting $K > \text{\# of cores}$, on simultaneous multi-threading (SMT) machines.}
+
+The arcs $R_k \to M_l$ from rack aggregators to nodes representing their constituent machines also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $X \to R_k$ have capacity $mK$, where $m$ is the number of machines in each rack.
+
+The arcs $U_j \to S$ can be set to be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. It is possible, however, to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This is used in Quincy and Firmament. It can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom.
+
+Let $N_j$ be the number of tasks submitted for job $j$. To enforce the upper bound $F_j$, give $U_j$ a demand of $N_j - F_j$. At least this many tasks in job $j$ must then be left unscheduled, guaranteeing no more than $F_j$ tasks are scheduled.
+
+To enforce the lower bound, we set the capacity on $U_j \to S$ to $F_j - E_j$. The maximum number of unscheduled tasks is thus the $N_j - F_j$ which are absorbed at $U_j$, plus the $F_j - E_j$ draining via $U_j \to S$. This gives an upper bound of $N_j - E_j$ unscheduled tasks, guaranteeing that at least $E_j$ tasks remain scheduled.
+
+\subsubsection{Cost models}  
+
+% Cost models: good to make clear that it's easy to encode varied scheduling policies. Can cite Malte's thesis for this. But you want to give a concrete example, or at least sketch how it can be achieved. 
+% Probably not much point going into detail, here.
+
+\subsubsection{Properties of these networks}
+
+% e.g. m = O(n)
+% Stuff you'll need for asymptotic analysis later
+% Or explaining why particular algorithms work.
+% Or just stuff which might be interesting; e.g. always a DAG.
 
 \subsection{Further definitions and properties}
 
