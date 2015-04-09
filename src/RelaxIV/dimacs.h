@@ -29,7 +29,8 @@ public:
 			                         MCFClass::Index n, MCFClass::Index m);
 
 	// returns true if read something, false otherwise
-	bool ReadDelta();
+	typedef std::function<void(void)> callback;
+	bool ReadDelta(callback data_received=callback());
 private:
 	const static MCFClass::Index SINK_NODE = 1;
 

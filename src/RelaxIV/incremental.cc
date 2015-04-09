@@ -100,6 +100,14 @@ bool process_result(RelaxIV *mcf, bool flow, bool potentials) {
 	 }
 }
 
+// timer
+boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
+
+// this looks stupid but is needed for a callback
+void restart_timer() {
+	t.start();
+}
+
 int main(int argc, char *argv[]) {
 	// parse command line arguments
 	namespace po = boost::program_options;
@@ -138,10 +146,6 @@ int main(int argc, char *argv[]) {
 	}
 	google::InitGoogleLogging(argv[0]);
 
-	// timer
-	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
-	t.stop();
-
 	// initialize relevant classes
 	RelaxIV *mcf = new RelaxIV();
 	DIMACS dimacs(std::cin, mcf);
@@ -155,8 +159,9 @@ int main(int argc, char *argv[]) {
 
 	dimacs.ReadInitial(&tn, &tm, &tU, &tC, &tDfct, &tStartn, &tEndn);
 
-	// load network
-	t.start();
+	// reset timer
+  t.stop(); t.start();
+  // load network
 	MCFClass::Index num_nodes_reserved = tn, num_arcs_reserved = tm;
 	compute_reserved_memory(num_nodes_reserved, num_arcs_reserved);
 	mcf->LoadNet(num_nodes_reserved, num_arcs_reserved, tn, tm,
@@ -172,6 +177,7 @@ int main(int argc, char *argv[]) {
 
   // solve network, output results, read delta, repeat
 	t.resume();
+	DIMACS::callback restart_timer = restart_timer;
 	do {
 #ifdef DEBUG
 		std::cout << "c GRAPH" << endl;
@@ -192,9 +198,7 @@ int main(int argc, char *argv[]) {
 
 		std::cout << "c EOI" << endl;
 		std::cout.flush();
-
-		t.start();
-	} while (dimacs.ReadDelta());
+	} while (dimacs.ReadDelta(restart_timer));
 
 	// Must stop timer. Otherwise it will stop automatically when it is destroyed
 	// and report a spurious time.

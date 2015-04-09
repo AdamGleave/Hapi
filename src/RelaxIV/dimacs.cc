@@ -240,10 +240,17 @@ RelaxIV::RIVState *DIMACS::ReadState(istream &input,
 	return state;
 }
 
-bool DIMACS::ReadDelta() {
+bool DIMACS::ReadDelta(DIMACS::callback data_received) {
 	std::string line;
+	bool data_seen = false;
 
 	while (getline(is, line)) {
+		if (!data_seen) {
+			data_seen = true;
+			if (data_received) {
+				 data_received();
+			}
+		}
 		line_num++;
 
 		std::istringstream iss (line);
