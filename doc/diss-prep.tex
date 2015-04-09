@@ -381,13 +381,14 @@ a reverse arc $(j,i)$ to be $-c_{ij}$.
 \subsubsection{Reduced cost and duality} \label{sec:prep-flow-rc-and-dual}
 
 We may associate with each node $i\in V$ a \emph{potential}, $\pi_{i}$.
+
+\begin{defn}[Reduced costs] \label{defn:reduced-costs}
 The \emph{reduced cost} of an arc $(i,j)\in E$ with respect to a
 potential $\boldsymbol{\pi}$ is defined as:
-
 \begin{equation}
 c_{ij}^{\boldsymbol{\pi}}=c_{ij}-\pi_{i}+\pi_{j}
 \end{equation}
-
+\end{defn}
 
 Every linear programming problem, referred to as a \emph{primal} problem,
 can be converted to a \emph{dual} problem. Solutions to the dual problem
