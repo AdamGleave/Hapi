@@ -145,19 +145,19 @@ discussions that networks are feasible, unless stated otherwise%
 % Capacities specify possible scheduling states of tasks: e.g. enforce minimum number of tasks scheduled per job
 % Costs specify preferences
 
-Quincy and Firmament frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, consisting of a number of \emph{tasks}. Flow drains from task nodes to a sink node. Along its way, it passes either through a machine node (indicating the task is to be placed there) or a special job unscheduled aggregator node (indicating the task is to be left unscheduled).
+Quincy and Firmament frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, each consisting of a number of \emph{tasks}. Flow drains from task nodes to a sink node. Along the way, it passes either through a machine node (indicating the task is to be placed there) or a special job unscheduled aggregator node (indicating the task is to be left unscheduled).
 
-Arc capacities are used to restrict the possible scheduling states of tasks. The costs associated with arcs, by contrast, specify \emph{preferences} between possible scheduling assignments. Different scheduling policies can be encoded by varying the costs.
+Arc capacities are used to \emph{restrict} the possible scheduling assignments. The costs associated with arcs, by contrast, specify \emph{preferences} between possible scheduling assignments. Different scheduling policies may be encoded by varying the costs.
 
 \subsubsection{Network structure}
 %TBC: Table here would really help
 %TBC: Flow graphs really useful here! Illustrate each type of network.
 
-Each task $i$ in job $j$ is represented by a node $T_i^j$, with a single unit of supply. Machines are represented by nodes $M_l$, with arcs to a sink node $S$. Task nodes have arcs to machine nodes, with a cost specifying the preference of being scheduled on that machine.
+Each task $i$ in job $j$ is represented by a node $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by nodes $\mathbf{M}_l$, with arcs to a sink node $\mathbf{S}$. Task nodes have arcs to machine nodes, with a cost specifying the preference of being scheduled on that machine.
 
-This approach is unrealistically simple. What if there are more tasks than can be scheduled? The flow problem would become unfeasible. We introduce \emph{unscheduled aggregators} $U^j$ for each job $j$, with an arc to $S$. Each task node $T_i^j$ also has an arc to its unscheduled aggregator $U_j$, with a cost specifying the penalty for being unscheduled.
+There is a problem with this scheme: if there are more tasks submitted than can be scheduled, the flow problem would become unfeasible. To fix this, we introduce \emph{unscheduled aggregators} $\mathbf{U}^j$ for each job $j$, with an arc to $\mathbf{S}$. Each task node $\mathbf{T}_i^j$ also has an arc to its unscheduled aggregator $\mathbf{U}_j$, with a cost specifying the penalty for being unscheduled.
 
-In the model above, every task has an arc to every machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark. Quincy makes the modification of introducing \emph{rack aggregator} nodes $R_k$, each with an arc to every machine in that rack. Moreover, there is a single \emph{cluster aggregator} $X$ with an arc to every rack aggregator\footnotemark. Each task then has a fixed number of arcs. Some of these may be to individual machines, some to rack aggregators and every task has an arc to the cluster aggregator. 
+In the model above, every task has an arc to every machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark. Quincy makes the modification of introducing \emph{rack aggregator} nodes $\mathbf{R}_k$, each with an arc to every machine in that rack. Moreover, there is a single \emph{cluster aggregator} $\mathbf{X}$ with an arc to every rack aggregator\footnotemark. Each task then has a fixed number of arcs. Some of these may be to individual machines, some to rack aggregators and every task has an arc to the cluster aggregator. 
 \footnotetext{The number of arcs will scale linearly with the number of machines. But, of course, as the size of a cluster grows the number of tasks being scheduled will also tend to grow proportionally. So the number of arcs actually will tend to grow \emph{quadratically} with increases in the number of machines. Scalability is a key concern, making this is highly undesirable.}
 \footnotetext{Of course, this hierarchical scheme could be extended to any number of levels.}
 
@@ -166,30 +166,160 @@ This scheme of rack aggregators is particularly suited to Quincy. Its cost model
 
 \subsubsection{Capacities}
 
-Every arc leaving a task node $T_i^j$ has unit capacity. Note $T_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
+Every arc leaving a task node $\mathbf{T}_i^j$ has unit capacity. Note $\mathbf{T}_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
 
-The arcs $M_l \to S$ from machine nodes to the sink node have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
+The arcs $\mathbf{M}_l \to \mathbf{S}$ from machine nodes to the sink node have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
 \footnotetext{In the original Quincy system, $K=1$. However, this is clearly a poor utilisation of modern multi-core machines. In fact, performance may often be improved by setting $K > \text{\# of cores}$, on simultaneous multi-threading (SMT) machines.}
 
-The arcs $R_k \to M_l$ from rack aggregators to nodes representing their constituent machines also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $X \to R_k$ have capacity $mK$, where $m$ is the number of machines in each rack.
+The arcs $\mathbf{R}_k \to \mathbf{M}_l$ from rack aggregators to nodes representing their constituent machines also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $\mathbf{X} \to \mathbf{R}_k$ have capacity $mK$, where $m$ is the number of machines in each rack.
 
-The arcs $U_j \to S$ can be set to be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. It is possible, however, to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This is used in Quincy and Firmament. It can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom.
+The arcs $\mathbf{U}^j \to \mathbf{S}$ can be set to be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. It is possible, however, to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This is used in Quincy and Firmament. It can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom.
 
-Let $N_j$ be the number of tasks submitted for job $j$. To enforce the upper bound $F_j$, give $U_j$ a demand of $N_j - F_j$. At least this many tasks in job $j$ must then be left unscheduled, guaranteeing no more than $F_j$ tasks are scheduled.
+Let $N_j$ be the number of tasks submitted for job $j$. To enforce the upper bound $F_j$, give $\mathbf{U}^j$ a demand of $N_j - F_j$. At least this many tasks in job $j$ must then be left unscheduled, guaranteeing no more than $F_j$ tasks are scheduled.
 
-To enforce the lower bound, we set the capacity on $U_j \to S$ to $F_j - E_j$. The maximum number of unscheduled tasks is thus the $N_j - F_j$ which are absorbed at $U_j$, plus the $F_j - E_j$ draining via $U_j \to S$. This gives an upper bound of $N_j - E_j$ unscheduled tasks, guaranteeing that at least $E_j$ tasks remain scheduled.
+To enforce the lower bound, we set the capacity on $\mathbf{U}^j \to \mathbf{S}$ to $F_j - E_j$. The maximum number of unscheduled tasks is thus the $N_j - F_j$ which are absorbed at $\mathbf{U}^j$, plus the $F_j - E_j$ draining via $\mathbf{U}^j \to \mathbf{S}$. This gives an upper bound of $N_j - E_j$ unscheduled tasks, guaranteeing that at least $E_j$ tasks remain scheduled.
 
 \subsubsection{Cost models}  
 
-% Cost models: good to make clear that it's easy to encode varied scheduling policies. Can cite Malte's thesis for this. But you want to give a concrete example, or at least sketch how it can be achieved. 
-% Probably not much point going into detail, here.
+% TODO: Firmament supports more cost models, such as Octopus. Will this be in PhD/can I cite it?
+A key benefit to the flow scheduling approach is policy flexibility: support for a policy can be added simply by providing a new cost model. The cost model used in the original Quincy system attempts to achieve \emph{data locality}: scheduling tasks close to their input data, in order to minimise network traffic. Firmament includes three other cost models~\cite[ch.~5]{Schwarzkopf:2015}. The Whare-Map and Coordinate Co-Location models aim to improve the utilisation of the cluster by avoiding co-location interference and taking into account the heterogeneity of available resources. The Energy-Aware cost model seeks to achieve energy efficiency whilst meeting application performance guarantees, in a hypothetical heterogeneous cluster containing a mixture of high performance (but low efficiency) and medium performance (but high efficiency) machines.
+
+Given such a variety of possible policies, the solver developed in this project must be independent of any particular cost model. However, having an intuition for how cost models operate is valuable. For reasons of brevity, I will only summarize the cost model in the original Quincy system. Further details of this cost model are available in~\cite{Isard:2009}. A description of the other cost models mentioned above is in~\cite[ch.~5]{Schwarzkopf:2015}.
+
+\subsubsubsection*{Quincy cost model}
+\begin{table}
+    \begin{tabular}{c|c|l}
+        \hline 
+        Cost & Edge & Meaning\tabularnewline
+        \hline 
+        \hline 
+        $v_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{U}^{j}$ & Cost of leaving task $\mathbf{T}_{i}^{j}$ unscheduled\tabularnewline
+        \hline 
+        $\alpha_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{X}$ & Cost of scheduling on worst possible machine\tabularnewline
+        \hline 
+        $\rho_{i,l}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{R}_{l}$ & Cost of scheduling on worst machine in rack $\mathbf{R}_{l}$\tabularnewline
+        \hline 
+        $\gamma_{i,m}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{M}_{m}$ & Cost of scheduling on machine $\mathbf{M}_{m}$\tabularnewline
+        \hline 
+    \end{tabular}
+    \caption{Costs in the Quincy model}
+    \label{table:quincy-costs}
+\end{table}
+
+\begin{table}
+    \begin{tabular}{c|l}
+        \hline 
+        Variable & Meaning\tabularnewline
+        \hline 
+        $\chi^{X}\left(\mathbf{T}_{i}^{j}\right),\chi_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the core switch.\tabularnewline % if: scheduled on worst possible computer in cluster, scheduled on worst possible computer in rack $\mathbf{R}_{l}$ or scheduled on computer $\mathbf{M}_{m}$ respectively.
+        $\mathcal{R}^{X}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the top-of-rack switch.\tabularnewline
+        $\theta_{i}^{j}$ & Number of seconds $\mathbf{T}_{i}^{j}$ has spent scheduled.\tabularnewline
+        $\nu_{i}^{j}$ & Number of seconds task $\mathbf{T}_{i}^{j}$ has spent unscheduled.\tabularnewline
+        \hline
+    \end{tabular}
+    \caption{Variables in the Quincy model}
+    \label{table:quincy-variables}
+\end{table}
+
+\begin{table}
+    \begin{tabular}{c|l}
+        \hline 
+        Parameter & Meaning\tabularnewline
+        \hline 
+        \hline 
+        $\epsilon$ & Cost of transferring 1 GB across core switch\tabularnewline
+        \hline 
+        $\psi$ & Cost of transferring 1 GB across top of rack switch\tabularnewline
+        \hline 
+        $\omega$ & Wait-time cost factor for unscheduled aggregators\tabularnewline
+        \hline 
+    \end{tabular}
+    \caption{Parameters for the Quincy model}
+    \label{table:quincy-parameters}
+\end{table}
+
+The arc costs specified by the model are given in \cref{table:quincy-costs}. All arcs not mentioned in this table have a cost of zero\footnotemark.
+\footnotetext{In particular, arcs leaving aggregator nodes, and arcs incoming to the sink, both have zero cost.}
+
+The model assumes the data processed by tasks resides in a distributed file system. Each machine in the cluster can access any object in the file system, by fetching the data from a remote machine. However, retrieving an object from a machine in another rack is more expensive -- both in terms of request latency and network resources consumed -- than transferring the data from a neighbouring machine. Reading the data from a directly connected disk is cheaper still. The Quincy scheduler quantifies these data transfer costs for each scheduling assignment. It then finds an assignment minimising the global data transfer cost across the cluster, in order to achieve data locality.
+
+\Cref{table:quincy-variables} gives the variables maintained by the Quincy scheduler. All arc costs are functions of these variables. The system breaks down the data transfer of a task $\mathbf{T}_{i}^{j}$ into two components: transfer across the core switch, $\chi\left(\mathbf{T}_{i}^{j}\right)$, and top of rack switches, $\mathcal{R}\left(\mathbf{T}_{i}^{j}\right)$. For a particular machine $\mathbf{M}_m$, the data transfer $\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ and $\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ can be computed exactly. However, when it comes to determining the cost of arcs to aggregator nodes $\mathbf{R}_l$ or $\mathbf{X}$, an exact figure is not possible. Instead, we take a conservative upper bound: the \emph{greatest} data transfer that results from scheduling $\mathbf{T}_{i}^{j}$ on the \emph{worst} machine in rack $\mathbf{R}_l$ or the cluster as a whole, respectively.
+
+The system also keeps track of the time $\theta_i^j$ and $\nu_i^j$ a task spends scheduled and unscheduled, respectively. If the task is stopped and then restarted, these times continue to accumulate. This property is needed to guarantee the scheduler makes progress.
+
+Quincy is controlled by three simple parameters, given in \cref{table:quincy-parameters}. $\epsilon$ and $\psi$ specify the cost of data transfers across core and top of rack switches respectively. In general, we would expect $\epsilon > \psi$, since the core switch is more likely to become a bottleneck. $\omega$ controls the penalty for leaving a task unscheduled\footnotemark. Increasing $\epsilon$ and $\psi$ will cause the scheduler to more aggressively optimise for data locality. Increasing $\omega$ will 
+\footnotetext{It is possible to vary $\omega$ between jobs in order to encode a notion of priority.}
+
+We are now ready to give formulae for the arc costs given in \cref{table:quincy-costs}. First, let us define the data transfer cost:
+\[d_{b}^{A}\left(\mathbf{T}_{i}^{j}\right) = \epsilon\chi_{b}^{A}\left(\mathbf{T}_{i}^{j}\right)+\psi\mathcal{R}_{b}^{A}\left(\mathbf{T}_{i}^{j}\right)\]
+
+The cost of scheduling on the worst machine in the cluster and the worst machine in rack $\mathbf{R}_l$ follow simply:
+\[\alpha_{i}^{j} = d^X\left(\mathbf{T}_{i}^{j}\right)\]
+\[\rho_{i}^{j,l} = d^R_l\left(\mathbf{T}_{i}^{j}\right)\]
+It is tempting to use the same form for the cost, $\gamma^j_{i,m}$ of scheduling on a particular machine $\mathbf{M}_m$. When $\mathbf{T}_{i}^{j}$ is not running on $\mathbf{M}_m$ (either it is unscheduled, or is running on a different machine), this is valid. However, this formula is inappropriate when $\mathbf{T}_{i}^{j}$ is already scheduled on  $\mathbf{M}_m$.
+
+When the task has already been running, $d^M_m\left(\mathbf{T}_{i}^{j}\right)$ will overestimate the cost of the remaining data transfer. To account for the work already invested in $\mathbf{T}_{i}^{j}$, we subtract the time it has been running, giving:
+\[\gamma_{i,m}^{j} = d_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)-\begin{cases}
+\theta_{i}^{j} & \text{if \ensuremath{\mathbf{T}_{i}^{j}}running on \ensuremath{\mathbf{M}_{m}}}\\
+0 & \text{otherwise}
+\end{cases}\]
+
+The only remaining cost is $v_i^j$, the penalty associated with leaving a task $\mathbf{T}_{i}^{j}$ unscheduled. We set it proportional to the length of time it has been unscheduled:
+\[v_i^j = \omega\nu_{n}^{j}\]
 
 \subsubsection{Properties of these networks}
 
-% e.g. m = O(n)
-% Stuff you'll need for asymptotic analysis later
-% Or explaining why particular algorithms work.
-% Or just stuff which might be interesting; e.g. always a DAG.
+\begin{lemma} \label{lemma:network-num-nodes}
+Let $n$ denote the number of nodes in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.
+\end{lemma}
+\begin{proof}
+There is one node $\mathbf{T}_i^j$ for every task and one node $\mathbf{M}_m$ for every machine, so trivially $n = \Omega\left(\text{\# machines} + \text{\# tasks}\right)$.
+
+It remains to show $n = O\left(\text{\# machines} + \text{\# tasks}\right)$. Consider each class of node in turn.
+
+As stated above $\text{\# task nodes} = \text{\# tasks}$ and $\text{\# machine nodes} = \text{\# machines}$. There is an unscheduled aggregator $\mathbf{U}^j$ for each job $j$. Certainly $\text{\# jobs} = O\left(\text{\# tasks}\right)$. There is at least one machine in every rack, so $\text{\# rack aggregator nodes} = O\left(\text{\# machines}\right)$. 
+
+In addition, there is also a cluster aggregator node $\mathbf{X}$ and sink node $\mathbf{S}$ which are independent of the number of tasks and machines, contributing $O(1)$ nodes.
+
+Thus:
+\[n = O\left(\text{\# tasks} + \text{\# machines} + 1\right) = O\left(\text{\# tasks} + \text{\# machines}\right)\]
+
+Hence:
+\[n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)\]
+\end{proof}
+
+\begin{lemma} \label{lemma:network-num-arcs}
+Let $m$ denote the number of arcs in the network. Then $m = O(n)$. That is, the network is \emph{sparse}.
+\end{lemma}
+\begin{proof}
+Consider the outgoing arcs from each class of node. Since every arc is outgoing from exactly one node, this will count every node exactly once.
+
+Each machine $\mathbf{M}_l$ and unscheduled aggregator $\mathbf{U}^j$ has a single outgoing arc, to sink node $\mathbf{S}$. This contributes $O\left(\text{\# machines}\right)$ arcs. The sink node $\mathbf{S}$ has no outgoing arcs.
+
+Rack aggregators $\mathbf{R}_l$ have outgoing arcs to each machine in their rack. Each machine is present in exactly one rack, so these contribute collectively $O\left(\text{\# machines}\right)$ arcs. The cluster aggregator $\mathbf{X}$ has outgoing arcs to each rack; since $O\left(\text{\# racks}\right) = O\left(\text{\# machines}\right)$, this contributes $O\left(\text{\# machines}\right)$ arcs.
+
+It remains to consider task nodes $\mathbf{T}_i^j$. The number of arcs leaving the task node has a constant upper bound. The system computes a \emph{preference list} of machines and racks, and includes arcs only to those nodes (and the cluster aggregator $\mathbf{X}$). Thus this contributes $O\left(\text{\# tasks}\right)$ arcs.
+
+Hence:
+\[m = \left(\text{\# machines} + \text{\# tasks}\right)\]
+By \cref{lemma:network-num-nodes}, it follows:
+\[m = O(n)\]
+\end{proof}
+
+\begin{remark}
+In fact we have $m = \Theta(n)$: the network is connected so certainly $m = \Omega(n)$. However, we will only use the bound $m = O(n)$.\\
+\end{remark}
+
+\begin{lemma} \label{lemma:network-supply}
+The largest supply in the network is a unit supply.
+\end{lemma}
+\begin{proof}
+The only nodes in the network with any supply are the task nodes, $\mathbf{T}_i^j$. These by definition have unit supply.
+\end{proof}
+
+\begin{remark}
+Most nodes in the network are transshipment nodes, with no demand nor supply. The demand nodes in the network are the sink node $\mathbf{S}$ and (optionally) unscheduled aggregators, $\mathbf{U}^j$. These may have a greater than unit demand.
+\end{remark}
 
 \subsection{Further definitions and properties}
 
