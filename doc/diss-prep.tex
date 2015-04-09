@@ -412,6 +412,13 @@ imply it is optimal. These conditions suggest algorithms for solving
 the problem. Moreover, they can be used in testing, to verify that
 a solution is indeed optimal.\\
 
+\begin{thm}[Negative cycle optimality conditions] \label{thm:optimality-neg-cycle}
+A flow $\mathbf{x}$ is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
+\end{thm}
+\begin{proof}
+See~\cite[p.~307]{Ahuja:1993}.
+\end{proof}
+
 \begin{thm}[Reduced cost optimality conditions] \label{thm:optimality-reduced-cost}
 Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
 to the minimum-cost flow problem if and only if there exists a node
@@ -422,8 +429,9 @@ of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
 c_{ij}^{\boldsymbol{\pi}}\geq0\:\forall(i,j)\in E_{\mathbf{x}}
 \end{equation}
 \end{thm}
-
-~ % force paragraph break between theorems
+\begin{proof}
+See~\cite[p.~309]{Ahuja:1993}.
+\end{proof}
 
 \begin{thm}[Complementary slackness optimality conditions] \label{thm:optimality-complementary-slackness}
 Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
@@ -431,27 +439,22 @@ to the minimum-cost flow problem if and only if there exists a node
 potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
 
 \begin{equation}
-\text{if \ensuremath{c_{ij}^{\pi}>0}, then \ensuremath{x_{ij}=0}}
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}>0}, then \ensuremath{x_{ij}=0}}
 \end{equation}
 
 \begin{equation}
-\text{if \ensuremath{c_{ij}^{\pi}<0}, then \ensuremath{x_{ij}=u_{ij}}}
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}<0}, then \ensuremath{x_{ij}=u_{ij}}}
 \end{equation}
 
 \begin{equation}
-\text{if \ensuremath{c_{ij}^{\pi}=0}, then \ensuremath{0\leq x_{ij}\leq u_{ij}}}
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}=0}, then \ensuremath{0\leq x_{ij}\leq u_{ij}}}
 \end{equation}
 \end{thm}
+\begin{proof}
+This can easily be seen to be equivalent to the reduced cost optimality conditions, by expanding out \cref{eq:optimality-reduced-cost} using the definition of a residual network and performing a case analysis. A detailed proof is given in~\cite[p.~310]{Ahuja:1993}. 
+\end{proof}
 
-\begin{remark}
-Note the reduced cost optimality conditions are stated in terms of
-the residual network, whereas these are stated in terms of the original
-flow network. The two conditions can easily be seen to be equivalent
-by expanding out equation \ref{eq:optimality-reduced-cost} using the definition of the
-residual network.
-\end{remark}
-
-\subsubsection{Notation for complexity analysis}
+\subsubsection{Notation for complexity analysis} \label{sec:prep-flow-complexity}
 
 Some notation will be useful when it comes to analysing the asymptotic complexity
 of algorithms. 

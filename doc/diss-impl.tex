@@ -22,14 +22,7 @@ Cycle cancelling is the simplest algorithm we will consider. It has little to re
 
 \subsection{Algorithm description}
 
-Cycle cancelling is inspired by the following result: \\
-
-\begin{thm}[Negative cycle optimality conditions] \label{thm:optimality-neg-cycle}
-A flow $\mathbf{x}$ is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
-\end{thm}
-\begin{proof}
-This is a standard result in the literature; see, for example, \cite[p.~307]{Ahuja:1993}.
-\end{proof}
+Cycle cancelling is inspired by the negative cycle optimality conditions, given in \cref{thm:optimality-neg-cycle}.
 
 \begin{algorithm}
     \caption{Cycle cancelling algorithm}
@@ -249,7 +242,7 @@ Any constant shift in the potential for every node will leave reduced costs unch
 
 This is computationally more efficient, as we will not have to update the potential at any node which has not been permanently labelled (typically the majority of nodes).
 
-\section{Relaxation algorithm}
+\section{Relaxation algorithm} \label{sec:impl-relax}
 
 Like the successive shortest path algorithm, the relaxation algorithm works by augmenting along shortest paths in the residual network from sources to sinks. Based upon the method of Lagrangian relaxation from mathematical optimization~\cite[ch.~16]{Ahuja:1993}\cite{Fisher:1981}, unlike the successive shortest path algorithm it updates node potentials using intermediate information as it constructs the shortest-path tree. For this reason, it performs much better empirically than the successive shortest path algorithm, and indeed is one of the fastest algorithms for some classes of flow networks~\cite{KiralyKovacs:2012}. However, its worst-case time complexity is exponential, giving it the slowest theoretical performance of the algorithms we consider.\footnotemark Like successive shortest path, it is well suited to being used in an incremental solver, but is inappropriate for an approximate solver.
 
@@ -566,31 +559,163 @@ To deduce the overall time complexity, we will need the bounds proved in \cref{l
 
 \section{Cost scaling algorithm}
 
-Describe the algorithm. Can be brief: it's not work you've done, after all. But make sure to communicate how complicated the algorithm is.
+% SOMEDAY: If you run a benchmark of reference implementations, cite it here.
+This method is due to Goldberg and Tarjan~\cite{Goldberg:1987}. It runs in weakly polynomial time, with variants offering strongly polynomial bounds. It is one of the most efficient solution methods, both in theory and practice\footnotemark. Cost scaling works by successive approximation, and so it lends itself readily to an approximate solver (see \S\ref{sec:impl-approx}). It is inappropriate for an incremental solver, however.
+\footnotetext{In computational benchmarks such as~\cite{KiralyKovacs:2012}, cost scaling is the fastest algorithm for many classes of network. It is occasionally beaten by other algorithms, however its performance still remains competitive in these cases. This makes it more robust than some alternative solution methods, such as relaxation (see \S\ref{sec:impl-relax}), which sometimes outperform it but can in other cases be slower by orders of magnitude.}
 
-\subsection{Algorithm description}
+The algorithm maintains a feasible flow. The flow need not be optimal, but the error is bounded using the notion of $\epsilon$-optimality. Each iteration of the algorithm refines the solution, halving the error bound, until optimality is achieved. In the next section, the notion of $\epsilon$-optimality is introduced. Afterwards, the general solution method is described. Specific variants are considered next. Finally, techniques to improve the practical performance of the method are considered.
 
-Brief summary.
+\subsection{$\epsilon$-optimality}
 
-\subsubsection{Data structures}
+The notion of $\epsilon$-optimality is a relaxation of the reduced cost optimality conditions given in \cref{thm:optimality-reduced-cost}.
 
-\subsubsection{Push operation}
+\begin{defn}[$\epsilon$-optimality] \label{defn:epsilon-optimality}
+Let $\epsilon \geq 0$. A pseudoflow $\mathbf{x}$ is $\epsilon$-optimal with respect to node potentials $\boldsymbol{\pi}$ if the reduced cost of each arc in the residual network $G_\mathbf{x}$ is greater than $-\epsilon$:
+\begin{equation} \label{eq:epsilon-optimality}
+c^{\boldsymbol{\pi}}_{ij} \geq -\epsilon\:\forall (i,j) \in E_{\mathbf{x}}
+\end{equation}
+\end{defn}
 
-\subsubsection{Relabel operation}
+\begin{defn} 
+An edge $(i,j) \in E_{\mathbf{x}}$ is said to be \emph{in-kilter} if it satisfies the condition in \cref{eq:epsilon-optimality}.\\
+\end{defn}
 
-\subsubsection{Complete algorithm}
+\begin{remark}
+Note that $0$-optimality is equivalent to the conditions of reduced cost optimality. We can, however, prove a stronger result.\\
+\end{remark}
 
-\subsection{Analysis}
+\begin{thm}
+Let $0 \leq \epsilon < 1/n$, and $\mathbf{x}$ an $\epsilon$-optimal feasible flow. Then $\mathbf{x}$ is optimal.
+\end{thm}
+\begin{proof}
+Let $C$ be a simple cycle in $G_\mathbf{x}$. $C$ has at most $n$ arcs. By \cref{defn:epsilon-optimality}, for each arc $(i,j) \in C$ we have $c^{\boldsymbol{\pi}}_{ij} \geq -\epsilon$. It follows the cost of $C$ is $\geq -n\epsilon$.
 
-Cite paper giving proof of correctness. State, with citation, time and space complexity achieved.
+By assumption on $\epsilon$, we have $n\epsilon > -1$. By \cref{assumption:integrality}, we can deduce that the cost of $C$ is $\geq 0$. The result follows from the negative cycle optimality conditions given in \cref{thm:optimality-neg-cycle}.
+\end{proof}
 
-\subsection{Heuristics}
+\subsection{Generic algorithm}
 
-Summarise what they are, even if you don't have to implement them.
+% Active vertex = excess
+% Admissible arc = negative reduced cost
 
-\subsection{Optimisations}
+\subsubsection{Description}
 
-e.g. vertex vs wave. Perhaps this should be merged with heuristics anyway?
+% Difference in presentation: they consider undirected edges, specify data structure.
+% I'd like to keep presentation the same as in rest of chapter, not have to deal with
+% forward and backwards edges. But this may not be possible...
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+    \Let{$\epsilon$}{$C$} \Comment{where $C$ is largest arc cost, see \S\ref{sec:prep-flow-complexity}}
+    \Let{$\mathbf{x}$}{result of maximum-flow algorithm} \Comment{establishes $\mathbf{x}$ feasible}
+    \Let{$\boldsymbol{\pi}$}{$\mathbf{0}$}
+    \While{$\epsilon \geq 1/n$} \Comment{loop until $\mathbf{x}$ is optimal}
+        \Let{$\epsilon$}{$\epsilon/2$}
+        \State \Call{Refine}{$\mathbf{x}$,$\boldsymbol{\pi}$,$\epsilon$}
+    \EndWhile
+\end{algorithmic}
+\caption{Cost scaling algorithm}
+\label{algo:cost-scaling}
+\end{algorithm}
+
+\begin{algorithm}
+    \begin{algorithmic}[1]
+        \Function{Refine}{$\mathbf{x}$,$\boldsymbol{\pi}$,$\epsilon$}
+            \For{every arc $(i,j) \in E$} \Comment{initialisation}
+                \If{$c^{\boldsymbol{\pi}}_{ij} > 0$} $x_{ij} \gets 0$ \EndIf
+                \If{$c^{\boldsymbol{\pi}}_{ij} < 0$} $x_{ij} \gets u_{ij}$ \EndIf
+            \EndFor
+            \While{mass balance constraints not satisfied} \Comment{main loop}
+                \State select an excess vertex $s$
+                \If{$\exists (i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} < 0$} \Call{Push}{$i$,$j$}
+                \Else \enspace\Call{Relabel}{$i$,$\epsilon$}
+                \EndIf
+            \EndWhile
+        \EndFunction
+    \end{algorithmic}
+    \caption{Generic \textproc{Refine} subroutine}
+    \label{algo:cost-scaling-generic-refine}
+\end{algorithm}
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+    \Require $e_i > 0$, $r_{ij} > 0$ and $c^{\boldsymbol{\pi}}_{ij} < 0$
+    \Function{Push}{$i$,$j$}
+        \State send $\min\left(e_i, r_{ij}\right)$ units of flow from $i$ to $j$
+    \EndFunction    
+    \setcounter{ALG@line}{0}
+    \Statex
+    \Require $e_i > 0$ and $\forall j \in V\cdot r_{ij} > 0 \implies c^{\boldsymbol{\pi}}_{ij} \geq 0$
+    \Function{Relabel}{$i$,$\epsilon$}
+        \Let{$\boldsymbol{\pi}_i$}{$\min \left\{\boldsymbol{\pi}_j + c_{ij} + \epsilon \::\: (i,j) \in E_{\mathbf{x}}\right\}$}
+    \EndFunction
+\end{algorithmic}
+\caption{Push and relabel: the basic operations}
+\label{algo:cost-scaling-operations}
+\end{algorithm}
+
+% High-level description. Initialize to max-flow. Run Refine routine repeatedly, halving epsilon each time. Can give time complexity.
+% Refine subroutine: input (x,pi) => (x,pi) with halved epsilon optimality
+% Sets flow on every out-of-kilter edge to upper bound. Makes pseudoflow 0-optimal. But we want a flow!
+% PUSH/RELABEL operations preserve epsilson-optimality, and move towards feasibility.
+
+Pseudocode. Explanation.
+
+\subsubsection{Correctness}
+
+% Correctness lemma for push, relabel
+% Lemma: one of the preconditions will always hold
+% Theorem: generic refine subroutine correct
+Proofs.
+
+\subsubsection{Complexity}
+
+%% Asymptotic complexity analysis
+% Lemma: simple path in residual networks from source to sink vertex
+% Lemma: potential of vertex increases by at most 3n*epsilon during execution of Refine
+% Lemma: number of relabels during an execution of Refine is at most 3n^2. Immediate from above two lemmas.
+% Lemma: number of saturating push operations is at most 5nm.
+% Lemma: immediately after a relabel has been applied to a vertex v, there are no admissible edges entering v
+% Corollary: admissible graph is a DAG
+% Sidenote: be careful what is meant by 'refine' subroutine, otherwise this lemma doesn't hold
+% Lemma: number of non-saturating push operatiosn in an execution of refine is O(n^2m)
+% Theorem: O(n^2m) basic operations, immediate from above lemmas.
+
+State, without proof; reference relevant papers.
+
+\subsection{Algorithm implementations}
+
+\subsubsection{Sequential implementation}
+
+% Running time: sequential implementation is O(n^2m) using naive approach. 'Wave' approach is O(n^3). Can improve to O(nm lg n) with dynamic trees. But this isn't actually used ever?!
+% Data structures: list of incident undirected edges, a current edge, ...
+
+% Sequential implementation: set Q containing vertices with positive balance
+% Proof of algorithmic complexity actually not too bad, could give it perhaps
+% FIFO ordering may improve complexity: possibly useful aside
+
+Naive approach. Aside: FIFO think gives a better bound.
+
+\subsubsection{Wave implementation}
+
+% Wave method: maintains list L of all vertices, topologically ordered with respect to admissible graph
+% Lemma: number of passes over vertex list is O(n^2)
+% Theorem: wave subroutine runs in O(n^3) time. Also not too bad.
+% Definitely worth mentioning these results, since you can show wave method is actually slower in practice.
+
+Asymptotically better. But not for flow scheduling networks. Actually slower; reference benchmark.
+
+\subsection{Improving performance}
+
+\subsubsection{Heuristics}
+
+% Heuristics: can be very brief, but must mention them.
+
+Explain briefly. Reference relevant paper. Explain why you opted not to implement them.
+
+\subsubsection{Optimisations}
+
+% Optimisations: changing scaling factor, maintaining integrality, wave vs sequential
 
 \section{Approximation algorithms} \label{sec:impl-approx}
 

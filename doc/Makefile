@@ -21,7 +21,7 @@ diss_continual: diss.tex diss.bib
 	latexmk -pvc -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diss.tex" diss.tex
 
 wordcount:
-	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //'
+	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //' | tee diss-auto-wordcount.tex
 
 clean:
 	rm -f *.pdf
