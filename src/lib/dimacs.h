@@ -412,10 +412,13 @@ template<class T>
 class DIMACSIncrementalDeltaImporter : public DIMACSImporter {
 	BOOST_CONCEPT_ASSERT((DynamicGraphCallbacks<T>));
 public:
-	DIMACSIncrementalDeltaImporter(std::istream &is, T &g) : DIMACSImporter(is),
-			                                                g(g) {};
+	typedef std::function<void(void)> callback;
+	DIMACSIncrementalDeltaImporter(std::istream &is, T &g,
+			                           callback new_delta=callback())
+	        : DIMACSImporter(is), g(g), new_delta_callback(new_delta) {};
 
 	bool read() {
+		new_delta = false;
 		return DIMACSImporter::parse();
 	}
 
@@ -436,6 +439,12 @@ private:
 	}
 
 	bool processLine(char type, const char *remainder) {
+		if (!new_delta) {
+			new_delta = true;
+			if (new_delta_callback) {
+				new_delta_callback();
+			}
+		}
 		int num_matches = -1;
 		switch (type) {
 		case 'c':
@@ -577,6 +586,8 @@ private:
 
 	T &g;
 	DIMACSIncrementalDeltaStatistics statistics;
+	bool new_delta;
+	callback new_delta_callback;
 };
 
 } /* namespace flowsolver */

@@ -26,6 +26,14 @@ const static std::string TIMER_FORMAT = "ALGOTIME: %w\n";
 
 using namespace flowsolver;
 
+// algorithm timer
+boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
+
+// seems stupid, but necessary to provide a callback
+void restart_timer() {
+	t.start();
+}
+
 int main(int argc, char *argv[]) {
 	// parse command line arguments
 	namespace po = boost::program_options;
@@ -103,17 +111,14 @@ int main(int argc, char *argv[]) {
 	}
 	google::InitGoogleLogging(argv[0]);
 
-	// for timing algorithms
-	boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
-	t.stop();
-
 	// load full file
 	ResidualNetwork *g = DIMACSIncrementalFullImporter<ResidualNetwork>
                                                               (std::cin).read();
 
 	// solve full problem
 	IncrementalSolver *is = NULL;
-	t.start();
+	// reset timer
+	t.stop(); t.start();
 	if (cmd == "augmenting_path") {
 		is = new AugmentingPath(*g);
 	} else if (cmd == "relax") {
@@ -138,10 +143,11 @@ int main(int argc, char *argv[]) {
 	// now solve incremental problem
 	DynamicMaintainOptimality dynamic(*g, *is);
 	DIMACSIncrementalDeltaImporter<DynamicMaintainOptimality>
-	                              incremental_importer(std::cin, dynamic);
+	                       incremental_importer(std::cin, dynamic, restart_timer);
 
 	// process stream of incremental deltas, solving incremental problem
 	uint64_t num_iterations = 0;
+	// note timer automatically restarted when read() receives first line
 	while (incremental_importer.read()) {
 		if (!partial_dir.empty()) {
 			// generate debug trace before reoptimization
@@ -166,7 +172,6 @@ int main(int argc, char *argv[]) {
 		}
 		std::cout << "c EOI" << std::endl;
 		std::cout.flush();
-		t.start();
 
 		num_iterations++;
 	}
