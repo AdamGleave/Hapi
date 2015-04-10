@@ -559,7 +559,7 @@ Note each iteration of this loop adds a new node to $S$ on each iteration, and s
 To deduce the overall time complexity, we will need the bounds proved in \cref{lemma:relax-iterations}. $\textproc{UpdatePotentials}$ is called $O(mCU)$ times and has cost $O(m)$, so contributes a total cost of $O(m^2CU)$. $\textproc{AugmentFlow}$ is called $O(nmCU^2)$ times and has cost $O(n)$, so contributes a total cost of $O(n^2mCU^2)$. Finally, the body of the while loop on lines 3-17 of \cref{algo:relaxation} is executed $O(nmCU^2)$ times. Excluding the cost of the procedure calls (which we have considered separately), each iteration costs $O(m)$, so this contributes a cost of $O(nm^2CU^2)$. This dominates the other costs, and is thus the overall time complexity of the algorithm.
 \end{proof}
 
-\section{Cost scaling algorithm}
+\section{Cost scaling algorithm} \label{sec:impl-cost-scaling}
 
 % SOMEDAY: If you run a benchmark of reference implementations, cite it here.
 This method is due to Goldberg and Tarjan~\cite{Goldberg:1987}. It runs in weakly polynomial time, with variants offering strongly polynomial bounds. It is one of the most efficient solution methods, both in theory and practice\footnotemark. Cost scaling works by successive approximation, and so it lends itself readily to an approximate solver (see \S\ref{sec:impl-approx}). It is inappropriate for an incremental solver, however.
@@ -873,33 +873,9 @@ With this invariant, we can show an $O(n^2)$ bound on the number of passes over 
 
 \subsection{Heuristics}
 
-So far, we have considered means by which to improve the theoretical performance of the algorithm. There has also been considerable research effort on improving the practical performance by means of \emph{heuristics} guiding the actions of the algorithm~\cite{Goldberg:1997}. This can result in improved practical performance, although it will not affect the worst-case asymptotic time complexity.
+So far, we have considered means by which the theoretical performance of the algorithm may be improved. There has also been considerable research effort on improving the practical performance by means of \emph{heuristics} guiding the actions of the algorithm~\cite{Goldberg:1997}. Whilst these do not alter the asymptotic worst-case time complexity, empirically they yield considerable performance gains. The heuristics are summarised in \cref{appendix:csheuristics}. 
 
-The focus of this project is in exploring new approaches to improve performance, not merely rehashing existing techniques. In light of this I decided not to implement these heuristics, judging that the development time would be better spent creating new techniques. 
-
-A few tests require the fastest possible cost scaling implementation: for example, my comparative evaluation in \S\ref{sec:eval-comparative} benchmarks the performance of my final algorithm against state of the art implementations. For these tests, I have used Goldberg's reference implementation CS2~\cite{CS2:2009}. This solver includes all heuristics mentioned in this section, along with many other optimisations.
-
-However for many tests, \emph{relative} performance is what is important. Cost scaling is used in the approximate solver described in \S\ref{sec:impl-approx}. The experiments in \S\ref{sec:eval-approx} seek to determine the performance speed-up from using an approximate rather than optimal solver. Of course, in a real application we would want both solvers to be as fast in absolute terms as possible. However, since the same underlying algorithm is used in both solvers, any optimisation providing an absolute performance advantage will benefit both solvers equally, leaving the ratio unchanged. During early-stage research, it is therefore better to work with simple implementations of the algorithm, which are more readily adapted to new approaches.
-
-\subsubsection{Potential refinement} 
-The $\textproc{Refine}(\mathbf{x},\boldsymbol{\pi},\epsilon)$ routine is guaranteed to produce an $\epsilon$-optimal flow. However, it may also be $\epsilon'$-optimal for $\epsilon' < \epsilon$. This heuristic decreases $\epsilon$ whilst modifying the potentials $\boldsymbol{\pi}$, without changing the flow $\mathbf{x}$. This has been found to yield a 40\% performance improvement~\cite{Bunnagel:1998}.
-
-\subsubsection{Push lookahead}
-Before performing $\textproc{Push}(i,j)$, this heuristic checks whether $j$ is a deficit node ($e_j < 0$) or if $j$ has an outgoing admissible arc. If so, the \textproc{Push} operation proceeds.
-
-Otherwise, we abort the \textproc{Push} operation, and perform \textproc{Relabel} instead. Were we to continue with the \textproc{Push} operation, the flow would get 'stuck' at node $j$, and end up being pushed back to $i$. This heuristic has been found to significantly reduce the number of \textproc{Push} operations performed~\cite{Goldberg:1997}.
-
-\subsubsection{Arc fixing}
-The algorithm examines a large number of arcs, sometimes unnecessarily. We can prove that for any arc $(i,j)$ with reduced cost satisfying $\left|c^{\boldsymbol{\pi}}_ij\right| > 2n\epsilon$, the flow $x_{ij}$ is never again modified. These arcs can safely be \emph{fixed}: removed from the adjacency list examined by the algorithm. 
-
-This heuristic takes things a step further, \emph{speculatively} fixing arcs whenever $\left|c^{\boldsymbol{\pi}}_ij\right|$ is above some threshold $\beta$. Speculatively fixed arcs may still need to have their flow updated, but this is unlikely. Consequently, the algorithm examines these arcs very infrequently, unfixing an arc if it is found to violate reduced cost optimality conditions.
-
-\subsubsection{Potential update}
-The \textproc{Relabel} operation given in \cref{algo:cost-scaling-operations} updates the potential at a single node. This heuristic is based around an alternative \emph{set relabel} operation, which updates potentials at many nodes at once.
-
-'Vanilla' relabel operations are still used, with set relabel called periodically. The optimum frequency depends on both the implementation, and the problem, but calling set relabel every $O(n)$ regular relabels has been found to be a good rule of thumb~\cite{Goldberg:1997}.
-
-This heuristic improves performance when used on its own, but has little effect when used in conjunction with potential refinement and push lookahead described above. In fact, it may even \emph{harm} performance in some cases, although it has been found to be more beneficial the larger the network instance~\cite{Bunnagel:1998}.
+I decided not to implement any heuristics in this project. My focus is on exploring new avenues for improving performance. These heuristics are already well-studied: implementing them would have been unlikely to uncover anything new, and would have diverted considerable development time from other efforts. I judged that it was better to keep my implementation simple, to allow for rapidly exploring new approaches, such as those discussed in \S\ref{sec:impl-approx}.
 
 % Optimisations: changing scaling factor, maintaining integrality, wave vs sequential
 % Optimisations may be better left for evaluation? If you do want to include it here, should merge it into heuristics with a section e.g. Improving performance
