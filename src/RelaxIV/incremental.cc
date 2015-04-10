@@ -177,7 +177,6 @@ int main(int argc, char *argv[]) {
 
   // solve network, output results, read delta, repeat
 	t.resume();
-	DIMACS::callback restart_timer = restart_timer;
 	do {
 #ifdef DEBUG
 		std::cout << "c GRAPH" << endl;

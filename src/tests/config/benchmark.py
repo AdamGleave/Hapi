@@ -549,6 +549,21 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "full":           { "implementation": "f_cs_goldberg" },
       "incremental":    { "implementation": "i_relaxf_latest" },
     },
+  },
+  "optimized_head_to_head_quick": {
+    # These implementations can handle a full-size dataset
+    "traces": [
+      {
+       "name": "small_trace",
+       "scheduling_rounds": 100,
+       "percentage": 1,
+      }
+    ],
+    "iterations": 5,
+    "tests": {
+      "full":           { "implementation": "f_cs_goldberg" },
+      "incremental":    { "implementation": "i_relaxf_latest" },
+    },
   },                                  
 }
 
