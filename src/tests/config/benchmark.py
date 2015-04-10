@@ -114,6 +114,10 @@ TRACE_DATASET = {
     "dir": os.path.join(TRACE_ROOT, "small_trace"),
     "num_files": 1,
   },
+  "google_trace": {
+    "dir": os.path.join(TRACE_ROOT, "google_trace"),
+    "num_files": 500,
+  },
 }
 
 SECOND = 10**6 # 1 second in microseconds
@@ -466,7 +470,20 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "tests": {
       "full": { "implementation": "f_cs_goldberg" },
     },
-  },                           
+  },
+  # Run optimized implementation on whole trace. Get an idea for how fast
+  # we can get through it. 
+  "how_long_can_we_go": {
+    "traces": [
+      {
+       "name": "google_trace",
+      }
+    ],
+    "iterations": 1,
+    "tests": {
+      "i_relaxf":    { "implementation": "i_relaxf_latest" },
+    },
+  },                          
   ### Self comparisons
   ### How does the performance of an incremental solver compare to using the
   ### same solver in a non-incremental mode? Similarly, what proportion of work
@@ -536,7 +553,20 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   # Fight against the best optimized implementations.
   # Goldberg for full solver, modified RelaxIV for incremental solver.
-  "optimized_head_to_head": {
+  "optimized_head_to_head_short": {
+    # These implementations can handle a full-size dataset
+    "traces": [
+      {
+       "name": "google_trace",
+      }
+    ],
+    "iterations": 5,
+    "tests": {
+      "full":           { "implementation": "f_cs_goldberg" },
+      "incremental":    { "implementation": "i_relaxf_latest" },
+    },
+  },
+  "optimized_head_to_head_short": {
     # These implementations can handle a full-size dataset
     "traces": [
       {
@@ -550,7 +580,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_relaxf_latest" },
     },
   },
-  "optimized_head_to_head_quick": {
+  "optimized_head_to_head_very_short": {
     # These implementations can handle a full-size dataset
     "traces": [
       {
