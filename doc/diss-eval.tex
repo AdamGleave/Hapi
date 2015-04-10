@@ -35,6 +35,8 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 \subsection{Cost scaling}
 
+% First-active approach: when relabel happens, add s to rear or front of Q?
+
 \subsection{Augmenting path}
 
 \subsection{DIMACS Parser}
@@ -43,7 +45,9 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 Tests on final version of algorithms, with all optimisations enabled.
 
-\subsection{Approximation algorithm}
+\subsection{Approximation algorithm} \label{sec:eval-approx}
+
+% Reference from Impl:Cost Scaling:Heuristics expects you to justify why comparing against my own cost scaling implementation is legit.
 
 \subsubsection{Comparison with optimal algorithms}
 
@@ -89,7 +93,7 @@ For incremental algorithm only. Simulate large job being added with lots of task
 
 How does performance vary on new / more complicated cost models?
 
-\section{Comparative evaluation}
+\section{Comparative evaluation} \label{sec:eval-comparative}
 
 Compare performance with reference implementations, such as Goldberg. Test only those algorithms found to be most competitive in the previous section -- no point testing algorithms which I already know are suboptimal.
 

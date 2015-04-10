@@ -434,7 +434,7 @@ The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $
     \end{algorithmic}
 \end{algorithm}
 
-Figures \ref{algo:relaxation}, \ref{algo:relaxation-augment-flow} and \ref{algo:relaxation-update-potentials} formally describe the algorithm. We maintain a set $S$ of nodes spanned by the shortest path tree. The arcs in the tree are specified by the predecessor array, $\mathrm{Pred}$. Whilst we could recompute $e(S)$ and $r(\boldsymbol{\pi},S)$ when needed, it is more efficient for us to maintain them as variables, updating them when we add a node to the tree.
+\Cref{algo:relaxation,algo:relaxation-update-potentials,algo:relaxation-augment-flow} formally describe the solution method. We maintain a set $S$ of nodes spanned by the shortest path tree. The arcs in the tree are specified by the predecessor array, $\mathrm{Pred}$. Whilst we could recompute $e(S)$ and $r(\boldsymbol{\pi},S)$ when needed, it is more efficient for us to maintain them as variables, updating them when we add a node to the tree.
 
 The outer loop on lines 2-17 of \ref{algo:relaxation} selects a source node $s$. The inner loop on lines 6-15 adds nodes and arcs to the tree. The tree consists solely of non-deficit nodes, and arcs with zero reduced cost. It is thus a shortest path tree in the residual network: the distance between any nodes in the tree is zero\footnotemark.
 \footnotetext{Note there cannot be any path in the residual network with negative distance, by assumption of reduced cost optimality.}
@@ -445,7 +445,9 @@ If a deficit node $t$ is encountered, we augment the flow along the shortest pat
 
 \subsubsection{Correctness}
 
-\begin{lemma}[Correctness of $\mathrm{UpdatePotentials}$] \label{lemma:relax-correctness-updatepotentials}
+First, we will show that \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve reduced cost optimality. Using these lemmas, we can then show that reduced cost optimality is maintained as an invariant throughout the algorithm, and thus if the algorithm terminates then $\mathbf{x}$ is a solution to the minimum-cost flow problem. We will also prove properties of \textproc{UpdatePotentials} and \textproc{AugmentFlow} that will be useful for complexity analysis in the next section.\\
+
+\begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
 Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, we have a new pseudoflow and node potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ which continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
 \end{lemma}
 \begin{proof}
@@ -467,8 +469,8 @@ We now obtain $\boldsymbol{\pi}'$ from $\boldsymbol{\pi}$ by increasing the pote
 The first sum is unchanged: modifying the potentials $\boldsymbol{\pi}$ does not change the original arc cost $c_ij$ or flow $x_{ij}$. For the second sum, we have:
 \begin{align*}
 \sum_{i\in V}\pi'_{i}e'_{i}= & \sum_{i\in S}\left(\pi_{i}+\alpha\right)e'_{i}+\sum_{i\in\overline{S}}\pi_{i}e'_{i}\\
-= & \alpha\sum_{i\in S}e'_{i}+\sum_{i\in V}\pi_{i}e'_{i}\\
-= & \alpha e'(S)+\sum_{i\in V}\pi_{i}e'_{i}
+= &\:\alpha\sum_{i\in S}e'_{i}+\sum_{i\in V}\pi_{i}e'_{i}\\
+= &\:\alpha e'(S)+\sum_{i\in V}\pi_{i}e'_{i}
 \end{align*}
 Since $w\left(\boldsymbol{\pi}\right)$ unchanged after updating $\mathbf{x}$, it follows:
 \[w\left(\boldsymbol{\pi}'\right)=w(\boldsymbol{\pi})+\alpha e'(S)\]
@@ -480,8 +482,8 @@ Prior to updating potentials, all arcs in the residual network had (strictly) po
 \footnotetext{Note increasing the reduced cost from zero to a positive number could violate optimality: an arc with zero reduced cost is permitted to have a positive flow, whereas an arc with positive reduced cost is not.} Decreasing the reduced cost might, however. But before updating the potentials, $c_{ij}^{\boldsymbol{\pi}} \geq \alpha$ for all $(i,j)\in\left(S,\overline{S}\right)\:\mbox{and}\:r_{ij}>0$, hence after the potential update $c_{ij}^{\boldsymbol{\pi}'}\geq 0$ for these arcs.
 \end{proof}
 
-\begin{lemma}[Correctness of $\mathrm{AugmentFlow}$] \label{lemma:relax-correctness-augmentflow}
-Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e(t) < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\mathrm{AugmentFlow}$, we have a new pseudoflow $\mathbf{x}'$ such that $\left(\mathbf{x}',\boldsymbol{\pi}\right)$. Moreover, under $\mathbf{x}'$ the excess at node $s$ and deficit at node $t$ decreases, without changing the excess/deficit at any other node\footnotemark.
+\begin{lemma}[Correctness of \textproc{AugmentFlow}] \label{lemma:relax-correctness-augmentflow}
+Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e(t) < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, we have a new pseudoflow $\mathbf{x}'$ such that $\left(\mathbf{x}',\boldsymbol{\pi}\right)$. Moreover, under $\mathbf{x}'$ the excess at node $s$ and deficit at node $t$ decreases, without changing the excess/deficit at any other node\footnotemark.
 \footnotetext{The \emph{feasibility} of the solution has increased}
 \end{lemma}
 \begin{proof}
@@ -500,7 +502,7 @@ Since we send an equal amount of flow on each arc in $P$, the excess at nodes ot
 Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
 \end{thm}
 \begin{proof}
-For the same reason given in \cref{thm:ssp-invariant}, the initial values of $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. $\mathrm{AugmentFlows}$ and $\textproc{UpdatePotentials}$ are only invoked when their preconditions are satisfied, and so by \cref{lemma:relax-correctness-augmentflows,lemma:relax-correctness-updatepotentials} it follows that reduced cost optimality is maintained. Moreover, the main algorithm given in \cref{algo:relaxation} does not update $\mathbf{x}$ or $\boldsymbol{\pi}$ except via calls to $\mathrm{AugmentFlows}$ and $\textproc{UpdatePotentials}$. So, reduced cost optimality is maintained as an invariant throughout the algorithm.
+For the same reason given in \cref{thm:ssp-invariant}, the initial values of $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. \textproc{AugmentFlow} and \textproc{UpdatePotentials} are only invoked when their preconditions are satisfied, and so by \cref{lemma:relax-correctness-augmentflows,lemma:relax-correctness-updatepotentials} it follows that reduced cost optimality is maintained. Moreover, the main algorithm given in \cref{algo:relaxation} does not update $\mathbf{x}$ or $\boldsymbol{\pi}$ except via calls to $\textproc{AugmentFlows}$ and $\textproc{UpdatePotentials}$. So, reduced cost optimality is maintained as an invariant throughout the algorithm.
 
 The algorithm terminates when the mass balance constraints are satisfied, so $\mathbf{x}$ is feasible. Thus upon termination, $\mathbf{x}$ is feasible and satisfies reduced cost optimality conditions. So $\mathbf{x}$ is a solution to the minimum-cost flow problem. 
 \end{proof}
@@ -567,8 +569,6 @@ The algorithm maintains a feasible flow. The flow need not be optimal, but the e
 
 \subsection{$\epsilon$-optimality}
 
-The notion of $\epsilon$-optimality is a relaxation of the reduced cost optimality conditions given in \cref{thm:optimality-reduced-cost}.
-
 \begin{defn}[$\epsilon$-optimality] \label{defn:epsilon-optimality}
 Let $\epsilon \geq 0$. A pseudoflow $\mathbf{x}$ is $\epsilon$-optimal with respect to node potentials $\boldsymbol{\pi}$ if the reduced cost of each arc in the residual network $G_\mathbf{x}$ is greater than $-\epsilon$:
 \begin{equation} \label{eq:epsilon-optimality}
@@ -577,7 +577,7 @@ c^{\boldsymbol{\pi}}_{ij} \geq -\epsilon\:\forall (i,j) \in E_{\mathbf{x}}
 \end{defn}
 
 \begin{remark}
-Note that $0$-optimality is equivalent to the conditions of reduced cost optimality. We can, however, prove a stronger result.\\
+Note this is a relaxation of the reduced cost optimality conditions given in \cref{eq:optimality-reduced-cost}. When $\epsilon = 0$, the definition of $\epsilon$-optimality in \cref{eq:epsilon-optimality} is equivalent to that of \cref{eq:optimality-reduced-cost}. We can, however, prove a stronger result.\\
 \end{remark}
 
 \begin{thm} \label{thm:epsilon-optimality-optimal}
@@ -642,7 +642,7 @@ The procedure described in \cref{algo:cost-scaling} is inspired by \cref{thm:eps
 
 This routine is described in \cref{algo:cost-scaling-generic-refine}. Lines 2-4 ensures the reduced cost optimality conditions given in \cref{eq:optimality-reduced-cost} are satisfied. The resulting pseudoflow is $0$-optimal, but will in general not be feasible. Lines 5-8 bring the flow back to feasibility, by applying sequences of basic operations, \textproc{Push} and \textproc{Relabel}, both of which preserve $\epsilon$-optimality. One might wonder why we do not simply set $\epsilon < 1/n$ during lines 5-8 immediately. This approach is used in an algorithm due to Bertsekas~\cite{Bertsekas:1985}, however it results in exponential worst-case complexity.
 
-Lines 5-8 of \textproc{Refine} are non-deterministic: there may be multiple source vertices $s$, and there may exist multiple arcs $(s,j) \in E_\mathbf{x}$ satisfying the condition given. We will show that any sequence of basic operations will produce the correct final solution. Moreover, we can prove some complexity bounds for this generic version of the algorithm. However, both the theoretical and practical performance of the algorithm can be improved by certain rules for choosing between operations. Approaches for this are discussed further in \S\ref{sec:impl-cost-scaling-implementations}.
+Lines 5-8 of \textproc{Refine} are non-deterministic: there may be multiple source vertices $s$, and there may exist multiple arcs $(s,j) \in E_\mathbf{x}$ satisfying the condition given. We will show that the correct final solution will be produced whatever choice is made. Moreover, we can prove some complexity bounds for this generic version of the algorithm. However, both the theoretical and practical performance of the algorithm can be improved by certain rules for choosing between operations. Approaches for this are discussed further in \S\ref{sec:impl-cost-scaling-implementations}.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -710,52 +710,199 @@ After each iteration of the algorithm, $\left(\mathbf{x},\boldsymbol{\pi}\right)
 
 \subsubsection{Complexity}
 
-%% Asymptotic complexity analysis
-% Lemma: simple path in residual networks from source to sink vertex
-% Lemma: potential of vertex increases by at most 3n*epsilon during execution of Refine
-% Lemma: number of relabels during an execution of Refine is at most 3n^2. Immediate from above two lemmas.
-% Lemma: number of saturating push operations is at most 5nm.
-% Lemma: immediately after a relabel has been applied to a vertex v, there are no admissible edges entering v
-% Corollary: admissible graph is a DAG
-% Sidenote: be careful what is meant by 'refine' subroutine, otherwise this lemma doesn't hold
-% Lemma: number of non-saturating push operatiosn in an execution of refine is O(n^2m)
-% Theorem: O(n^2m) basic operations, immediate from above lemmas.
+\begin{lemma} \label{lemma:cost-scaling-operations-complexity}
+The basic operations given in \cref{algo:cost-scaling-operations} have the following time complexities:
+\begin{enumerate}[label=(\alph*)]
+    \item $\textproc{Push}(i,j)$ runs in $O(1)$ time.
+    \item $\textproc{Relabel}(i)$ runs in $O\left(\left|\mathrm{Adj}(i)\right|\right)$ time, that is linear in the number of adjacent arcs.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+Trivial.
+\end{proof}
 
-State, without proof; reference relevant papers.
+\begin{defn}
+An invocation of $\textproc{Push}(i,j)$ is said to be \emph{saturating} if $r_ij = 0$ after the operation; otherwise, it is nonsaturating.\\
+\end{defn}
+
+\begin{remark}
+Note a push operation is saturating if and only if $e_i \geq r_ij$ prior to calling \textproc{Push}.\\
+\end{remark}
+
+\begin{lemma} \label{lemma:cost-scaling-number-operations}
+Within an invocation of \textproc{Refine}, the following upper bounds apply on the number of times each basic operation is performed:
+\begin{enumerate}[label=(\alph*)]
+    \item $O(n^2)$ \textproc{Relabel} operations.
+    \item $O(nm)$ saturating \textproc{Push} operations.
+    \item $O(n^2m)$ nonsaturating \textproc{Push} operations.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+See~\cite[lemma~6.3, lemma~6.4, lemma~6.7]{Goldberg:1987}.
+\end{proof}
+
+\begin{thm} \label{thm:cost-scaling-refine-complexity}
+Within an invocation of \textproc{Refine}, the basic operations contribute a complexity of $O(n^2m)$.
+\end{thm}
+\begin{proof}
+We will use \cref{lemma:cost-scaling-operations-complexity,lemma:cost-scaling-number-operations}. \textproc{Relabel} is executed at most $O(n^2\cdot)$ times, with each operation having a cost of $O\left(\left|\mathrm{Adj}(i)\right|\right) = O(n)$\footnotemark, contributing a total of $O(n^3)$. There are up to $O(nm)$ saturating and $O(n^2m)$ nonsaturating \textproc{Push} operations. Each has a cost of $O(1)$, and so \textproc{Push} contributes a total cost of $O(n^2m)$. Hence the basic operations executed by \textproc{Refine} contribute a complexity of $O(n^3 + n^2m) = O(n^2m)$.
+\end{proof}
+
+\begin{remark}
+It is unfortunately not possible for us to prove a bound on the complexity of the generic refine routine given in \cref{algo:cost-scaling-generic-refine}, since it is dependent on how excess vertices are selected on line 6 and arcs are chosen on line 7. We will prove bounds on specific implementations of refine in \S\ref{sec:impl-cost-scaling-implementations}.\\
+\end{remark}
+
+\begin{thm} [{Adapted from~\cite[theorem~4.1]{Goldberg:1987}}] \label{lemma:cost-scaling-overall-algorithm}
+Let $R(n,m)$ be the running time of the \textproc{Refine} routine. Then the minimum-cost flow algorithm described in \cref{algo:cost-scaling} runs in $O\left(R(n,m)\lg(nC)\right)$ time.
+\end{thm}
+\begin{proof}
+The algorithm terminates once $\epsilon < 1/n$, which takes place after $\log_2\left(\frac{C}{1/n}\right) = \log_2 (nC)$ iterations of lines 4-6. The loop condition on line 4 and the assignment on line 5 are both $O(1)$, so the dominant cost of each iteration is the execution of \textproc{Refine}. Lines 4-6 thus contribute a cost of $O\left(R(n,m)\lg(nC)\right)$. This dominates the initialisation on lines 1-3, and thus is the overall cost of the algorithm.
+\end{proof}
 
 \subsection{Algorithm implementations} \label{sec:impl-cost-scaling-implementations}
 
-\subsubsection{Sequential implementation}
+The previous section describes the generic version of the algorithm. It cannot be implemented in the form described so far: lines 5-8 of \cref{algo:cost-scaling-generic-refine} are non-deterministic, in the sense that the order in which basic operations is applied is not defined. This order affects the performance of the algorithm, both in theory and in practice. For this project, I implemented two versions, both described by Goldberg~\cite{Goldberg:1990}: "first-active" and "wave".
 
-% Running time: sequential implementation is O(n^2m) using naive approach. 'Wave' approach is O(n^3). Can improve to O(nm lg n) with dynamic trees. But this isn't actually used ever?!
-% Data structures: list of incident undirected edges, a current edge, ...
+\subsubsection{FIFO refine}
 
-% Sequential implementation: set Q containing vertices with positive balance
-% Proof of algorithmic complexity actually not too bad, could give it perhaps
-% FIFO ordering may improve complexity: possibly useful aside
+\begin{algorithm}
+\begin{algorithmic}[1]
+    \Function{Refine}{$\mathbf{x}$,$\boldsymbol{\pi}$,$\epsilon$}
+        \State initialisation as in lines 2-4 of \cref{algo:cost-scaling-generic-refine}
+        \Let{$Q$}{$\left[s \in V \::\: e_s > 0\right]$} \Comment{$Q$ is a queue of excess nodes}
+        \While{$Q$ not empty}
+            \State pop head of $Q$ into $s$
+            \State \Call{Discharge}{$s$,$\epsilon$} \Comment{May add nodes to $Q$}
+            \If{\textproc{Relabel} called by \textproc{Discharge}}
+                \State add $s$ to rear of $Q$
+                \Break
+            \EndIf
+        \EndWhile
+    \EndFunction
+\end{algorithmic}
+\caption{FIFO \textproc{Refine} routine}.
+\label{algo:cost-scaling-first-active-refine}
+\end{algorithm}
 
-Naive approach. Aside: FIFO think gives a better bound.
+\Cref{algo:cost-scaling-first-active-refine} maintains a first-in-first-out (FIFO) queue $Q$ of excess nodes (see \S\ref{sec:prep-flow-pseudo}). The initial order of vertices in the queue is arbitrary. At each iteration, an excess node $s$ is removed from the head of the queue, and \emph{discharged} by applying a sequence of \textproc{Push} and \textproc{Relabel} operations (described below). During execution of the algorithm, new nodes may gain an excess; in this case, they must be added to the rear of $Q$.
 
-\subsubsection{Wave implementation}
+\begin{algorithm}
+\begin{algorithmic}[1]
+    \Require{$e_s > 0$}
+    \Function{Discharge}{$s$,$\epsilon$}
+        \Repeat
+            \State \Call{PushOrRelabel}{$s$,$\epsilon$}
+        \Until $e_s \leq 0$
+    \EndFunction
+    \setcounter{ALG@line}{0}
+    \Statex
+    \Require{$e_s > 0$}
+    \Function{PushOrRelabel}{$s$,$\epsilon$}
+        \State let $(i,j)$ be the current arc of $s$
+        \If{$(i,j) \in E_\mathbf{x}$ and $c_{ij}^{\boldsymbol{\pi}}$} \Call{Push}{$i$,$j$}
+        \Else
+            \If{$(i,j)$ last arc on the adjacency list for $s$}
+                \State \Call{Relabel}{$s$}
+                \Let{current arc}{first arc in adjacency list}
+            \Else
+                \Let{current arc}{next arc in adjacency list}
+            \EndIf
+        \EndIf
+    \EndFunction
+\end{algorithmic}
+\caption{\textproc{Discharge} and helper routine \textproc{PushOrRelabel}}
+\label{algo:cost-scaling-discharge}
+\end{algorithm}
 
-% Wave method: maintains list L of all vertices, topologically ordered with respect to admissible graph
-% Lemma: number of passes over vertex list is O(n^2)
-% Theorem: wave subroutine runs in O(n^3) time. Also not too bad.
-% Definitely worth mentioning these results, since you can show wave method is actually slower in practice.
+$\textproc{Discharge}(s)$ is described in \cref{algo:cost-scaling-discharge}. It may be applied to any excess node, and performs a sequence of push operations until $e_s = 0$ or \textproc{Relabel} is called. For each node $i \in V$, an adjacency list is maintained, in a fixed (but arbitrary) order. The helper routine \textproc{PushOrRelabel} walks over this adjacency list. A \textproc{Push} operation is performed where possible; otherwise, we skip to the next arc and do nothing. \textproc{Relabel} is only invoked when all arcs in the adjacency list have been either pushed, or skipped; at this point, no other basic operation can be applied to $s$.
 
-Asymptotically better. But not for flow scheduling networks. Actually slower; reference benchmark.
+Note $\textproc{Push}(i,j)$ may make $j$ become an excess node. \textproc{Push} must be modified to add $j$ to the rear of $Q$ in this case. \textproc{Refine} pops $s$ from $Q$ and then calls \textproc{Discharge}. But if \textproc{Relabel} is called by \textproc{Discharge}, $s$ will still be an active vertex. In this case, we also add $s$ to the rear of $Q$\footnotemark.\\
+\footnotetext{It would also be legal to add $s$ to the front of $Q$, and this would result in an algorithm with the same theoretical performance.}
 
-\subsection{Improving performance}
+\begin{thm} \label{thm:cost-scaling-first-active-complexity}
+The algorithm with first-active refine has a running time of $O(n^2m \lg (nC))$.
+\end{thm}
+\begin{proof}
+See \cite[theorem~6.2]{Goldberg:1990}.
+\end{proof}
 
-\subsubsection{Heuristics}
+\begin{remark}
+In fact, this complexity bound holds for any refine routine which repeatedly applies \textproc{PushOrRelabel}. However, it has been conjectured by Goldberg that the first-in first-out ordering of vertices used in this variant results in a tighter bound, of $O(n^3 \lg (nC))$. Proving or disproving this assertion is an open research problem.
+\end{remark}
 
-% Heuristics: can be very brief, but must mention them.
+\subsubsection{Wave refine}
 
-Explain briefly. Reference relevant paper. Explain why you opted not to implement them.
+\begin{algorithm}
+\begin{algorithmic}[1]
+    \Function{Refine}{$\mathbf{x}$,$\boldsymbol{\pi}$,$\epsilon$}
+    \State initialisation as in lines 2-4 of \cref{algo:cost-scaling-generic-refine}
+    \Let{$L$}{list of nodes in $V$} \Comment{order of nodes is arbitrary}
+    \Repeat
+        \For{each vertex $i$ in list $L$}
+            \If{$e_i > 0$}
+                \State \Call{Discharge}($i$,$\epsilon$)
+                \If{\textproc{Relabel} called by \textproc{Discharge}}
+                    \State move $i$ to front of $L$
+                \EndIf
+            \EndIf
+        \EndFor
+    \Until{no excess vertex encountered in \textbf{for} loop}
+    \EndFunction
+\end{algorithmic}
+\caption{Wave \textproc{Refine} routine}
+\label{algo:cost-scaling-wave-refine}
+\end{algorithm}
 
-\subsubsection{Optimisations}
+\Cref{algo:cost-scaling-wave-refine} describes an approach which can be proved to achieve this tighter bound. The method maintains a list $L$ of all nodes in the network, rather than the queue $Q$ maintained by the first-active method. The algorithm preserves the invariant that $L$ is topologically ordered with respect to the \emph{admissible graph}: the subgraph of the residual network containing only arcs with negative reduced cost.
+
+Initially, $L$ contains vertices in arbitrary order. But the admissible graph is empty after line 2 of \cref{algo:cost-scaling-wave-refine}, since lines 2-4 of \cref{algo:cost-scaling-generic-refine} saturate any negative reduced cost arcs, making them drop out of the residual network. Thus $L$ is trivially topologically ordered.
+
+\textproc{Push} operations cannot create admissible edges, and so preserve the topological ordering. \textproc{Relabel} operations can. However, immediately after $\textproc{Relabel}(s)$, there are no admissible edges entering $s$~\cite[lemma~6.5]{Goldberg:1987}. Thus moving $s$ to the beginning of $L$ maintains topological ordering.\\
+
+\begin{thm} \label{thm:cost-scaling-wave-complexity}
+The algorithm with wave refine has a running time of $O(n^3 \lg (nC))$.
+\end{thm}
+\begin{proof}
+With this invariant, we can show an $O(n^2)$ bound on the number of passes over the vertex list~\cite[lemma~7.3]{Goldberg:1987}. This allows an $O(n^3)$ bound on the running time of the wave \textproc{Refine} routine to be proved~\cite[theorem~7.4]{Goldberg:1987}. The result follows by \cref{lemma:cost-scaling-overall-algorithm}.
+\end{proof}
+
+% \paragraph{Alternative implementations}
+% Mention dynamic trees, blocking flows, why I didn't choose to implement these.
+% Reason: they're complicated, and reason to believe a large constant factor makes them slower in practice.
+% But quite difficult to justify succintly. Perhaps best not mention at all? Reader will not know about them, and mentioning them may just confuse things.
+
+\subsection{Heuristics}
+
+So far, we have considered means by which to improve the theoretical performance of the algorithm. There has also been considerable research effort on improving the practical performance by means of \emph{heuristics} guiding the actions of the algorithm~\cite{Goldberg:1997}. This can result in improved practical performance, although it will not affect the worst-case asymptotic time complexity.
+
+The focus of this project is in exploring new approaches to improve performance, not merely rehashing existing techniques. In light of this I decided not to implement these heuristics, judging that the development time would be better spent creating new techniques. 
+
+A few tests require the fastest possible cost scaling implementation: for example, my comparative evaluation in \S\ref{sec:eval-comparative} benchmarks the performance of my final algorithm against state of the art implementations. For these tests, I have used Goldberg's reference implementation CS2~\cite{CS2:2009}. This solver includes all heuristics mentioned in this section, along with many other optimisations.
+
+However for many tests, \emph{relative} performance is what is important. Cost scaling is used in the approximate solver described in \S\ref{sec:impl-approx}. The experiments in \S\ref{sec:eval-approx} seek to determine the performance speed-up from using an approximate rather than optimal solver. Of course, in a real application we would want both solvers to be as fast in absolute terms as possible. However, since the same underlying algorithm is used in both solvers, any optimisation providing an absolute performance advantage will benefit both solvers equally, leaving the ratio unchanged. During early-stage research, it is therefore better to work with simple implementations of the algorithm, which are more readily adapted to new approaches.
+
+\subsubsection{Potential refinement} 
+The $\textproc{Refine}(\mathbf{x},\boldsymbol{\pi},\epsilon)$ routine is guaranteed to produce an $\epsilon$-optimal flow. However, it may also be $\epsilon'$-optimal for $\epsilon' < \epsilon$. This heuristic decreases $\epsilon$ whilst modifying the potentials $\boldsymbol{\pi}$, without changing the flow $\mathbf{x}$. This has been found to yield a 40\% performance improvement~\cite{Bunnagel:1998}.
+
+\subsubsection{Push lookahead}
+Before performing $\textproc{Push}(i,j)$, this heuristic checks whether $j$ is a deficit node ($e_j < 0$) or if $j$ has an outgoing admissible arc. If so, the \textproc{Push} operation proceeds.
+
+Otherwise, we abort the \textproc{Push} operation, and perform \textproc{Relabel} instead. Were we to continue with the \textproc{Push} operation, the flow would get 'stuck' at node $j$, and end up being pushed back to $i$. This heuristic has been found to significantly reduce the number of \textproc{Push} operations performed~\cite{Goldberg:1997}.
+
+\subsubsection{Arc fixing}
+The algorithm examines a large number of arcs, sometimes unnecessarily. We can prove that for any arc $(i,j)$ with reduced cost satisfying $\left|c^{\boldsymbol{\pi}}_ij\right| > 2n\epsilon$, the flow $x_{ij}$ is never again modified. These arcs can safely be \emph{fixed}: removed from the adjacency list examined by the algorithm. 
+
+This heuristic takes things a step further, \emph{speculatively} fixing arcs whenever $\left|c^{\boldsymbol{\pi}}_ij\right|$ is above some threshold $\beta$. Speculatively fixed arcs may still need to have their flow updated, but this is unlikely. Consequently, the algorithm examines these arcs very infrequently, unfixing an arc if it is found to violate reduced cost optimality conditions.
+
+\subsubsection{Potential update}
+The \textproc{Relabel} operation given in \cref{algo:cost-scaling-operations} updates the potential at a single node. This heuristic is based around an alternative \emph{set relabel} operation, which updates potentials at many nodes at once.
+
+'Vanilla' relabel operations are still used, with set relabel called periodically. The optimum frequency depends on both the implementation, and the problem, but calling set relabel every $O(n)$ regular relabels has been found to be a good rule of thumb~\cite{Goldberg:1997}.
+
+This heuristic improves performance when used on its own, but has little effect when used in conjunction with potential refinement and push lookahead described above. In fact, it may even \emph{harm} performance in some cases, although it has been found to be more beneficial the larger the network instance~\cite{Bunnagel:1998}.
 
 % Optimisations: changing scaling factor, maintaining integrality, wave vs sequential
+% Optimisations may be better left for evaluation? If you do want to include it here, should merge it into heuristics with a section e.g. Improving performance
 
 \section{Approximation algorithms} \label{sec:impl-approx}
 
