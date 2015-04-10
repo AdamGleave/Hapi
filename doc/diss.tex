@@ -123,7 +123,7 @@
 % Customize Table of Contents. Don't include list of figures or table of contents in the table of contents. Do still show the bibliography.
 \usepackage[nottoc,notlof,notlot]{tocbibind}
 % This gives more control over lists of {figures,tables,...} sections
-% In particular, it by default disables the (unwanted )page break between them
+% In particular, it by default disables the (unwanted) page break between them
 \usepackage{tocloft}
 
 % Proofreading
@@ -176,50 +176,6 @@
 	\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
 	}
 }
-\makeatother
-
-% Add new section level, subsubsubsection, in between subsubsection and paragraph
-\usepackage{titlesec}
-
-\titleclass{\subsubsubsection}{straight}[\subsection]
-
-\newcounter{subsubsubsection}[subsubsection]
-\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
-\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
-
-\titleformat{\subsubsubsection}
-{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
-\titlespacing*{\subsubsubsection}
-{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
-
-\makeatletter
-\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
-	{3.25ex \@plus1ex \@minus.2ex}%
-	{-1em}%
-	{\normalfont\normalsize\bfseries}}
-\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
-	{3.25ex \@plus1ex \@minus .2ex}%
-	{-1em}%
-	{\normalfont\normalsize\bfseries}}
-\def\toclevel@subsubsubsection{4}
-\def\toclevel@paragraph{5}
-\def\toclevel@paragraph{6}
-
-\setcounter{secnumdepth}{4}
-\setcounter{tocdepth}{4}
-
-% Control indentation in TOC
-\def\l@subsubsubsection{\@dottedtocline{4}{11em}{5em}}
-\def\l@paragraph{\@dottedtocline{5}{14em}{6em}}
-\def\l@subparagraph{\@dottedtocline{6}{18em}{7em}}
-\makeatother
-
-% Make nameref work with titlesec
-\makeatletter
-\def\ttl@useclass#1#2{%
-	\@ifstar
-	{\ttl@labeltrue\@dblarg{#1{#2}}}% {\ttl@labelfalse#1{#2}[]}%
-	{\ttl@labeltrue\@dblarg{#1{#2}}}}
 \makeatother
 
 \begin{document}
@@ -358,15 +314,11 @@ TODO
 
 %TC:ignore
 \appendix
-\chapter{Appendices}
-
-\section{Test specification}
+\chapter{Test specifications}
 State specifications of test machine/cluster.
-\clearpage
 
 % Note project proposal must appear at very end of dissertation, so do not move this!
-\clearpage
-\section{Project proposal} \label{sec:proposal}
+\chapter{Project proposal} \label{sec:proposal}
 \input{propbody}
 %TC:endignore
 

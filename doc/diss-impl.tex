@@ -115,7 +115,7 @@ This algorithm runs in weakly polynomial time. We will show, however, that it ha
 
 The successive shortest path algorithm maintains a pseudoflow (see \S\ref{sec:prep-flow-pseudo}) $\mathbf{x}$ and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains the feasibility strives to achieve optimality.
 
-Each iteration of the algorithm identifies a source node $s$ and sink node $t$. The single-source shortest-path (SSSP) problem~\cite{ch.~24,CLRS:2009} is then solved from $s$. The pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path to $t$, $P$. We are limited by the minimum residual capacity of arcs along the path $P$. Moreover, we opt to maintain a non-negative supply at $s$ and demand at $t$. This restriction ensures the magnitude of the excess at each node is monotonically decreasing. We also update the potentials $\boldsymbol{\pi}$, to maintain reduced cost optimality. The algorithm terminates when no source nodes or sink nodes exist.
+Each iteration of the algorithm identifies a source node $s$ and sink node $t$. The single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is then solved from $s$. The pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path to $t$, $P$. We are limited by the minimum residual capacity of arcs along the path $P$. Moreover, we opt to maintain a non-negative supply at $s$ and demand at $t$. This restriction ensures the magnitude of the excess at each node is monotonically decreasing. We also update the potentials $\boldsymbol{\pi}$, to maintain reduced cost optimality. The algorithm terminates when no source nodes or sink nodes exist.
 
 \subsection{Analysis}
 
@@ -819,7 +819,7 @@ Show how solver can achieve original task, by integrating into a cluster schedul
 
 Motivation. Automate common task. Improve quality of data collection: can run experiment many times with different parameters, no possibility of human error. 
 
-\subsubsection{Architecture}
+\subsection{Architecture}
 
 Specify different implementations by Git 'treeish', and path. Will checkout and build automatically. 
 
@@ -827,10 +827,10 @@ Test cases specify implementations required, I/O parameters, number of iteration
 
 Output CSV file with statistics.
 
-\subsubsection{Testing on full networks}
+\subsection{Testing on full networks}
 
 Non-incremental case.
 
-\subsubsection{Testing on incremental changes}
+\subsection{Testing on incremental changes}
 
 Can test two incremental versions head-to-head. Alternately, can test an incremental version compared to applying the diff and running a full solver from scratch.
