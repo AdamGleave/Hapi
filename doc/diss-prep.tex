@@ -4,39 +4,60 @@
 
 \section{Cluster scheduling} \label{sec:prep-scheduling}
 
-Much as an operating system scheduler maps threads to processor cores, a cluster scheduler maps tasks to computational nodes. I will start by giving a brief overview of the requirements cluster schedulers must meet. Following this, I will summarise the prevailing approaches to scheduling. Finally, I will discuss the principles underlying the Quincy system, and how it improves upon competing schedulers.
+% TODO: Get some references from Malte/Ionel on this?
+Servers in a cluster are managed by the cluster scheduler, which maps tasks to particular machines. The performance and efficiency of the cluster are to a large extent dependent on this scheduler. Consequently, there has been considerable work both inside academia and within industry to develop effective schedulers.
 
-\subsection{Design goals} \label{sec:prep-scheduling-goals}
+I will start by outlining desirable properties for cluster schedulers. Following this, I will summarise the prevailing approaches to scheduling. To conclude, I will discuss the principles underlying Firmament, and show how it improves upon competing approaches with its use of flow scheduling.
 
-The cluster scheduler is critical to performance. However, it faces a challenging task. There may be tens or hundreds of thousands of machines to manage, with perhaps many more tasks. Furthermore, there are a mind-boggling number of parameters which can impact the efficiency of a schedule. To name just a few, the fine-grained resource requirements (in terms of CPU, memory and IO), the location of its data and the characteristics of the underlying network all play a role. With the shift away from batch to more interactive applications on clusters, scheduling latency is increasingly also a concern~\cite{Ousterhout:2013}. The ideal scheduler therefore needs to place thousands of tasks, taking into account information from a variety of sources, within a sub-second time frame.
+\subsection{Design goals}
 
-How can we judge whether a scheduler is effective? First we must define what we mean by performance. In batch applications, we care primarily about throughput. For interactive applications, low latency is essential. As is often the case, these two objectives are in conflict: a scheduler cannot optimise for both. Most applications will fall somewhere between these two extremes, and will perform best under a scheduler which achieves a compromise between the two objectives.
+The cluster scheduler faces a challenging task. The policy of the scheduler should be targeted to meet the needs of particular application requirements. To effectively implement a policy, the scheduler may need a wide variety of factors, such as the load at each machine and the resource requirements of each task. This should all take place as fast as possible, to support interactive applications. Furthermore, the system needs to be able to scale to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}
 
-Once we know our objectives, it remains to consider what data is necessary to find an optimal solution. Clearly, we must take into account the task and its resource requirements. Equally important, but often neglected, is accounting for the resources present in the cluster. Different clusters may call for drastically different scheduling policies. For example, throughput can be significantly improved in many clusters by the scheduler taking into account \emph{data locality}: placing tasks on machines close to where their input data is stored. However, performance is only improved when IO is a bottleneck. In a cluster with a high-bandwidth specialised interconnect such as InfiniBand, performance might actually be harmed by scheduling with data locality in mind, as it may make less efficient use of other resources in the cluster which may be more scarce.
+\begin{table}
+    \begin{tabular}{c|l}
+        Goal & Description\tabularnewline
+        \hline
+        Targeted & Application requirements are reflected in the scheduler policy. \tabularnewline
+        Effective & The policy is realised successfully by the scheduler. \tabularnewline
+        Fast and scalable & Scheduling latency remains low even for large clusters. \tabularnewline
+    \end{tabular}
+    \caption{Design goals for cluster schedulers}
+    \label{table:cluster-scheduler-design-goals}
+\end{table}
 
-To summarize, for optimal performance the scheduler must be able to adapt itself to different hardware platforms and application requirements. Furthermore, ideally the scheduling latency would be kept low, in order to support interactive applications.
+Scheduler policies may try to achieve a variety of objectives. The traditional use case of clusters was for batch jobs, where the goal is to maximise throughput. Increasingly, clusters are running interactive jobs, where latency is critical. Modern clusters are often multi-tenant: ensuring \emph{fairness}, an equitable distribution of resources between users, is also important. Naturally, these and other objectives are often in conflict: a trade-off must be chosen for each application. It is essential, then, that scheduler policy can be targeted to meet the needs of specific applications.
 
-\subsection{Prevailing approaches} \label{sec:prep-scheduling-approaches}
+Although getting the policy objectives right is important, there is still the matter of implementing the policy effectively. This often requires processing a wide range of information. As a simple example, consider the Whare-Map scheduler, which seeks to minimise co-location interference: the degradation of performance which occurs when tasks running on the same machine are competing for common resources~\cite{Mars:2013}\footnotemark. This is achieved by monitoring the performance of each running task on every machine, building up a profile of each application and its interaction with other tasks.
+\footnotetext{In fact the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
 
-Apache Hadoop is by far the most widely used open-source distributed systems framework. It was originally developed by Yahoo, where it continues to see active use, with their largest cluster having 36,000 cores. Hadoop is also used at Amazon, Facebook and LinkedIn~\cite{HadoopPoweredBy}. Representing the state of the art used in industry, it is instructive to consider the scheduling techniques it utilises. 
+% SOMEDAY: Terminology re: latency is a bit confused. Here you're talking about scheduling latency to do with the solver being slow. But in the next section you talk about latency due to policy: a FIFO queue.
+Finally, the system should remain fast at scale. A scheduler may need to manage tens or hundreds of thousands of machines in a modern warehouse scale computer, perhaps placing hundreds of thousands or millions of tasks\footnotemark. Furthermore, clusters now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform. These jobs may demand sub-second or shorter scheduling latency~\cite{Ousterhout:2013}.
+\footnotetext{At full utilisation, there will certainly be as many tasks on each machine as there are cores, perhaps more. There may also be tasks in the system which remain unscheduled.}
 
-Until 2008, Hadoop supported only one scheduler~\cite{HadoopFairSchedulerJIRA}: a simple FIFO queue, executing whichever job had waited longest. This offers high throughput, and so is attractive for batch jobs, Hadoop's traditional application. However, it fares poorly in other applications. In particular, the latency can be very high, as a job (no matter how small) must wait in line between all previously submitted tasks. In addition, their is no notion of fairness: one heavy user of the cluster can starve other users of resources.
+\subsection{Prevailing approaches}
 
-Hadoop has chosen to resolve these shortcomings by introducing a pluggable scheduler framework~\cite{HadoopSchedulingIBM}. This is a reflection of the wide variety of application requirements: new schedulers can be written to meet particular needs. The distribution includes two scheduling algorithms, in addition to the original FIFO queue: the Fair Scheduler and Capacity Scheduler. 
+Apache Hadoop is by far the most widely used framework for distributed storage and processing. Originally developed at Yahoo, it has since been adopted by many other firms, including Amazon, Facebook and LinkedIn~\cite{HadoopPoweredBy}. Representing the state of the art used in industry, it is instructive to consider the scheduling techniques it utilises. 
 
-The Fair Scheduler was designed at Facebook. It ensures that, over time, each job gets an equal share of available resources. Moreover, it pioneered a technique known as delay-scheduling, allowing the cluster administrator to sacrifice some fairness in order to achieve greater data locality~\cite{Zaharia:2010}. 
+Until 2008, Hadoop supported only one scheduler~\cite{HadoopFairSchedulerJIRA}: a simple FIFO queue, executing whichever job had waited longest. This offers high throughput, and so is attractive for batch jobs, Hadoop's traditional application. However, it fares poorly with other applications. In particular, the latency can be very high, as a job (no matter how small) must wait in line between all previously submitted tasks. In addition, their is no notion of fairness: a heavy user of the cluster can starve all other users.
 
-The Capacity Scheduler was designed at Yahoo, with the goal of supporting distinct application classes on the same cluster. Hard resource guarantees can be provided to each application class to ensure a minimum service level. At the same time, applications are allowed to burst beyond this level when there are cluster resources idle.
+Hadoop's developers opted to resolve these shortcomings by introducing a pluggable scheduler framework~\cite{HadoopSchedulingIBM}. In the terminology of \cref{table:cluster-scheduler-design-goals}, the policy of the scheduler can be precisely \emph{targeted} to specific application needs. Although this approach is powerful, to some extent it merely offloads the problem elsewhere. It is not feasible for each application to be bundled with its own scheduler\footnotemark.  The majority of installations use either the Fair Scheduler or Capacity Scheduler, which are distributed with Hadoop.
+\footnotetext{Even if it were, Hadoop only supports one scheduler per cluster.}
 
-Note both schedulers are designed with specific purposes in mind. Whilst offering good performance in the narrow domains they were designed for, there is little policy flexibility, limiting their applicability more generally. 
+The Fair Scheduler was designed at Facebook. Over time, each job is guaranteed an equal share of available resources. It pioneered a technique known as delay-scheduling, which allows the cluster administrator to sacrifice some fairness in order to achieve greater data locality~\cite{Zaharia:2010}. 
 
-Another drawback is that the schedulers run mostly blind to the underlying hardware. The Fair Scheduler is slightly better in this regard, as it takes into account data locality. But this is not enough. Cluster environments are increasingly heterogeneous~\cite{Reiss:2012}, posing problems for traditional schedulers. The LATE scheduler, designed to be robust to heterogenity, improved response times by a factor of 2 over Hadoop's default scheduler when running on Amazon's Elastic Compute Cloud (EC2)~\cite{Zaharia:2008}. Even in more homogeneous environments, network topology and capacity can be highly important, as discussed in~\S\ref{sec:prep-scheduling-goals}.
+The Capacity Scheduler was designed at Yahoo, in order to support distinct application classes on the same cluster. Hard resource guarantees can be provided to each application class, ensuring a minimum service level. Applications are allowed to burst beyond this level when there are cluster resources idle.
 
-Hitherto, I have considered the state of the art amongst schedulers that are in the public domain. Clusters are indispensable assets to today's major web companies, and consequently there is considerable research into this area in industry as well as academia. Owing to the competitive nature of the industry, unfortunately the details of the schedulers used by major technology firms such as Google are trade secrets. Naturally, this makes it difficult to evaluate the state of the art within industry. 
+Note both schedulers are designed with specific purposes in mind. Whilst offering good performance in the narrow domains they were designed for, there is little policy flexibility.
 
-However, the information which is public suggests that the same basic approaches we have seen above are in use in industry. The designs may, of course, have been tweaked to meet specific application requirements, and to work efficiently on the cluster architectures favoured by the respective technology firm. For example, the Google scheduler allows tasks to specify a kernel version constraint, and attempts to minimise peak power demand by load balancing. Apart from idiosyncrasies such as these, the approach is broadly similar to published research systems~\cite[\S2.1]{Sharma:2011}.
+Another drawback is that the schedulers run blind to the underlying hardware. Cluster environments are increasingly heterogeneous~\cite{Reiss:2012}, posing problems for traditional schedulers. The LATE scheduler, designed to be robust to heterogenity, improved response times by a factor of 2 over Hadoop's default scheduler when running on Amazon's Elastic Compute Cloud (EC2)~\cite{Zaharia:2008}.
 
-\subsection{Quincy and related systems} \label{sec:prep-scheduling-quincy}
+Hitherto, I have considered the state of the art amongst schedulers that are in the public domain. With today's major web companies dependent upon clusters, there is naturally considerable research into this area in industry. Unfortunately, the details of the schedulers used by major technology firms such as Google are trade secrets, making it difficult to evaluate the state of the art within industry. 
+
+However, the information which is public suggests that the basic approach is the same. The designs will, of course, have been tweaked to meet specific application requirements, and to operate efficiently on the cluster architectures favoured by the firm. For example, Google's scheduler allows tasks to specify a kernel version constraint, and attempts to minimise peak power demand by load balancing~\cite[\S2.1]{Sharma:2011}.
+
+\subsection{Firmament and flow scheduling}
+
+TODO: Update to talk about Firmament
 
 Despite considerable research effort, both in industry and academia, the traditional scheduler designs discussed above suffer from two major deficiencies. The first is a lack of policy flexibility. Hadoop attempts to solve this by allowing for an ecosystem of different schedulers, but this approach is limited. As we try to trade-off more objectives, there is a combinatorial explosion in the number of scheduler designs needed. The second problem is a failure to take the underlying cluster architecture into account when making scheduling decisions.
 

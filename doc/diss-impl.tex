@@ -332,7 +332,7 @@ It follows that:
 \[w(\boldsymbol{\pi}) \leq z^* + 0 = z^*\]
 
 To prove the second part, let $\boldsymbol{\pi}^*$ be node potentials such that $\left(\mathbf{x}^*,\boldsymbol{\pi}^*\right)$ satisfy the reduced cost optimality conditions given in \cref{eq:optimality-reduced-cost}\footnotemark. By \cref{lemma:relax-rc-lr-equivalence}, it follows that $\mathbf{x}^*$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi}^*)$. Thus $w(\boldsymbol{\pi}^*) = z^*$.
-\footnotetext{Note such a choice of $\boldsymbol{\pi}^*$ is guaranteed to exist since $\mathbf{x}^*$ is an optimal solution to the minimum cost flow problem.}
+\footnotetext{Note such a choice of $\boldsymbol{\pi}^*$ is guaranteed to exist since $\mathbf{x}^*$ is an optimal solution to the minimum-cost flow problem.}
 \end{proof}
 
 % Highlight similarity to weak dulity theorem?
@@ -923,7 +923,7 @@ The next section will discuss which of the existing flow algorithms are most sui
 
 \subsection{Architecture of an incremental algorithm}
 
-\Cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} described the implementation of pre-existing algorithms. These are designed to solve the "full" minimum cost flow problem: finding an optimal solution without the benefit of any existing state. However, it is possible to adapt them to operate in an incremental fashion. An obvious approach is to simply rerun the algorithm on the updated network, using the old state as a starting point.
+\Cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} described the implementation of pre-existing algorithms. These are designed to solve the "full" minimum-cost flow problem: finding an optimal solution without the benefit of any existing state. However, it is possible to adapt them to operate in an incremental fashion. An obvious approach is to simply rerun the algorithm on the updated network, using the old state as a starting point.
 
 However, this will not quite work. Flow algorithms typically maintain an invariant on the state of the solver during intermediate computations. After updating the network, this invariant may well fail to hold on the old state. When the invariant is a precondition for the algorithm, as in relaxation, reoptimisation could fail. In other algorithms, such as cost scaling, correctness is not dependent on the invariant. But the algorithm may run slower than the normal time complexity bounds, as the proofs depend on the invariant. To correct this, we will adopt a three-step approach:
 
@@ -1025,10 +1025,10 @@ Note that an arc with zero capacity is equivalent to their being no such arc: it
 
 Changing the capacity of an arc $(i,j)$ from $u_ij$ to $u'_{ij}$ does not change $c_ij$ or the potentials $\boldsymbol{\pi}$. The reduced cost $c_{ij}^{\boldsymbol{\pi}}$ therefore remains unchanged.
 
-When decreasing the capacity of an arc, we set $x_ij \gets \min\left(x_ij,u'_{ij}\right)$ to ensure the capacity constraints in \cref{eq:capacity-constraints} continue to hold\footnotemark. Reduced cost optimality is always preserved. Suppose the arc is not present in the residual network prior to the update: that is, $(i,j) \not \in E_\mathbf{x}$. Then the arc was previously saturated with $x_ij = u_ij$, and we will now have $x_ij = u'_{ij}$. Thus the arc remains saturated, and so $(i,j) \not \in E_\mathbf{x}$ continues to hold. Otherwise, if $(i,j) \in E_\mathbf{x}$, then as reduced cost optimality was satisfied prior to the update it follows that $c_{ij}^{\boldsymbol{\pi}} \geq 0$. It may be the case that $x_ij \geq u'_{ij}$, in which case $(i,j) \not \in E_\mathbf{x}$ after the update, which is harmless. Otherwise, $(i,j) \in E_\mathbf{x}$ and $c_{ij}^{\boldsymbol{\pi}} \geq 0$ continues to hold, satisfying the optimality conditions.
+When decreasing the capacity of an arc, we set $x_{ij} \gets \min\left(x_{ij},u'_{ij}\right)$ to ensure the capacity constraints in \cref{eq:capacity-constraints} continue to hold\footnotemark. Reduced cost optimality is always preserved. Suppose the arc is not present in the residual network prior to the update: that is, $(i,j) \not \in E_\mathbf{x}$. Then the arc was previously saturated with $x_{ij} = u_ij$, and we will now have $x_{ij} = u'_{ij}$. Thus the arc remains saturated, and so $(i,j) \not \in E_\mathbf{x}$ continues to hold. Otherwise, if $(i,j) \in E_\mathbf{x}$, then as reduced cost optimality was satisfied prior to the update it follows that $c_{ij}^{\boldsymbol{\pi}} \geq 0$. It may be the case that $x_{ij} \geq u'_{ij}$, in which case $(i,j) \not \in E_\mathbf{x}$ after the update, which is harmless. Otherwise, $(i,j) \in E_\mathbf{x}$ and $c_{ij}^{\boldsymbol{\pi}} \geq 0$ continues to hold, satisfying the optimality conditions.
 \footnotetext{Whilst the primary goal of this method is to preserve reduced cost optimality, it a more primitive requirement is that $\mathbf{x}$ continues to be a pseudoflow!}
 
-There are two cases when increasing the capacity of an arc. If $c_{ij}^{\boldsymbol{\pi}} \geq 0$, then no action need be taken. However, if $c_{ij}^{\boldsymbol{\pi}} < 0$ then we must set $x_ij \gets u'_{ij}$, so that $(i,j)$ remains absent from the residual network.
+There are two cases when increasing the capacity of an arc. If $c_{ij}^{\boldsymbol{\pi}} \geq 0$, then no action need be taken. However, if $c_{ij}^{\boldsymbol{\pi}} < 0$ then we must set $x_{ij} \gets u'_{ij}$, so that $(i,j)$ remains absent from the residual network.
 
 \subsubsection{Changing the cost of an arc}
 
