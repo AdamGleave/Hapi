@@ -553,7 +553,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   # Fight against the best optimized implementations.
   # Goldberg for full solver, modified RelaxIV for incremental solver.
-  "optimized_head_to_head_short": {
+  "optimized_head_to_head": {
     # These implementations can handle a full-size dataset
     "traces": [
       {

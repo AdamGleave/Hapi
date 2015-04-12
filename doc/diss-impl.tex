@@ -998,20 +998,15 @@ Goldberg's cost scaling algorithm enjoys around a factor of 2 speed-up from runn
 
 Cycle cancelling has similar problems to cost scaling, with the added disadvantage of being one of the slowest algorithms on the full problem. Consequently, neither cycle cancelling nor cost scaling will be extended to support incremental operation.
 
-\subsection{Implementations} \label{sec:impl-incremental-impl}
-
-The successive shortest path and relaxation algorithm described in \cref{sec:impl-ssp} and \cref{sec:impl-relax} are adapted to support operating in an incremental mode. Note that considerable research effort has gone into producing efficient implementations of the relaxation algorithm. The reference implementation, RelaxIV, is due to Bertsekas~\cite{BertsekasCodes:1988}, and has been ported from Fortran to C++ by Frangioni~\cite{RelaxIV:2011}. In addition to modifying my own implementation of the relaxation algorithm, I have also adapted RelaxIV, for use in comparative evaluation (see \S\ref{sec:eval-comparative}).
-
-First, I describe how reduced cost optimality may be maintained as the network is updated, a prerequisite for using these algorithms in an incremental mode. Next, I give the details of how my implementations have been adapted for incremental usage. Finally, I discuss how RelaxIV was modified.
-
 \subsection{Maintaining reduced cost optimality}
-% TODO: Finish lifting this up
-Augmenting path algorithms require that $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced-cost optimality. Recall this is defined in \cref{eq:optimality-reduced-cost} as:
+
+Augmenting path algorithms can only run on an initial state that satisfies reduced cost optimality. Maintaining reduced cost optimality of the flow as the network is updated is therefore a prerequisite for adapting these algorithms to run incrementally. Recall these conditions were first defined in \cref{eq:optimality-reduced-cost}, and for reference are:
 \[c_{ij}^{\boldsymbol{\pi}}\geq0\:\forall(i,j)\in E_{\mathbf{x}}\]
 
-Normally, this condition is satisfied upon entering the routine by initialising both $\mathbf{x}$ and $\boldsymbol{\pi}$ to $\mathbf{0}$. It is maintained subsequently as an invariant, see \S\ref{sec:impl-ssp-analysis} and \S\ref{sec:impl-relax-analysis}. The initialisation is skipped when using the algorithm to reoptimise, so it is necessary that the reduced cost optimality conditions are satisfied prior to the algorithm being invoked.
+Normally, reduced cost optimality is satisfied upon entering the routine by initialising both $\mathbf{x}$ and $\boldsymbol{\pi}$ to $\mathbf{0}$. It is subsequently preserved by the algorithms, see \S\ref{sec:impl-ssp-analysis} and \S\ref{sec:impl-relax-analysis}. When using one of these algorithms to reoptimise a network, the initialisation is skipped\footnotemark. The reduced cost optimality conditions must thus be satisfied prior to the algorithm being invoked.
+\footnotetext{Otherwise, we would be discarding the very state that we seek to exploit!}
 
-Fortunately, there is a simple method to maintain reduced cost optimality as the network is updated. Note that we cannot, in general, hope to also maintain feasibility\footnotemark: otherwise, this routine would itself solve the incremental problem! I describe below how the flow is to be modified to preserve optimality, in response to each possible type of network change. Note that this method modifies only the flow, and not potentials.
+Fortunately, there is a simple method to restore reduced cost optimality after the network is updated. Note that we cannot, in general, hope to also maintain feasibility\footnotemark: otherwise, this routine would itself solve the incremental problem! I describe below how the flow is to be modified to preserve optimality, in response to each possible type of network change. Note that this method modifies only the flow, and not potentials.
 \footnotetext{Indeed, some changes may make the network itself infeasible. The flow scheduling system produces changes in batches. Reoptimisation only takes place at the end of each batch, at which point the network is guaranteed to be feasible.}
 
 \subsubsection{Node changes}
@@ -1024,35 +1019,52 @@ It is also possible to change the supply or demand $b_i$ of a node $i$\footnotem
 
 \subsubsection{Adding or removing an arc}
 
-Note that an arc with zero capacity is equivalent to their being no such arc: it is never present in the residual network (nor is its reverse), and always has a flow of zero. Thus, it is possible to model addition of an arc $(i,j)$ with cost $c_ij$ and capacity $u_ij$ in terms of increasing the capacity of an arc $(i,j)$ with cost $c_ij$ from $0$ to $u_ij$. Similarly, removing an arc $(i,j)$ corresponds to decreasing the capacity to $0$. Maintaining reduced cost optimality in the presence of these capacity changes is described in the following section.
+Note that an arc with zero capacity is equivalent to their being no such arc: it is never present in the residual network (nor is its reverse), and always has a flow of zero. Thus, it is possible to model addition of an arc $(i,j)$ with cost $c_ij$ and capacity $u_{ij}$ in terms of increasing the capacity of an arc $(i,j)$ with cost $c_ij$ from $0$ to $u_ij$. Similarly, removing an arc $(i,j)$ corresponds to decreasing the capacity to $0$. Maintaining reduced cost optimality in the presence of these capacity changes is described in the following section.
 
 \subsubsection{Changing the capacity of an arc}
 
-Changing the capacity of an arc $(i,j)$ from $u_ij$ to $u'_ij$ does not change $c_ij$ or the potentials $\boldsymbol{\pi}$. The reduced cost $c_{ij}^{\boldsymbol{\pi}}$ therefore remains unchanged.
+Changing the capacity of an arc $(i,j)$ from $u_ij$ to $u'_{ij}$ does not change $c_ij$ or the potentials $\boldsymbol{\pi}$. The reduced cost $c_{ij}^{\boldsymbol{\pi}}$ therefore remains unchanged.
 
-When decreasing the capacity of an arc, we set $x_ij \gets \min\left(x_ij,u'_ij\right)$ to ensure the capacity constraints in \cref{eq:capacity-constraints} continue to hold\footnotemark. Reduced cost optimality is always preserved. Suppose the arc is not present in the residual network prior to the update: that is, $(i,j) \not \in E_\mathbf{x}$. Then the arc was previously saturated with $x_ij = u_ij$, and we will now have $x_ij = u'_ij$. Thus the arc remains saturated, and so $(i,j) \not \in E_\mathbf{x}$ continues to hold. Otherwise, if $(i,j) \in E_\mathbf{x}$, then as reduced cost optimality was satisfied prior to the update it follows that $c_{ij}^{\boldsymbol{\pi}} \geq 0$. It may be the case that $x_ij \geq u'_ij$, in which case $(i,j) \not \in E_\mathbf{x}$ after the update, which is harmless. Otherwise, $(i,j) \in E_\mathbf{x}$ and $c_{ij}^{\boldsymbol{\pi}} \geq 0$ continues to hold, satisfying the optimality conditions.
+When decreasing the capacity of an arc, we set $x_ij \gets \min\left(x_ij,u'_{ij}\right)$ to ensure the capacity constraints in \cref{eq:capacity-constraints} continue to hold\footnotemark. Reduced cost optimality is always preserved. Suppose the arc is not present in the residual network prior to the update: that is, $(i,j) \not \in E_\mathbf{x}$. Then the arc was previously saturated with $x_ij = u_ij$, and we will now have $x_ij = u'_{ij}$. Thus the arc remains saturated, and so $(i,j) \not \in E_\mathbf{x}$ continues to hold. Otherwise, if $(i,j) \in E_\mathbf{x}$, then as reduced cost optimality was satisfied prior to the update it follows that $c_{ij}^{\boldsymbol{\pi}} \geq 0$. It may be the case that $x_ij \geq u'_{ij}$, in which case $(i,j) \not \in E_\mathbf{x}$ after the update, which is harmless. Otherwise, $(i,j) \in E_\mathbf{x}$ and $c_{ij}^{\boldsymbol{\pi}} \geq 0$ continues to hold, satisfying the optimality conditions.
 \footnotetext{Whilst the primary goal of this method is to preserve reduced cost optimality, it a more primitive requirement is that $\mathbf{x}$ continues to be a pseudoflow!}
 
-There are two cases when increasing the capacity of an arc. If $c_{ij}^{\boldsymbol{\pi}} \geq 0$, then no action need be taken. However, if $c_{ij}^{\boldsymbol{\pi}} < 0$ then we must set $x_ij \gets u'_ij$, so that $(i,j)$ remains absent from the residual network.
+There are two cases when increasing the capacity of an arc. If $c_{ij}^{\boldsymbol{\pi}} \geq 0$, then no action need be taken. However, if $c_{ij}^{\boldsymbol{\pi}} < 0$ then we must set $x_ij \gets u'_{ij}$, so that $(i,j)$ remains absent from the residual network.
 
 \subsubsection{Changing the cost of an arc}
 
-Changing the cost of an arc $(i,j)$ from $c_ij$ to $c'_ij = c_ij + \delta$ will also change the reduced cost from $c_{ij}^{\boldsymbol{\pi}}$ to $c'_{ij}^{\boldsymbol{\pi}} = c_{ij}^{\boldsymbol{\pi}} + \delta$. It is simplest for us to consider the complementary slackness conditions, which are equivalent to reduced cost by \cref{thm:optimality-complementary-slackness}.
+Changing the cost of an arc $(i,j)$ from $c_{ij}$ to $c'_{ij} = c_{ij} + \delta$ will also change the reduced cost from $c_{ij}^{\boldsymbol{\pi}}$ to $c_{ij}^{\prime\boldsymbol{\pi}} = c_{ij}^{\boldsymbol{\pi}} + \delta$. It is simplest for us to consider the complementary slackness conditions, which are equivalent to reduced cost by \cref{thm:optimality-complementary-slackness}.
 
-\paragraph{Case $c'_{ij}^{\boldsymbol{\pi}} > 0$}
-In this case, we require $x_ij = 0$. This will already be the case if $c_{ij}^{\boldsymbol{\pi}} > 0$, but otherwise it may require a flow update.
+\paragraph{Case $c_{ij}^{\prime\boldsymbol{\pi}} > 0$}
+In this case, we require $x_{ij} = 0$. This will already be the case if $c_{ij}^{\boldsymbol{\pi}} > 0$, but otherwise it may require a flow update.
 
-\paragraph{Case $c'_{ij}^{\boldsymbol{\pi}} = 0$}
-This case is a no-op. Complementary slackness is satisfied for all values of $x_ij$ satisfying the capacity constraints $0 \leq x_ij \leq u_ij$.
+\paragraph{Case $c_{ij}^{\prime\boldsymbol{\pi}} = 0$}
+This case is a no-op. Complementary slackness is satisfied for all values of $x_{ij}$ satisfying the capacity constraints $0 \leq x_{ij} \leq u_{ij}$.
 
-\paragraph{Case $c'_{ij}^{\boldsymbol{\pi}} < 0$}
-In this case, we require $x_ij = u_ij$. This will already be the case if $c_{ij}^{\boldsymbol{\pi}} < 0$, but otherwise it may require a flow update.
+\paragraph{Case $c_{ij}^{\prime\boldsymbol{\pi}} < 0$}
+In this case, we require $x_{ij} = u_{ij}$. This will already be the case if $c_{ij}^{\boldsymbol{\pi}} < 0$, but otherwise it may require a flow update.
 
-\subsection{Implementations}
-% Updating data structures: e.g. need to maintain a map. Could mention this for Frangioni, certainly. Perhaps say my implementation relatively simple, since was designed from the outset with this flexibility in mind.
-% Beyond this? Not much to say
+\subsection{Implementations} \label{sec:impl-incremental-impl}
 
-Detail the implementations you've made. AP, RELAX, RELAX Frangioni. Not sure how much there is to say. Could possibly chat about data structures needed for mappings.
+Three incremental solvers have been developed as part of this project. My implementations of the successive shortest path and relaxation algorithm, described in \cref{sec:impl-ssp} and \cref{sec:impl-relax}, are adapted to support operating in an incremental mode. In addition, I have extended RelaxIV~\cite{BertsekasCodes:1988,RelaxIV:2011} -- a highly optimised reference implementation of the relaxation algorithm -- to operate as an incremental solver. 
+
+\subsubsection{Modifying implementations developed in this project}
+This proved relatively straightforward, in large part reflecting the emphasis during earlier development placed on building a modular system. The algorithms themselves needed minimal modifications: a flag was added to indicate whether the initialisation routine should run (when solving the full problem) or be skipped (in the incremental case). 
+
+A separate class was implemented to preserve reduced cost optimality, as described above. This class was able to wrap any graph object, forwarding changes to the underlying data structure whilst updating flows as appropriate. This design allowed for the logic to be shared between the two algorithms, and since the class presented the same interface as the existing graph classes it did not require any changes elsewhere in the codebase.
+
+\subsubsection{Modifying RelaxIV}
+This program was considerably more challenging to modify. Whereas my implementations attempted to achieve both flexibility and a reasonable level of efficiency, performance was the overriding objective for RelaxIV. The original version of the code is due to Bertsekas, the creator of the relaxation algorithm, and dates to 1988~\cite{BertsekasCodes:1988}. Frangioni and Gentile made the heroic effort of porting this original Fortran implementation to C++ in 2003~\cite{RelaxIV:2011}. Whilst this port made integration with the rest of my project somewhat easier, many of the foibles of the original code remain, and some new ones have been introduced.
+
+The implementation already supported cost reoptimisation, presumably added to the original implementation by Frangioni for his computational study on this topic~\cite{Frangioni:2006}. Methods to make other updates to the network were also provided, but do not appear to have ever been completed. The bulk of the development time on RelaxIV was spent fixing bugs such as these. In its entirety, the implementation of RelaxIV is some 5000 lines, with some functions longer than 800 lines. Consequently, even simple bugs were sometimes difficult to track down\footnotemark.
+\footnotetext{Valgrind was extremely helpful in detecting the large number of off-by-one errors present in the code. These appear to date to a dubious design decision to make whether to start at index 0 or 1 configurable by means of a preprocessor definition. I am skeptical as to whether saving a few bytes in memory was ever worth this increased complexity, but it is certainly unfortunate that this change was applied inconsistently throughout the code.}
+
+The rest of the changes made were comparatively straightforward. RelaxIV allocated memory for data structures statically, which was problematic for an incremental solver as the size of the network is not known in advance. This was resolved by allowing the arrays to grow dynamically, using the usual strategy of exponential growth in size to achieve memory allocation in amortized linear time\footnotemark.
+\footnotetext{Spikes in scheduling latency are undesirable, even if the average latency remains low. Since we are not memory bound, my implementation initially allocates twice as much memory as currently needed, in a bid to avoid needing to ever grow the array.}
+
+In a related vein, RelaxIV did not allow the reuse of node identifiers. This would cause a memory leak over time, as we would have to keep growing the size of the data structures as nodes are added even if the total number of live nodes remained constant. I maintain a set of free nodes, with an identifier allocated from this set as necessary. The size of the data structure is only grown when no free nodes remain.
+
+Each arc $(i,j)$ is identified by an index in RelaxIV. Of course, the flow scheduling system is not privy to this internal index, and so can only identify arcs by their source and destination nodes $i$ and $j$. The only way to find the index is to scan the adjacency lists for $i$ and $j$, an $O(n)$ operation. My implementation makes a time-memory tradeoff, maintaining a hash table mapping pairs $(i,j)$ to indices, providing an $O(1)$ lookup\footnotemark.
+\footnotetext{Empirically the algorithm is not memory bound, and in any case this change will leave the asymptotic space complexity unchanged. So trading off increased memory usage for lower computation time is the right decision.}
 
 %\section{Input and output}
 %
