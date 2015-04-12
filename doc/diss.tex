@@ -23,6 +23,11 @@
 % Make list environments more configurable
 \usepackage{enumitem}
 
+% PROOFREAD ONLY
+\usepackage{showidx}
+%\usepackage{todonotes}
+\usepackage{gitinfo}
+
 % Hyperlinks
 % Note must load url before hyperref
 \usepackage[hyphens]{url}
@@ -49,7 +54,8 @@
 	citecolor={blue!50!black},
 	urlcolor={blue!80!black},
 	pdfauthor = {Adam Gleave},
-	pdftitle = {Flow network scheduling}
+	pdftitle = {Flow network scheduling},
+    pdfcreator = {LaTeX, git commit \gitAbbrevHash}
 }
 
 \makeindex
@@ -128,10 +134,6 @@
 % This gives more control over lists of {figures,tables,...} sections
 % In particular, it by default disables the (unwanted) page break between them
 \usepackage{tocloft}
-
-% Proofreading
-\usepackage{showidx}
-\usepackage{todonotes}
 
 % Miscellaneous formatting
 \raggedbottom					% try to avoid widows and orphans
@@ -306,10 +308,10 @@ TODO
 % Bib and Appendices etc
 \printbibliography[heading=bibintoc,category=cited]
 
-% PROOFREAD
+% PROOFREAD ONLY
 \printbibliography[title={WARNING: Uncited},notcategory=cited]
 
-% PROOFREAD
+% PROOFREAD ONLY
 % % Index
 % \cleardoublepage
 % %\addcontentsline{toc}{chapter}{Index}
