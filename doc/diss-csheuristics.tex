@@ -7,7 +7,7 @@ The $\textproc{Refine}(\mathbf{x},\boldsymbol{\pi},\epsilon)$ routine is guarant
 \subsubsection{Push lookahead}
 Before performing $\textproc{Push}(i,j)$, this heuristic checks whether $j$ is a deficit node ($e_j < 0$) or if $j$ has an outgoing admissible arc. If so, the \textproc{Push} operation proceeds.
 
-Otherwise, we abort the \textproc{Push} operation, and perform \textproc{Relabel} instead. Were we to continue with the \textproc{Push} operation, the flow would get 'stuck' at node $j$, and end up being pushed back to $i$. This heuristic has been found to significantly reduce the number of \textproc{Push} operations performed~\cite{Goldberg:1997}.
+Otherwise, we abort the \textproc{Push} operation, and perform \textproc{Relabel} instead. Were we to continue with the \textproc{Push} operation, the flow would get `stuck' at node $j$, and end up being pushed back to $i$. This heuristic has been found to significantly reduce the number of \textproc{Push} operations performed~\cite{Goldberg:1997}.
 
 \subsubsection{Arc fixing}
 The algorithm examines a large number of arcs, sometimes unnecessarily. We can prove that for any arc $(i,j)$ with reduced cost satisfying $\left|c^{\boldsymbol{\pi}}_ij\right| > 2n\epsilon$, the flow $x_{ij}$ is never again modified. These arcs can safely be \emph{fixed}: removed from the adjacency list examined by the algorithm. 
@@ -17,6 +17,6 @@ This heuristic takes things a step further, \emph{speculatively} fixing arcs whe
 \subsubsection{Potential update}
 The \textproc{Relabel} operation given in \cref{algo:cost-scaling-operations} updates the potential at a single node. This heuristic is based around an alternative \emph{set relabel} operation, which updates potentials at many nodes at once.
 
-'Vanilla' relabel operations are still used, with set relabel called periodically. The optimum frequency depends on both the implementation, and the problem, but calling set relabel every $O(n)$ regular relabels has been found to be a good rule of thumb~\cite{Goldberg:1997}.
+`Vanilla' relabel operations are still used, with set relabel called periodically. The optimum frequency depends on both the implementation, and the problem, but calling set relabel every $O(n)$ regular relabels has been found to be a good rule of thumb~\cite{Goldberg:1997}.
 
 This heuristic improves performance when used on its own, but has little effect when used in conjunction with potential refinement and push lookahead described above. In fact, it may even \emph{harm} performance in some cases, although it has been found to be more beneficial the larger the network instance~\cite{Bunnagel:1998}.

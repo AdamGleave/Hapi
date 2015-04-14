@@ -442,9 +442,10 @@ Many flow algorithms seek to solve the dual problem, as this may be computationa
 
 Below, I give conditions on a solution vector $\mathbf{x}$ being optimal. These may suggest algorithms for solving the problem. Moreover, they can be used in testing, to verify that a solution is indeed optimal.\\
 
-\begin{thm}[Negative cycle optimality conditions] \label{thm:optimality-neg-cycle}
+\begin{restatable}[Negative cycle optimality conditions]{thm}{optimalitynegcycle}
+\label{thm:optimality-neg-cycle}
 Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
-\end{thm}
+\end{restatable}
 \begin{proof}
 See~\cite[p.~307]{Ahuja:1993}.
 \end{proof}

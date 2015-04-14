@@ -22,11 +22,13 @@ These strategies are not solution methods in and of themselves. Rather, they sug
 % It's important, so think OK to say it twice. But which will be the more detailed one?
 % I think depends: if it's specific to a particular algorithm, place it there. But if it's a more general point (e.g. primal vs dual), place it in strategy
 
-Cycle cancelling is the simplest algorithm we will consider. It has little to recommend it from a performance perspective: the original version due to Klein~\cite{Klein:1967} is exponential time in the worst case, although in practice its performance is often better than this. Variants have achieved strongly polynomial bounds~\cite{Goldberg:1989,Sokkalingam:2000}, but are still slower both theoretically and empirically than competing algorithms. However, it will help cast light on many of the techniques used in more sophisticated algorithms, so forms a good starting point for this chapter.
+Cycle cancelling is the simplest algorithm implemented. It has little to recommend it from a performance perspective: the original version due to Klein~\cite{Klein:1967} is exponential time in the worst case, although its performance is better than this in practice. Variants have achieved strongly polynomial bounds~\cite{Goldberg:1989,Sokkalingam:2000}, but are still slower both theoretically and empirically than competing algorithms. However, it will illustrate many of the techniques used in more sophisticated algorithms, so forms a good starting point for this chapter.
 
 \subsection{Algorithm description}
 
-Cycle cancelling is inspired by the negative cycle optimality conditions, given in \cref{thm:optimality-neg-cycle}.
+Cycle cancelling is inspired by the negative cycle optimality conditions, stated in \cref{thm:optimality-neg-cycle}:\\
+
+\optimalitynegcycle*
 
 \begin{algorithm}
     \caption{Cycle cancelling algorithm}
@@ -41,11 +43,12 @@ Cycle cancelling is inspired by the negative cycle optimality conditions, given 
     \end{algorithmic}
 \end{algorithm}
 
-The algorithm is initialised with a feasible flow $\mathbf{x}$, which can be found by any maximum-flow algorithm, such as Ford-Fulkerson~\cite{FordFulkerson:1956}. The feasibility of the solution $\mathbf{x}$ is maintained throughout the algorithm, and its cost is reduced. During each iteration of the algorithm, a directed cycle of negative cost is identified in the residual network $G_\mathbf{x}$ and \emph{cancelled} by pushing the maximum possible amount of flow along it. This will cause the cycle to 'drop out' of the residual network: one or more arcs along the cycle will be saturated, and so no longer present in the residual network. The algorithm terminates when no negative cost directed cycles remain.
+The algorithm is initialised with a feasible flow $\mathbf{x}$. This may be found by any maximum-flow algorithm, such as Ford-Fulkerson~\cite{FordFulkerson:1956}. The feasibility of the solution $\mathbf{x}$ is maintained at all times, and its cost is successively reduced. 
 
-Note this generic version of the algorithm does not specify \emph{how} negative cycles are to be identified. I opted to use the well-known Bellman-Ford~\cite[p.~651]{CLRS:2009} algorithm for this purpose. Other, more efficient algorithms could be used. However, cycle cancelling was never going to be fast enough for my needs\footnotemark. I chose to implement it so as to have a known-working algorithm early in the project, simplifying subsequent testing. For this purpose, cycle cancelling using the Bellman-Ford algorithm is ideal.
+Each iteration of the algorithm identifies a directed cycle of negative cost in the residual network $G_\mathbf{x}$. The cycle is \emph{cancelled} by pushing as much flow as possible along it. This causes it to `drop out' of the residual network: one or more arcs along the cycle become saturated, and so are no longer present in the residual network. The algorithm terminates when no negative cost directed cycles remain, guaranteeing optimality by \cref{thm:optimality-neg-cycle}.
 
-\footnotetext{The asymptotic complexity is considerably worse than that of competing algorithms, and computational benchmarks~\cite{KiralyKovacs:2012} were also unfavourable.}
+%SOMEDAY: Difficult to justify, better way of saying it?
+Note this generic version of the algorithm does not specify \emph{how} negative cycles are to be identified. The well-known Bellman-Ford~\cite[p.~651]{CLRS:2009} algorithm was used in this project. Other, more efficient methods exist. However, cycle cancelling was only implemented in order to have a known-working algorithm early on in development. Even the fastest variants are too slow for the purposes of this project, so there was no reason to spend further development time optimising the algorithm.
 
 \subsection{Analysis}
 
@@ -57,9 +60,9 @@ We will show that, if the algorithm terminates, it produces the correct result. 
 Immediately before each iteration of the loop, $\mathbf{x}$ is a feasible solution.
 \end{thm} 
 \begin{proof}
-For the base case, $\mathbf{x}$ must be initially feasible, by correctness of the maximum-flow algorithm used.
+For the base case, $\mathbf{x}$ is feasible after initialisation, by correctness of the maximum-flow algorithm used.
 
-For the inductive case, suppose $\mathbf{x}$ is feasible immediately prior to an iteration of the loop body. The loop body pushes flow along a cycle. This maintains feasibility: the excess at the nodes along the cycle must remain zero, since any increase in the flow leaving the node is counterbalanced by an equal increase in the flow entering the node.
+For the inductive case, suppose $\mathbf{x}$ is feasible immediately prior to an iteration of the loop body. The body pushes flow along a cycle. This maintains feasibility: the excess at the nodes along the cycles remain zero, with any increase in the flow leaving a node being counterbalanced by an equal increase in the flow entering that node.
 \end{proof}
 
 \begin{cor}
@@ -77,18 +80,18 @@ We will now show that the algorithm always terminates, and provide a bound on it
 The algorithm terminates within $O(mCU)$ iterations.
 \end{thm}
 \begin{proof}
-Clearly $mCU$ is an upper bound on the cost of the initial flow. Each iteration of the algorithm identifies a negative cost cycle $w$. The cost of sending one unit of flow along this cycle is $c = \sum_{(i,j) \in w} c_{ij}$, which is strictly negative by definition. We send $\delta = \min_{(i,j) \in w} r_{ij}$ units of flow along the cycle. $\delta$ is strictly positive, otherwise the cycle would not exist in the \emph{residual} network. 
+Each iteration of the algorithm identifies a cycle $w$, of cost $c < 0$, and pushes $\delta = \min_{(i,j) \in w} r_{ij}$ units of flow along the cycle. Note $\delta > 0$, otherwise the cycle would not exist in the residual network. 
 
-The objective function value changes by $c\delta$. By \cref{assumption:integrality}, $c$ and $\delta$ must both be integral. So as $c\delta < 0$, we have $c\delta \leq 1$.
+The objective function value changes by $c\delta$.  By \cref{assumption:integrality}, $c$ and $\delta$ must both be integral. So as $c < 0$ and $\delta > 0$, it follows $c \leq -1$ and $\delta \geq 1$ so $c\delta \leq -1$. That is, the cost is decreased by at least one unit each iteration.
 
-Hence the cost decreases by at least one each iteration, and so the number of iterations is bounded by $O(mCU)$.
+The number of iterations is thus bounded by cost of the initial feasible flow. $mCU$ is an upper bound on the cost of any flow, hence result.
 \end{proof}
 
 \begin{cor} \label{corollary:cycle-cancelling-complexity}
 The asymptotic complexity is $O(nm^2CU)$.
 \end{cor}
 \begin{proof}
-Note that Bellman-Ford runs in $O(nm)$ time. Augmenting flow along the cycle is of cost linear in the length of the cycle, and so is certainly $O(m)$. Thus each iteration runs in $O(nm)$. By \cref{thm:cycle-cancelling-termination}, it follows the complexity of the algorithm is $O(nm^2CU)$.
+Note that Bellman-Ford runs in $O(nm)$ time. Augmenting flow along the cycle is of cost linear in the length of the cycle, and so is certainly $O(n)$. Thus each iteration runs in $O(nm)$. By \cref{thm:cycle-cancelling-termination}, it follows the complexity of the algorithm is $O(nm^2CU)$.
 \end{proof}
 
 \section{Successive shortest path algorithm} \label{sec:impl-ssp}
@@ -497,7 +500,7 @@ Line 2 finds a shortest path $P$ from the source node $s$ to a deficit node $t$.
     \item ensuring $e(s) \geq 0$ and $e(t) \leq 0$\footnotemark.
 \end{enumerate}
 The restriction on $e(s)$ and $e(t)$ ensures we improve the feasibility of the solution: this operation monotonically decreases the excess at source nodes and the deficit at sink nodes\footnotemark.
-\footnotetext{If we were to allow the algorithm to 'overshoot' and turn $s$ into a deficit node or $t$ into an excess, we would not be guaranteed to be improving the feasibility of the solution.}
+\footnotetext{If we were to allow the algorithm to `overshoot' and turn $s$ into a deficit node or $t$ into an excess, we would not be guaranteed to be improving the feasibility of the solution.}
 
 Since we send an equal amount of flow on each arc in $P$, the excess at nodes other than the start and end of path $P$ - $s$ and $t$ - are unchanged.
 \end{proof}
@@ -765,7 +768,7 @@ The algorithm terminates once $\epsilon < 1/n$, which takes place after $\log_2\
 
 \subsection{Algorithm implementations} \label{sec:impl-cost-scaling-implementations}
 
-The previous section describes the generic version of the algorithm. It cannot be implemented in the form described so far: lines 5-8 of \cref{algo:cost-scaling-generic-refine} are non-deterministic, in the sense that the order in which basic operations is applied is not defined. This order affects the performance of the algorithm, both in theory and in practice. For this project, I implemented two versions, both described by Goldberg~\cite{Goldberg:1990}: "first-active" and "wave".
+The previous section describes the generic version of the algorithm. It cannot be implemented in the form described so far: lines 5-8 of \cref{algo:cost-scaling-generic-refine} are non-deterministic, in the sense that the order in which basic operations is applied is not defined. This order affects the performance of the algorithm, both in theory and in practice. For this project, I implemented two versions, both described by Goldberg~\cite{Goldberg:1990}: ``first-active'' and ``wave''.
 
 \subsubsection{FIFO refine}
 
@@ -925,7 +928,7 @@ The next section will discuss which of the existing flow algorithms are most sui
 
 \subsection{Architecture of an incremental algorithm}
 
-\Cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} described the implementation of pre-existing algorithms. These are designed to solve the "full" minimum-cost flow problem: finding an optimal solution without the benefit of any existing state. However, it is possible to adapt them to operate in an incremental fashion. An obvious approach is to simply rerun the algorithm on the updated network, using the old state as a starting point.
+\Cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} described the implementation of pre-existing algorithms. These are designed to solve the ``full'' minimum-cost flow problem: finding an optimal solution without the benefit of any existing state. However, it is possible to adapt them to operate in an incremental fashion. An obvious approach is to simply rerun the algorithm on the updated network, using the old state as a starting point.
 
 However, this will not quite work. Flow algorithms typically maintain an invariant on the state of the solver during intermediate computations. After updating the network, this invariant may well fail to hold on the old state. When the invariant is a precondition for the algorithm, as in relaxation, reoptimisation could fail. In other algorithms, such as cost scaling, correctness is not dependent on the invariant. But the algorithm may run slower than the normal time complexity bounds, as the proofs depend on the invariant. To correct this, we will adopt a three-step approach:
 
@@ -952,7 +955,7 @@ Goldberg's cost scaling algorithm offers excellent theoretical and practical per
 During the main loop in \cref{algo:cost-scaling}, cost scaling maintains the invariant that $\mathbf{x}$ is a feasible flow and $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal. This invariant is not required for correctness -- \textproc{Refine}'s precondition is just that $\mathbf{x}$ satisfies flow conservation -- but is needed to prove the asymptotic complexity bounds.
 
 % SOMEDAY: I think my comments about restoring feasibility are right, but think about it some more?
-The starting state is of course $0$-optimal on the old network. However, it need not be feasible or optimal on the new network. To satisfy the invariant, we will need to first restore feasibility, such as by running a max-flow algorithm "incrementally"\footnotemark. This step will likely cause more arcs to violate the reduced cost optimality conditions.
+The starting state is of course $0$-optimal on the old network. However, it need not be feasible or optimal on the new network. To satisfy the invariant, we will need to first restore feasibility, such as by running a max-flow algorithm ``incrementally''\footnotemark. This step will likely cause more arcs to violate the reduced cost optimality conditions.
 \footnotetext{In fact, it is perfectly legitimate to skip this stage and run \textproc{Refine} directly, which will also restore feasibility. However, the analysis is simpler if we consider these stages to be separate.}
 
 Next, we will need to calculate the value of $\epsilon$ for which $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal: this can be done in one pass over the arcs in the residual network\footnotemark. Alternatively, we could apply the potential refinement heuristic described by Goldberg~\cite[\S3.2]{Goldberg:1997}: this might find a smaller value of $\epsilon$, by updating the potentials $\boldsymbol{\pi}$.
@@ -984,7 +987,7 @@ There is a considerable theoretical basis to favour this class of algorithm for 
 
 \subsubsection{Cycle cancelling}
 
-Whilst the cycle cancelling algorithm could in principle adapted for use in an incremental mode, there is little to recommend it. The algorithm has the same drawbacks as cost scaling, with none of the benefits. Like cost scaling, it maintains the invariant that $\mathbf{x}$ is a feasible flow, which might be violated by updates to the network. This can be fixed by running a maximum flow algorithm "incrementally", but this may severely degrade the optimality of the flow. 
+Whilst the cycle cancelling algorithm could in principle adapted for use in an incremental mode, there is little to recommend it. The algorithm has the same drawbacks as cost scaling, with none of the benefits. Like cost scaling, it maintains the invariant that $\mathbf{x}$ is a feasible flow, which might be violated by updates to the network. This can be fixed by running a maximum flow algorithm ``incrementally'', but this may severely degrade the optimality of the flow. 
 
 The only benefit cycle cancelling has to offer over cost scaling is that it will monotonically decrease the cost of the solution during reoptimisation\footnotemark. This may cause cycle cancelling to enjoy a larger \emph{relative} speed-up in incremental mode than cost scaling, although it will still lag that of the augmenting path algorithms.
 
@@ -996,7 +999,7 @@ However, cost scaling was only worth considering because it is one of the fastes
 The class of augmenting path algorithms, consisting of relaxation and successive shortest path, seem particularly promising for an incremental solver. Consequently, incremental versions of both these algorithms will be implemented, as described in the next section.
 
 Goldberg's cost scaling algorithm enjoys around a factor of 2 speed-up from running in incremental mode. Ultimately, improvements of an order of magnitude or more are required to make flow scheduling systems viable, so this speed-up is too small. Note that the performance of incremental cost scaling is much less sensitive on the number of updates made to the graph than are the augmenting path algorithms\footnotemark. Whilst incremental cost scaling is not suitable for this application, I would conjecture it might be appropriate for use cases where there are frequently large numbers of changes. %SOMEDAY: reference further work, idea of an adaptive scheduler?
-\footnotetext{The augmenting path algorithms take time roughly proportional to the number of changes. By contrast, for cost scaling, the time spent reoptimising depends principally on how large $\epsilon$ is after the update. This in in turn depends on the "worst" change received. As the number of changes grows, the likelihood that a new change will be worse than all existing changes shrinks, so $\epsilon$ grows sub-linearly in the number of changes. However, $\epsilon$ grows very quickly initially, making it unattractive for small numbers of changes.}
+\footnotetext{The augmenting path algorithms take time roughly proportional to the number of changes. By contrast, for cost scaling, the time spent reoptimising depends principally on how large $\epsilon$ is after the update. This in in turn depends on the ``worst'' change received. As the number of changes grows, the likelihood that a new change will be worse than all existing changes shrinks, so $\epsilon$ grows sub-linearly in the number of changes. However, $\epsilon$ grows very quickly initially, making it unattractive for small numbers of changes.}
 
 Cycle cancelling has similar problems to cost scaling, with the added disadvantage of being one of the slowest algorithms on the full problem. Consequently, neither cycle cancelling nor cost scaling will be extended to support incremental operation.
 
@@ -1100,7 +1103,7 @@ Motivation. Automate common task. Improve quality of data collection: can run ex
 
 \subsection{Architecture}
 
-Specify different implementations by Git 'treeish', and path. Will checkout and build automatically. 
+Specify different implementations by Git `treeish', and path. Will checkout and build automatically. 
 
 Test cases specify implementations required, I/O parameters, number of iterations.
 

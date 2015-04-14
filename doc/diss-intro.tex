@@ -4,7 +4,7 @@
 
 \section{Motivation} \label{sec:intro-motivation}
 % PROOFREAD: 1, significant edits. 2, minor edits.
-Clusters of commodity servers have become the dominant platform for high-throughput computing. Machines in a cluster collaborate to provide the abstraction of a single "warehouse-scale" computer~\cite{WarehouseScale:2009}. With the adoption of cloud computing, many applications now run on these platforms. Making efficient use of such warehouse-scale computers is a major challenge faced by today's leading web companies, and an active area for distributed systems research.
+Clusters of commodity servers have become the dominant platform for high-throughput computing. Machines in a cluster collaborate to provide the abstraction of a single ``warehouse-scale'' computer~\cite{WarehouseScale:2009}. With the adoption of cloud computing, many applications now run on these platforms. Making efficient use of such warehouse-scale computers is a major challenge faced by today's leading web companies, and an active area for distributed systems research.
 
 A \emph{cluster scheduler} coordinates the activities of the cluster, choosing which tasks to run on each machine. The choice of scheduler has considerable ramifications on cluster performance and efficiency. Most approaches rely on \emph{ad hoc} heuristics. This makes it difficult for the scheduler to adapt itself to differing cluster designs and application requirements.
 
@@ -13,7 +13,7 @@ The Firmament system has been developed to overcome this limitation\footnotemark
 
 Arc capacities restrict the possible scheduling states, for example limiting the number of tasks which can run on each machine. Costs specify preferences between possible scheduling assignments. Solving the minimum-cost flow problem yields a schedule optimal under the model.
 
-This "flow scheduling" approach was pioneered by the Quincy system, developed at Microsoft Research~\cite{Isard:2009}. Quincy aimed for \emph{data locality}: placing tasks close to where their data is stored. Costs in the network represented bandwidth usage, with the optimal schedule being the one which minimised traffic. Cluster throughput under the Quincy system increased by 40\%, demonstrating the efficacy of this approach.
+This ``flow scheduling'' approach was pioneered by the Quincy system, developed at Microsoft Research~\cite{Isard:2009}. Quincy aimed for \emph{data locality}: placing tasks close to where their data is stored. Costs in the network represented bandwidth usage, with the optimal schedule being the one which minimised traffic. Cluster throughput under the Quincy system increased by 40\%, demonstrating the efficacy of this approach.
 
 The key benefit to flow scheduling, however, is its flexibility. Firmament supports a variety of policies, with goals ranging from energy efficiency to minimising co-location interference. Adding a policy is as simple as defining a new cost model.
 
