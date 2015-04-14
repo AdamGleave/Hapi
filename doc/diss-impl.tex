@@ -1130,23 +1130,71 @@ Each arc $(i,j)$ is identified by an index in RelaxIV. Of course, the flow sched
 %Show how solver can achieve original task, by integrating into a cluster scheduler. Choice of Firmament: can be briefly justified, but need not be at all (no real alternatives).
 
 \section{Benchmark suite} \label{sec:impl-benchmark}
-
 % TODO: Maybe include modifications to Firmament in this or a separate section
 
-Motivation. Automate common task. Improve quality of data collection: can run experiment many times with different parameters, no possibility of human error. 
+%Work you want to discuss:
+%* Google trace simulator/Firmament
+%  - Online mode
+%  - New termination conditions: number of events, number of rounds
+%  - Hash: configurable \% of events
+%  - Output graph file
+%  - Collect statistics, timing
+%  - Bugfixes:
+%    + Don't rerun when no changes take place
+%    + Avoid exporting no-op incremental deltas
+%* Benchmark suite
+%  - Architecture is unique, worth describing.
+%  - Embellish it: significant time savings, novel approach, etc.
+%  - Much of it should go in eval, though? Like:
+%    + Accuracy: supports multiple iterations
+%    + Test modalities
+%  - Just mention the stuff that was more considerable work.
 
-\subsection{Architecture}
+% Intro: Big it up. Something like: "Benchmarking a project of this scope is non-trivial, and requires considerable implementation. Although the details of the experiments conducted are in \S\ref{sec:eval}, this section gives some background on the implementation carried out."
+% Explain general approach. Tests on pregenerated graph files, or using simulator. (Forward reference.)
+% Test harness first, since it's mine.
+% Then extensions to Firmament, the cluster simulator.
 
-Specify different implementations by Git `treeish', and path. Will checkout and build automatically. 
+The last two sections described new solution methods implemented by this project. These approaches will only be adopted if a compelling performance improvement can be shown. The experimental setup used to demonstrate this is described in the next chapter. This section outlines the implementation work that was necessary to run these tests.
 
-Test cases specify implementations required, I/O parameters, number of iterations.
+The Firmament flow scheduling system was used in the tests. Some experiments, such as those in \cref{sec:eval-test-integration}, were performed on a real cluster using the standard Firmament code base. However, the goal of this project is to produce algorithms which are fast at \emph{scale}. Testing this would require access to a cluster with tens of thousands of machines, which is clearly not practical.
 
-Output CSV file with statistics.
+Instead, a cluster is \emph{simulated} for such tests. Fortunately, the Firmament system includes a simulator based on events recorded in a Google cluster~\cite{clusterdata:Wilkes2011}. The next section describes modifications made to the simulator, and other areas of the Firmament code base. An outline of the test harness used to automate the benchmark process is given in the subsequent section.
 
-\subsection{Testing on full networks}
+\subsection{Firmament and the cluster simulator}
 
-Non-incremental case.
+The simulator was designed to test Firmament, not flow solvers, and so some modifications were necessary. A statistics module was added, producing a CSV file reporting the runtime of the algorithm at each scheduling round, along with relevant properties of the cluster at that time. The network generator was extended to identify which cluster event triggered a change in the network: whilst not used in experiments, this proved invaluable during development.
 
-\subsection{Testing on incremental changes}
+%Support for generating trace files was added: these contain a log of all changes to the network, in machine readable format, along with comments indicating which cluster event triggered the change. Although not used in experiments, this proved invaluable for debugging.
 
-Can test two incremental versions head-to-head. Alternately, can test an incremental version compared to applying the diff and running a full solver from scratch.
+The most significant changes were made for testing the incremental solver. `Incremental' updates to the flow network were already supported by the system. However, the vast majority of the updates generated were spurious: parsing the changes took longer than actually running the incremental solver! I patched the Firmament network generator to eliminate these spurious changes, considerably decreasing measured runtime.
+
+In a real cluster, Firmament will start a new scheduling round as soon as the previous round has completed, provided any events are pending. By contrast, the simulator started a new scheduling round at fixed time intervals. This difference was mostly harmless for traditional `full' solvers, whose runtime does not depend on the number of changes. 
+
+For incremental solvers, however, this difference is significant. The longer the period between scheduling rounds, the more changes there are, increasing the runtime of the solver. The simulator defaulted to a very short fixed time interval, which unfairly skewed the test in favour of incremental solvers. 
+
+To resolve this problem, the minimum time between scheduling rounds was made proportional to the runtime of the solver, as it would be in a real cluster. The statistic reported is no longer the runtime of the algorithm, but the worst-case scheduling latency experienced by an event\footnotemark. This has the added benefit of increasing the realism of the simulation for `full' solvers as well.
+\footnotetext{To see why these are different, suppose an event arrives just after a scheduling round begins. It must wait until the solver finishes, before a new scheduling round begins. The event is only processed after the \emph{second} scheduling round finishes, so the event has had to wait for (almost) two executions of the solver.}
+
+% Not mentioned:
+%  - New termination conditions: number of events, number of rounds
+%  - Hash: configurable \% of events
+%  - Bugfixes: Don't rerun when no changes take place
+% But OK to be brief!
+
+\subsection{Test harness}
+
+Running the tests manually would be unwieldly and error-prone. A test harness was developed in Python to automate the process. The configuration of the harness includes a list of implementations and datasets. Individual test cases in the configuration specify which implementation to test and what datasets to use, along with other parameters.
+
+In addition to testing the final versions of the solvers, the harness was used to evaluate the impact of optimisations implemented throughout the project, as reported in \S\ref{sec:eval-optimisations}. To support this, the harness was integrated with the Git version control system~\cite{GitWWW}. Versions of an implementation can be specified by a Git commit ID or branch name.
+
+\todo{Add extract from configuration file / example output from the harness to illustrate this?}
+It was anticipated that this project would involve running a large number of experiments. The harness was therefore designed to make the process as simple as possible. Test cases can be specified in less than 10 lines. Starting the experiment is simple: the harness will check out appropriate versions of the code and build the implementations with no user intervention, returning once the results of the test are complete.
+
+Efficiency was also a key requirement: with many experiments, it is important that they complete as fast as possible. The harness will reuse intermediate computation where possible. Implementations will only be checked out and built once. A cache of generated flow networks is maintained\footnotemark, so that the overhead is only incurred on the first run.
+\footnotetext{Except where this could affect the results. For example, the test to measure scheduling latency described in the previous section requires the network be regenerated on each run, as it may vary slightly depending on the runtime of the algorithm.}
+
+% Omitted, may want to mention:
+% - Supports both offline (graph file) and hybrid/online (simulator) tests
+% - For offline: supports both incremental and full, via snapshot solver.
+% - For offline: can specify files with globs, etc.
