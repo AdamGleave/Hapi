@@ -1,90 +1,114 @@
 \chapter{Preparation} \label{chap:prep}
 
-% Proofread: None/Once
+% PROOFREAD: None/Once
 
 \section{Cluster scheduling} \label{sec:prep-scheduling}
 
+% PROOFREAD: 1. Major edits. 2. Minor edits.
+
 % TODO: Get some references from Malte/Ionel on this?
-Servers in a cluster are managed by the cluster scheduler, which maps tasks to particular machines. The performance and efficiency of the cluster are to a large extent dependent on this scheduler. Consequently, there has been considerable work both inside academia and within industry to develop effective schedulers.
+Much as an operating system schedulers maps threads to processor cores, a cluster scheduler maps tasks to machines. Better scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their important, cluster schedulers remain an active area of research, both within academia and in industry.
 
 I will start by outlining desirable properties for cluster schedulers. Following this, I will summarise the prevailing approaches to scheduling. To conclude, I will discuss the principles underlying Firmament, and show how it improves upon competing approaches with its use of flow scheduling.
 
-\subsection{Design goals}
+\subsection{Design goals} \label{sec:prep-scheduling-goals}
 
-The cluster scheduler faces a challenging task. The policy of the scheduler should be targeted to meet the needs of particular application requirements. To effectively implement a policy, the scheduler may need a wide variety of factors, such as the load at each machine and the resource requirements of each task. This should all take place as fast as possible, to support interactive applications. Furthermore, the system needs to be able to scale to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}
+% PROOFREAD: 1. Major edits. 2. Minor edits.
+
+The cluster scheduler faces a challenging task. The scheduler policy must be targeted to meet the specific needs of the applications it is scheduling. To effectively implement a policy, the scheduler may need to process a wide variety of factors, such as the load at each machine and the resource requirements of every task. This should all take place as fast as possible, to support interactive applications. Furthermore, the system must be able to scale to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}.
 
 \begin{table}
     \begin{tabular}{c|l}
         Goal & Description\tabularnewline
         \hline
         Targeted & Application requirements are reflected in the scheduler policy. \tabularnewline
-        Effective & The policy is realised successfully by the scheduler. \tabularnewline
+        Effective & The schedules produced are optimal given the policy objectives. \tabularnewline
         Fast and scalable & Scheduling latency remains low even for large clusters. \tabularnewline
     \end{tabular}
     \caption{Design goals for cluster schedulers}
     \label{table:cluster-scheduler-design-goals}
 \end{table}
 
-Scheduler policies may try to achieve a variety of objectives. The traditional use case of clusters was for batch jobs, where the goal is to maximise throughput. Increasingly, clusters are running interactive jobs, where latency is critical. Modern clusters are often multi-tenant: ensuring \emph{fairness}, an equitable distribution of resources between users, is also important. Naturally, these and other objectives are often in conflict: a trade-off must be chosen for each application. It is essential, then, that scheduler policy can be targeted to meet the needs of specific applications.
+Scheduler policies may have a variety of objectives. The traditional use case of clusters is batch jobs, where the goal is to maximise throughput. Increasingly, clusters run interactive jobs, where low latency is critical. Modern clusters are often multi-tenant: it is important to ensure \emph{fairness}, an equitable distribution of resources between users. Naturally, objectives often conflict with each other: each application must choose a particular trade-off. It is essential, then, that scheduler policy can be targeted to meet the needs of different applications.
 
-Although getting the policy objectives right is important, there is still the matter of implementing the policy effectively. This often requires processing a wide range of information. As a simple example, consider the Whare-Map scheduler, which seeks to minimise co-location interference: the degradation of performance which occurs when tasks running on the same machine are competing for common resources~\cite{Mars:2013}\footnotemark. This is achieved by monitoring the performance of each running task on every machine, building up a profile of each application and its interaction with other tasks.
+Getting the objectives right can be hard enough. Implementing a scheduler which effectively achieves those objectives is more difficult still. Particularly challenging is the sheer amount of information that must be processed. As a simple example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it must monitor the performance of every task running in the cluster, building up a profile of how each application interacts with others.
 \footnotetext{In fact the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
 
 % SOMEDAY: Terminology re: latency is a bit confused. Here you're talking about scheduling latency to do with the solver being slow. But in the next section you talk about latency due to policy: a FIFO queue.
-Finally, the system should remain fast at scale. A scheduler may need to manage tens or hundreds of thousands of machines in a modern warehouse scale computer, perhaps placing hundreds of thousands or millions of tasks\footnotemark. Furthermore, clusters now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform. These jobs may demand sub-second or shorter scheduling latency~\cite{Ousterhout:2013}.
+Finally, the system should remain fast at scale. Today's warehouse scale computer may contain tens of thousands of machines, running hundreds of thousands of tasks\footnotemark. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform. These applications may demand sub-second or lower scheduling latency~\cite{Ousterhout:2013}.
 \footnotetext{At full utilisation, there will certainly be as many tasks on each machine as there are cores, perhaps more. There may also be tasks in the system which remain unscheduled.}
 
 \subsection{Prevailing approaches}
 
-Apache Hadoop is by far the most widely used framework for distributed storage and processing. Originally developed at Yahoo, it has since been adopted by many other firms, including Amazon, Facebook and LinkedIn~\cite{HadoopPoweredBy}. Representing the state of the art used in industry, it is instructive to consider the scheduling techniques it utilises. 
+% PROOFREAD: 1. Minor edits.
 
-Until 2008, Hadoop supported only one scheduler~\cite{HadoopFairSchedulerJIRA}: a simple FIFO queue, executing whichever job had waited longest. This offers high throughput, and so is attractive for batch jobs, Hadoop's traditional application. However, it fares poorly with other applications. In particular, the latency can be very high, as a job (no matter how small) must wait in line between all previously submitted tasks. In addition, their is no notion of fairness: a heavy user of the cluster can starve all other users.
+Apache Hadoop is by far the most widely used distributed storage and processing framework. Originally developed at Yahoo, it has since been adopted by many other firms, including Amazon, Facebook and LinkedIn~\cite{HadoopPoweredBy}. Representing the state of the art used in industry, it is instructive to consider the scheduling techniques it uses.
 
-Hadoop's developers opted to resolve these shortcomings by introducing a pluggable scheduler framework~\cite{HadoopSchedulingIBM}. In the terminology of \cref{table:cluster-scheduler-design-goals}, the policy of the scheduler can be precisely \emph{targeted} to specific application needs. Although this approach is powerful, to some extent it merely offloads the problem elsewhere. It is not feasible for each application to be bundled with its own scheduler\footnotemark.  The majority of installations use either the Fair Scheduler or Capacity Scheduler, which are distributed with Hadoop.
-\footnotetext{Even if it were, Hadoop only supports one scheduler per cluster.}
+Until 2008, Hadoop supported only one scheduler~\cite{HadoopFairSchedulerJIRA}: a FIFO queue, executing whichever job had waited longest. This offers high throughput, and so is attractive for batch jobs, Hadoop's traditional application. However, it fares poorly with other applications. In particular, the latency can be very high: a job (no matter how small) must wait in line before all previously submitted tasks. In addition, their is no notion of fairness: a heavy user of the cluster can starve all other users.
 
-The Fair Scheduler was designed at Facebook. Over time, each job is guaranteed an equal share of available resources. It pioneered a technique known as delay-scheduling, which allows the cluster administrator to sacrifice some fairness in order to achieve greater data locality~\cite{Zaharia:2010}. 
+Hadoop's developers introduced a pluggable scheduler framework to resolve these shortcomings~\cite{HadoopSchedulingIBM}. In the terminology of \cref{table:cluster-scheduler-design-goals}, by allowing users to write their own scheduler the policy can be precisely \emph{targeted} to specific application needs. Although this approach is powerful, to some extent it merely shifts the problem elsewhere. It is not feasible for each application to be bundled with its own scheduler\footnotemark. The vast majority of installations use one of the schedulers distributed with Hadoop: the Fair Scheduler or Capacity Scheduler.
+\footnotetext{Clusters typically run many applications simultaneously, but Hadoop only supports one scheduler per cluster, so this would not be a viable approach anyway.}
+
+The Fair Scheduler was designed at Facebook, guaranteeing each job an equal share of available resources. It pioneered a technique known as delay-scheduling, which allows the cluster administrator to sacrifice some fairness in order to achieve greater data locality~\cite{Zaharia:2010}. 
 
 The Capacity Scheduler was designed at Yahoo, in order to support distinct application classes on the same cluster. Hard resource guarantees can be provided to each application class, ensuring a minimum service level. Applications are allowed to burst beyond this level when there are cluster resources idle.
 
-Note both schedulers are designed with specific purposes in mind. Whilst offering good performance in the narrow domains they were designed for, there is little policy flexibility.
+Note both schedulers are designed with specific purposes in mind. Although effective, offering good performance for their stated objectives, the schedulers cannot be targeted to particular applications: there is limited policy flexibility.
 
-Another drawback is that the schedulers run blind to the underlying hardware. Cluster environments are increasingly heterogeneous~\cite{Reiss:2012}, posing problems for traditional schedulers. The LATE scheduler, designed to be robust to heterogenity, improved response times by a factor of 2 over Hadoop's default scheduler when running on Amazon's Elastic Compute Cloud (EC2)~\cite{Zaharia:2008}.
+There are also some questions as to how effective these schedulers truly are. Cluster environments are increasingly heterogeneous~\cite{Reiss:2012}, posing problems for traditional schedulers which run blind to the underlying hardware. The LATE scheduler, designed to be robust to heterogeneity, halved response times compared to Hadoop's default scheduler when running on Amazon's Elastic Compute Cloud~\cite{Zaharia:2008}.
 
-Hitherto, I have considered the state of the art amongst schedulers that are in the public domain. With today's major web companies dependent upon clusters, there is naturally considerable research into this area in industry. Unfortunately, the details of the schedulers used by major technology firms such as Google are trade secrets, making it difficult to evaluate the state of the art within industry. 
+Hitherto, I have considered only the public state of the art. With today's major web companies dependent upon clusters, there is naturally considerable research into this area by industry. Unfortunately, the details of the schedulers developed by major technology firms such as Google are trade secrets.
 
-However, the information which is public suggests that the basic approach is the same. The designs will, of course, have been tweaked to meet specific application requirements, and to operate efficiently on the cluster architectures favoured by the firm. For example, Google's scheduler allows tasks to specify a kernel version constraint, and attempts to minimise peak power demand by load balancing~\cite[\S2.1]{Sharma:2011}.
+However, the information which is public suggests that the basic approach is the same. The designs have, of course, been tweaked to meet specific application requirements, and to operate efficiently on the cluster architectures favoured by the firm. For example, Google's scheduler lets tasks specify a kernel version constraint, and seeks to minimise peak power demand by load balancing~\cite[\S2.1]{Sharma:2011}.
 
 \subsection{Firmament and flow scheduling}
 
-TODO: Update to talk about Firmament
+% PROOFREAD: 1. Major edits. Need to reread.
 
-Despite considerable research effort, both in industry and academia, the traditional scheduler designs discussed above suffer from two major deficiencies. The first is a lack of policy flexibility. Hadoop attempts to solve this by allowing for an ecosystem of different schedulers, but this approach is limited. As we try to trade-off more objectives, there is a combinatorial explosion in the number of scheduler designs needed. The second problem is a failure to take the underlying cluster architecture into account when making scheduling decisions.
+\begin{table}
+\begin{tabular}{c|c|c|c}
+    Scheduler & Targeted & Effective & Fast and scalable \tabularnewline
+    \hline
+    Hadoop FIFO Scheduler & 1 & 3 & 4 \tabularnewline
+    Hadoop Fair Scheduler & 2 & 4 & 3 \tabularnewline 
+    Hadoop Capacity Scheduler & 2 & 4 & 3 \tabularnewline 
+    LATE & 1 & 5 & 3 \tabularnewline 
+    Sparrow & 2 & 3 & 5 \tabularnewline 
+    \hline
+    Quincy & 2 & 5 & 1 \tabularnewline 
+    Firmament & 4 & 5 & 1 \tabularnewline 
+\end{tabular}
+\caption{Scheduler feature matrix}
+\label{table:cluster-scheduler-feature-matrix}
+\end{table}
+\todo{Graphical representation of the numerical ratings} % TODO
 
-% Nice example from Malte's PhD thesis of three-way relationship between data locality, fair resource sharing and scheduling delay. Could use this or something similar to illustrate this?
+Schedulers have traditionally relied on \textit{ad hoc} heuristics to implement a hard-coded policy. This approach has yielded impressive results, however there are signs it may be reaching its limits.
 
-Microsoft Research developed the Quincy system~\cite{Isard:2009} to address these problems. Working with the Dryad distributed execution engine~\cite{Isard:2007}\footnotemark, the Quincy scheduler builds a model of the cluster and the tasks. A flow network is generated from this model, with solving the flow problem dual to finding a schedule.
-\footnotetext{Dryad allows tasks ("computational vertices") to be connected together by communication "channels" to form an (acyclic) dataflow graph. Other computational frameworks, such as MapReduce and relational algebra, reduce to special cases of Dryad.}
+\Cref{table:cluster-scheduler-feature-matrix} summarises the results of the previous section, and previews this section. It is apparent that the key drawback of the heuristic approach is an inability to \emph{target} the scheduling policy. This has led to a proliferation of different schedulers, but it will never be possible to meet all application needs in this way.
 
-In the configuration described in the original paper, Quincy optimised for high levels of data locality and fairness. Its performance in this regard was admirable. Quincy's throughput was 40\% greater than that of standard queue-based approaches, such as those used by Hadoop. Moreover, data transfer was reduced by up to a factor of 3.9. This could allow for considerable cost savings when building out clusters, by reducing the interconnect capacity required.
+There has been some attempt to make heuristic schedulers more general: both the Hadoop Fair Scheduler and Capacity Scheduler are considerably more configurable than their predecessors. Only a small degree of flexibility is afforded by this, however. 
 
-% TODO: Any other papers that are relevant in this regard?
-Since the paper introducing Quincy was published in 2009, new scheduling algorithms designed specifically with data locality and fairness in mind have been published~\cite{Guo:2012,Jin:2011,Ibrahim:2010}. Although no up-to-date empirical evaluation is available, my suspicion is Quincy would no longer lead the pack in this regard. The power of Quincy is not, however, in being yet another scheduler optimised for a narrow domain. Rather, it is that the system offers an extremely high level of flexibility.
+For example, the Fair Scheduler allows the trade-off between data locality and fairness to be specified. But it is rare that these are the only two objectives of importance. Low scheduling latency is important to many applications. This conflicts with the other two objectives: for example, data locality is boosted by keeping a task unscheduled until a compute node close to the data becomes free. There is no way to adjust this trade-off using the Fair Scheduler.
 
-As we saw above, most schedulers focus on one or two specific goals. There may be some degree of configurability: the Hadoop Fair Scheduler, for instance, allows the administrator to control the trade-off between fairness and data locality. Quincy, by contrast, is almost infinitely configurable. Indeed, the scheduler does not assume any specific policy. Instead, the policy is defined by a cost model: a procedure which assigns costs to arcs in the flow network.
+The Firmament\footnotemark cluster scheduler, by contrast, is specifically designed to be flexible. Rather than using a heuristic approach, Firmament models scheduling as an optimisation problem over \emph{flow networks}. The details of this are described in \S\ref{sec:prep-flow-scheduling}, but the key point is that the scheduling policy is encoded in terms of a \emph{cost model} which assigns costs to arcs in the network. Defining a new cost model is relatively straightforward, making it easy to implement a wide variety of policies.
+\footnotetext{Firmament has been developed by the supervisors for this project, Malte Schwarzkopf and Ionel Gog, as part of the Cambridge Systems at Scale initiative.}
 
-It would be an overstatement to say that all policies can be expressed in this way: flow networks are not Turing complete. Indeed, there is a concrete counterexample of this. In gang scheduling\footnotemark, a constraint is added that pairs of tasks must be scheduled to run simultaneously. This is difficult or impossible to express in this model: flows in a network are inherently independent.
-\footnotetext{Note gang scheduling does not benefit systems such as Dryad. It is most useful when there is bidirectional communication between the two tasks. This would correspond to a cycle in the dataflow graph, which is explicitly disallowed.}
+It would be an overstatement to say that all policies can be expressed in this way: flow networks are not Turing complete. Indeed, there is a concrete counterexample of this. In gang scheduling, a constraint is added that pairs of tasks must be scheduled to run simultaneously. This is difficult or impossible to express in this model: flows in a network are inherently independent. However, cases such as these are the exception that proves the rule. In practice, the model is very powerful, allowing a range of scheduling policies to encoded in terms of cost models. 
 
-However, cases such as these are the exception that proves the rule. In practice, the model is very powerful, allowing a range of scheduling policies to encoded in terms of cost models. Moreover, the policies naturally tend to adapt themselves to different cluster architectures, as the topology of the flow network will also adjust itself.
+This flow scheduling approach may also be more \emph{effective} than heuristic designs. The Quincy system, which pioneered flow scheduling, sought to achieve \emph{data locality}. Throughput under Quincy was 40\% greater than traditional designs; moreover, data transfer was reduced by up to a factor of 3.9, potentially allowing for cost savings when building cluster networks~\cite{Isard:2009}. This was possible due to the flow network representation, allowing for fine-grained resource usage to be easily encoded. 
 
-% TBC: Add reference to Firmament
+A more contemporary problem is that of scheduling in heterogeneous environments. There have been attempts to solve this problem using heuristic approaches. LATE, for example, identifies tasks which are under-performing and speculatively executes them on a faster node~\cite{Zaharia:2008}. This, however, is inefficient: the task has already spent time executing on a node, only to be preempted. Firmament encodes the resources available in the cluster explicitly in the flow network, to avoid placing resource-intensive tasks on machines which are already overloaded.
+
+The key advantage of heuristic designs is that they tend to be computationally inexpensive. This allows them to scale to very large clusters. Moreover, for applications which require very low scheduling latencies, it is possible to speed up the scheduler by adopting simpler heuristics, or distributing the scheduling as in Sparrow~\cite{Ousterhout:2013}. The goal of this project is to improve the scheduling latency and scalability of flow based systems, to allow them to compete with heuristic schedulers. The next section provides background on the problem which must be solved.
 
 \section{Flow networks} \label{prep-flow}
 
-Before we discuss how Quincy encodes scheduling in terms of a flow network, we must pause to formalise the notion of a flow network and the associated flow problems, and establish the notation to be used throughout the rest of the dissertation. After this, I will summarise properties of flow networks which will be needed later when analysing and designing flow algorithms.
+We must first formalise the notion of a flow network and its associated optimisation problems, before discussing the details of scheduling using flow networks. Following this, properties of flow networks useful for the analysis and design of flow algorithms will be summarised.
 
 \subsection{Introduction}
+
+% PROOFREAD: 1 minor edits.
 
 \subsubsection{Definitions and notation}
 
@@ -92,111 +116,106 @@ A \emph{flow network} is a weakly connected\footnotemark directed graph $G=(V,E)
 \footnotetext{A directed graph is weakly connected if the undirected graph formed by replacing all directed edges with undirected edges is itself connected.}
 
 Each arc $(i,j)\in E$ has an associated \emph{capacity} (or \emph{upper	bound}\footnotemark) $u_{ij}$, and a \emph{cost} $c_{ij}$.
-\footnotetext{Some authors also include a lower bound $l_{ij}$. This will not feature in flow scheduling. Moreover, any network featuring lower bounds can be transformed into an equivalent one where all lower bounds are zero. \cite[p.~39]{Ahuja:1993}}
+\footnotetext{Some authors include a lower bound $l_{ij}$, but this does not feature in flow scheduling. Moreover, any network featuring lower bounds can be transformed into an equivalent one without~\cite[p.~39]{Ahuja:1993}.}
 
 Each node $i\in V$ has an associated supply/demand $b_{i}$. Node $i$ is said to be a \emph{supply node} if $b_{i}>0$, a \emph{demand	node} if $b_{i}<0$ and a \emph{transshipment node} if $b(i)=0$.
 
 The problems we will consider involve finding a solution vector $\mathbf{x}$,
 specifying the flow $x_{ij}$ at each arc $(i,j)\in E$. A solution
-$\mathbf{x}$ is \emph{feasible}, and we say it is a \emph{flow}, if it satisfies capacity constraints at every arc:
+$\mathbf{x}$ is \emph{feasible}, and we say it is a \emph{flow}, if it satisfies capacity constraints at every arc $(i,j) \in E$:
 
 \begin{equation} \label{eq:capacity-constraints}
-0\leq x_{ij}\leq u_{ij}\:\forall(i,j)\in E
+0\leq x_{ij}\leq u_{ij}
 \end{equation}
 
-and mass balance constraints at each node:
+and mass balance constraints at each node $i \in V$:
 
-\begin{equation} \label{eq:mass-balance}
-\sum_{j\::\:(i,j)\in E}x_{ij}-\sum_{j\::\:(j,i)\in E}x_{ji}=b(i)\:\forall i\in V
+\begin{equation} \label{eq:mass-balance-constraints}
+\sum_{j\::\:(i,j)\in E}x_{ij}-\sum_{j\::\:(j,i)\in E}x_{ji}=b_i
 \end{equation}
 
 That is, the net flow out of the node is exactly equal to the supply
-at that node (which may be negative.)
+at that node (which may be negative, in the case of demand nodes).
 
 \subsubsection{Assumptions}
 
 \begin{assumption}[Integrality] \label{assumption:integrality}
-All quantities defining the flow network take on only integer values.\end{assumption}
+All quantities defining the flow network take on only integer values.\\
+\end{assumption}
     
-Note any network with rational quantities can be transformed into an equivalent integral network, by multiplying throughout by the greatest common denominator. Meanwhile, flow algorithms may not terminate on irrational data, so there is little point considering this case. Fortunately, the networks produced by systems such as Quincy are naturally integral, since quantities such as resource consumption in a data centre are inherently discrete. \\
-
-\begin{assumption}[Non-negative arc costs] \label{assumption:non-negative-arc-costs}
-For all $(i,j) \in E$, $c_{ij} \geq 0$.\end{assumption}
-
-~
-
-\begin{remark} 
-This assumption is without loss of generality\footnote{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}}.
+\begin{remark} Note any network with rational quantities can be transformed into an equivalent integral network, by multiplying throughout by the greatest common denominator. Meanwhile, flow algorithms may not terminate on irrational data, so there is little point considering this case. Fortunately, the networks produced by systems such as Quincy are naturally integral, since quantities such as resource consumption in a data centre are inherently discrete. \\
 \end{remark}
 
-\begin{cor}All quantities defining arcs take on only values from the natural numbers.\footnotemark
+\begin{assumption}[Non-negative arc costs] \label{assumption:non-negative-arc-costs}
+For all $(i,j) \in E$, $c_{ij} \geq 0$. \\
+\end{assumption}
+
+\begin{remark} 
+This assumption is without loss of generality\footnote{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}}. \\
+\end{remark}
+
+\begin{cor}All quantities defining arcs take on only values from the natural numbers.\footnotemark \todo{\quad\quad\quad Cut?}
 \footnotetext{To avoid confusion, I will follow the convention $0\in\mathbb{N}$ throughout this document.}
 \end{cor}
 \begin{proof}
-Every arc is defined by its capacity and its cost. Capacities are non-negative by definition, and arc costs are non-negative by \cref{assumption:non-negative-arc-costs}. This together with \cref{assumption:integrality} guarantee capacities and costs are natural numbers.
+An arc is defined by its capacity and its cost. Capacities are non-negative by definition, and arc costs are non-negative by \cref{assumption:non-negative-arc-costs}. This together with \cref{assumption:integrality} guarantees that capacities and costs are natural numbers.
 \end{proof}
 
-We can therefore use exclusively unsigned integer data types when representing arcs in computer code.
+\begin{remark}  
+We can therefore exclusively use unsigned integer data types when representing arcs in computer code.
+\end{remark}
 
 \subsubsection{The minimum-cost flow problem} \label{sec:prep-flow-mcf}
 
 The well-known maximum flow problem involves finding a solution vector
-$\mathbf{x}$ subject to constraints (1) and (2), i.e. finding a feasible
-flow.
+$\mathbf{x}$ subject to constraints \cref{eq:capacity-constraints} and \cref{eq:mass-balance-constraints}, i.e. finding a feasible flow.
 
-Our focus will be on a generalization of this, known as the minimum
-cost problem. Formally, it is:
+Our focus will be on a generalization of this, known as the minimum-cost flow problem. Formally, it is:
 
 \begin{equation} \label{eq:mcf-primal-problem}
 \mbox{minimise}\ s(\mathbf{x})=\sum_{(i,j)\in E}c_{ij}x_{ij}
 \end{equation}
-where $\mathbf{x}$ is constrained to be a feasible flow. A feasible
-flow $\mathbf{x}$ minimizing the above quantity is said to be \emph{optimal}.
+subject to the constraint that $\mathbf{x}$ must be a feasible flow.
 
-In general, there may be no feasible solution to a network. For example,
-the problem may be imbalanced: $\sum_{i\in V}b_{i}\neq0$. All networks
-produced by the Quincy system are guaranteed to be solvable, however,
-so this does not concern us. Consequently, I will assume in subsequent
-discussions that networks are feasible, unless stated otherwise%
-\footnote{For robustness, however, all algorithms implemented as part of this project detect if a network is infeasible.}.
+Note, in general, this and the maximum flow problem may be infeasible. For example, the network may be imbalanced: $\sum_{i\in V}b_{i}\neq0$. All networks produced by Firmament are guaranteed to be solvable, however, so I will tend not to discuss this case\footnotemark.
+\footnotetext{For robustness, all algorithms implemented as part of this project detect if a network is infeasible.}
 
-\subsection{Scheduling using flows}
+\subsection{Scheduling using flows} \label{sec:prep-flow-scheduling}
 
-% Previously have described the advantages of Quincy, and roughly its architecture, but not gone into any technical detail.
-% Intro: models scheduling as an optimisation problem, the minimum-cost flow problem.
-% Flow from tasks (source nodes) to machines or unscheduled aggregators, draining to a sink
-% Capacities specify possible scheduling states of tasks: e.g. enforce minimum number of tasks scheduled per job
-% Costs specify preferences
+Firmament and Quincy frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, each consisting of a number of \emph{tasks}. Flow drains from task nodes to a sink node. Along the way, it passes either through a machine node (indicating the task is to be placed there) or a special job unscheduled aggregator node (indicating the task is to be left unscheduled).
 
-Quincy and Firmament frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, each consisting of a number of \emph{tasks}. Flow drains from task nodes to a sink node. Along the way, it passes either through a machine node (indicating the task is to be placed there) or a special job unscheduled aggregator node (indicating the task is to be left unscheduled).
-
-Arc capacities are used to \emph{restrict} the possible scheduling assignments. The costs associated with arcs, by contrast, specify \emph{preferences} between possible scheduling assignments. Different scheduling policies may be encoded by varying the costs.
+Arc capacities are used to \emph{restrict} the possible scheduling assignments. The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Scheduling policies are therefore encoded in terms of a cost model.
 
 \subsubsection{Network structure}
-%TBC: Table here would really help
-%TBC: Flow graphs really useful here! Illustrate each type of network.
 
-Each task $i$ in job $j$ is represented by a node $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by nodes $\mathbf{M}_l$, with arcs to a sink node $\mathbf{S}$. Task nodes have arcs to machine nodes, with a cost specifying the preference of being scheduled on that machine.
+% PROOFREAD: 1 major edits, need to reread.
 
-There is a problem with this scheme: if there are more tasks submitted than can be scheduled, the flow problem would become unfeasible. To fix this, we introduce \emph{unscheduled aggregators} $\mathbf{U}^j$ for each job $j$, with an arc to $\mathbf{S}$. Each task node $\mathbf{T}_i^j$ also has an arc to its unscheduled aggregator $\mathbf{U}_j$, with a cost specifying the penalty for being unscheduled.
+\todo{Table summarising nodes}
+\todo{Flow graphs}
 
-In the model above, every task has an arc to every machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark. Quincy makes the modification of introducing \emph{rack aggregator} nodes $\mathbf{R}_k$, each with an arc to every machine in that rack. Moreover, there is a single \emph{cluster aggregator} $\mathbf{X}$ with an arc to every rack aggregator\footnotemark. Each task then has a fixed number of arcs. Some of these may be to individual machines, some to rack aggregators and every task has an arc to the cluster aggregator. 
+Each task $i$ in job $j$ is represented by a node $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by nodes $\mathbf{M}_l$, with arcs to a sink node $\mathbf{S}$. Task nodes have arcs to machine nodes, with the arc cost specifying the task's preference for being scheduled on that machine.
+
+There is a problem with this scheme: if there are more tasks submitted than can be scheduled, the flow problem becomes infeasible. To fix this, we introduce \emph{unscheduled aggregators} $\mathbf{U}^j$ for each job $j$, with an arc to $\mathbf{S}$. Each task node $\mathbf{T}_i^j$ has an arc to its unscheduled aggregator $\mathbf{U}_j$, with the cost specifying the penalty for being unscheduled.
+
+In the model above, every task has an arc to each machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark.
 \footnotetext{The number of arcs will scale linearly with the number of machines. But, of course, as the size of a cluster grows the number of tasks being scheduled will also tend to grow proportionally. So the number of arcs actually will tend to grow \emph{quadratically} with increases in the number of machines. Scalability is a key concern, making this is highly undesirable.}
-\footnotetext{Of course, this hierarchical scheme could be extended to any number of levels.}
-
-This scheme of rack aggregators is particularly suited to Quincy. Its cost model is based in large upon the amount of network bandwidth used by a task, which will be similar within a rack. This approach may work less well for other cost models. Firmament generalised this method by introducing \emph{equivalence classes}, both for task and machine\footnotemark nodes, with an aggregator node for entities within an equivalence class.
+Firmament adds support for \emph{equivalence classes}, which may be over tasks or machines. Each equivalence class has an aggregator node, with arcs to all nodes in the class. In this way, multiple arcs connecting to nodes in the same class can be combined into a single arc.
 \footnotetext{In fact, Firmament supports representing resources at a finer grain than machines: for example, an individual core. So machines may themselves be aggregator nodes.}
+
+The Quincy system provides a concrete example of an equivalence class. Each rack has an associated \emph{rack aggregator} node $\mathbf{R}_k$, with arcs to every machine in the rack. Moreover, a single \emph{cluster aggregator} $\mathbf{X}$ is introduced, with arcs to each rack aggregator. This scheme is appropriate for Quincy as its costs depend on inter-rack bandwidth usage, so will tend to be similar within a rack\footnote{Costs also depend on intra-rack bandwidth usage, but less weight is given to this factor as it is rarely a bottleneck.}. Rather than arcs from every task $\mathbf{T}_i^j$ to each machine, there is a single arc to $\mathbf{X}$ and a fixed number of arcs to preferred machines and racks.
 
 \subsubsection{Capacities}
 
+% PROOFREAD: 1 minor edits.
 Every arc leaving a task node $\mathbf{T}_i^j$ has unit capacity. Note $\mathbf{T}_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
 
 The arcs $\mathbf{M}_l \to \mathbf{S}$ from machine nodes to the sink node have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
 \footnotetext{In the original Quincy system, $K=1$. However, this is clearly a poor utilisation of modern multi-core machines. In fact, performance may often be improved by setting $K > \text{\# of cores}$, on simultaneous multi-threading (SMT) machines.}
 
-The arcs $\mathbf{R}_k \to \mathbf{M}_l$ from rack aggregators to nodes representing their constituent machines also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $\mathbf{X} \to \mathbf{R}_k$ have capacity $mK$, where $m$ is the number of machines in each rack.
+The arcs $\mathbf{R}_k \to \mathbf{M}_l$ also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $\mathbf{X} \to \mathbf{R}_k$ have capacity $mK$, where $m$ is the number of machines in each rack\footnotemark.
+\footnotetext{In fact, it would be perfectly legitimate to leave these arcs uncapacitated: the capacity on $\mathbf{M}_l \to \mathbf{S}$ will ensure there are not too many tasks scheduled. However, these capacity constraints may improve the efficiency of the solver.}
 
-The arcs $\mathbf{U}^j \to \mathbf{S}$ can be set to be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. It is possible, however, to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This is used in Quincy and Firmament. It can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom.
+The arcs $\mathbf{U}^j \to \mathbf{S}$ can be set to be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. Firmament and Quincy, however, choose to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom.
 
 Let $N_j$ be the number of tasks submitted for job $j$. To enforce the upper bound $F_j$, give $\mathbf{U}^j$ a demand of $N_j - F_j$. At least this many tasks in job $j$ must then be left unscheduled, guaranteeing no more than $F_j$ tasks are scheduled.
 
@@ -204,25 +223,24 @@ To enforce the lower bound, we set the capacity on $\mathbf{U}^j \to \mathbf{S}$
 
 \subsubsection{Cost models}  
 
-% TODO: Firmament supports more cost models, such as Octopus. Will this be in PhD/can I cite it?
-A key benefit to the flow scheduling approach is policy flexibility: support for a policy can be added simply by providing a new cost model. The cost model used in the original Quincy system attempts to achieve \emph{data locality}: scheduling tasks close to their input data, in order to minimise network traffic. Firmament includes three other cost models~\cite[ch.~5]{Schwarzkopf:2015}. The Whare-Map and Coordinate Co-Location models aim to improve the utilisation of the cluster by avoiding co-location interference and taking into account the heterogeneity of available resources. The Energy-Aware cost model seeks to achieve energy efficiency whilst meeting application performance guarantees, in a hypothetical heterogeneous cluster containing a mixture of high performance (but low efficiency) and medium performance (but high efficiency) machines.
+% PROOFREAD: 1 minor edits.
 
-Given such a variety of possible policies, the solver developed in this project must be independent of any particular cost model. However, having an intuition for how cost models operate is valuable. For reasons of brevity, I will only summarize the cost model in the original Quincy system. Further details of this cost model are available in~\cite{Isard:2009}. A description of the other cost models mentioned above is in~\cite[ch.~5]{Schwarzkopf:2015}.
+A key benefit of the flow scheduling approach is its flexibility: support for a policy can be added simply by defining a new cost model. The model used in the original Quincy system attempts to achieve \emph{data locality}: scheduling tasks close to their input data, in order to minimise network traffic. 
 
-\paragraph{Quincy cost model}
+Firmament supports three other cost models~\cite[ch.~5]{Schwarzkopf:2015}. The Whare-Map and Coordinate Co-Location models aim to improve utilisation of resources in heterogeneous clusters. The Energy-Aware model seeks to achieve energy efficiency while meeting application performance guarantees, in clusters containing machines of varying performance and efficiency.
+
+% SOMEDAY: Not happy with "having an intuition for how cost models operate is valuable", rephrase
+Given such a variety of possible policies, the solver developed in this project must be independent of any particular cost model. However, having an intuition for how cost models operate is valuable. For reasons of brevity, I will only summarize the cost model in the original Quincy system. Further details of this model are available in~\cite{Isard:2009}. A description of the other models mentioned is in~\cite[ch.~5]{Schwarzkopf:2015}.
+
 \begin{table}
     \begin{tabular}{c|c|l}
         \hline 
         Cost & Edge & Meaning\tabularnewline
         \hline 
-        \hline 
-        $v_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{U}^{j}$ & Cost of leaving task $\mathbf{T}_{i}^{j}$ unscheduled\tabularnewline
-        \hline 
-        $\alpha_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{X}$ & Cost of scheduling on worst possible machine\tabularnewline
-        \hline 
-        $\rho_{i,l}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{R}_{l}$ & Cost of scheduling on worst machine in rack $\mathbf{R}_{l}$\tabularnewline
-        \hline 
-        $\gamma_{i,m}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{M}_{m}$ & Cost of scheduling on machine $\mathbf{M}_{m}$\tabularnewline
+        $\gamma_{i,m}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{M}_{m}$ & Cost of scheduling on machine $\mathbf{M}_{m}$.\tabularnewline
+        $\rho_{i,l}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{R}_{l}$ & Cost of scheduling on worst machine in rack $\mathbf{R}_{l}$.\tabularnewline
+        $\alpha_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{X}$ & Cost of scheduling on worst machine in cluster.\tabularnewline
+        $v_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{U}^{j}$ & Cost of leaving task $\mathbf{T}_{i}^{j}$ unscheduled.\tabularnewline
         \hline 
     \end{tabular}
     \caption{Costs in the Quincy model}
@@ -236,7 +254,7 @@ Given such a variety of possible policies, the solver developed in this project 
         \hline 
         $\chi^{X}\left(\mathbf{T}_{i}^{j}\right),\chi_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the core switch.\tabularnewline % if: scheduled on worst possible computer in cluster, scheduled on worst possible computer in rack $\mathbf{R}_{l}$ or scheduled on computer $\mathbf{M}_{m}$ respectively.
         $\mathcal{R}^{X}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the top-of-rack switch.\tabularnewline
-        $\theta_{i}^{j}$ & Number of seconds $\mathbf{T}_{i}^{j}$ has spent scheduled.\tabularnewline
+        $\theta_{i}^{j}$ & Number of seconds task $\mathbf{T}_{i}^{j}$ has spent scheduled.\tabularnewline
         $\nu_{i}^{j}$ & Number of seconds task $\mathbf{T}_{i}^{j}$ has spent unscheduled.\tabularnewline
         \hline
     \end{tabular}
@@ -261,27 +279,30 @@ Given such a variety of possible policies, the solver developed in this project 
     \label{table:quincy-parameters}
 \end{table}
 
-The arc costs specified by the model are given in \cref{table:quincy-costs}. All arcs not mentioned in this table have a cost of zero\footnotemark.
-\footnotetext{In particular, arcs leaving aggregator nodes, and arcs incoming to the sink, both have zero cost.}
+\todo{Should I shift the Quincy stuff to appendix, maybe? It's important to understanding flow scheduling, but it's true that I don't assume any model.}
+The arc costs specified by the Quincy model are given in \cref{table:quincy-costs}. All arcs not mentioned in this table have a cost of zero\footnotemark.
+\footnotetext{In particular, arcs leaving aggregator nodes and arcs entering the sink have zero cost.}
 
-The model assumes the data processed by tasks resides in a distributed file system. Each machine in the cluster can access any object in the file system, by fetching the data from a remote machine. However, retrieving an object from a machine in another rack is more expensive -- both in terms of request latency and network resources consumed -- than transferring the data from a neighbouring machine. Reading the data from a directly connected disk is cheaper still. The Quincy scheduler quantifies these data transfer costs for each scheduling assignment. It then finds an assignment minimising the global data transfer cost across the cluster, in order to achieve data locality.
+The model assumes tasks process data residing in a distributed file system. Files may be accessed from any machine, with the file being fetched from a remote machines if there is no local copy. Retrieving a file from a machine in another rack is more expensive -- both in terms of request latency and network resources consumed -- than from a neighbouring machine. Reading the data from a directly connected disk is cheaper still. The Quincy scheduler quantifies the data transfer costs for each scheduling assignment. Solving the resulting minimum-cost flow problem yields an assignment which minimises the total data transfer cost, achieving data locality.
 
-\Cref{table:quincy-variables} gives the variables maintained by the Quincy scheduler. All arc costs are functions of these variables. The system breaks down the data transfer of a task $\mathbf{T}_{i}^{j}$ into two components: transfer across the core switch, $\chi\left(\mathbf{T}_{i}^{j}\right)$, and top of rack switches, $\mathcal{R}\left(\mathbf{T}_{i}^{j}\right)$. For a particular machine $\mathbf{M}_m$, the data transfer $\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ and $\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ can be computed exactly. However, when it comes to determining the cost of arcs to aggregator nodes $\mathbf{R}_l$ or $\mathbf{X}$, an exact figure is not possible. Instead, we take a conservative upper bound: the \emph{greatest} data transfer that results from scheduling $\mathbf{T}_{i}^{j}$ on the \emph{worst} machine in rack $\mathbf{R}_l$ or the cluster as a whole, respectively.
+\Cref{table:quincy-variables} gives the variables maintained by the Quincy scheduler. All arc costs are functions of these variables. The system breaks down the data transfer of a task $\mathbf{T}_{i}^{j}$ into two components: transfer across the core switch, $\chi\left(\mathbf{T}_{i}^{j}\right)$, and top of rack switches, $\mathcal{R}\left(\mathbf{T}_{i}^{j}\right)$.
+
+For a particular machine $\mathbf{M}_m$, the data transfer $\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ and $\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ can be computed exactly. However, when it comes to determining the cost of arcs to aggregator nodes $\mathbf{R}_l$ or $\mathbf{X}$, an exact figure is not possible. Instead, Quincy takes a conservative upper bound: the \emph{greatest} data transfer that results from scheduling $\mathbf{T}_{i}^{j}$ on the \emph{worst} machine in rack $\mathbf{R}_l$ or the cluster as a whole, respectively.
 
 The system also keeps track of the time $\theta_i^j$ and $\nu_i^j$ a task spends scheduled and unscheduled, respectively. If the task is stopped and then restarted, these times continue to accumulate. This property is needed to guarantee the scheduler makes progress.
 
 Quincy is controlled by three simple parameters, given in \cref{table:quincy-parameters}. $\epsilon$ and $\psi$ specify the cost of data transfers across core and top of rack switches respectively. In general, we would expect $\epsilon > \psi$, since the core switch is more likely to become a bottleneck. $\omega$ controls the penalty for leaving a task unscheduled\footnotemark. Increasing $\epsilon$ and $\psi$ will cause the scheduler to more aggressively optimise for data locality. Increasing $\omega$ will 
 \footnotetext{It is possible to vary $\omega$ between jobs in order to encode a notion of priority.}
 
-We are now ready to give formulae for the arc costs given in \cref{table:quincy-costs}. First, let us define the data transfer cost:
+It is now possible to state formulae for the arc costs listed in \cref{table:quincy-costs}. For convenience, we will define the data transfer cost function:
 \[d_{b}^{A}\left(\mathbf{T}_{i}^{j}\right) = \epsilon\chi_{b}^{A}\left(\mathbf{T}_{i}^{j}\right)+\psi\mathcal{R}_{b}^{A}\left(\mathbf{T}_{i}^{j}\right)\]
 
-The cost of scheduling on the worst machine in the cluster and the worst machine in rack $\mathbf{R}_l$ follow simply:
+The cost of scheduling on the worst machine in the cluster and the worst machine in rack $\mathbf{R}_l$ immediately follow from this:
 \[\alpha_{i}^{j} = d^X\left(\mathbf{T}_{i}^{j}\right)\]
 \[\rho_{i}^{j,l} = d^R_l\left(\mathbf{T}_{i}^{j}\right)\]
-It is tempting to use the same form for the cost, $\gamma^j_{i,m}$ of scheduling on a particular machine $\mathbf{M}_m$. When $\mathbf{T}_{i}^{j}$ is not running on $\mathbf{M}_m$ (either it is unscheduled, or is running on a different machine), this is valid. However, this formula is inappropriate when $\mathbf{T}_{i}^{j}$ is already scheduled on  $\mathbf{M}_m$.
+It is tempting to use the same form for the cost, $\gamma^j_{i,m}$ of scheduling on a particular machine $\mathbf{M}_m$. When $\mathbf{T}_{i}^{j}$ is not running on $\mathbf{M}_m$ (either it is unscheduled, or is running on a different machine), this is valid. 
 
-When the task has already been running, $d^M_m\left(\mathbf{T}_{i}^{j}\right)$ will overestimate the cost of the remaining data transfer. To account for the work already invested in $\mathbf{T}_{i}^{j}$, we subtract the time it has been running, giving:
+However, this formula is inappropriate when $\mathbf{T}_{i}^{j}$ is already scheduled on  $\mathbf{M}_m$: $d^M_m\left(\mathbf{T}_{i}^{j}\right)$ will overestimate the cost of the remaining data transfer. To account for the work already invested in $\mathbf{T}_{i}^{j}$, we subtract the time it has been running, giving:
 \[\gamma_{i,m}^{j} = d_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)-\begin{cases}
 \theta_{i}^{j} & \text{if \ensuremath{\mathbf{T}_{i}^{j}}running on \ensuremath{\mathbf{M}_{m}}}\\
 0 & \text{otherwise}
@@ -292,6 +313,11 @@ The only remaining cost is $v_i^j$, the penalty associated with leaving a task $
 
 \subsubsection{Properties of these networks}
 
+% PROOFREAD: 1 minor edits.
+
+Although the costs assigned to arcs vary between policies, the structure of the network remains the same. Some simple properties are proved below, which will be useful when analysing the asymptotic complexity of algorithms.
+
+\todo{Shift the first two proofs to appendix (but still state the claims here)?}
 \begin{lemma} \label{lemma:network-num-nodes}
 Let $n$ denote the number of nodes in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.
 \end{lemma}
@@ -300,7 +326,7 @@ There is one node $\mathbf{T}_i^j$ for every task and one node $\mathbf{M}_m$ fo
 
 It remains to show $n = O\left(\text{\# machines} + \text{\# tasks}\right)$. Consider each class of node in turn.
 
-As stated above $\text{\# task nodes} = \text{\# tasks}$ and $\text{\# machine nodes} = \text{\# machines}$. There is an unscheduled aggregator $\mathbf{U}^j$ for each job $j$. Certainly $\text{\# jobs} = O\left(\text{\# tasks}\right)$. There is at least one machine in every rack, so $\text{\# rack aggregator nodes} = O\left(\text{\# machines}\right)$. 
+As stated above $\text{\# task nodes} = \text{\# tasks}$ and $\text{\# machine nodes} = \text{\# machines}$. There is an unscheduled aggregator $\mathbf{U}^j$ for each job $j$, and $\text{\# jobs} = O\left(\text{\# tasks}\right)$. There is at least one machine in every rack, so $\text{\# rack aggregator nodes} = O\left(\text{\# machines}\right)$. 
 
 In addition, there is also a cluster aggregator node $\mathbf{X}$ and sink node $\mathbf{S}$ which are independent of the number of tasks and machines, contributing $O(1)$ nodes.
 
@@ -346,49 +372,37 @@ Most nodes in the network are transshipment nodes, with no demand nor supply. Th
 
 \subsection{Further definitions and properties}
 
+% PROOFREAD: 1 minor edits except for Residual Networks which was major
+
 \subsubsection{Pseudoflows} \label{sec:prep-flow-pseudo}
 
-Whilst all flow algorithms must return a feasible solution, many operate
-by manipulating \emph{pseudoflows} in intermediate stages. A pseudoflow
-is a vector $\mathbf{x}$ which satisfies the capacity constraints
-\cref{eq:capacity-constraints}, but which may not satisfy the mass balance constraints \cref{eq:mass-balance}.
+% PROOFREAD: 1 minor edits
 
-We define the \emph{excess} at a node $i\in V$ to be:
+A \emph{pseudoflow} is a vector $\mathbf{x}$ which satisfies the capacity constraints
+\cref{eq:capacity-constraints}, but which need not satisfy the mass balance constraints \cref{eq:mass-balance-constraints}. While all flow algorithms must return a feasible solution, many operate on pseudoflows in intermediate stages. 
+
+The \emph{excess} at a node $i\in V$ is defined to be:
 
 \begin{equation}
-e_{i}=b_{i}+\sum_{j\::\:(j,i)\in E}x_{ji}-\sum_{j\::\:(i,j)\in E}x_{ij}
+e_i=b_i+\sum_{\set{j | (j,i)\in E}}x_{ji}-\sum_{\set{j | (i,j)\in E}}x_{ij}
 \end{equation}
 
-Node i is said to be an \emph{excess node} if $e_{i}>0$, and a \emph{deficit
-	node} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$
-is said to be \emph{balanced}. Note the mass balance constraints hold if and
-only if all nodes are balanced.
+Node i is said to be an \emph{excess node} if $e_{i}>0$, and a \emph{deficit node} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$ is said to be \emph{balanced}. Note the mass balance constraints \cref{eq:mass-balance-constraints} hold if and only if all nodes are balanced.
 
 \subsubsection{Residual networks}
 
-Also important to many flow algorithms is the notion of \emph{residual}
-\emph{networks. }The residual network is defined with respect to the
-original flow network $G$ and a (pseudo)flow $\mathbf{x}$, and is
-denoted by $G_{\mathbf{x}}$. Informally, it represents the actions
-an algorithm can take to modify the (pseudo)flow $\mathbf{x}$. In
-the case where $\mathbf{x=0},$ we have $G_{\mathbf{0}}=G$.
+% PROOFREAD: 1 major edits.
 
-Formally, we define $G_{\mathbf{x}}=\left(V,E_{\mathbf{x}}\right)$
-to be a directed graph where:
+The notion of \emph{residual networks} is used by many flow algorithms. The residual network of $G$ is defined with respect to a (pseudo)flow $\mathbf{x}$, and is denoted by $G_{\mathbf{x}}$. Informally, it represents the actions an algorithm can take to modify the (pseudo)flow $\mathbf{x}$. In the case where $\mathbf{x=0},$ we have $G_{\mathbf{0}}=G$.
+
+Formally, we define $G_{\mathbf{x}}=\left(V,E_{\mathbf{x}}\right)$ to be a directed graph where:
 \begin{equation}
-E_{\mathbf{x}}=\left\{ (i,j)\in V^{2}\::\:(i,j)\in E\land x_{ij}<u_{ij}\right\} \cup\left\{ (j,i)\in V^{2}\::\:(j,i)\in E\land x_{ij}>0\right\} 
+E_{\mathbf{x}}=\set{(i,j)\in V^{2} | (i,j)\in E\land x_{ij}<u_{ij}} \cup \set{(j,i)\in V^{2} | (i,j)\in E\land x_{ij}>0} 
 \end{equation}
 
+The former set contains \emph{forward arcs}, present in the original flow network. Arcs $(i,j)$ which are \emph{saturated}, i.e. $x_{ij}=u_{ij}$, are omitted from the residual network: they do not allow for any additional flow to be pushed. The second set consists of \emph{backward arcs}, the reverse of arcs in the original network. Only arcs with positive flow in the original network have a corresponding backwards arc. Pushing flow along the backward arc corresponds to cancelling flow on the forward arc.
 
-The former set consists of \emph{forward arcs}, which were present
-in the original flow network. An arc $(i,j)$ which is saturated,
-i.e. $x_{ij}=u_{ij}$, drops out of the residual network. The latter
-set consists of \emph{backward arcs}, the reverse of arcs in the original
-network. Only arcs with positive flow in the original network have
-a corresponding backwards arc.
-
-We define the \emph{residual capacity} of an arc $(i,j)\in E_{\mathbf{x}}$
-to be:
+The \emph{residual capacity} of an arc $(i,j)\in E_{\mathbf{x}}$ is defined to be:
 
 \begin{equation}
 r_{ij}=\begin{cases}
@@ -397,27 +411,22 @@ x_{ij} & ,\:(i,j)\:\mbox{is a reverse arc}
 \end{cases}
 \end{equation}
 
-We define the cost of a forward arc $(i,j)$ to be $c_{ij}$, and
-a reverse arc $(j,i)$ to be $-c_{ij}$.
-
+The cost of forward arcs is the same as in the original network, whereas the cost of a reverse arc $(j,i)$ is defined as $-c_{ij}$.
 
 \subsubsection{Reduced cost and duality} \label{sec:prep-flow-rc-and-dual}
 
-We may associate with each node $i\in V$ a \emph{potential}, $\pi_{i}$.
+% PROOFREAD: 1 minor edits.
 
-\begin{defn}[Reduced costs] \label{defn:reduced-costs}
-The \emph{reduced cost} of an arc $(i,j)\in E$ with respect to a
-potential $\boldsymbol{\pi}$ is defined as:
-\begin{equation}
+Each node $i\in V$ is associated with a \emph{potential}, $\pi_{i}$.\\
+
+The \emph{reduced cost} of an arc $(i,j)\in E$ with respect to potential vector $\boldsymbol{\pi}$ is defined as:
+\begin{equation} \label{eq:reduced-costs}
 c_{ij}^{\boldsymbol{\pi}}=c_{ij}-\pi_{i}+\pi_{j}
 \end{equation}
-\end{defn}
 
-Every linear programming problem, referred to as a \emph{primal} problem,
-can be converted to a \emph{dual} problem. Solutions to the dual problem
-give an upper bound on the objective value of the primal problem.
+Every linear programming problem, referred to as a \emph{primal} problem, may be converted to a \emph{dual} problem. Solutions to the dual problem give an upper bound on the objective value of the primal problem.
 
-The primal version of the minimum-cost flow problem is stated in \S\ref{sec:prep-flow-mcf}. The dual problem is:
+The primal version of the minimum-cost flow problem is stated in \S\ref{sec:prep-flow-mcf}. Its corresponding dual problem is:
 
 \begin{equation}
 \mathrm{maximise}\; w(\boldsymbol{\pi})=\sum_{i\in V}b_{i}\pi_{i}-\sum_{(i,j)\in E}\max\left(0,-c_{ij}^{\pi}\right)u_{ij}
@@ -425,32 +434,26 @@ The primal version of the minimum-cost flow problem is stated in \S\ref{sec:prep
 
 with no constraints on $\boldsymbol{\pi}$.
 
-It can be computationally more efficient to solve the dual problem
-rather than the primal problem. Many flow algorithms adopt a dual
-approach, or a hybrid of a primal and dual approach.
+Many flow algorithms seek to solve the dual problem, as this may be computationally more efficient. Others try and get the best of both worlds, operating on both the primal and dual version of the problem.
 
 \subsubsection{Optimality conditions} \label{prep:flow-optimality}
 
-Below, I give conditions on a solution vector $\mathbf{x}$ which
-imply it is optimal. These conditions suggest algorithms for solving
-the problem. Moreover, they can be used in testing, to verify that
-a solution is indeed optimal.\\
+% PROOFREAD: 1 minor edits.
+
+Below, I give conditions on a solution vector $\mathbf{x}$ being optimal. These may suggest algorithms for solving the problem. Moreover, they can be used in testing, to verify that a solution is indeed optimal.\\
 
 \begin{thm}[Negative cycle optimality conditions] \label{thm:optimality-neg-cycle}
-A flow $\mathbf{x}$ is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
+Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
 \end{thm}
 \begin{proof}
 See~\cite[p.~307]{Ahuja:1993}.
 \end{proof}
 
 \begin{thm}[Reduced cost optimality conditions] \label{thm:optimality-reduced-cost}
-Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
-to the minimum-cost flow problem if and only if there exists a node
-potential vector $\boldsymbol{\pi}$ such that that the reduced cost
-of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
+Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if there exists a node potential vector $\boldsymbol{\pi}$ such that that the reduced cost of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
 
 \begin{equation} \label{eq:optimality-reduced-cost}
-c_{ij}^{\boldsymbol{\pi}}\geq0\:\forall(i,j)\in E_{\mathbf{x}}
+\forall(i,j)\in E_{\mathbf{x}}\cdot c_{ij}^{\boldsymbol{\pi}}\geq 0
 \end{equation}
 \end{thm}
 \begin{proof}
@@ -458,30 +461,24 @@ See~\cite[p.~309]{Ahuja:1993}.
 \end{proof}
 
 \begin{thm}[Complementary slackness optimality conditions] \label{thm:optimality-complementary-slackness}
-Let $\mathbf{x}$ be a feasible solution. It is an optimal solution
-to the minimum-cost flow problem if and only if there exists a node
-potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
+Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if there exists a node potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
 
-\begin{equation}
-\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}>0}, then \ensuremath{x_{ij}=0}}
-\end{equation}
-
-\begin{equation}
-\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}<0}, then \ensuremath{x_{ij}=u_{ij}}}
-\end{equation}
-
-\begin{equation}
-\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}=0}, then \ensuremath{0\leq x_{ij}\leq u_{ij}}}
-\end{equation}
+\normalfont % don't want text in maths italic
+\begin{align}
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}>0}, } & \text{then \ensuremath{x_{ij}=0}} \\
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}<0}, } & \text{then \ensuremath{x_{ij}=u_{ij}}} \\
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}=0}, } & \text{then \ensuremath{0\leq x_{ij}\leq  u_{ij}}}
+\end{align}
 \end{thm}
 \begin{proof}
-This can easily be seen to be equivalent to the reduced cost optimality conditions, by expanding out \cref{eq:optimality-reduced-cost} using the definition of a residual network and performing a case analysis. A detailed proof is given in~\cite[p.~310]{Ahuja:1993}. 
+The result follows immediately from expanding out \cref{eq:optimality-reduced-cost}, applying the definition of a residual network and performing a case analysis. A detailed proof is given in~\cite[p.~310]{Ahuja:1993}.
 \end{proof}
 
 \subsubsection{Notation for complexity analysis} \label{sec:prep-flow-complexity}
 
-Some notation will be useful when it comes to analysing the asymptotic complexity
-of algorithms. 
+% PROOFREAD: 1 minor edits.
+
+Some notation will be useful for stating the asymptotic complexity of algorithms. 
 
 Let $n=|V|$ and $m=|E|$ denote the number of nodes and arcs respectively.
 

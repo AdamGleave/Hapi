@@ -19,7 +19,6 @@ diss.pdf: diss.tex diss-intro.tex diss-prep.tex diss-impl.tex diss-eval.tex diss
 	latexmk -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diss.tex" diss.tex
 
 diff.pdf: diff.tex
-	echo "" > diss-auto-wordcount.tex
 	latexmk -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diff.tex" diff.tex
 
 diss_continual: diss.tex diss.bib

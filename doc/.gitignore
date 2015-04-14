@@ -1,5 +1,7 @@
 diss-auto-wordcount.tex
+diff.tex
 diss.bib.bak
+gitHeadInfo.gin
 *.pdf
 *.out
 *.log
@@ -18,4 +20,3 @@ diss.bib.bak
 *.run.xml
 *.txss
 *.kilepr
-gitHeadInfo.gin

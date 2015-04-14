@@ -25,7 +25,10 @@
 
 % PROOFREAD ONLY
 \usepackage{showidx}
-%\usepackage{todonotes}
+\usepackage[textsize=footnotesize,textwidth=0.8in]{todonotes}
+\setlength{\marginparwidth}{0.9in}
+\usepackage{todonotes}
+
 \usepackage{gitinfo}
 
 % Hyperlinks
@@ -98,11 +101,14 @@
 	captionpos=b,
 }
 
-% Mathematics
+%%% Mathematics
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amsfonts}
 \usepackage{cleveref}
+\usepackage{braket}
+
+%% Theorems
 \theoremstyle{plain}
 % Define theorem to be numbered by section
 % Make lemma and corollary share same counter
@@ -122,7 +128,8 @@
 \crefname{defn}{definition}{definitions}
 \crefname{assumption}{assumption}{assumptions}
 \crefname{remark}{remark}{remarks}
-% Some new operators
+
+%% Some new operators
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
