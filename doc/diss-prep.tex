@@ -168,7 +168,7 @@ We can therefore exclusively use unsigned integer data types when representing a
 \subsubsection{The minimum-cost flow problem} \label{sec:prep-flow-mcf}
 
 The well-known maximum flow problem involves finding a solution vector
-$\mathbf{x}$ subject to constraints \cref{eq:capacity-constraints} and \cref{eq:mass-balance-constraints}, i.e. finding a feasible flow.
+$\mathbf{x}$ subject to constraints \cref{eq:capacity-constraints} and \cref{eq:mass-balance-constraints}, i.e.\ finding a feasible flow.
 
 Our focus will be on a generalization of this, known as the minimum-cost flow problem. Formally, it is:
 
@@ -400,7 +400,7 @@ Formally, we define $G_{\mathbf{x}}=\left(V,E_{\mathbf{x}}\right)$ to be a direc
 E_{\mathbf{x}}=\set{(i,j)\in V^{2} | (i,j)\in E\land x_{ij}<u_{ij}} \cup \set{(j,i)\in V^{2} | (i,j)\in E\land x_{ij}>0} 
 \end{equation}
 
-The former set contains \emph{forward arcs}, present in the original flow network. Arcs $(i,j)$ which are \emph{saturated}, i.e. $x_{ij}=u_{ij}$, are omitted from the residual network: they do not allow for any additional flow to be pushed. The second set consists of \emph{backward arcs}, the reverse of arcs in the original network. Only arcs with positive flow in the original network have a corresponding backwards arc. Pushing flow along the backward arc corresponds to cancelling flow on the forward arc.
+The former set contains \emph{forward arcs}, present in the original flow network. Arcs $(i,j)$ which are \emph{saturated}, i.e.\ $x_{ij}=u_{ij}$, are omitted from the residual network: they do not allow for any additional flow to be pushed. The second set consists of \emph{backward arcs}, the reverse of arcs in the original network. Only arcs with positive flow in the original network have a corresponding backwards arc. Pushing flow along the backward arc corresponds to cancelling flow on the forward arc.
 
 The \emph{residual capacity} of an arc $(i,j)\in E_{\mathbf{x}}$ is defined to be:
 
