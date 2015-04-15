@@ -4478,6 +4478,7 @@ inline void growArray(T **array,
 	T *old_array = *array + 1;
 	T *new_array = new T[new_size];
 	memcpy(new_array, old_array, sizeof(T)*new_size);
+	delete old_array;
 
 	*array = new_array - 1;
 }

@@ -52,6 +52,9 @@ void writeFlow(MCFClass *mcf, bool potentials) {
 			 active_arcs[i] != MCFClass::Inf<MCFClass::Index>(); i++) {
 		 std::cout << "f " << start[i] << " " << end[i] << " " << x[i] << endl;
 	 }
+	 delete[] active_arcs;
+	 delete[] start;
+	 delete[] end;
 	 delete[] x;
 
 	 if (potentials) {
@@ -202,6 +205,9 @@ int main(int argc, char *argv[]) {
 	// Must stop timer. Otherwise it will stop automatically when it is destroyed
 	// and report a spurious time.
 	t.stop();
+
+	// clear up
+	delete mcf;
 
 	return 0;
 }
