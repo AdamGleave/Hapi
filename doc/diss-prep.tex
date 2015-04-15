@@ -498,24 +498,27 @@ and let $C$ denote the largest arc cost:
 C=\max\left\{ c_{ij}\::\:(i,j)\in E\right\} 
 \end{equation}
 
-\section{Software engineering} \label{sec:prep-sweng}
+\section{Project management}
 
-\subsection{Requirements analysis} \label{sec:prep-sweng-requirements}
+\subsection{Requirements analysis} 
 What the system should do. Include table listing goals and their priorities, etc.
 
-\subsection{Model}
+\subsection{Development model}
 State the model you used (something like Spiral probably closest fit). Elaborate on what it is. Justify choice: can reference constraints imposed by requirements, e.g. some of them risky/speculative so waterfall model inappropriate.
 
-\subsection{Testing}
-Summarize approach. Maybe make forwards reference to \ref{sec:prep-tools-testing}.
+\subsection{Testing approach}
+Summarize approach. Lots of forward references, probably. 
 
-\section{Choice of tools} \label{sec:prep-tool-choice}
-\subsection{Language and libraries}
-Justify language choice (C++, Python). Libraries: GLOG, Boost.
+\section{Implementation schedule} 
 
-Perhaps mention coding style guides?
+\subsection{Initial experience}
+My starting point. C++: from IB Tripos. Algorithms: IA/IB. Maths: IA. No prior knowledge of flow networks.
 
-\subsection{Development environment}
+\subsection{Project schedule}
+How I planned my time. Split into phases. Core success criteria obtained early. Testing completed. Extensions added and additional experiments performed later on.
+
+\section{Development environment}
+
 Physical machines used: laptop, MCS, SRG cluster.
 
 Revision control: Git.
@@ -524,11 +527,17 @@ Backup strategy: GitHub. Daily snapshots backed up to MCS, SRCF, Copy (cloud).
 
 CMake. IDE: Eclipse with plugins, vim.
 
-\subsection{Testing environment} \label{sec:prep-tools-testing}
-GTest for unit tests. Other automated tests: Python. Note that performance evaluation part of testing requires custom development: no pre-existing benchmark suites suitable.
+\section{Choice of tools}
 
-\section{Initial experience}
-My starting point. C++: from IB Tripos. Algorithms: IA/IB. Maths: IA. No prior knowledge of flow networks.
+\subsection{Languages} 
 
-\section{Project schedule} \label{sec:prep-project-schedule}
-How I planned my time. Split into phases. Core success criteria obtained early. Testing completed. Extensions added and additional experiments performed later on.
+\subsection{Libraries}
+Justify language choice (C++, Python). Libraries: GLOG, Boost.
+
+Perhaps mention coding style guides?
+
+% Testing as a separate section? Maybe?
+
+\subsection{Flow scheduling}
+
+Firmament.
