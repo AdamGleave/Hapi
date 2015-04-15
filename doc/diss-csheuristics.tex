@@ -1,20 +1,20 @@
 % Proofread: None
 Goldberg has proposed a number of heuristics to improve the real-world performance of his cost scaling algorithm~\cite{Goldberg:1997}, described in \S\ref{sec:impl-cost-scaling}. These have been found to result in considerable real-world improvements in efficiency~\cite{Bunnagel:1998,KiralyKovacs:2012}. Note that their effectiveness varies depending on the problem instance. Moreover, several of the heuristics such as arc fixing and potential update are highly sensitive to parameter settings or other implementation choices.
 
-\subsubsection{Potential refinement} 
+\section{Potential refinement} \label{appendix:csheuristics-potential-refinement}
 The $\textproc{Refine}(\mathbf{x},\boldsymbol{\pi},\epsilon)$ routine is guaranteed to produce an $\epsilon$-optimal flow. However, it may also be $\epsilon'$-optimal for $\epsilon' < \epsilon$. This heuristic decreases $\epsilon$ whilst modifying the potentials $\boldsymbol{\pi}$, without changing the flow $\mathbf{x}$. This has been found to yield a 40\% performance improvement~\cite{Bunnagel:1998}.
 
-\subsubsection{Push lookahead}
+\section{Push lookahead}
 Before performing $\textproc{Push}(i,j)$, this heuristic checks whether $j$ is a deficit node ($e_j < 0$) or if $j$ has an outgoing admissible arc. If so, the \textproc{Push} operation proceeds.
 
 Otherwise, we abort the \textproc{Push} operation, and perform \textproc{Relabel} instead. Were we to continue with the \textproc{Push} operation, the flow would get `stuck' at node $j$, and end up being pushed back to $i$. This heuristic has been found to significantly reduce the number of \textproc{Push} operations performed~\cite{Goldberg:1997}.
 
-\subsubsection{Arc fixing}
+\section{Arc fixing}
 The algorithm examines a large number of arcs, sometimes unnecessarily. We can prove that for any arc $(i,j)$ with reduced cost satisfying $\left|c^{\boldsymbol{\pi}}_ij\right| > 2n\epsilon$, the flow $x_{ij}$ is never again modified. These arcs can safely be \emph{fixed}: removed from the adjacency list examined by the algorithm. 
 
 This heuristic takes things a step further, \emph{speculatively} fixing arcs whenever $\left|c^{\boldsymbol{\pi}}_ij\right|$ is above some threshold $\beta$. Speculatively fixed arcs may still need to have their flow updated, but this is unlikely. Consequently, the algorithm examines these arcs very infrequently, unfixing an arc if it is found to violate reduced cost optimality conditions.
 
-\subsubsection{Potential update}
+\section{Potential update}
 The \textproc{Relabel} operation given in \cref{algo:cost-scaling-operations} updates the potential at a single node. This heuristic is based around an alternative \emph{set relabel} operation, which updates potentials at many nodes at once.
 
 `Vanilla' relabel operations are still used, with set relabel called periodically. The optimum frequency depends on both the implementation, and the problem, but calling set relabel every $O(n)$ regular relabels has been found to be a good rule of thumb~\cite{Goldberg:1997}.

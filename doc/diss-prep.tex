@@ -465,11 +465,13 @@ See~\cite[p.~309]{Ahuja:1993}.
 Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if there exists a node potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
 
 \normalfont % don't want text in maths italic
-\begin{align}
+\begin{subequations} \label{eq:optimality-complementary-slackness}
+\begin{align} 
 \text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}>0}, } & \text{then \ensuremath{x_{ij}=0}} \\
 \text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}<0}, } & \text{then \ensuremath{x_{ij}=u_{ij}}} \\
 \text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}=0}, } & \text{then \ensuremath{0\leq x_{ij}\leq  u_{ij}}}
 \end{align}
+\end{subequations}
 \end{thm}
 \begin{proof}
 The result follows immediately from expanding out \cref{eq:optimality-reduced-cost}, applying the definition of a residual network and performing a case analysis. A detailed proof is given in~\cite[p.~310]{Ahuja:1993}.
