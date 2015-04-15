@@ -83,13 +83,14 @@ class FlowNetwork::const_noconst_iterator : public std::iterator
 		<std::forward_iterator_tag,
 		 typename std::conditional<is_const_iterator, const Arc, Arc>::type>
 {
+public:
+	typedef typename std::conditional<is_const_iterator, const Arc, Arc> value_type;
 private:
 	typedef typename std::conditional
 			<is_const_iterator, const FlowNetwork *, FlowNetwork *>
 			::type FlowNetworkType;
 	typedef typename std::conditional
-			<is_const_iterator, const Arc, Arc>::type ArcType;
-
+				<is_const_iterator, const Arc, Arc>::type ArcType;
 	typedef typename std::conditional<is_const_iterator,
 			std::vector<std::forward_list<Arc *>>::const_iterator,
 			std::vector<std::forward_list<Arc *>>::iterator>::type
@@ -98,7 +99,6 @@ private:
 					std::forward_list<Arc *>::const_iterator,
 					std::forward_list<Arc *>::iterator>::type
 					ListIterator;
-	typename std::conditional<is_const_iterator, const Arc, Arc> value_type;
 
 	FlowNetworkType g;
 	VectorIterator vec_it;
