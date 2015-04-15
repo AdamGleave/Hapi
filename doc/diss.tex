@@ -101,11 +101,39 @@
 	captionpos=b,
 }
 
+% cleveref
+% Must be loaded in order nameref, hyperref, cleveref hence it being orphaned
+\usepackage{cleveref}
+
+% SOMEDAY: do we even want the \S symbol?
+% use \S and \S\S for section references
+\makeatletter
+\newcommand{\crefformats}[2]{%
+    \@for\next:=#1\do{%
+        \expandafter\crefformat\expandafter{\next}{#2}%
+    }%
+}
+\makeatother
+\makeatletter
+\newcommand{\crefnames}[3]{%
+    \@for\next:=#1\do{%
+        \expandafter\crefname\expandafter{\next}{#2}{#3}%
+    }%
+}
+\makeatother
+
+\newcommand{\crefsections}[0]{
+    % override singular case, getting rid of any space
+    \crefformats{chapter,section,subsection}{\S##2##1##3}
+    % this overrides the default singular case, which has already been overridden; no-op. But replaces plural case with \S\S.
+    \crefnames{chapter,section,subsection}{\S}{\S\S}
+}
+\crefsections
+
 %%% Mathematics
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amsfonts}
-\usepackage{cleveref}
 \usepackage{braket}
 \usepackage{thmtools}
 \usepackage{thm-restate}

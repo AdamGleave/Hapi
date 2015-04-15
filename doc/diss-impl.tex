@@ -1172,7 +1172,7 @@ The Firmament flow scheduling system was used in the tests. Some experiments, su
 
 Instead, a cluster is \emph{simulated} for such tests. Fortunately, the Firmament system includes a simulator based on events recorded in a Google cluster~\cite{clusterdata:Wilkes2011}. The next section describes modifications made to the simulator, and other areas of the Firmament code base. An outline of the test harness used to automate the benchmark process is given in the subsequent section.
 
-\subsection{Firmament and the cluster simulator}
+\subsection{Firmament and the cluster simulator} \label{sec:impl-benchmark-simulator}
 
 The simulator was designed to test Firmament, not flow solvers, and so some modifications were necessary. A statistics module was added, producing a CSV file reporting the runtime of the algorithm at each scheduling round, along with relevant properties of the cluster at that time. The network generator was extended to identify which cluster event triggered a change in the network: whilst not used in experiments, this proved invaluable during development.
 
@@ -1193,7 +1193,7 @@ To resolve this problem, the minimum time between scheduling rounds was made pro
 %  - Bugfixes: Don't rerun when no changes take place
 % But OK to be brief!
 
-\subsection{Test harness}
+\subsection{Test harness} \label{sec:impl-benchmark-harness}
 
 Running the tests manually would be unwieldly and error-prone. A test harness was developed in Python to automate the process. The configuration of the harness includes a list of implementations and datasets. Individual test cases in the configuration specify which implementation to test and what datasets to use, along with other parameters.
 

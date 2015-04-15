@@ -102,7 +102,7 @@ A more contemporary problem is that of scheduling in heterogeneous environments.
 
 The key advantage of heuristic designs is that they tend to be computationally inexpensive. This allows them to scale to very large clusters. Moreover, for applications which require very low scheduling latencies, it is possible to speed up the scheduler by adopting simpler heuristics, or distributing the scheduling as in Sparrow~\cite{Ousterhout:2013}. The goal of this project is to improve the scheduling latency and scalability of flow based systems, to allow them to compete with heuristic schedulers. The next section provides background on the problem which must be solved.
 
-\section{Flow networks} \label{prep-flow}
+\section{Flow networks} \label{sec:prep-flow}
 
 We must first formalise the notion of a flow network and its associated optimisation problems, before discussing the details of scheduling using flow networks. Following this, properties of flow networks useful for the analysis and design of flow algorithms will be summarised.
 
@@ -500,16 +500,98 @@ C=\max\left\{ c_{ij}\::\:(i,j)\in E\right\}
 
 \section{Project management}
 
-\subsection{Requirements analysis} 
-What the system should do. Include table listing goals and their priorities, etc.
+Before any attempt could be made to develop improved flow algorithms, it was necessary to understand the considerable body of prior work  summarised in \cref{sec:intro-related-work,sec:prep-flow}. Consequently, reviewing the existing literature formed a key part of the preparatory stage of this project. 
 
-\subsection{Development model}
-State the model you used (something like Spiral probably closest fit). Elaborate on what it is. Justify choice: can reference constraints imposed by requirements, e.g. some of them risky/speculative so waterfall model inappropriate.
+With the background material mastered, it was time to start refining the initial project proposal (see \cref{appendix:proposal}) into a concrete plan. The project's requirements were carefully reviewed, as described in the next section. An appropriate development model and testing strategy are identified in light of these results, described in the final two sections.
 
-\subsection{Testing approach}
-Summarize approach. Lots of forward references, probably. 
+\subsection{Requirements analysis} \label{sec:prep-management-requirements}
 
-\section{Implementation schedule} 
+% SOMEDAY: Include dependency analysis?
+% Matt did this and it was a big plus, but ultimately my dependence structure is much simpler; unsure if it's worth it?
+% Implementation: strategy -> algorithms -> data structures
+% Some common code, e.g. parsing.
+% Evaluation: test harness -> simulator
+
+% Requirements: based on success criteria and extensions in project proposal
+% Requirements shown along with section satisfying them
+% Quick summary?
+% Core deliverables: 
+
+The main goals for the project are listed in \cref{table:project-requirements}, broadly following the success criteria and extensions suggested in the original project proposal. Implementations are referenced in the final column.
+
+\begin{table}
+% eliminate section prefix
+\crefformats{chapter,section,subsection}{#2#1#3}
+\crefnames{chapter,section,subsection}{}{}
+\begin{tabular}{clcccc}
+    \textbf{\#} & \textbf{Deliverable} & \textbf{Priority} & \textbf{Risk} & \textbf{Difficulty} & \textbf{Section}
+    \tabularnewline
+    \hline
+    & \textit{Success criteria} \tabularnewline
+    S1 & Implement standard flow algorithms & High & Low & High & \cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} \tabularnewline
+    S2 & Integrate system with Firmament & High & Low & Low & \cref{sec:eval-test-integration} \tabularnewline
+    S3 & Develop a benchmark suite  & High & Low & Medium & \cref{sec:impl-benchmark-harness} \tabularnewline
+    S4 & Design an approximate solver & High & Medium & Low & \cref{sec:impl-approx} \tabularnewline
+    \hline
+    & \textit{Optional extensions} \tabularnewline
+    E1 & Build cluster simulator & Medium & Medium & Medium & \cref{sec:impl-benchmark-simulator} \tabularnewline
+    E2 & Design an incremental solver & Medium & High & High & \cref{sec:impl-incremental} \tabularnewline
+    E3 & Optimise algorithm implementations & Low & Medium & High & \cref{sec:eval-optimisations} \tabularnewline
+    \hline
+\end{tabular}
+% restore section values
+\crefsections
+\caption{Deliverables for the project}
+\label{table:project-requirements}
+\end{table}
+
+Core success criteria are assigned a high priority: work on extensions will only begin once all success criteria are developed and tested (see \cref{sec:prep-implsched}). These deliverables are generally low risk, so I am confident that the core criteria can be met. Most of the risk is concentrated in the approximate solver. This approach has not previously been attempted, so it is difficult to predict how it will perform.
+
+Extensions have tended to be more risky. Although an incremental solution approach turned out to be highly successful (see \cref{sec:eval-incremental}), at the outset of the project it was unclear whether it was even possible to build such a solver. All extensions require considerable implementation work, and so have been rated medium or high difficulty.
+
+\subsection{Development life cycle}
+\label{sec:prep-management-model}
+
+% Requirements mostly fixed
+% Somewhat linear dependencies.
+% But considerable uncertainty over what the best approach is: high risk.
+% Want to 'fail early'.
+% Build prototype of everything, including test infrastructure.
+% Gradually build out algorithms, performing some early-stage testing.
+% Investigate those which are most promising further, building out test code as needed.
+
+% Different approach used for different parts of the system
+% Standard algorithms: pretty much waterfall. You knew how they worked already.
+% Test harness: iterative, were unclear which features were needed. But low risk. You knew how to make it work.
+% Novel algorithms: evolutionary prototyping.
+
+% Spiral model genuinely is the best option for you, and I think you can justify this.
+
+% Intro of development models.
+% Key goal: manage risk.
+% Introduce Spiral process generator.
+% Explain different stages of the process.
+% Standard algorithms: low-risk, waterfall
+% Test harness: incremental development, effectively sequences of waterfall
+% New approaches: evolutionary prototyping
+
+A software development life cycle or process provides structure to a project, dividing work into distinct phases to simplify management. This project has clearly defined requirements, suggesting the waterfall model. However, there is considerable uncertainty associated with the design of some deliverables, suggesting methods such as incremental development or evolutionary prototyping might be more appropriate. This project adopts the \emph{spiral model}, a risk-driven life cycle \emph{generator}, which is able to accommodate such varying requirements.
+
+The spiral model indicates that development of deliverables S1 and S2 in \cref{table:project-requirements} should follow the \emph{waterfall} model: they are low risk, with precisely known requirements. By contrast, the test suite consisting of deliverables S3 and E1 used an \emph{incremental} development approach: effectively, iteratively applying the waterfall model. At the outset of the project, it is not known what tests will be needed\footnotemark, so waterfall cannot be used. But it is appropriate to use waterfall for implementation of each test type.
+\footnotetext{For example, considerable extension to the cluster simulator was required to support incremental testing, see \cref{sec:impl-benchmark-simulator}.}
+
+Deliverables S4, E2 and E3 are all rated as medium or high risk. Their requirements are fairly well known, but there is significant uncertainty as to the appropriate design. \emph{Evolutionary prototyping} was followed in accordance with the spiral model: a robust prototype is constructed, and constantly refined\footnotemark. Building a prototype early was invaluable for risk management: for example, it allowed the viability of the incremental solver (extension E2) to be confirmed before committing significant development time.
+\footnotetext{For extension E3, this robust prototype was in fact developed as part of deliverable S1.}
+
+\todo{DEFINITELY needs a figure! Customise it if you can, not too difficult.}
+
+\subsection{Testing strategy}
+\label{sec:prep-management-testing}
+Where possible, unit tests were written for each class, using the GTest framework (see \cref{sec:prep-tools-libraries}). Testing of flow algorithms requires large external datasets, which conventional frameworks are unsuited to. A Python test harness was developed to automate these tests (see \cref{sec:eval-testing-unit})\todo{N.B. Not the same as the benchmark suite; maybe mention this one somewhere too, e.g. in the appendix, although it's very simple.}. Unit tests can verify the correct operation of individual modules, but not the system as a whole. Integration tests with Firmament were conducted as soon as deliverables S1 and S2 were completed (see \cref{sec:eval-test-integration}).    
+
+Although correctness testing is the key during development, the focus of this project is on performance: this is reflected in success criteria S3 being a benchmark suite. Further details are provided in \cref{sec:impl-benchmark} and \cref{sec:eval-benchmark-strategy}.
+
+\section{Implementation schedule} \label{sec:prep-implsched}
 
 \subsection{Initial experience}
 My starting point. C++: from IB Tripos. Algorithms: IA/IB. Maths: IA. No prior knowledge of flow networks.
@@ -531,7 +613,7 @@ CMake. IDE: Eclipse with plugins, vim.
 
 \subsection{Languages} 
 
-\subsection{Libraries}
+\subsection{Libraries} \label{sec:prep-tools-libraries}
 Justify language choice (C++, Python). Libraries: GLOG, Boost.
 
 Perhaps mention coding style guides?
