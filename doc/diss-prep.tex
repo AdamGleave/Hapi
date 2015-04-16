@@ -91,7 +91,7 @@ There has been some attempt to make heuristic schedulers more general: both the 
 
 For example, the Fair Scheduler allows the trade-off between data locality and fairness to be specified. But it is rare that these are the only two objectives of importance. Low scheduling latency is important to many applications. This conflicts with the other two objectives: for example, data locality is boosted by keeping a task unscheduled until a compute node close to the data becomes free. There is no way to adjust this trade-off using the Fair Scheduler.
 
-The Firmament\footnotemark cluster scheduler, by contrast, is specifically designed to be flexible. Rather than using a heuristic approach, Firmament models scheduling as an optimisation problem over \emph{flow networks}. The details of this are described in \S\ref{sec:prep-flow-scheduling}, but the key point is that the scheduling policy is encoded in terms of a \emph{cost model} which assigns costs to arcs in the network. Defining a new cost model is relatively straightforward, making it easy to implement a wide variety of policies.
+The Firmament\footnotemark cluster scheduler, by contrast, is specifically designed to be flexible. Rather than using a heuristic approach, Firmament models scheduling as an optimisation problem over \emph{flow networks}. The details of this are described in \cref{sec:prep-flow-scheduling}, but the key point is that the scheduling policy is encoded in terms of a \emph{cost model} which assigns costs to arcs in the network. Defining a new cost model is relatively straightforward, making it easy to implement a wide variety of policies.
 \footnotetext{Firmament has been developed by the supervisors for this project, Malte Schwarzkopf and Ionel Gog, as part of the Cambridge Systems at Scale initiative.}
 
 It would be an overstatement to say that all policies can be expressed in this way: flow networks are not Turing complete. Indeed, there is a concrete counterexample of this. In gang scheduling, a constraint is added that pairs of tasks must be scheduled to run simultaneously. This is difficult or impossible to express in this model: flows in a network are inherently independent. However, cases such as these are the exception that proves the rule. In practice, the model is very powerful, allowing a range of scheduling policies to encoded in terms of cost models. 
@@ -199,7 +199,7 @@ There is a problem with this scheme: if there are more tasks submitted than can 
 
 In the model above, every task has an arc to each machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark.
 \footnotetext{The number of arcs will scale linearly with the number of machines. But, of course, as the size of a cluster grows the number of tasks being scheduled will also tend to grow proportionally. So the number of arcs actually will tend to grow \emph{quadratically} with increases in the number of machines. Scalability is a key concern, making this is highly undesirable.}
-Firmament adds support for \emph{equivalence classes}, which may be over tasks or machines. Each equivalence class has an aggregator node, with arcs to all nodes in the class. In this way, multiple arcs connecting to nodes in the same class can be combined into a single arc.
+Firmament adds support for \emph{equivalence classes}, which may be over tasks or machines\footnotemark. Each equivalence class has an aggregator node, with arcs to all nodes in the class. In this way, multiple arcs connecting to nodes in the same class can be combined into a single arc.
 \footnotetext{In fact, Firmament supports representing resources at a finer grain than machines: for example, an individual core. So machines may themselves be aggregator nodes.}
 
 The Quincy system provides a concrete example of an equivalence class. Each rack has an associated \emph{rack aggregator} node $\mathbf{R}_k$, with arcs to every machine in the rack. Moreover, a single \emph{cluster aggregator} $\mathbf{X}$ is introduced, with arcs to each rack aggregator. This scheme is appropriate for Quincy as its costs depend on inter-rack bandwidth usage, so will tend to be similar within a rack\footnote{Costs also depend on intra-rack bandwidth usage, but less weight is given to this factor as it is rarely a bottleneck.}. Rather than arcs from every task $\mathbf{T}_i^j$ to each machine, there is a single arc to $\mathbf{X}$ and a fixed number of arcs to preferred machines and racks.
@@ -426,7 +426,7 @@ c_{ij}^{\boldsymbol{\pi}}=c_{ij}-\pi_{i}+\pi_{j}
 
 Every linear programming problem, referred to as a \emph{primal} problem, may be converted to a \emph{dual} problem. Solutions to the dual problem give an upper bound on the objective value of the primal problem.
 
-The primal version of the minimum-cost flow problem is stated in \S\ref{sec:prep-flow-mcf}. Its corresponding dual problem is:
+The primal version of the minimum-cost flow problem is stated in \cref{sec:prep-flow-mcf}. Its corresponding dual problem is:
 
 \begin{equation}
 \mathrm{maximise}\; w(\boldsymbol{\pi})=\sum_{i\in V}b_{i}\pi_{i}-\sum_{(i,j)\in E}\max\left(0,-c_{ij}^{\pi}\right)u_{ij}

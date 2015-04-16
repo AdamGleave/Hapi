@@ -29,7 +29,7 @@ In the rest of the dissertation, I explore approaches to improve the performance
 \section{Challenges} \label{sec:intro-challenges}
 % Proofread: 1, minor edits.
 
-Research into the minimum-cost flow problem has been ongoing for over 60 years. There is consequently considerable prior work, outlined in~\S\ref{sec:intro-related-work}. It will be necessary for me to assimilate this large body of existing material before I can attempt to improve upon it.
+Research into the minimum-cost flow problem has been ongoing for over 60 years. There is consequently considerable prior work, outlined in~\cref{sec:intro-related-work}. It will be necessary for me to assimilate this large body of existing material before I can attempt to improve upon it.
 
 Given that many seasoned researchers have spent their careers working on this problem, realising a significant performance improvement will be difficult. Not only has there been considerable work to develop efficient algorithms, the reference implementations for these algorithms have been optimised extensively.
 
@@ -60,7 +60,6 @@ The generic network simplex algorithm is not guaranteed to run in polynomial tim
 \subsection{Successive shortest path} \label{sec:intro-related-work-ssp}
 
 This algorithm was invented independently by several authors~\cite{Jewell:1958,Iri:1960,BusackerGowen:1960}. Edmonds and Karp~\cite{Edmonds:1972} and Tomizawa~\cite{Tomizawa:1971} independently suggested a technique to maintain non-negative arc costs during the algorithm; this allows for more efficient shortest path computations, considerably improving its performance. The variant given by Edmonds and Karp is notable for being the first (weakly) polynomial time algorithm.\footnotemark.
-
 \footnotetext{In a weakly polynomial algorithm, the maximum cost and capacity of arcs may feature in the polynomial bound. By contrast, for a (strongly) polynomial algorithm, the bound is a function only of the dimensions of the problem: the number of vertices and arcs.}
 
 While successive shortest path is of significant historical interest, its performance is inferior to more modern approaches. The relaxation algorithm is an approach of more recent vintage, developed in 1987 by Bertsekas and Tseng~\cite{BertsekasMethod:1988,BertsekasCodes:1988,BertsekasTseng:94}. Its approach is inspired by Lagrangian relaxation, a technique used for solving integer programming problems. Perhaps surprisingly, it can be shown to be a special case of the successive shortest-path algorithm.
@@ -87,7 +86,7 @@ As we have seen, many different classes of flow algorithm have been developed, e
 
 The goal of this project is to develop a solution method which outperforms the current state of the art solvers, when applied to the problem of flow scheduling. But how can we compare the current crop of algorithms, to identify the state of the art? 
 
-Asymptotic complexity can be a useful basis for evaluation, but is sometimes misleading. Flow algorithms usually considerably outperform their worst-case time complexity. The relaxation algorithm described in \S\ref{sec:intro-related-work-ssp} is perhaps the most extreme example of this: in the worst case it is exponential, but in practice it outperforms many strongly polynomial algorithms.
+Asymptotic complexity can be a useful basis for evaluation, but is sometimes misleading. Flow algorithms usually considerably outperform their worst-case time complexity. The relaxation algorithm described in \cref{sec:intro-related-work-ssp} is perhaps the most extreme example of this: in the worst case it is exponential, but in practice it outperforms many strongly polynomial algorithms.
 
 Consequently, comparison of flow algorithms is most often done by empirical benchmarks. The most up to date study in this area is due to Kiraly and Kovacs, who tested all the algorithms described above on a variety of different classes of flow networks~\cite{KiralyKovacs:2012,Kovacs:2015}.
 
