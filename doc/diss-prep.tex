@@ -593,11 +593,40 @@ Although correctness testing is the key during development, the focus of this pr
 
 \section{Implementation schedule} \label{sec:prep-implsched}
 
-\subsection{Initial experience}
-My starting point. C++: from IB Tripos. Algorithms: IA/IB. Maths: IA. No prior knowledge of flow networks.
+%Split into phases:
+%1. Standard algorithms.
+%2. Testing and performance evaluation.
+%3. Approximate solver.
+%4. Incremental solver.
+%5. Optimisations.
+%Return to phase 2 after each stage. May need to extend it to support new test types. Show how this supports evolutionary prototyping, waterfall, incremental?
+%
+%Other ways of structuring it? Problems: phase 2 is kind of awkward. And standard algorithms weren't implemented in one pass, but rather as needed by particular solvers.
+%1. Approximate solver.
+%2. Testing and performance evaluation.
+%3. Incremental solver.
+%4. Optimisations.
+%I kind of prefer this style, actually. It's more faithful to how the project actually proceeded, certainly.
 
-\subsection{Project schedule}
-How I planned my time. Split into phases. Core success criteria obtained early. Testing completed. Extensions added and additional experiments performed later on.
+% Segue in: previous section described high-level approach, now develop detailed plan for how to structure development.
+% Outline the phases
+% Justify the strategy
+% Keep it simple
+
+For a project of this scope, it is essential to plan the work before commencing development. An implementation schedule was devised, following the high-level development strategy described in the preceding section, splitting the project into the following phases:
+
+\begin{enumerate}
+    \item \textbf{Approximate solver} -- develop an algorithm to find approximate solutions to the minimum-cost flow problem. Provides deliverables S1, S2 and S4; see \cref{sec:impl-approx}.
+    \item \textbf{Performance evaluation} -- run experiments to determine the speed-up offered by the system. Will require development of a benchmark suite to facilitate testing. Provides deliverables S3 and E1; see \cref{chap:eval}.
+    \item \textbf{Incremental solver} -- develop an algorithm solving the minimum-cost flow problem on sequences of related flow networks, as occurs in flow scheduling. The method reuses solutions for previous networks in the sequence, to find an optimal solution more quickly for successive networks. Provides deliverable E2; see \cref{sec:impl-incremental}.
+    \item \textbf{Optimisations} -- previous phases have focused on improvements in \emph{algorithmic} techniques. In practice, performance is heavily dependent on the \emph{implementation} of the algorithm. Optimisation will be needed for the project to be competitive with existing solvers. Provides deliverable E3; see \cref{sec:eval-optimisations}.
+\end{enumerate}
+
+All core success criteria are satisfied after the completion of the first two phases\footnotemark. This ensured the key goals of the project would be met before work on extensions commenced. 
+
+Optimisation was postponed to the last phase. As \emph{evolutionary prototyping} was used for development of the approximate and incremental solvers (see \cref{sec:prep-management-model}), optimisation during phases 1 or 3 would have been premature. Leaving it to the final phase also ensures that time will only be spent on optimisation when all other goals have been met, appropriate as it is the lowest priority deliverable in \cref{table:project-requirements}.
+
+Phase 2 is revisited upon the completion of phase 3, and after each optimisation implemented during phase 4. The development of the benchmark suite (see \cref{sec:impl-benchmark}) during phase 2 allows for the tests to be performed with little manual intervention, minimising the cost of revisiting this phase.
 
 \section{Development environment}
 
