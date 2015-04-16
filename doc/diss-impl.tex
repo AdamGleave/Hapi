@@ -1,5 +1,6 @@
 \chapter{Implementation} \label{chap:impl}
 
+% TODO: Consistent statement of asymptotic complexity. Each algorithm should include a statement of asymptotic complexity in general terms, and a remark specialising it for flow scheduling systems.
 % Proofread: None
 
 \section{Introduction}
@@ -94,10 +95,14 @@ The asymptotic complexity is $O(nm^2CU)$.
 Note that Bellman-Ford runs in $O(nm)$ time. Augmenting flow along the cycle is of cost linear in the length of the cycle, and so is certainly $O(n)$. Thus each iteration runs in $O(nm)$. By \cref{thm:cycle-cancelling-termination}, it follows the complexity of the algorithm is $O(nm^2CU)$.
 \end{proof}
 
+\begin{remark}
+On networks produced by flow schedulers, the asymptotic complexity is $O(n^3CU)$ by \cref{lemma:network-num-arcs}.
+\end{remark}
+
 \section{Successive shortest path algorithm} \label{sec:impl-ssp}
 
 % Note this algorithm offers polynomial performance for Quincy-like graphs because it is independent of cost, whereas cycle cancelling is not
-This algorithm runs in weakly polynomial time. We will show, however, that it has a strongly polynomial time bound of $O(n^2)$ for the class of flow networks produced by Quincy-like systems. It lends itself readily to an incremental implementation (see \cref{sec:impl-incremental}), but is inappropriate for an approximate solver.
+In general, this algorithm runs in weakly polynomial time. We will show, however, that it has a strongly polynomial time bound of $O(n^2 \lg n)$ on networks produced by flow schedulers. It lends itself readily to an incremental implementation (see \cref{sec:impl-incremental}), but is inappropriate for an approximate solver.
 
 \subsection{Algorithm description}
 
@@ -108,8 +113,9 @@ This algorithm runs in weakly polynomial time. We will show, however, that it ha
         \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
         \While{mass balance constraints not satisfied}
           \State choose node $s$ with $e(s) > 0$ and node $t$ with $e(t) < 0$\footnotemark
-          \State solve SSSP problem from $s$ to all other nodes, in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$
-          \State let $\mathbf{d}$ denote the vector of shortest path distances, s.t. $d_i$ is the shortest path from $s$ to $i\in V$
+          % SOMEDAY: These statements are multi-line, shorten?
+          \State solve SSSP problem from $s$ to all nodes, in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$
+          \State let $\mathbf{d}$ denote the vector of shortest path distances, such that $d_i$ is the shortest path from $s$ to $i\in V$
           \Let{$\boldsymbol{\pi}$}{$\boldsymbol{\pi} - \mathbf{d}$}
           \State let $P$ denote a shortest path from $s$ to $t$
           \Let{$\delta$}{$\min\left(e(s), -e(t), \min\left\{ r_{ij} \::\: (i,j) \in P\right\}\right)$}
@@ -120,76 +126,11 @@ This algorithm runs in weakly polynomial time. We will show, however, that it ha
 
 \footnotetext{Note whilst mass balance constraints are unsatisfied there must exist both a source node $s$ and sink node $t$. This is since the total sum of excesses must equal the total sum of deficits, otherwise $\sum_v b(v) \neq 0$ and the problem is infeasible.}
 
-The successive shortest path algorithm maintains a pseudoflow (see \cref{sec:prep-flow-pseudo}) $\mathbf{x}$ and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains the feasibility strives to achieve optimality.
+The successive shortest path algorithm maintains a pseudoflow $\mathbf{x}$ (see \cref{sec:prep-flow-pseudo}) and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains the feasibility strives to achieve optimality.
 
-Each iteration of the algorithm identifies a source node $s$ and sink node $t$. The single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is then solved from $s$. The pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path to $t$, $P$. We are limited by the minimum residual capacity of arcs along the path $P$. Moreover, we opt to maintain a non-negative supply at $s$ and demand at $t$. This restriction ensures the magnitude of the excess at each node is monotonically decreasing. We also update the potentials $\boldsymbol{\pi}$, to maintain reduced cost optimality. The algorithm terminates when no source nodes or sink nodes exist.
+Each iteration of the algorithm identifies a source node $s$ and sink node $t$. Next, the single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is solved from $s$. To maintain reduced cost optimality, the potentials $\boldsymbol{\pi}$ are updated. Finally, the pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path $P$ from $s$ to $t$. The algorithm terminates when no source nodes or sink nodes exist.
 
-\subsection{Analysis} \label{sec:impl-ssp-analysis}
-
-\subsubsection{Correctness}
-
-First, we will show that the algorithm maintains reduced cost optimality, for which we will need a number of lemmas. We will then conclude, using the invariant and the terminating condition, that the algorithm will return a solution to the minimum-cost flow problem.\\
-
-\begin{lemma} \label{lemma:ssp-reduced-costs}
-Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions \cref{eq:optimality-reduced-cost} with respect to potentials $\boldsymbol{\pi}$. Let $\mathbf{d}$ represent the shortest path distances from a node $s \in V$ to all other nodes in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$. Then:
-    
-\begin{enumerate}[label=(\alph*)]
-  \item $\mathbf{x}$ also satisfies reduced cost optimality conditions with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
-  \item The reduced costs, $c^{\boldsymbol{\pi}'}_{ij}$, with respect to this new potential $\boldsymbol{\pi}'$, are zero for all arcs $(i,j)$ in the shortest-path tree rooted at $s \in V$.
-\end{enumerate}
-\end{lemma}
-\begin{proof}
-See~\cite[p.~320]{Ahuja:1993}.
-\end{proof}
-
-\begin{cor} \label{cor:ssp-reduced-costs}
-Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $x$ by sending flow along a shortest path from node $s$ to some other node $k \in V$. Then $x'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
-\end{cor}
-\begin{proof}
-By \cref{lemma:ssp-reduced-costs}(a), $(\mathbf{x},\boldsymbol{\pi'}$ satisfies the reduced cost optimality conditions.
-
-Pushing flow along an arc $(i,j) \in G_{\mathbf{x}}$ might add its reversal $(j,i)$ in the residual network. Let $P$ be a shortest path from $s$ to $k$. By \cref{lemma:ssp-reduced-costs}(b), it follows that any arc $(i,j) \in P$ has $c^{\boldsymbol{\pi}'}_{ij} = 0$. So $c^{\boldsymbol{\pi}'}_{ji} = 0$. Thus any arcs that are added to the residual network by augmenting flow along $P$ have a zero reduced cost, and so still satisfy the reduced cost optimality conditions \cref{eq:optimality-reduced-cost}.
-\end{proof}
-
-\begin{thm} \label{thm:ssp-invariant}
-Immediately before each iteration of the loop, $(\mathbf{x},\boldsymbol{\pi})$ satisfies reduced cost optimality.
-\end{thm}
-\begin{proof} (Induction)
-    
-For the base case, note $(\mathbf{0},\mathbf{0})$ satisfy reduced cost optimality. We have $G_{\boldsymbol{0}} = G$, i.e.\ the residual and original network are the same. Moreover, all arc costs $c_{ij}$ are non-negative (by \cref{assumption:non-negative-arc-costs}) and so the reduced costs $c^{\boldsymbol{0}}_{ij}$ are also non-negative. Thus \cref{eq:optimality-reduced-cost} holds.
-
-Now, suppose the inductive hypothesis holds: reduced cost optimality holds immediately prior to execution of the loop body. The loop body computes a shortest path distances $s$ from a node $d$, updates $\boldsymbol{\pi}$ to become $\boldsymbol{\pi'}$ as defined in \cref{lemma:ssp-reduced-costs} and pushes flow along a shortest path from $s$ to another node, yielding a new flow $\mathbf{x}$ of the same form as $\mathbf{x'}$ in \cref{cor:ssp-reduced-costs}. It follows by \cref{cor:ssp-reduced-costs} that $(\mathbf{x},\boldsymbol{\pi})$ satisfy reduced cost optimality at the end of the loop body. Hence, the inductive hypothesis continues to hold.
-\end{proof}
-
-\begin{thm} \label{thm:ssp-correctness}
-Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
-\end{thm}
-\begin{proof}
-The algorithm terminates when the mass balance constraints \cref{eq:mass-balance-constraints} are satisfied. At this point, the solution $\mathbf{x}$ is feasible (see \cref{sec:prep-flow-pseudo}). 
-
-By \cref{thm:ssp-invariant}, we know the algorithm maintains the invariant that $\mathbf{x}$ satisfies reduced cost optimality. 
-
-It follows that $\mathbf{x}$ is both a feasible flow and optimal upon termination, so $\mathbf{x}$ is a solution of the minimum-cost flow problem.
-\end{proof}
-
-\subsubsection{Termination and asymptotic complexity}
-
-\begin{thm} \label{thm:ssp-complexity}
-Let $S(n,m,C)$ denote the time complexity of solving a single-source shortest path problem with non-negative arc costs, bounded above by $C$, over a network with $n$ nodes and $m$ arcs. Then the time complexity of successive shortest path is $O(nUS(n,m,C))$.
-\end{thm}
-\begin{proof}
-Each iteration of the loop body (lines 3-9) decreases the excess of some node $s$ by $k$ and the deficit of some node $t$ by $k$, whilst leaving the excess/deficit of other nodes unchanged. Consequently, the total excess and total deficit are both decreased by $k$. By \cref{assumption:integrality}, $k \geq 1$. So the number of iterations is bounded by the initial total excess. But this is bounded by $nU/2 = O(nU)$. So there are $O(nU)$ iterations.
-
-Within each iteration, the algorithm solves a single-source shortest-path problem on line 4. Since reduced cost optimality is maintained throughout the algorithm, the arc costs in the shortest-path problem are non-negative\footnotemark. Thus the cost of solving this problem is $S(n,m,C)$.
-\footnotetext{Algorithms such as Djikstra which assume non-negative arc lengths are asymptotically faster than more general algorithms such as Bellman-Ford.}
-
-The cost of line 3 is $O(n)$, line 6 $O(n)$ and line 8-9 $O(n)$ as the length of $P$ is bounded by $n-1$ (shortest path is acyclic). Certainly $S(n,m,C) = \Omega(n)$, so the cost of each iteration is $O(S(n,m,C))$.
-
-It follows that the overall time complexity of the algorithm is $O(nUS(n,m,C))$.
-\end{proof}
-
-% TBC: Intro promises we'll derive an asymptotic complexity bound of n^2 for Quincy-style networks. I think this is wrong, and in any case we don't show it.
-% TBC: Related to this, explain why capacity scaling is unimportant for our application.
+The amount of flow $\delta$ sent over the path is limited by the minimum residual capacity of arcs along $P$. $\delta$ is further restricted so that the algorithm maintains a non-negative supply at $s$ and demand at $t$. This guarantees the excess at supply nodes and deficit at demand nodes is monotonically decreasing, ensuring each iteration improves the feasibility of the flow.
 
 \subsection{Optimisations}
 
@@ -197,47 +138,68 @@ It follows that the overall time complexity of the algorithm is $O(nUS(n,m,C))$.
 % Unclear whether best to put it here, or in the evaluation section, or both?
 
 \subsubsection{Choice of shortest-path algorithm}
-The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}. They differ in the heap data structure used to provide the priority queue needed by Djikstra. The asymptotically fastest are Fibonacci heaps, with $S(m,n,C) = O(m + n\lg n)$. By contrast, the widely used binary heap data structure gives $S(m,n,C) = O(m\lg n)$. 
+The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}. They differ in the underlying heap data structure used by Djikstra. The asymptotically fastest are Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, the widely used binary heap data structure has complexity $O(m\lg n)$.
 
-Fibonacci heap's have considerable implementation complexity, however: whilst asymptotically faster, the constant factor hidden by the asymptotic notation is much greater. Computational benchmarks have found them to be slower than binary heaps in practice, for all but the largest of graphs~\cite[p.~15]{KiralyKovacs:2012}. In any case, for the class of networks produced by Quincy-like systems, $m = O(n)$, and so the two are asymptotically equivalent. Given this, I opted for a binary heap implementation. The resulting the asymptotic complexity of my successive shortest path implementation is $O(nmU \lg n)$.
+Fibonacci heaps have considerable implementation complexity: whilst asymptotically faster, the constant factor hidden by the asymptotic notation is much greater. Computational benchmarks have found them to be slower than binary heaps in practice, for all but the largest of graphs~\cite[p.~15]{KiralyKovacs:2012}. In any case, for the class of networks produced by flow schedulers, $m = O(n)$ holds and so the two are asymptotically equivalent. In light of this, a binary heap implementation was used for this project.
 
 \subsubsection{Terminating Djikstra's algorithm early}
 
 % TBC: Test this using benchmark suite and include in evaluation section? Doesn't seem like it'd be too difficult.
-It is possible to modify the successive shortest path algorithm to terminate Djikstra as soon as it permanently labels a deficit node $l$. Whilst not affecting asymptotic complexity, this may considerably improve performance in practice.\\
+It is possible to modify the successive shortest path algorithm to terminate Djikstra as soon as it permanently labels a deficit node $l$. Although this does not affect asymptotic complexity, it may considerably improve performance in practice.\\
 
-\begin{lemma}
-Recall \cref{lemma:ssp-reduced-costs}. Let us redefine:
-{\normalfont
-\[\boldsymbol{\pi}'_{i}=\begin{cases}
-\boldsymbol{\pi}_{i}-d_{i} & \textrm{if $i$ permanently labelled}\\
-\boldsymbol{\pi}_{i}-d_{l} & \textrm{otherwise}
-\end{cases}\]}
-The original result for (a) still holds. The result for (b) holds along the shortest path from $s$ to $l$\footnotemark.
-\footnotetext{Note that this is all that is needed for the correctness of the algorithm, as this is the only path along which we augment flow.}
+\todo{Move to appendix, restructure so that it's after correctness analysis.}
+\begin{lemma} \label{lemma:ssp-preserve-triangle}
+    Define:
+    \[
+    d'_{i}=\begin{cases}
+    d_{i} & \text{if $i$ permanently labelled}\\
+    d_{l} & \text{otherwise}
+    \end{cases}
+    \]
+    Suppose the triangle equality holds on $\mathbf{d}$, that is:
+    \begin{equation} \label{eq:djikstra-triangle-assumption}
+    \forall(i,j)\in E_{\mathbf{x}}\cdot d_j \leq d_i + c^{\boldsymbol{\pi}}_{ij}
+    \end{equation}
+    Then it also holds on $\mathbf{d}'$:
+    \[\forall(i,j)\in E_{\mathbf{x}}\cdot d'_j \leq d'_i + c^{\boldsymbol{\pi}}_{ij}\]
 \end{lemma}
 \begin{proof}
-The original proof for the lemma (given in~\cite[p.~320]{Ahuja:1993}) uses the triangle inequality:
-\begin{equation} \label{eq:ssp-reduced-costs-triangle}
-d_j \leq d_i + c^{\boldsymbol{\pi}}_{ij}\:\forall(i,j)\in E_{\mathbf{x}}
-\end{equation}
-Terminating Djikstra's algorithm early, we only know the shortest-path distance to nodes which have been permanently labelled. But for any node $i$ not permanently labelled and node $l$ permanently labelled, the shortest path distances satisfy:
-\begin{equation} \label{eq:ssp-djikstra-labelled}
-d_i \geq d_l
-\end{equation}
-This is because were $d_i < d_l$ then $i$ must have been permanently labelled before $l$, which is a contradiction.
+    When Djikstra's algorithm is terminated early, the only shortest path distances known are those to permanently labelled node. But nodes are labelled in ascending order of their shortest path distance. As $l$ is permanently labelled, it follows that for any unlabelled node $i$:
+    \begin{equation} \label{eq:ssp-djikstra-unlabelled}
+    d_l \leq d_i
+    \end{equation}
+    But $l$ is the last node to be labelled, so it follows that for any permanently labelled node $i$:
+    \begin{equation} \label{eq:ssp-djikstra-labelled}
+    d_i \leq d_l
+    \end{equation}
+    
+    Now, let $(i,j) \in E_{\mathbf{x}}$. It remains to prove $d'_j \leq d'_i + c^{\boldsymbol{\pi}}_{ij}$, for which there are four possible cases.
+    
+    \paragraph{$i$ and $j$ permanently labelled} $d'_i = d_i$ and $d'_j = d_j$, so result follows by \cref{eq:djikstra-triangle-assumption}.
+    
+    \paragraph{$i$ and $j$ not labelled} $d'_i = d_l = d'_j$, so result follows by non-negativity of reduced costs $c^{\boldsymbol{\pi}}_{ij}$.
+    
+    \paragraph{$i$ permanently labelled, $j$ not} $d'_j = d_l$ by definition, and $d_l \leq d_j$ by \cref{eq:ssp-djikstra-unlabelled}, so $d'_j \leq d_j$. By definition $d'_i = d_i$, so it follows by \cref{eq:djikstra-triangle-assumption} that $d'_j \leq d'_i + c^{\boldsymbol{\pi}}_{ij}$.
+    
+    \paragraph{$i$ not labelled, $j$ permanently labelled} By definition, $d'_j = d_j$. By \cref{eq:ssp-djikstra-labelled}, $d_j \leq d_l$, so $d'_j \leq d_l$. By definition, $d'_i = d_l$, so $d'_j \leq d'_i$. Result follows by non-negativity of $c^{\boldsymbol{\pi}}_{ij}$.
+\end{proof}
 
-Now, let us define: 
-\begin{equation} \label{eq:ssp-djikstra-distances}
-d'_{i}=\begin{cases}
-d_{i} & \text{if $i$ permanently labelled}\\
-d_{l} & \text{otherwise}
-\end{cases}
-\end{equation}
-
-Given \cref{eq:ssp-djikstra-labelled}, we know $\mathbf{d}'$ satisfies \cref{eq:ssp-reduced-costs-triangle}. The original proof for (a) thus still holds, as it makes no further assumptions on $\mathbf{d}'$.
-
-As for (b), every node $i$ along the shortest path from $s$ to $l$ has been permanently labelled, and so $d'_i = d_i$. Hence the original proof still holds along this path.
+\begin{lemma}
+    Recall \cref{lemma:ssp-reduced-costs}. Let us redefine:
+    {\normalfont
+        \[\boldsymbol{\pi}'_{i}=\begin{cases}
+        \boldsymbol{\pi}_{i}-d_{i} & \textrm{if $i$ permanently labelled}\\
+        \boldsymbol{\pi}_{i}-d_{l} & \textrm{otherwise}
+        \end{cases}\]}
+    The original result for (a) still holds. The result for (b) holds along the shortest path from $s$ to $l$\footnotemark.
+    \footnotetext{Note that this is all that is needed for the correctness of the algorithm, as this is the only path along which we augment flow.}
+\end{lemma}
+\begin{proof}
+    The original proof for the lemma (given in~\cite[p.~320]{Ahuja:1993}) uses the triangle inequality stated in \cref{eq:djikstra-triangle-assumption}. 
+    
+    By \cref{lemma:ssp-preserve-triangle}, we know $\mathbf{d}'$ also satisfies the triangle equality. The original proof for (a) thus still holds, as it makes no further assumptions on $\mathbf{d}'$.
+    
+    As for (b), every node $i$ along the shortest path from $s$ to $l$ has been permanently labelled, and so $d'_i = d_i$. Hence the original proof still holds along this path.
 \end{proof}
 
 Any constant shift in the potential for every node will leave reduced costs unchanged. So we may equivalently redefine:
@@ -248,6 +210,81 @@ Any constant shift in the potential for every node will leave reduced costs unch
 \end{cases}\]
 
 This is computationally more efficient, as we will not have to update the potential at any node which has not been permanently labelled (typically the majority of nodes).
+
+\subsection{Analysis} \label{sec:impl-ssp-analysis}
+
+\subsubsection{Correctness}
+
+\Cref{lemma:ssp-reduced-costs,cor:ssp-reduced-costs} prove properties of the algorithm, allowing \cref{thm:ssp-invariant} to show that reduced cost optimality is maintained as an invariant. Correctness of the algorithm follows in \cref{cor:ssp-correctness} by using the terminating condition of the algorithm.\\
+
+\begin{lemma} \label{lemma:ssp-reduced-costs}
+Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions of \cref{eq:optimality-reduced-cost} with respect to potentials $\boldsymbol{\pi}$. Let $\mathbf{d}$ represent the shortest path distances in the residual network $G_{\mathbf{x}}$ from a node $s \in V$ to all other nodes, with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$. Then:
+    
+\begin{enumerate}[label=(\alph*)]
+  \item $\mathbf{x}$ also satisfies reduced cost optimality conditions with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
+  \item The reduced costs $c^{\boldsymbol{\pi}'}_{ij}$ are zero for all arcs $(i,j)$ in the shortest-path tree rooted at $s \in V$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+See~\cite[p.~320]{Ahuja:1993}.
+\end{proof}
+
+\begin{cor} \label{cor:ssp-reduced-costs}
+Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $\mathbf{x}$ by sending flow along a shortest path from node $s$ to some other node $k \in V$. Then $\mathbf{x}'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
+\end{cor}
+\begin{proof}
+By \cref{lemma:ssp-reduced-costs}(a), $\left(\mathbf{x},\boldsymbol{\pi'}\right)$ satisfies the reduced cost optimality conditions.
+
+Pushing flow along an arc $(i,j) \in G_{\mathbf{x}}$ might add its reversal $(j,i)$ to the residual network. Let $P$ be a shortest path from $s$ to $k$. By \cref{lemma:ssp-reduced-costs}(b), it follows that any arc $(i,j) \in P$ has $c^{\boldsymbol{\pi}'}_{ij} = 0$. So $c^{\boldsymbol{\pi}'}_{ji} = 0$. Thus any arcs are added to the residual network by augmenting flow along $P$ have a zero reduced cost, and so still satisfy the reduced cost optimality conditions of \cref{eq:optimality-reduced-cost}.
+\end{proof}
+
+\begin{thm} \label{thm:ssp-invariant}
+Immediately before each iteration of the loop, $(\mathbf{x},\boldsymbol{\pi})$ satisfies reduced cost optimality.
+\end{thm}
+\begin{proof} (Induction)
+
+For the base case, note $(\mathbf{0},\mathbf{0})$ satisfy reduced cost optimality. We have $G_{\boldsymbol{0}} = G$, i.e.\ the residual and original network are the same. Moreover, all arc costs $c_{ij}$ are non-negative (by \cref{assumption:non-negative-arc-costs}) and so the reduced costs $c^{\boldsymbol{0}}_{ij}=c_{ij}$ are also non-negative. Thus reduced cost optimality holds.
+
+Now, assume that reduced cost optimality holds immediately prior to execution of the loop body. The body computes the shortest path distances $s$ from a node $d$, updates $\boldsymbol{\pi}$ to become $\boldsymbol{\pi'}$ as defined in \cref{lemma:ssp-reduced-costs}. It then pushes flow along a shortest path from $s$ to another node, yielding a new flow of the same form as $\mathbf{x'}$ in \cref{cor:ssp-reduced-costs}. It follows by \cref{cor:ssp-reduced-costs} that $(\mathbf{x}',\boldsymbol{\pi}')$ satisfy reduced cost optimality at the end of the loop body. Hence, the inductive hypothesis continues to hold.
+\end{proof}
+
+\begin{cor} \label{cor:ssp-correctness}
+Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
+\end{cor}
+\begin{proof}
+The algorithm terminates when the mass balance constraints of \cref{eq:mass-balance-constraints} are satisfied. At this point, the solution $\mathbf{x}$ is feasible (see \cref{sec:prep-flow-pseudo}). 
+
+By \cref{thm:ssp-invariant}, we know the algorithm maintains the invariant that $\mathbf{x}$ satisfies reduced cost optimality. 
+
+It follows that $\mathbf{x}$ is both optimal and a feasible flow upon termination, so $\mathbf{x}$ is a solution of the minimum-cost flow problem.
+\end{proof}
+
+\subsubsection{Termination and asymptotic complexity}
+
+\begin{thm} \label{thm:ssp-complexity}
+Let $S(n,m,C)$ denote the time complexity of solving a single-source shortest path problem (SSSP) with non-negative arc costs, bounded above by $C$, over a network with $n$ nodes and $m$ arcs. Then the time complexity of successive shortest path is $O(nUS(n,m,C))$.
+\end{thm}
+\begin{proof}
+Each iteration of the loop body (lines 3-9) decreases the excess of node $s$ by $\delta$ and the deficit of node $t$ by $\delta$, while leaving the excess/deficit of other nodes unchanged. Prior to the iteration, $e_s \geq 0$ and $e_t \leq 0$, so the total excess and total deficit in the network are both decreased by $\delta$. By \cref{assumption:integrality}, $\delta \geq 1$. Thus the number of iterations is bounded by the initial total excess. This in turn is bounded by $nU/2 = O(nU)$. So there are $O(nU)$ iterations in total.
+
+Within each iteration, the algorithm solves an SSSP problem on line 4. Since reduced cost optimality is maintained throughout the algorithm, the arc costs in the shortest-path problem are non-negative\footnotemark. Thus the cost of solving this problem is $S(n,m,C)$.
+\footnotetext{Algorithms such as Djikstra which assume non-negative arc lengths are asymptotically faster than more general algorithms such as Bellman-Ford.}
+
+The cost of lines 3 and 6 are clearly $O(n)$. Lines 8--9 are also $O(n)$, since the length of $P$ is bounded by $n-1$ (shortest paths are acyclic). Certainly $S(n,m,C) = \Omega(n)$, so the cost of each iteration is $O(S(n,m,C))$.
+
+It follows that the overall time complexity of the algorithm is $O(nUS(n,m,C))$.
+\end{proof}
+
+\begin{cor}
+The implementation in this project has a time complexity of $O(nmU \lg n)$.
+\end{cor}
+\begin{proof}
+Djikstra's algorithm with a binary heap data structure is used to solve the SSSP problem, giving $S(n,m,C) = O(m \lg n)$. By \cref{thm:ssp-complexity}, it follows the time complexity is $O(nmU \lg n)$.
+\end{proof}
+
+\begin{remark}
+By \cref{lemma:network-supply}, no node has a greater than unit supply. This gives a bound on the total excess of $O(n)$ rather than $O(nU)$. Moreover, by \cref{lemma:network-num-arcs}, $m = O(n)$. So the complexity improves to $O(n^2 \lg n)$\footnotemark.
+\end{remark}
 
 \section{Relaxation algorithm} \label{sec:impl-relax}
 
