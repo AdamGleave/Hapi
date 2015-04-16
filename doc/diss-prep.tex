@@ -19,11 +19,12 @@ The cluster scheduler faces a challenging task. The scheduler policy must be tar
 
 \begin{table}
     \begin{tabular}{c|l}
-        Goal & Description\tabularnewline
+        \textbf{Goal} & \textbf{Description}\tabularnewline
         \hline
         Targeted & Application requirements are reflected in the scheduler policy. \tabularnewline
         Effective & The schedules produced are optimal given the policy objectives. \tabularnewline
         Fast and scalable & Scheduling latency remains low even for large clusters. \tabularnewline
+        \hline
     \end{tabular}
     \caption{Design goals for cluster schedulers}
     \label{table:cluster-scheduler-design-goals}
@@ -66,17 +67,20 @@ However, the information which is public suggests that the basic approach is the
 % PROOFREAD: 1. Major edits. Need to reread.
 
 \begin{table}
-\begin{tabular}{c|c|c|c}
-    Scheduler & Targeted & Effective & Fast and scalable \tabularnewline
+\begin{tabular}{lccc}
+    \textbf{System} & \textbf{Targeted} & \textbf{Effective} & \textbf{Fast and scalable} \tabularnewline
     \hline
-    Hadoop FIFO Scheduler & 1 & 3 & 4 \tabularnewline
-    Hadoop Fair Scheduler & 2 & 4 & 3 \tabularnewline 
-    Hadoop Capacity Scheduler & 2 & 4 & 3 \tabularnewline 
+    \textit{Heuristic approach} \tabularnewline
+    FIFO Queue & 1 & 3 & 4 \tabularnewline
+    Fair Scheduler & 2 & 4 & 3 \tabularnewline 
+    Capacity Scheduler & 2 & 4 & 3 \tabularnewline 
     LATE & 1 & 5 & 3 \tabularnewline 
     Sparrow & 2 & 3 & 5 \tabularnewline 
     \hline
+    \textit{Flow-based system} \tabularnewline
     Quincy & 2 & 5 & 1 \tabularnewline 
     Firmament & 4 & 5 & 1 \tabularnewline 
+    \hline
 \end{tabular}
 \caption{Scheduler feature matrix}
 \label{table:cluster-scheduler-feature-matrix}
@@ -233,9 +237,9 @@ Firmament supports three other cost models~\cite[ch.~5]{Schwarzkopf:2015}. The W
 Given such a variety of possible policies, the solver developed in this project must be independent of any particular cost model. However, having an intuition for how cost models operate is valuable. For reasons of brevity, I will only summarize the cost model in the original Quincy system. Further details of this model are available in~\cite{Isard:2009}. A description of the other models mentioned is in~\cite[ch.~5]{Schwarzkopf:2015}.
 
 \begin{table}
-    \begin{tabular}{c|c|l}
+    \begin{tabular}{ccl}
         \hline 
-        Cost & Edge & Meaning\tabularnewline
+        \textbf{Cost} & \textbf{Edge} & \textbf{Meaning}\tabularnewline
         \hline 
         $\gamma_{i,m}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{M}_{m}$ & Cost of scheduling on machine $\mathbf{M}_{m}$.\tabularnewline
         $\rho_{i,l}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{R}_{l}$ & Cost of scheduling on worst machine in rack $\mathbf{R}_{l}$.\tabularnewline
@@ -248,9 +252,9 @@ Given such a variety of possible policies, the solver developed in this project 
 \end{table}
 
 \begin{table}
-    \begin{tabular}{c|l}
+    \begin{tabular}{cl}
         \hline 
-        Variable & Meaning\tabularnewline
+        \textbf{Variable} & \textbf{Meaning}\tabularnewline
         \hline 
         $\chi^{X}\left(\mathbf{T}_{i}^{j}\right),\chi_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the core switch.\tabularnewline % if: scheduled on worst possible computer in cluster, scheduled on worst possible computer in rack $\mathbf{R}_{l}$ or scheduled on computer $\mathbf{M}_{m}$ respectively.
         $\mathcal{R}^{X}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the top-of-rack switch.\tabularnewline
@@ -263,10 +267,9 @@ Given such a variety of possible policies, the solver developed in this project 
 \end{table}
 
 \begin{table}
-    \begin{tabular}{c|l}
+    \begin{tabular}{cl}
         \hline 
-        Parameter & Meaning\tabularnewline
-        \hline 
+        \textbf{Parameter} & \textbf{Meaning}\tabularnewline
         \hline 
         $\epsilon$ & Cost of transferring 1 GB across core switch\tabularnewline
         \hline 
@@ -693,3 +696,7 @@ Nightly backups were taking using a cron job to protect against these threats. S
 %\subsection{Development machines}
 %
 %Laptop, SRG cluster. Unclear if this is even necessary?
+
+\section{Summary}
+
+TBC: Summarize chapter
