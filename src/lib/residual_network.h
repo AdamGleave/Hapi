@@ -7,8 +7,6 @@
 #include <vector>
 #include <functional>
 
-#include <boost/iterator/transform_iterator.hpp>
-
 #include "arc.h"
 
 // forward declare
