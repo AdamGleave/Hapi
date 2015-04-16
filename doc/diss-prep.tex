@@ -636,16 +636,26 @@ Phase \ref{itm:phase-evaluation} is revisited upon the completion of phase \ref{
 
 \subsection{Languages} 
 
+\subsubsection{C++}
+All minimum-cost flow algorithms were implemented in C++. The performance of C++ is on par with low-level languages like C, with a number of excellent optimising compilers\footnotemark. At the same time, it adds support for object oriented programming and other features typical of high-level languages.
+\footnotetext{Clang and GCC were used in this project.}
+
+\subsubsection{Python and shell}
+The Python scripting language was used for the development of test harnesses (see \cref{sec:impl-benchmark-harness,sec:eval-testing-unit}), and for generation of many of the figures appearing in \cref{chap:eval}. As a high-level language, development could proceed rapidly in Python. Of course, as an interpreted language it is many times slower than C++: however, it was not used for any performance critical code.
+
+Shell scripting was used for particularly simple tasks, that involved plumbing together UNIX utilities. Python was favoured for anything more complicated, however, as it allows for a more structured programming style.
+
 \subsection{Libraries} \label{sec:prep-tools-libraries}
-Justify language choice (C++, Python). Libraries: GLOG, Boost.
 
-Perhaps mention coding style guides?
+This project made extensive use of the Boost family of libraries~\cite{Boost}. Boost has been extensively peer-reviewed and tested, and is designed to integrate well with the C++ standard library. Command-line argument parsing was performed using Boost's Program Options library. Algorithm runtime was measured using Boost's Timer library. Other features of Boost were used for a variety of purposes, such as string manipulation during parsing.
 
-% Testing as a separate section? Maybe?
+Logging was performed using the glog library, developed by Google~\cite{Glog}. For this project, logging is used primarily for debugging. glog has extensive support for this use case, with logging levels configurable on a per-file and per-function basis. glog also supports checking a variety of assertions: these were used extensively during development to verify invariants of algorithms and data structures.
+
+Unit tests were written with the aid of the gtest library, also due to Google~\cite{Gtest}. It follows the popular xUnit architecture, which I was already familiar with from JUnit. Furthermore, I felt it was one of the best designed unit testing libraries out there: test failure produced informative error messages, and it has support for a wide range of assertions.
 
 \subsection{Flow scheduling}
 
-Firmament.
+The Firmament flow scheduling system is used for testing this project. The only other flow scheduling system in existence is Quincy, which pioneered the approach; however, Quincy is not available. Firmament in any case has considerably extended the original work of Quincy, and so allows for a wider variety of experiments to be conducted.
 
 \section{Development environment}
 
