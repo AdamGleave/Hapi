@@ -616,27 +616,21 @@ Although correctness testing is the key during development, the focus of this pr
 For a project of this scope, it is essential to plan the work before commencing development. An implementation schedule was devised, following the high-level development strategy described in the preceding section, splitting the project into the following phases:
 
 \begin{enumerate}
-    \item \textbf{Approximate solver} -- develop an algorithm to find approximate solutions to the minimum-cost flow problem. Provides deliverables S1, S2 and S4; see \cref{sec:impl-approx}.
-    \item \textbf{Performance evaluation} -- run experiments to determine the speed-up offered by the system. Will require development of a benchmark suite to facilitate testing. Provides deliverables S3 and E1; see \cref{chap:eval}.
-    \item \textbf{Incremental solver} -- develop an algorithm solving the minimum-cost flow problem on sequences of related flow networks, as occurs in flow scheduling. The method reuses solutions for previous networks in the sequence, to find an optimal solution more quickly for successive networks. Provides deliverable E2; see \cref{sec:impl-incremental}.
-    \item \textbf{Optimisations} -- previous phases have focused on improvements in \emph{algorithmic} techniques. In practice, performance is heavily dependent on the \emph{implementation} of the algorithm. Optimisation will be needed for the project to be competitive with existing solvers. Provides deliverable E3; see \cref{sec:eval-optimisations}.
+    \item \label{itm:phase-approximate}
+        \textbf{Approximate solver} -- develop an algorithm to find approximate solutions to the minimum-cost flow problem. Provides deliverables S1, S2 and S4; see \cref{sec:impl-approx}.
+    \item \label{itm:phase-evaluation} 
+        \textbf{Performance evaluation} -- run experiments to determine the speed-up offered by the system. Will require development of a benchmark suite to facilitate testing. Provides deliverables S3 and E1; see \cref{chap:eval}.
+    \item \label{itm:phase-incremental} 
+        \textbf{Incremental solver} -- develop an algorithm solving the minimum-cost flow problem on sequences of related flow networks, as occurs in flow scheduling. The method reuses solutions for previous networks in the sequence, to find an optimal solution more quickly for successive networks. Provides deliverable E2; see \cref{sec:impl-incremental}.
+    \item \label{itm:phase-optimisations}
+        \textbf{Optimisations} -- previous phases have focused on improvements in \emph{algorithmic} techniques. In practice, performance is heavily dependent on the \emph{implementation} of the algorithm. Optimisation will be needed for the project to be competitive with existing solvers. Provides deliverable E3; see \cref{sec:eval-optimisations}.
 \end{enumerate}
 
 All core success criteria are satisfied after the completion of the first two phases\footnotemark. This ensured the key goals of the project would be met before work on extensions commenced. 
 
-Optimisation was postponed to the last phase. As \emph{evolutionary prototyping} was used for development of the approximate and incremental solvers (see \cref{sec:prep-management-model}), optimisation during phases 1 or 3 would have been premature. Leaving it to the final phase also ensures that time will only be spent on optimisation when all other goals have been met, appropriate as it is the lowest priority deliverable in \cref{table:project-requirements}.
+Optimisation was postponed to the last phase. As \emph{evolutionary prototyping} was used for development of the approximate and incremental solvers (see \ref{sec:prep-management-model}), optimisation during phases \ref{itm:phase-approximate} or \ref{itm:phase-incremental} would have been premature. Leaving it to the final phase also ensures that time will only be spent on optimisation when all other goals have been met, appropriate as it is the lowest priority deliverable in \ref{table:project-requirements}.
 
-Phase 2 is revisited upon the completion of phase 3, and after each optimisation implemented during phase 4. The development of the benchmark suite (see \cref{sec:impl-benchmark}) during phase 2 allows for the tests to be performed with little manual intervention, minimising the cost of revisiting this phase.
-
-\section{Development environment}
-
-Physical machines used: laptop, MCS, SRG cluster.
-
-Revision control: Git.
-
-Backup strategy: GitHub. Daily snapshots backed up to MCS, SRCF, Copy (cloud).
-
-CMake. IDE: Eclipse with plugins, vim.
+Phase \ref{itm:phase-evaluation} is revisited upon the completion of phase \ref{itm:phase-incremental}, and after each optimisation implemented during phase \ref{itm:phase-optimisations}. The development of the benchmark suite (see \ref{sec:impl-benchmark}) during phase \ref{itm:phase-evaluation} allows for the tests to be performed with little manual intervention, minimising the cost of revisiting this phase.
 
 \section{Choice of tools}
 
@@ -652,3 +646,40 @@ Perhaps mention coding style guides?
 \subsection{Flow scheduling}
 
 Firmament.
+
+\section{Development environment}
+
+Implementation of the software is anticipated to be the most time consuming part of the project. Spending some time at the beginning of the project to setup a development environment will be more than repaid by efficiency savings later.
+
+\subsection{Editors and build tools}
+
+Development took place on my personal laptop, running the Ubuntu 14.10 \textit{Utopic Unicorn} operating system. I am grateful to the Systems Research Group (SRG) for making providing access to their cluster for performance evaluation of my code.
+
+The Eclipse IDE was used for writing and debugging code. Support for C++ and Python were added using the CDT and PyDev plugins. Building and testing were automated using the CMake toolchain. This allowed easy deployment on new systems, with CMake configured to automatically locate library dependencies and to download test data.
+
+\subsection{Revision control and backup strategy}
+
+% Say you use Git
+% Nice features: branches good for testing optimisations
+% Tight integration with benchmark suite, which required DVCS.
+
+% Backup strategy
+
+The Git distributed revision control system was used to manage the project source code, along with the {\LaTeX} code for this dissertation. Each Git working directory is a clone of the repository, complete with versioning history. The benchmark suite makes extensive use of this distributed nature of Git (see \cref{sec:impl-benchmark}).
+
+% Backups
+% Git: push to GitHub, SRG cluster
+% Bundles and notes: UCS, Copy, external hard disk?
+
+To simplify testing, commits were automatically pushed to test machines in the SRG cluster, via a Git hook. Furthermore, changes were regularly pushed to GitHub -- a repository hosting service -- to aid collaboration with my supervisors. 
+
+Given the distributed nature of Git, having multiple working copies as described above automatically provides data replication. However, it would be possible for all copies of the repository to become corrupted due to user error, so this cannot be relied upon as a backup strategy. Moreover, some files were not stored in Git\footnotemark.
+\footnotetext{For example, files containing test data were often very large, and so had to be stored outside of Git.}
+
+Nightly backups were taking using a cron job to protect against these threats. Snapshots of the Git repository were taking using git-bundle. Copies of other project files were made using rdiff-backup. This tool maintains a history of changes, similar to Git, allowing both the current and older versions of files to be recovered. Copies of the snapshots were stored on the university MCS and the Student Run Computing Facility (SRCF) in Cambridge. Additional off-site backups were made to Copy, a cloud storage service based in the US.
+
+\todo{Diagram illustrating architecture}
+
+%\subsection{Development machines}
+%
+%Laptop, SRG cluster. Unclear if this is even necessary?
