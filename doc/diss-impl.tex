@@ -895,31 +895,35 @@ I decided not to implement any heuristics in this project. My focus is on explor
 
 \section{Approximation algorithms} \label{sec:impl-approx}
 
-In the context of flow scheduling, any feasible solution to a flow network gives a valid scheduling assignment. A solution's cost indicates the degree to which the resulting assignment satisfies the scheduler's policy objectives. The algorithms described so far find minimal cost solutions, corresponding to scheduling assignments which best meet the policy objectives.
+% PROOFREAD - Intro: 1 major edits.
+When operating on networks produced by flow scheduling systems, feasible flows correspond to scheduling assignments. Some assignments are more preferable than others: the lower the solution's cost, the more closely it satisfies the scheduler's policy. The algorithms considered so far find minimal cost flows, which correspond to scheduling assignments maximising the policy objectives.
 
-But scheduling latency may itself be an objective of the scheduler. It is wasteful for machines to run idle, waiting for tasks to be scheduled; moreover, interactive applications cannot tolerate high scheduling delays. The time taken by the algorithm needs to be included as part of the optimisation problem! I develop an \emph{approximate} solver, allowing the trade-off between scheduling accuracy and speed to be further investigated.
+Minimising scheduling latency is often an important objective (see \cref{sec:prep-scheduling}). The runtime of the flow solver forms a large part of the overall scheduling latency. It may be possible to find an \emph{approximate} solution -- a flow with low but not minimal cost -- faster than an optimal solution. Whole system performance might well improve under such an approximate solver, after taking into account the reduction in scheduling latency. I develop an approximate solution method to test this hypothesis, and further investigate the trade-off between scheduling accuracy and speed to be further investigated.
 
-I believe this to be the first investigation of approximation algorithms for the minimum-cost flow problem. There has been some prior work on finding approximate solutions for the related NP-complete problems of multi-commodity flows~\cite{Garg:2007} and dynamic flows~\cite{Hoppe:1994}. The techniques used are unrelated to those in this project, however.
+I believe this to be the first investigation of approximation algorithms for the minimum-cost flow problem. There has been some prior work on finding approximate solutions for the related NP-complete problems of multi-commodity flows~\cite{Garg:2007} and dynamic flows~\cite{Hoppe:1994}. These techniques are of limited applicability to minimum-cost flow problems\footnotemark, however, and this project uses entirely different methods for approximation.
+\footnotetext{For example, approximation methods for multi-commodity flow problems often work by solving many single-commodity flow problems. Obviously this reduction method does not help when the problem is already single-commodity.}
 
 \subsection{Choice of algorithms} \label{sec:impl-approx-choice}
 
-Although the flow found by an approximate solution method need not be optimal, it must at least be feasible. This restricts the choice of algorithm to cycle cancelling and cost scaling. Both algorithms operate on a feasible flow, successively reducing its cost. By contrast, successive shortest path and relaxation maintain a pseudoflow during intermediate computation.
+% PROOFREAD - 1 minor edits.
+The solution returned by an approximate algorithm must be feasible, although it need not be optimal. This restricts the choice of algorithm to cycle cancelling and cost scaling, which maintain feasibility of the flow as an invariant. By contrast, successive shortest path and relaxation operate on a pseudoflow during intermediate computation.
 
-Goldberg's cost scaling algorithm is clearly superior to cycle cancelling. For one, cost scaling is considerably faster than cycle cancelling on the standard minimum-cost flow problem, as shown in \S(TODO: reference to evaluation). Moreover, cost scaling is naturally suited to being used as an approximate solver. The algorithm works by finding successively more accurate approximations, terminating when the solution can be shown to be optimal. All that is needed to build an approximate solver is to relax the terminating condition.
+Goldberg's cost scaling algorithm is clearly superior to cycle cancelling. For one, cost scaling is considerably faster than cycle cancelling on the standard minimum-cost flow problem, as shown in \S(TODO: reference to evaluation). Moreover, cost scaling is naturally suited to use as an approximate solver. The algorithm works by finding successively more accurate approximations, terminating when the solution can be shown to be optimal. To build an approximate solver, it is only necessary to relax the terminating condition.
 
-Cycle cancelling could be used in a similar way. The cost of the solution monotonically decreases after each cycle is cancelled, so the algorithm also works by successive approximation. However, in cycle cancelling a large decrease in the cost of the solution is as likely to occur at any point in the algorithms execution. By contrast, in cost scaling the error bound $\epsilon$ undergoes exponential decay. Terminating cost scaling a few iterations early is unlikely to sacrifice much optimality, whereas with cycle cancelling the error is likely to be much greater.
+Cycle cancelling could be used in a similar way. The cost of the solution monotonically decreases after each cycle is cancelled (by \cref{thm:cycle-cancelling-termination}), so the algorithm also works by successive approximation. However, in cycle cancelling a large decrease in the cost of the solution is equally likely to occur at any point in the algorithm's execution. By contrast, in cost scaling the error bound $\epsilon$ undergoes exponential decay. The error due to terminating cycle cancelling early is therefore likely to be much greater than for cost scaling.
 
 \subsection{Adapting cost scaling}
 
-Cost scaling finds successive $\epsilon$-optimal solutions, where $\epsilon$ is halved after every iteration. The algorithm terminates when $\epsilon < 1/n$, at which point the solution is optimal by \cref{thm:epsilon-optimality-optimal}. Relaxing this terminating condition produces an approximate solver.
+% PROOFREAD - 1 major edits.
+Cost scaling finds successive $\epsilon$-optimal solutions, where $\epsilon$ is halved after every iteration (see \cref{algo:cost-scaling}). The algorithm terminates when $\epsilon < 1/n$, at which point the solution is optimal by \cref{thm:epsilon-optimality-optimal}. An approximate solver relaxes this terminating condition.
 
-Ideally, it would be possible to specify a bound on the relative error of the solution: for example, terminate once the solution is within 1\% of optimality, but no sooner. Unfortunately, the minimum cost is not known \emph{a priori}, and the only way to calculate it is to find an optimal solution. 
+Ideally, it would be possible to specify a bound on the relative error of the solution: for example, terminating once the error is smaller than 1\%. Computing the relative error requires knowing the minimum cost. Unfortunately, this can only be determined by finding an optimal solution.
 
-Perhaps it is at least possible to find a bound on the absolute error of the solution, using $\epsilon$-optimality? The fact that $\epsilon < 1/n$ guarantees optimality strongly suggests this possibility. Indeed, a bound can be derived, but it is of limited practical use. A simple corollary of \cref{defn:epsilon-optimality} of $\epsilon$-optimality is that:
+It is possible to derive a bound on the absolute error of the solution, in terms of $\epsilon$. Unfortunately, the bound is of limited practical use. \Cref{defn:epsilon-optimality} of $\epsilon$-optimality has the simple corollary that:
 
 \[\epsilon = \max_{(i,j) \in E_\mathbf{x}} -c_{ij}^{\boldsymbol{\pi}}\]
 
-$\epsilon$ therefore depends on the `worst' arc in the residual network: i.e.\ the one with the most negative reduced cost. In principle, it is possible for each arc to attain this worst-case. The error might then be very large, even for small values of $\epsilon$. But in practice, the reduced cost of most arcs will be considerably greater than $-\epsilon$, so this method will tend to significantly overestimate the error of a solution.
+$\epsilon$ therefore depends on the `worst' arc in the residual network: i.e.\ the one with the most negative reduced cost. If every arc were to attain this worst case, the error might be large even for small values of $\epsilon$. But in practice, the reduced cost of most arcs will be considerably greater than $-\epsilon$, so this method will tend to significantly overestimate the error of a solution.
 
 Since accurate analytic bounds on the error are not available, heuristics approaches must be used. These are the focus of the rest of this section.
 
@@ -927,21 +931,19 @@ Since accurate analytic bounds on the error are not available, heuristics approa
 
 In this heuristic, the algorithm terminates as soon as $\epsilon$ drops below some fixed threshold. Note that setting the threshold to $1/n$ recovers the original algorithm.
 
-It is expected that other heuristics will be able to outperform this technique. However, as the simplest possible approach, thresholding will serve as a natural baseline for evaluation.
+More sophisticated heuristics are expected to outperform this technique. However, as the simplest possible approach, it serves as a natural baseline for evaluation.
 
 \subsubsection{Cost convergence}
 
-The maximum cost reduction is bounded by the current error in the solution: the cost of the flow can certainly never go below the minimum! The first few iterations of cost scaling tend to produce large reductions in the cost. When the solution is nearly optimal, the change in cost between successive iterations is small.
+The first few iterations of cost scaling tend to produce large reductions in the cost. When the solution is nearly optimal, the change in cost between successive iterations is typically small.
 
-This heuristic exploits the above property, by measuring the difference between the cost after successive iterations. Occasionally, the algorithm may hit a brief `plateau', before continuing to make significant cost reductions. For robustness, cost changes are considered over multiple iterations. The algorithm terminates when the cost changed less than threshold $t$ in each of the last $k \geq 1$ iterations, where $t$ and $k$ are fixed.
+This heuristic exploits the above property, by measuring the difference between the cost after successive iterations. Occasionally, cost scaling hits a brief `plateau', before continuing to make significant cost reductions. For robustness, the heuristic therefore operates over multiple iterations. The algorithm terminates when the cost changed less than threshold $t$ in each of the last $k \geq 1$ iterations, where $t$ and $k$ are fixed.
 
 \subsubsection{Task assignment convergence}
 
-Cost convergence is a general approach: in principle, it could be applied to any class of flow network. By contrast, this heuristic exploits the structure of flow scheduling networks.
+Cost convergence is a general approach, applicable to any class of flow network. By contrast, this heuristic exploits the nature of flow scheduling.
 
-The scheduler decides which tasks to place on each machine from the flow output by a solver. A task is \emph{assigned} to a particular machine if there is flow from the task to that machine. In this heuristic, nodes are labelled as being either a task, machine or other type of node. Task assignments are then computed, in the same way the scheduler would.
-
-The heuristic calculates the number of assignments that have changed between successive iterations. Similarly to cost convergence, the algorithm terminates when the number of changes is below threshold $t$ in each of the last $k \geq 1$ iterations.
+Nodes are labelled as representing either a task, machine or other entity. The task assignments represented by the flow are computed (see \cref{sec:prep-flow-scheduling}). The heuristic measures the number of assignments which change between successive iterations. Similarly to cost convergence, the algorithm terminates when the number of changes is below threshold $t$ in each of the last $k \geq 1$ iterations.
 
 % Extensions: hybrid schemes? Error bounds based on arcs being fixed?
 
@@ -949,7 +951,7 @@ The heuristic calculates the number of assignments that have changed between suc
 
 Flow scheduling systems produce a sequence of closely related flow networks. New networks in the sequence is generated in response to cluster events, such as task submission or completion. Most changes in the sequence are small, with the optimal flow remaining mostly the same.
 
-My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach has proved extremely successful, producing a factor of 100\todo{finalize number} speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.
+My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach has proved extremely successful, producing a factor of 100 speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.\todo{finalize speedup}
 
 Flow scheduling is ideally suited to an incremental solution method. This may go some way to explaining the lack of prior work: the approach is much less compelling for traditional applications of flow networks. As previously mentioned, most changes to the network in flow scheduling are small. This alone does not make the problem easy: reoptimising after even a single change may, in general, be as hard as solving the problem from scratch\footnotemark. Informally, the problem is that since the optimisation problem is global, an update in one region of the network may trigger a cascading sequence of changes in the optimal flow for distant regions.
 \footnotetext{TODO: Idea is get two networks $A$ and $B$. WLOG assume they have source and sink node. Remove supply/demand at those nodes. Introduce new supply and sink node. Add uncapacitated arcs with zero cost from old supply nodes to new supply. Add uncapaciated arcs one with medium cost, one with high cost. Then dropping high cost to zero cost is as hard as solving for one of the networks.}
@@ -1145,30 +1147,6 @@ Each arc $(i,j)$ is identified by an index in RelaxIV. Of course, the flow sched
 %Show how solver can achieve original task, by integrating into a cluster scheduler. Choice of Firmament: can be briefly justified, but need not be at all (no real alternatives).
 
 \section{Benchmark suite} \label{sec:impl-benchmark}
-% TODO: Maybe include modifications to Firmament in this or a separate section
-
-%Work you want to discuss:
-%* Google trace simulator/Firmament
-%  - Online mode
-%  - New termination conditions: number of events, number of rounds
-%  - Hash: configurable \% of events
-%  - Output graph file
-%  - Collect statistics, timing
-%  - Bugfixes:
-%    + Don't rerun when no changes take place
-%    + Avoid exporting no-op incremental deltas
-%* Benchmark suite
-%  - Architecture is unique, worth describing.
-%  - Embellish it: significant time savings, novel approach, etc.
-%  - Much of it should go in eval, though? Like:
-%    + Accuracy: supports multiple iterations
-%    + Test modalities
-%  - Just mention the stuff that was more considerable work.
-
-% Intro: Big it up. Something like: "Benchmarking a project of this scope is non-trivial, and requires considerable implementation. Although the details of the experiments conducted are in \cref{sec:eval}, this section gives some background on the implementation carried out."
-% Explain general approach. Tests on pregenerated graph files, or using simulator. (Forward reference.)
-% Test harness first, since it's mine.
-% Then extensions to Firmament, the cluster simulator.
 
 The last two sections described new solution methods implemented by this project. These approaches will only be adopted if a compelling performance improvement can be shown. The experimental setup used to demonstrate this is described in the next chapter. This section outlines the implementation work that was necessary to run these tests.
 
