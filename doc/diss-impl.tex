@@ -1,9 +1,10 @@
 \chapter{Implementation} \label{chap:impl}
 
 % TODO: Consistent statement of asymptotic complexity. Each algorithm should include a statement of asymptotic complexity in general terms, and a remark specialising it for flow scheduling systems.
-% Proofread: None
 
 \section{Introduction}
+
+% Proofread: 1 minor edits
 
 Considerable research effort has been expended over the past 60 years to produce efficient flow algorithms, as discussed in \cref{sec:intro-challenges} and \cref{sec:intro-related-work}. Developing an improved general-purpose minimum-cost flow algorithm would be a substantial undertaking, better suited to a PhD than a Part II project. My approach has been to embrace prior work rather than attempting to supplant it, adapting existing algorithms to improve performance in the special case of flow scheduling.
 
@@ -17,11 +18,7 @@ These strategies are not solution methods in and of themselves. Rather, they sug
 
 \section{Cycle cancelling algorithm} \label{sec:impl-cycle-cancelling}
 
-% Should try and keep fairly consistent structure between algorithms
-% Malte, Ionel seemed to think good to briefly discuss properties of the algorithm.
-% You'll also want to mention this in the strategies section, though.
-% It's important, so think OK to say it twice. But which will be the more detailed one?
-% I think depends: if it's specific to a particular algorithm, place it there. But if it's a more general point (e.g. primal vs dual), place it in strategy
+% Proofread: 1 minor edits
 
 Cycle cancelling is the simplest algorithm implemented. It has little to recommend it from a performance perspective: the original version due to Klein~\cite{Klein:1967} is exponential time in the worst case, although its performance is better than this in practice. Variants have achieved strongly polynomial bounds~\cite{Goldberg:1989,Sokkalingam:2000}, but are still slower both theoretically and empirically than competing algorithms. However, it will illustrate many of the techniques used in more sophisticated algorithms, so forms a good starting point for this chapter.
 
@@ -101,8 +98,10 @@ On networks produced by flow schedulers, the asymptotic complexity is $O(n^3CU)$
 
 \section{Successive shortest path algorithm} \label{sec:impl-ssp}
 
+% Proofread: 1 major edits, 2 minor edits
+
 % Note this algorithm offers polynomial performance for Quincy-like graphs because it is independent of cost, whereas cycle cancelling is not
-In general, this algorithm runs in weakly polynomial time. We will show, however, that it has a strongly polynomial time bound of $O(n^2 \lg n)$ on networks produced by flow schedulers. It lends itself readily to an incremental implementation (see \cref{sec:impl-incremental}), but is inappropriate for an approximate solver.
+In general, this algorithm runs in weakly polynomial time. However, for the class of networks produced by flow schedulers this improves to a strongly polynomial time bound of $O(n^2 \lg n)$. Successive shortest path lends itself readily to an incremental implementation (see \cref{sec:impl-incremental}), but is inappropriate for an approximate solver.
 
 \subsection{Algorithm description}
 
@@ -126,11 +125,11 @@ In general, this algorithm runs in weakly polynomial time. We will show, however
 
 \footnotetext{Note whilst mass balance constraints are unsatisfied there must exist both a source node $s$ and sink node $t$. This is since the total sum of excesses must equal the total sum of deficits, otherwise $\sum_v b(v) \neq 0$ and the problem is infeasible.}
 
-The successive shortest path algorithm maintains a pseudoflow $\mathbf{x}$ (see \cref{sec:prep-flow-pseudo}) and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains the feasibility strives to achieve optimality.
+The successive shortest path algorithm maintains a pseudoflow $\mathbf{x}$ (see \cref{sec:prep-flow-pseudo}) and potentials $\boldsymbol{\pi}$ which satisfies reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains feasibility and strives to achieve optimality.
 
-Each iteration of the algorithm identifies a source node $s$ and sink node $t$. Next, the single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is solved from $s$. To maintain reduced cost optimality, the potentials $\boldsymbol{\pi}$ are updated. Finally, the pseudoflow $\mathbf{x}$ is updated by augmenting along a shortest path $P$ from $s$ to $t$. The algorithm terminates when no source nodes or sink nodes exist.
+Each iteration of the algorithm identifies a source node $s$ and sink node $t$. Next, the single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is solved from $s$. To maintain reduced cost optimality, the potentials $\boldsymbol{\pi}$ are updated. Finally, the pseudoflow $\mathbf{x}$ is augmented along a shortest path $P$ from $s$ to $t$. The algorithm terminates when no source or sink nodes exist.
 
-The amount of flow $\delta$ sent over the path is limited by the minimum residual capacity of arcs along $P$. $\delta$ is further restricted so that the algorithm maintains a non-negative supply at $s$ and demand at $t$. This guarantees the excess at supply nodes and deficit at demand nodes is monotonically decreasing, ensuring each iteration improves the feasibility of the flow.
+The amount of flow $\delta$ sent over the path is limited by the minimum residual capacity of arcs along $P$. $\delta$ is further restricted so that a non-negative supply at $s$ and demand at $t$ are maintained. This guarantees the excess at supply nodes and deficit at demand nodes is monotonically decreasing, ensuring each iteration improves the feasibility of the flow.
 
 \subsection{Optimisations}
 
@@ -138,9 +137,9 @@ The amount of flow $\delta$ sent over the path is limited by the minimum residua
 % Unclear whether best to put it here, or in the evaluation section, or both?
 
 \subsubsection{Choice of shortest-path algorithm}
-The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}. They differ in the underlying heap data structure used by Djikstra. The asymptotically fastest are Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, the widely used binary heap data structure has complexity $O(m\lg n)$.
+The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure.
 
-Fibonacci heaps have considerable implementation complexity: whilst asymptotically faster, the constant factor hidden by the asymptotic notation is much greater. Computational benchmarks have found them to be slower than binary heaps in practice, for all but the largest of graphs~\cite[p.~15]{KiralyKovacs:2012}. In any case, for the class of networks produced by flow schedulers, $m = O(n)$ holds and so the two are asymptotically equivalent. In light of this, a binary heap implementation was used for this project.
+Fibonacci heaps have considerable implementation complexity: whilst asymptotically faster, the constant factor hidden by the asymptotic notation is much greater. Computational benchmarks have found them to be slower than binary heaps in practice, for all but the largest of graphs~\cite[p.~15]{KiralyKovacs:2012}. In any case, for the class of networks produced by flow schedulers, $m = O(n)$ holds by \cref{lemma:network-num-arcs} and so the two are asymptotically equivalent. In light of this, a binary heap implementation was used for this project.
 
 \subsubsection{Terminating Djikstra's algorithm early}
 
@@ -279,30 +278,31 @@ It follows that the overall time complexity of the algorithm is $O(nUS(n,m,C))$.
 The implementation in this project has a time complexity of $O(nmU \lg n)$.
 \end{cor}
 \begin{proof}
-Djikstra's algorithm with a binary heap data structure is used to solve the SSSP problem, giving $S(n,m,C) = O(m \lg n)$. By \cref{thm:ssp-complexity}, it follows the time complexity is $O(nmU \lg n)$.
+Djikstra's algorithm with a binary heap data structure is used to solve the SSSP problem, giving $S(n,m,C) = O(m \lg n)$. The result follows by \cref{thm:ssp-complexity}.
 \end{proof}
 
 \begin{remark}
-By \cref{lemma:network-supply}, no node has a greater than unit supply. This gives a bound on the total excess of $O(n)$ rather than $O(nU)$. Moreover, by \cref{lemma:network-num-arcs}, $m = O(n)$. So the complexity improves to $O(n^2 \lg n)$\footnotemark.
+On flow scheduling networks, no node has a greater than unit supply by \cref{lemma:network-supply}. This gives a bound on the total excess of $O(n)$ rather than $O(nU)$. Moreover, by \cref{lemma:network-num-arcs}, $m = O(n)$. So the complexity improves to $O(n^2 \lg n)$\footnotemark.
 \end{remark}
 
 \section{Relaxation algorithm} \label{sec:impl-relax}
 
-Like the successive shortest path algorithm, the relaxation algorithm works by augmenting along shortest paths in the residual network from sources to sinks. Based upon the method of Lagrangian relaxation from mathematical optimization~\cite[ch.~16]{Ahuja:1993}\cite{Fisher:1981}, unlike the successive shortest path algorithm it updates node potentials using intermediate information as it constructs the shortest-path tree. For this reason, it performs much better empirically than the successive shortest path algorithm, and indeed is one of the fastest algorithms for some classes of flow networks~\cite{KiralyKovacs:2012}. However, its worst-case time complexity is exponential, giving it the slowest theoretical performance of the algorithms we consider.\footnotemark Like successive shortest path, it is well suited to being used in an incremental solver, but is inappropriate for an approximate solver.
+% PROOFREAD: 1 minor edits
 
+Like the successive shortest path algorithm, the relaxation algorithm works by augmenting along shortest paths in the residual network from sources to sinks. Unlike successive shortest path, it uses intermediate information to update node potentials as it constructs the shortest-path tree. It is inspired by the the method of Lagrangian relaxation from mathematical optimization~\cite[ch.~16]{Ahuja:1993}\cite{Fisher:1981}.
+
+Relaxation performs much better empirically than the successive shortest path algorithm, and is one of the fastest algorithms for some classes of flow networks~\cite{KiralyKovacs:2012}. However, its worst-case time complexity is exponential, giving it the slowest theoretical performance of the algorithms we consider\footnotemark. Like successive shortest path, it is well suited to being used incrementally, but is inappropriate for an approximate solver.
 \footnotetext{The generic version of cycle cancelling is also exponential time, however there are variants which are strongly polynomial. By contrast, there are no variants of relaxation achieving polynomial time, although in practice exponential runtime is not observed on realistic flow networks.}
 
 \subsection{The relaxed integer programming problem}
 %TODO: Attribution for Ahuja, et al?
-Before we can describe how the relaxation algorithm works, we must understand the problem it seeks to optimise. Previously we have discussed the primal (see \cref{sec:prep-flow-mcf}) and dual (see \cref{sec:prep-flow-rc-and-dual}) version of the minimum-cost flow problem. We apply Lagrangian relaxation to the primal version to yield a relaxed problem, which is in some sense a hybrid of the primal and dual statement. We denote this formulation of the optimisation problem as $\mathrm{LR}(\boldsymbol{\pi})$.
+Before describing how the relaxation algorithm works, it is necessary to understand the problem it seeks to optimise. The primal (see \cref{sec:prep-flow-mcf}) and dual (see \cref{sec:prep-flow-rc-and-dual}) versions of the minimum-cost flow problem have been previously been discussed. The relaxed version of the problem may be derived by applying Lagrangian relaxation to the primal problem, and has characteristics of both the primal and dual formulations. It is denoted by $\mathrm{LR}(\boldsymbol{\pi})$, and is defined by:
 
 \begin{equation} \label{eq:relax-obj-fun-excess}
 \mathrm{maximise}\: w\left(\boldsymbol{\pi}\right)=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}x_{ij}+\sum_{i\in V}\boldsymbol{\pi}_{i}e_{i}\right]
 \end{equation}
-where $\mathbf{x}$ is subject to capacity constraints:
-\begin{equation} \label{eq:relax-capacity-constraints}
-0\leq x_{ij}\leq u_{ij}\:\forall\left(i,j\right)\in E
-\end{equation}
+where $\mathbf{x}$ is subject to the capacity constraints first given in \cref{eq:capacity-constraints}:
+\[\forall\left(i,j\right)\in E\cdot 0\leq x_{ij}\leq u_{ij}\]
 
 \begin{lemma}
 An equivalent definition for $w(\boldsymbol{\pi})$ is:
@@ -324,17 +324,17 @@ w\left(\pi\right)= & \min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}x_{ij}+\sum
 \end{align*}
 \end{proof}
 
-We may use either form for $w(\boldsymbol{\pi})$ in the remainder of this section, depending on which is most convenient. Note \cref{eq:relax-obj-fun-excess} is expressed in terms of the arc costs and excesses ($\mathbf{x}$-dependent), whereas \cref{eq:relax-obj-fun-balance} is expressed in terms of the reduced costs ($\boldsymbol{\pi}$-dependent) and balances.
+We may use either form for $w(\boldsymbol{\pi})$ in the remainder of this section, depending on which is most convenient. Note \cref{eq:relax-obj-fun-excess} is expressed in terms of the arc costs and excesses ($\mathbf{x}$-dependent), whereas \cref{eq:relax-obj-fun-balance} is expressed in terms of the reduced costs ($\boldsymbol{\pi}$-dependent) and balances.\\
 
 \begin{lemma} \label{lemma:relax-rc-lr-equivalence}
 Let $\mathbf{x}$ be a pseudoflow and $\boldsymbol{\pi}$ node potentials. Then $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfies reduced cost optimality conditions if and only if $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$.
 \end{lemma}
 \begin{proof}
-To simplify the proof, we will use the complementary slackness conditions rather than the reduced cost optimality conditions. Recall the two conditions are equivalent, see \cref{prep:flow-optimality}.
+The complementary slackness conditions will be used rather than reduced cost optimality conditions, to simplify the proof. Recall the two conditions are equivalent (see \cref{sec:prep-flow-optimality}).
 
-Now, consider the form of $w(\boldsymbol{\pi})$ stated in terms of reduced cost and balances, given in \cref{eq:relax-obj-fun-balance}. Thus $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$ if and only if it minimises:
+By the definition of the relaxed problem and  \cref{eq:relax-obj-fun-balance}, $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$ if and only if it minimises:
 \[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}\]
-subject to the capacity constraints given in \cref{eq:relax-capacity-constraints}.
+subject to the capacity constraints of \cref{eq:capacity-constraints}.
 
 The second sum, $\sum_{i \in V} \pi_i b_i$, is constant in $\mathbf{x}$. Thus $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$ if and only if it minimises:
 \[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}\]
@@ -342,9 +342,9 @@ The second sum, $\sum_{i \in V} \pi_i b_i$, is constant in $\mathbf{x}$. Thus $\
 Note the coefficients $c_{ij}^{\boldsymbol{\pi}}$ are constant in $\mathbf{x}$. Furthermore, note each term is independent of each other: by varying $x_{ij}$, only the term $c_{ij}^{\boldsymbol{\pi}}x_{ij}$ is affected\footnotemark. Thus the sum is minimised when each of its summands is minimised.
 \footnotetext{Contrast this to if we were varying a node quantity, such as $\pi_i$, which would affect many arcs.}
 
-When $c_{ij}^{\boldsymbol{\pi}}>0$, the term $c_{ij}^{\boldsymbol{\pi}}x_{ij}$ is minimised by setting $x_{ij}$ to the smallest value permitted by \cref{eq:relax-capacity-constraints}, $0$. When $c_{ij}^{\boldsymbol{\pi}}<0$, set $x_{ij}$ to the largest possible value, $u_{ij}$. When $c_{ij}^{\boldsymbol{\pi}}=0$, the choice of $x_{ij}=0$. This is the same as the complementary slackness conditions given in \cref{thm:optimality-complementary-slackness}. 
+When $c_{ij}^{\boldsymbol{\pi}}>0$, the term $c_{ij}^{\boldsymbol{\pi}}x_{ij}$ is minimised by setting $x_{ij}$ to the smallest value permitted by \cref{eq:capacity-constraints}, $0$. When $c_{ij}^{\boldsymbol{\pi}}<0$, set $x_{ij}$ to the largest possible value, $u_{ij}$. When $c_{ij}^{\boldsymbol{\pi}}=0$, the choice of $x_{ij}$ is arbitrary. This is the same as the complementary slackness conditions given in \cref{thm:optimality-complementary-slackness}. 
 
-Thus complementary slackness optimality is equivalent to $\mathbf{x}$ being an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$. By equivalence of reduced cost optimality and complementary slackness optimality, the result follows.
+Thus complementary slackness optimality is equivalent to $\mathbf{x}$ being an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$. The result follows by equivalence of reduced cost optimality and complementary slackness optimality.
 \end{proof}
 
 \begin{defn}
@@ -359,18 +359,15 @@ Let $z^*$ denote the optimal objective function value of the minimum-cost flow p
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-For the first part, let $\mathbf{x}^*$ be a feasible flow with objective function value $s(\mathbf{x}^*) = z^*$, that is $\mathbf{x}^*$ an optimal solution to the minimum-cost flow problem given in \cref{eq:mcf-primal-problem}.
+For the first part, let $\mathbf{x}^*$ be a feasible flow with objective function value $s(\mathbf{x}^*) = z^*$: that is, $\mathbf{x}^*$ is a solution to the minimum-cost flow problem given in \cref{eq:mcf-primal-problem}.
 
-Recall the form of $w(\boldsymbol{\pi})$ with original arc costs and excesses, given in \cref{eq:relax-obj-fun-excess}. Thus we have:
+Using the form of $w(\boldsymbol{\pi})$ stated in \cref{eq:relax-obj-fun-excess}, it follows that:
 \[w(\boldsymbol{\pi})\leq\sum_{\left(i,j\right)\in E}c_{ij}x_{ij}^{*}+\sum_{i\in V}\pi_{i}e_{i}\]
 by dropping the $\min_x$ and replacing $=$ with $\leq$.
 
 Note the first sum is equal to $s(\mathbf{x}^*) = z^*$. Since $\mathbf{x}^*$ is a feasible flow, the mass balance constraints are satisfied, so:
-\[e_i = 0\:\forall i \in V\]
-and thus the second sum satisfies:
-\[\sum_{i \in V} \pi_i e_i = 0\]
-
-It follows that:
+\[\forall i \in V\cdot e_i = 0\]
+and thus the second sum is equal to $0$. It follows that:
 \[w(\boldsymbol{\pi}) \leq z^* + 0 = z^*\]
 
 To prove the second part, let $\boldsymbol{\pi}^*$ be node potentials such that $\left(\mathbf{x}^*,\boldsymbol{\pi}^*\right)$ satisfy the reduced cost optimality conditions given in \cref{eq:optimality-reduced-cost}\footnotemark. By \cref{lemma:relax-rc-lr-equivalence}, it follows that $\mathbf{x}^*$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi}^*)$. Thus $w(\boldsymbol{\pi}^*) = z^*$.
@@ -381,20 +378,20 @@ To prove the second part, let $\boldsymbol{\pi}^*$ be node potentials such that 
 
 \subsection{Algorithm description}
 
-The algorithm maintains a pseudoflow $\mathbf{x}$ and node potentials $\boldsymbol{\pi}$ such that $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$. Equivalently, by \cref{lemma:relax-rc-lr-equivalence}, $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality.
+The algorithm maintains a pseudoflow $\mathbf{x}$ and node potentials $\boldsymbol{\pi}$, such that $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$. Equivalently, by \cref{lemma:relax-rc-lr-equivalence}, $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality.
 
 So long as the pseudoflow $\mathbf{x}$ is not feasible, the algorithm selects a source node $s$. It then builds a tree rooted at $s$. The algorithm can perform one of two operations, described below. An operation is run as soon as its precondition is satisfied. After it is executed, the tree is destroyed and the process repeats.
 
 The first operation is to update the potentials, increasing the value of the objective function whilst maintaining optimality. That, is $\boldsymbol{\pi}$ is updated to $\boldsymbol{\pi}'$ such that $w\left(\boldsymbol{\pi}'\right) > w\left(\boldsymbol{\pi}\right)$ and $\mathbf{x}$ is updated to $\mathbf{x}'$ such that $\mathbf{x}'$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi}')$.
 
-The second possible operation is to augment the flow $\mathbf{x}$, whilst leaving potentials $\boldsymbol{\pi}$ unchanged. The new flow $\mathbf{x}'$ remains an optimal solution of $\mathrm{LR}(\boldsymbol{\pi})$, and reduces the excess of one node without increasing the excess at any source nodes nor the demand at any sink nodes.
+The second possible operation is to augment the flow $\mathbf{x}$, whilst leaving potentials $\boldsymbol{\pi}$ unchanged. The new flow $\mathbf{x}'$ remains an optimal solution of $\mathrm{LR}(\boldsymbol{\pi})$, and improves feasibility.
 
 When both operations are eligible to be executed, we favour the former. The primary goal of the algorithm is thus to increase the value of the objective function, and the secondary goal is to increase feasibility (whilst leaving the objective function unchanged).
 
-Before we can specify the preconditions for these operations, we must define two functions.
+Before we can specify the preconditions for these operations, we must define two functions.\\
 
 \begin{defn}[Tree excess] \label{defn:relax-tree-excess}
-Let $S$ denote the set of nodes spanned by the tree. Let:
+Let $S$ denote the set of nodes spanned by the tree. Define:
 \begin{equation} \label{eq:relax-tree-excess}
 e(S) = \sum_{i \in S} e_i
 \end{equation}
@@ -402,47 +399,49 @@ e(S) = \sum_{i \in S} e_i
 
 \begin{defn}[Cuts] \label{defn:relax-cuts}
 A \emph{cut} of a graph $G = (V,E)$ is a partition of $V$ into two sets: $S$ and $\overline{S} = V \setminus S$. We denote the cut by $\left[S,\overline{S}\right]$. Let $\left(S,\overline{S}\right)$ and $\left(\overline{S},S\right)$ denote the set of forward and backward arcs crossing the cut, respectively. Formally:
-\[\left(S,\overline{S}\right) = \left\{(i,j) \in E\::\: i \in S \land j \in \overline{S} \right\}\]
-\[\left(\overline{S},S\right) = \left\{(i,j) \in E\::\: i \in \overline{S} \land j \in S \right\}\]
+\[\left(S,\overline{S}\right) = \set{(i,j) \in E | i \in S \land j \in \overline{S}}\]
+\[\left(\overline{S},S\right) = \set{(i,j) \in E | i \in \overline{S} \land j \in S}\]
 \end{defn}
 
 \begin{defn} \label{defn:relax-tree-residual}
-Let:
+Define:
 \begin{equation} \label{eq:relax-tree-residual}
 r(\boldsymbol{\pi},S) = \sum_{(i,j) \in \left(S,\overline{S}\right) \land c_{ij}^{\boldsymbol{\pi}}} r_{ij}
 \end{equation}
 \end{defn}
 
 \begin{remark}
-The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $r(\boldsymbol{\pi},S)$ represents the total residual capacity of arcs that could be added to the tree.
+The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $r(\boldsymbol{\pi},S)$ represents the total residual capacity of the arcs that could be added to the tree.
 \end{remark}
 
 \begin{algorithm}
     \caption{Relaxation algorithm}
     \label{algo:relaxation}
     \begin{algorithmic}[1]
-        \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
-        \While{network contains a source node $s$}
-        \Let{$S$}{$\left\{s\right\}$}
+        \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$ \label{algo:relaxation:initialisation}
+        \While{network contains a source node $s$} \label{algo:relaxation:outer-loop-start}
+        \Let{$S$}{$\Set{s}$}
         \State initialise $e(S)$ and $r(\boldsymbol{\pi},S)$
         \If{$e(S) > r(\boldsymbol{\pi},S)$}
-        \Call{UpdatePotentials}{}
+        \Call{UpdatePotentials}{} \label{algo:relaxation:first-update-potentials}
         \EndIf
         \While{$e(S) \leq r(\boldsymbol{\pi},S)$}
-        \State select arc $(i,j) \in \left(S,\overline{S}\right)$ in the residual network with $c_{ij}^{\boldsymbol{\pi}}=0$
-        \If{$e_j \geq 0$}
-        \Let{$\mathrm{Pred}_j$}{$i$}
-        \Let{$S$}{$S \cup \left\{j\right\}$}
-        \State update $e(S)$ and $r(\boldsymbol{\pi},S)$
+        \label{algo:relaxation:inner-loop-start}
+        \State select arc $(i,j) \in \left(S,\overline{S}\right)$ in the residual network with $c_{ij}^{\boldsymbol{\pi}}=0$ \label{algo:relaxation:select-arc}
+        \If{$e_j \geq 0$} \label{algo:relaxation:if-source}
+        \Let{$\mathrm{Pred}_j$}{$i$} \label{algo:relaxation:update-predecessor}
+        \Let{$S$}{$S \cup \Set{j}$} \label{algo:relaxation:add-node}
+        \State update $e(S)$ and $r(\boldsymbol{\pi},S)$ 
+        \label{algo:relaxation:end-if-source}
         \Else
-        \State \Call{AugmentFlow}{j}
+        \State \Call{AugmentFlow}{j} \label{algo:relaxation:augment}
         \Break
         \EndIf
-        \EndWhile
+        \EndWhile \label{algo:relaxation:inner-loop-end}
         \If{$e(S) > r(\boldsymbol{\pi},S)$}
-        \Call{UpdatePotentials}{}
+        \Call{UpdatePotentials}{} \label{algo:relaxation:second-update-potentials}
         \EndIf
-        \EndWhile
+        \EndWhile \label{algo:relaxation:outer-loop-end}
     \end{algorithmic}
 \end{algorithm}
 
@@ -453,12 +452,15 @@ The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $
         \Require $e(S) > r(\boldsymbol{\pi},S)$
         \Statex
         \Function{UpdatePotentials}{}
-        \For{every arc $(i,j) \in \left(S,\overline{S}\right)$ in the residual network with $c_{ij}^{\boldsymbol{\pi}}=0$}
-        \State saturate arc $(i,j)$ by sending $r_{ij}$ units of flow
+        \For{every arc $(i,j) \in \left(S,\overline{S}\right)$ in the residual network with $c_{ij}^{\boldsymbol{\pi}}=0$} \label{algo:relaxation-update-potentials:saturate-loop}
+        \State saturate arc $(i,j)$ by sending $r_{ij}$ units of flow \label{algo:relaxation-update-potentials:saturate-cmd}
         \EndFor
-        \State compute $\alpha \gets \min\left\{c_{ij}^{\boldsymbol{\pi}}\::\:(i,j)\in\left(S,\overline{S}\right)\:\mbox{and}\:r_{ij}>0\right\}$
+        \State compute $\alpha \gets \min\set{c_{ij}^{\boldsymbol{\pi}} | (i,j)\in\left(S,\overline{S}\right)\mbox{ and }r_{ij}>0}$
+        \label{algo:relaxation-update-potentials:compute-alpha}
         \For{every node $i\in S$}
+        \label{algo:relaxation-update-potentials:update-loop}
         \Let{$\pi_i$}{$\pi_i + \alpha$}
+        \label{algo:relaxation-update-potentials:update-cmd}
         \EndFor
         \EndFunction
     \end{algorithmic}
@@ -471,82 +473,82 @@ The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $
         \Require $e(S) \leq r(\boldsymbol{\pi},S)$ and $e(t) < 0$
         \Statex
         \Function{AugmentFlow}{t}
-        \State chase predecessors in $\mathrm{Pred}$ starting from $t$ to find a shortest path $P$ from $s$ to $t$
-        \Let{$\delta$}{$\min\left(e(s), -e(t), \min\left\{ r_{ij} \::\: (i,j) \in P\right\}\right)$}
-        \State augment $\delta$ units of flow along path $P$
+        \State chase predecessors in $\mathrm{Pred}$ starting from $t$ to find a shortest path $P$ from $s$ to $t$ \label{algo:relaxation-augment-flow:find-P}
+        \Let{$\delta$}{$\min\left(e(s), -e(t), \min\Set{ r_{ij} | (i,j) \in P}\right)$} \label{algo:relaxation-augment-flow:compute-delta}
+        \State augment $\delta$ units of flow along path $P$ \label{algo:relaxation-augment-flow:augment-path}
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
 
-\Cref{algo:relaxation,algo:relaxation-update-potentials,algo:relaxation-augment-flow} formally describe the solution method. We maintain a set $S$ of nodes spanned by the shortest path tree. The arcs in the tree are specified by the predecessor array, $\mathrm{Pred}$. Whilst we could recompute $e(S)$ and $r(\boldsymbol{\pi},S)$ when needed, it is more efficient for us to maintain them as variables, updating them when we add a node to the tree.
+\Cref{algo:relaxation,algo:relaxation-update-potentials,algo:relaxation-augment-flow} formally describe the solution method. A set $S$ of nodes spanned by the shortest path tree is maintained. The arcs in the tree are specified by the predecessor array, $\mathrm{Pred}$. Whilst $e(S)$ and $r(\boldsymbol{\pi},S)$ could be computed when needed, it is more efficient to maintain them as variables, updating them whenever a node is added to the tree.
 
-The outer loop on lines 2-17 of \cref{algo:relaxation} selects a source node $s$. The inner loop on lines 6-15 adds nodes and arcs to the tree. The tree consists solely of non-deficit nodes, and arcs with zero reduced cost. It is thus a shortest path tree in the residual network: the distance between any nodes in the tree is zero\footnotemark.
+Each iteration of the outer loop of \cref{algo:relaxation} selects a source node, $s$, to be the root of a tree. The inner loop adds nodes and arcs to this tree. Only non-deficit nodes and arcs with zero reduced cost are added. Paths in the tree thus correspond to shortest paths in the residual network: the distance between any nodes in the tree is zero\footnotemark.
 \footnotetext{Note there cannot be any path in the residual network with negative distance, by assumption of reduced cost optimality.}
 
-If a deficit node $t$ is encountered, we augment the flow along the shortest path discovered from $s$ to $t$. We may terminate before this, however, if at any point $e(S) > r(\boldsymbol{\pi},S)$; in this case, the potentials are updated instead.
+If a deficit node $t$ is encountered, flow is augmented along the shortest path discovered from $s$ to $t$. However, an iteration may end before this. If at any point $e(S) > r(\boldsymbol{\pi},S)$, the potentials are updated, and a new iteration starts\footnotemark.
+\footnotetext{Note \cref{algo:relaxation:first-update-potentials} of \cref{algo:relaxation} is just an optimisation.}
 
 \subsection{Analysis} \label{sec:impl-relax-analysis}
 
 \subsubsection{Correctness}
 
-First, we will show that \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve reduced cost optimality. Using these lemmas, we can then show that reduced cost optimality is maintained as an invariant throughout the algorithm, and thus if the algorithm terminates then $\mathbf{x}$ is a solution to the minimum-cost flow problem. We will also prove properties of \textproc{UpdatePotentials} and \textproc{AugmentFlow} that will be useful for complexity analysis in the next section.\\
+First, \textproc{UpdatePotentials} and \textproc{AugmentFlow} are shown to preserve reduced cost optimality. Using these lemmas, it can be shown that that reduced cost optimality is maintained as an invariant throughout the algorithm. It follows that, if the algorithm terminates, then $\mathbf{x}$ is a solution to the minimum-cost flow problem. Some other useful properties of \textproc{UpdatePotentials} and \textproc{AugmentFlow} are also proved.\\
 
+% SOMEDAY: This proof is a little bit confusing. You're talking about sums inside a minimisation. Also, you're saying w(pi) is unchanged by changing x: well, of course it is, it has to be as w isn't a function of x! I know wht you mean, but this could perhaps be restated to be explicit. 
 \begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
-Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, we have a new pseudoflow and node potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ which continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
+Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, the new pseudoflow and node potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
 \end{lemma}
 \begin{proof}
-Lines 2-3 saturate all zero reduced cost arcs, so that they drop out of the residual network. This maintains reduced cost optimality, as the flow on arcs with zero reduced cost is arbitrary. Moreover, it leaves $w(\boldsymbol{\pi})$ unchanged. Recall the formulation of the objective function in terms of reduced costs and balances, given in \cref{eq:relax-obj-fun-balance}:
+Zero reduced cost arcs are saturated by \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd}, and drop out of the residual network as a result. This preserves reduced cost optimality: the flow on arcs with zero reduced cost is arbitrary. Moreover, it leaves $w(\boldsymbol{\pi})$ unchanged. Recall the formulation of $w(\boldsymbol{\pi})$ given in \cref{eq:relax-obj-fun-balance}:
 \[w(\boldsymbol{\pi})=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}\right]\]
-The second sum is unchanged, as potentials are unchanged. The first sum is also unchanged, as $x'_{ij}$ differs from $x_{ij}$ only when the reduced costs $c_{ij}^{\boldsymbol{\pi}}=0$.
+The second sum is unchanged, as potentials are unchanged. The first sum is also unchanged, as $x'_{ij}$ differs from $x_{ij}$ only when the reduced costs are $c_{ij}^{\boldsymbol{\pi}}=0$.
 
 Note that there is now $r(\boldsymbol{\pi},S)$ more flow leaving nodes in $S$, so the tree excess is now:
 \[e'(S) = e(S) - r(\boldsymbol{\pi},S)\]
 By the precondition, $e'(S)$ is (strictly) positive.
 
-After lines 2-3, all arcs in the residual network crossing the cut have positive reduced cost\footnotemark. We let $\alpha$ be the minimal such remaining reduced cost; note $\alpha$ is (strictly) positive.
+After \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd}, all arcs in the residual network crossing the cut $\left(S,\overline{S}\right)$ have positive reduced cost\footnotemark. Let $\alpha > 0$ be the minimal such remaining reduced cost.
 \footnotetext{Since none had negative reduced cost, by assumption of reduced cost optimality on entering the procedure.}
 
-Note by \cref{assumption:integrality}, we have $\alpha \geq 1 $ and $e'(S) \geq 1$.
-
-We now obtain $\boldsymbol{\pi}'$ from $\boldsymbol{\pi}$ by increasing the potential by $\alpha$ for every node in the tree $S$. Recall the formulation of the objective function in terms of costs and excesses, given in \cref{eq:relax-obj-fun-excess}:
+$\boldsymbol{\pi}'$ is now obtained from $\boldsymbol{\pi}$ by increasing the potential of every node $i \in S$ in the tree by $\alpha$. Recall the formulation of the objective function in terms of costs and excesses, given in \cref{eq:relax-obj-fun-excess}:
 \[w\left(\boldsymbol{\pi}\right)=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}x_{ij}+\sum_{i\in V}\boldsymbol{\pi}_{i}e_{i}\right]\]
-The first sum is unchanged: modifying the potentials $\boldsymbol{\pi}$ does not change the original arc cost $c_ij$ or flow $x_{ij}$. For the second sum, we have:
+The first sum is unchanged: modifying the potentials $\boldsymbol{\pi}$ does not change the original arc cost $c_{ij}$ or flow $x_{ij}$. For the second sum:
 \begin{align*}
 \sum_{i\in V}\pi'_{i}e'_{i}= & \sum_{i\in S}\left(\pi_{i}+\alpha\right)e'_{i}+\sum_{i\in\overline{S}}\pi_{i}e'_{i}\\
 = &\:\alpha\sum_{i\in S}e'_{i}+\sum_{i\in V}\pi_{i}e'_{i}\\
 = &\:\alpha e'(S)+\sum_{i\in V}\pi_{i}e'_{i}
 \end{align*}
-Since $w\left(\boldsymbol{\pi}\right)$ unchanged after updating $\mathbf{x}$, it follows:
+Since $w\left(\boldsymbol{\pi}\right)$ is unchanged after updating $\mathbf{x}$, it follows:
 \[w\left(\boldsymbol{\pi}'\right)=w(\boldsymbol{\pi})+\alpha e'(S)\]
-We have already shown $\alpha, e'(S) \geq 1$. It follows $\alpha e'(S) \geq 1$, so $w\left(\boldsymbol{\pi}'\right) > w\left(\boldsymbol{\pi}\right)$.
+$\alpha > 0$ and $e'(S) > 0$ have already been shown; by \cref{assumption:integrality}, it follows that $\alpha \geq 1 $ and $e'(S) \geq 1$ by. Thus $\alpha e'(S) \geq 1$, so $w\left(\boldsymbol{\pi}'\right) > w\left(\boldsymbol{\pi}\right)$.
 
 It remains to show that updating potentials maintains reduced cost optimality. Note that increasing the potentials of nodes in $S$ by $\alpha$ decreases the reduced cost of arcs in $\left(S,\overline{S}\right)$ by $\alpha$, increases the reduced cost of arcs in $\left(\overline{S},S\right)$ by $\alpha$ and leaves the reduced cost of other arcs unchanged.
 
-Prior to updating potentials, all arcs in the residual network had (strictly) positive reduced costs. Consequently, increasing the reduced cost cannot violate reduced cost optimality\footnotemark.
-\footnotetext{Note increasing the reduced cost from zero to a positive number could violate optimality: an arc with zero reduced cost is permitted to have a positive flow, whereas an arc with positive reduced cost is not.} Decreasing the reduced cost might, however. But before updating the potentials, $c_{ij}^{\boldsymbol{\pi}} \geq \alpha$ for all $(i,j)\in\left(S,\overline{S}\right)\:\mbox{and}\:r_{ij}>0$, hence after the potential update $c_{ij}^{\boldsymbol{\pi}'}\geq 0$ for these arcs.
+Prior to updating potentials, all arcs in the residual network had (strictly) positive reduced costs. Consequently, increasing the reduced cost cannot violate reduced cost optimality\footnotemark. Decreasing the reduced cost might, however. But before updating the potentials, $c_{ij}^{\boldsymbol{\pi}} \geq \alpha$ for all $(i,j)\in\left(S,\overline{S}\right)\:\mbox{and}\:r_{ij}>0$; hence after the potential update, $c_{ij}^{\boldsymbol{\pi}'}\geq 0$ for these arcs.
+\footnotetext{Note increasing the reduced cost from zero to a positive number could violate optimality, but this case has been excluded.}
 \end{proof}
 
 \begin{lemma}[Correctness of \textproc{AugmentFlow}] \label{lemma:relax-correctness-augmentflow}
-Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e(t) < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, we have a new pseudoflow $\mathbf{x}'$ such that $\left(\mathbf{x}',\boldsymbol{\pi}\right)$. Moreover, under $\mathbf{x}'$ the excess at node $s$ and deficit at node $t$ decreases, without changing the excess/deficit at any other node\footnotemark.
+Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e(t) < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, there is a new pseudoflow $\mathbf{x}'$ and $\left(\mathbf{x}',\boldsymbol{\pi}\right)$ still satisfy reduced cost optimality conditions. Moreover, under $\mathbf{x}'$ the excess at node $s$ and deficit at node $t$ decreases, without changing the excess/deficit at any other node\footnotemark.
 \footnotetext{The \emph{feasibility} of the solution has increased}
 \end{lemma}
 \begin{proof}
-Line 2 finds a shortest path $P$ from the source node $s$ to a deficit node $t$. Line 3-4 then sends as much flow as possible along path $P$, subject to:
+\Cref{algo:relaxation-augment-flow:find-P} finds a shortest path $P$ from the source node $s$ to a deficit node $t$. \Crefrange{algo:relaxation-augment-flow:compute-delta}{algo:relaxation-augment-flow:augment-path} then send as much flow as possible along path $P$, subject to:
 \begin{enumerate}
     \item satisfying the capacity constraints at each arc on $P$, and
     \item ensuring $e(s) \geq 0$ and $e(t) \leq 0$.
 \end{enumerate}
-The restriction on $e(s)$ and $e(t)$ ensures we improve the feasibility of the solution: this operation monotonically decreases the excess at source nodes and the deficit at sink nodes\footnotemark.
-\footnotetext{If we were to allow the algorithm to `overshoot' and turn $s$ into a deficit node or $t$ into an excess, we would not be guaranteed to be improving the feasibility of the solution.}
+The restriction on $e(s)$ and $e(t)$ ensures the feasibility of the solution is improved. The excess at source nodes and deficit at sink nodes must monotonically decrease\footnotemark.
+\footnotetext{If the algorithm were allowed to `overshoot' and turn $s$ into a deficit node or $t$ into an excess, this property might not hold.}
 
-Since we send an equal amount of flow on each arc in $P$, the excess at nodes other than the start and end of path $P$ - $s$ and $t$ - are unchanged.
+Since an equal amount of flow is sent on each arc in $P$, the excess at nodes other than the start $s$ and end $t$ of path $P$ are unchanged.
 \end{proof}
 
 \begin{thm}[Correctness] \label{thm:relax-correctness}
 Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
 \end{thm}
 \begin{proof}
-For the same reason given in \cref{thm:ssp-invariant}, the initial values of $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. \textproc{AugmentFlow} and \textproc{UpdatePotentials} are only invoked when their preconditions are satisfied, and so by \cref{lemma:relax-correctness-augmentflow,lemma:relax-correctness-updatepotentials} it follows that reduced cost optimality is maintained. Moreover, the main algorithm given in \cref{algo:relaxation} does not update $\mathbf{x}$ or $\boldsymbol{\pi}$ except via calls to $\textproc{AugmentFlows}$ and $\textproc{UpdatePotentials}$. So, reduced cost optimality is maintained as an invariant throughout the algorithm.
+For the same reason as given in \cref{thm:ssp-invariant}, the initial values of $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. \textproc{AugmentFlow} and \textproc{UpdatePotentials} are only invoked when their preconditions are satisfied, and so by \cref{lemma:relax-correctness-augmentflow,lemma:relax-correctness-updatepotentials} it follows that reduced cost optimality is maintained. Moreover, the main algorithm given in \cref{algo:relaxation} does not update $\mathbf{x}$ or $\boldsymbol{\pi}$ except via calls to $\textproc{AugmentFlows}$ and $\textproc{UpdatePotentials}$. So, reduced cost optimality is maintained as an invariant throughout the algorithm.
 
 The algorithm terminates when the mass balance constraints are satisfied, so $\mathbf{x}$ is feasible. Thus upon termination, $\mathbf{x}$ is feasible and satisfies reduced cost optimality conditions. So $\mathbf{x}$ is a solution to the minimum-cost flow problem. 
 \end{proof}
@@ -557,11 +559,11 @@ The algorithm terminates when the mass balance constraints are satisfied, so $\m
 The time complexity of $\textproc{UpdatePotentials}$ is $O(m)$.
 \end{lemma}
 \begin{proof}
-The for loop on lines 2-4 of \cref{algo:relaxation-update-potentials} iterates over $O(m)$ arcs. Saturating an arc is an $O(1)$ cost, so this contributes an $O(m)$ cost.
+The for loop on \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd} iterates over $O(m)$ arcs. Saturating an arc is an $O(1)$ cost, so this contributes an $O(m)$ cost.
 
-Computing $\alpha$ on line 5 is an $O(m)$ cost, since it involves iterating over $O(m)$ arcs.
+Computing $\alpha$ on \cref{algo:relaxation-update-potentials:compute-alpha} is an $O(m)$ cost, since it involves iterating over $O(m)$ arcs.
 
-Updating potentials on lines 6-8 is an $O(n)$ cost, as the number of nodes in $S$ is $O(n)$.
+Updating potentials on \crefrange{algo:relaxation-update-potentials:update-loop}{algo:relaxation-update-potentials:update-cmd} is an $O(n)$ cost, as the number of nodes in $S$ is $O(n)$.
 
 The overall time complexity is thus $O(m)$.
 \end{proof}
@@ -570,7 +572,7 @@ The overall time complexity is thus $O(m)$.
 The time complexity of $\textproc{AugmentFlow}$ is $O(m)$.
 \end{lemma}
 \begin{proof}
-The shortest path $P$ must be acyclic, and so its length is bounded by $n-1=O(n)$. The operations on line 2, 3 and 4 are all linear in the length of $P$, thus the overall time complexity is $O(n)$.
+The shortest path $P$ must be acyclic, and so its length is bounded by $n-1=O(n)$. The operations on \cref{algo:relaxation-augment-flow:find-P,algo:relaxation-augment-flow:compute-delta,algo:relaxation-augment-flow:augment-path} are all linear in the length of $P$, thus the overall time complexity is $O(n)$.
 \end{proof}
 
 \begin{lemma} \label{lemma:relax-iterations} 
@@ -578,29 +580,30 @@ The following properties hold:
 \begin{enumerate}[label=(\alph*)]
     \item $\textproc{UpdatePotentials}$ is called at most $mCU$ times.
     \item $\textproc{AugmentFlow}$ is called at most $nU$ times in between calls to $\textproc{UpdatePotentials}$.
-    \item There are at most $nmCU^2$ iterations of the outer loop on lines 2-18 of \cref{algo:relaxation}.
+    \item There are at most $nmCU^2$ iterations of the outer loop on \crefrange{algo:relaxation:outer-loop-start}{algo:relaxation:outer-loop-end} of \cref{algo:relaxation}.
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-By \cref{lemma:relax-dual-optimality}, $w\left(\boldsymbol{\pi}\right) \leq z^*$. A feasible flow can have a cost of at most $mCU$. By \cref{lemma:relax-correctness-updatepotentials} and \cref{assumption:integrality}, $w\left(\boldsymbol{\pi}\right)$ increases by at least one each time $\textproc{UpdatePotentials}$ is called. Moreover, $w\left(\boldsymbol{\pi}\right)$ never decreases: $\boldsymbol{\pi}$ is only modified by $\textproc{UpdatePotentials}$. Thus $\textproc{UpdatePotentials}$ is called at most $mCU$ times.
+By \cref{lemma:relax-dual-optimality}, $w\left(\boldsymbol{\pi}\right) \leq z^*$. A feasible flow has a cost of at most $mCU$. By \cref{lemma:relax-correctness-updatepotentials} and \cref{assumption:integrality}, $w\left(\boldsymbol{\pi}\right)$ increases by at least one for each call of $\textproc{UpdatePotentials}$. Moreover, $w\left(\boldsymbol{\pi}\right)$ never decreases: $\boldsymbol{\pi}$ is only modified by $\textproc{UpdatePotentials}$. Thus $\textproc{UpdatePotentials}$ is called at most $mCU$ times.
 
-As for $\textproc{AugmentFlow}$, by \cref{lemma:relax-correctness-augmentflow} and \cref{assumption:integrality}, each call to $\textproc{AugmentFlow}$ decreases the total excess by at least one unit. The total excess in a network can be at most $nU$. The only part of the algorithm which may \emph{increase} the excess at nodes is lines 2-3 of $\textproc{UpdatePotentials}$. Thus, in between calls to $\textproc{UpdatePotentials}$, at most $nU$ calls to $\textproc{AugmentFlow}$ may be made.
+As for $\textproc{AugmentFlow}$, each call to $\textproc{AugmentFlow}$ decreases the total excess by at least one unit by \cref{lemma:relax-correctness-augmentflow} and \cref{assumption:integrality}. The total excess in a network is at most $nU$. The only part of the algorithm which may \emph{increase} the excess at nodes is \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd} of $\textproc{UpdatePotentials}$. Thus, in between calls to $\textproc{UpdatePotentials}$, at most $nU$ calls to $\textproc{AugmentFlow}$ may be made.
 
-For a bound on the total number of iterations, note each iteration ends after calling either $\textproc{AugmentFlow}$ on line 12 or $\textproc{UpdatePotentials}$ on line 16\footnotemark. Thus the number of iterations is bounded by the number of possible times either of these functions are called. By part (a), we know there are at most $mCU$ calls to $\textproc{UpdatePotentials}$. This together with part (b) implies there are at most $nmCU^2$ calls to $\textproc{AugmentFlow}$. This gives a bound on the number of iterations.
-\footnotetext{Of course we might also call $\textproc{UpdatePotentials}$ on line 4, but there is no guarantee this will take place and so cannot form part of the complexity analysis.}
+For a bound on the total number of iterations, note each iteration ends after calling either $\textproc{AugmentFlow}$ on \cref{algo:relaxation:augment} or $\textproc{UpdatePotentials}$ on \cref{algo:relaxation:second-update-potentials}\footnotemark. Thus the number of iterations is bounded by the number of possible times either of these functions are called. By part (a), we know there are at most $mCU$ calls to $\textproc{UpdatePotentials}$. This together with part (b) implies there are at most $nmCU^2$ calls to $\textproc{AugmentFlow}$. This gives a bound on the number of iterations.
+\footnotetext{Of course $\textproc{UpdatePotentials}$ might be called on \cref{algo:relaxation:first-update-potentials}. This is not guaranteed, however, so cannot form part of the complexity analysis.}
 \end{proof}
 
 \begin{thm} The algorithm runs in $O(nm^2CU^2)$ time.
 \end{thm}
 \begin{proof}
-We will now analyse the algorithm as a whole. Initialisation on line 1 of \cref{algo:relaxation} has cost $O(m)$. The loop body on lines 3-17, excluding the inner loop on lines 6-15 and function calls, has cost $O(1)$: initialising $S$, $e(S)$ and $r(\boldsymbol{\pi},S)$ are all constant cost.
+The algorithm as a whole will now be analysed. Initialisation on \cref{algo:relaxation:initialisation} of \cref{algo:relaxation} has cost $O(m)$. The loop body on \crefrange{algo:relaxation:outer-loop-start}{algo:relaxation:outer-loop-end}, excluding function calls and the inner loop on \crefrange{algo:relaxation:inner-loop-start}{algo:relaxation:inner-loop-end}, has cost $O(1)$: initialising $S$, $e(S)$ and $r(\boldsymbol{\pi},S)$ are all constant cost.
 
-Now, let us consider the execution of the inner loop body on lines 7-14. In order to update $r(\boldsymbol{\pi},S)$, we must scan over all adjacencies when we add a node $j$ to $S$. This dominates the other costs of lines 8-10, since updating the predecessor on line 9 and inserting an element in a set on line 10 are both constant cost. Note it is natural for us to also maintain a queue of arcs $(i,j) \in \left(S,\overline{S}\right)$ in the residual network with $c_{ij}^{\boldsymbol{\pi}}=0$: this does not increase the asymptotic complexity of lines 8-10, since we are already doing much the same work when updating $r$. Given this queue, line 7 has cost $O(1)$. Thus the inner loop body has complexity, excluding procedure calls, of $O\left(\left|\mathrm{Adj}(j)\right|\right)$\footnotemark.
-\footnotetext{Note we must include both \emph{incoming} and \emph{outgoing} arcs. Outgoing arcs need to be added to the sum in $r$ and added to the queue, whereas incoming arcs need to be subtracted from the sum in $r$ and removed from the queue. Summing the adjacency lists is thus bounded by $2m$ and not $m$, but this is still $O(m)$.}
+Now, consider the execution of the inner loop body on \crefrange{algo:relaxation:inner-loop-start}{algo:relaxation:inner-loop-end}. To update $r(\boldsymbol{\pi},S)$ after adding a node $j$ to $S$, it is necessary to scan over the adjacency list $\mathrm{Adj}(j)$ of $j$. This dominates the other costs of \crefrange{algo:relaxation:if-source}{algo:relaxation:end-if-source}: updating the predecessor on \cref{algo:relaxation:update-predecessor} and inserting an element in set $S$ on \cref{algo:relaxation:add-node} are both constant cost. 
 
-Note each iteration of this loop adds a new node to $S$ on each iteration, and so is executed at most once per node. It follows that the total complexity of the inner loop on lines 6-15, excluding procedure calls, is $O(m)$. This loop thus dominates the other costs on lines 3-17, so the loop body overall has a cost of $O(m)$.
+It is natural to maintain a queue of arcs $(i,j) \in \left(S,\overline{S}\right)$ in the residual network with $c_{ij}^{\boldsymbol{\pi}}=0$. This does not increase the asymptotic complexity of \crefrange{algo:relaxation:if-source}{algo:relaxation:end-if-source}, since much the same work must already be done done when updating $r$. Using this queue, \cref{algo:relaxation:select-arc} has cost $O(1)$. Thus the inner loop body has complexity, excluding procedure calls, of $O\left(\left|\mathrm{Adj}(j)\right|\right)$.
 
-To deduce the overall time complexity, we will need the bounds proved in \cref{lemma:relax-iterations}. $\textproc{UpdatePotentials}$ is called $O(mCU)$ times and has cost $O(m)$, so contributes a total cost of $O(m^2CU)$. $\textproc{AugmentFlow}$ is called $O(nmCU^2)$ times and has cost $O(n)$, so contributes a total cost of $O(n^2mCU^2)$. Finally, the body of the while loop on lines 3-17 of \cref{algo:relaxation} is executed $O(nmCU^2)$ times. Excluding the cost of the procedure calls (which we have considered separately), each iteration costs $O(m)$, so this contributes a cost of $O(nm^2CU^2)$. This dominates the other costs, and is thus the overall time complexity of the algorithm.
+Note each iteration of this loop adds a new node to $S$, and so is executed at most once per node. It follows that the total complexity of the inner loop on \crefrange{algo:relaxation:inner-loop-start}{algo:relaxation:inner-loop-end}, excluding procedure calls, is $O(m)$. This loop thus dominates the other costs on \crefrange{algo:relaxation:outer-loop-start}{algo:relaxation:outer-loop-end}, so the loop body overall has a cost of $O(m)$.
+
+The overall time complexity can now be proved using the above results and the bounds in \cref{lemma:relax-iterations}. $\textproc{UpdatePotentials}$ is called $O(mCU)$ times and has cost $O(m)$, so contributes a total cost of $O(m^2CU)$. $\textproc{AugmentFlow}$ is called $O(nmCU^2)$ times and has cost $O(n)$, so contributes a total cost of $O(n^2mCU^2)$. Finally, the body of the while loop on \crefrange{algo:relaxation:outer-loop-start}{algo:relaxation:outer-loop-end}of \cref{algo:relaxation} is executed $O(nmCU^2)$ times. Excluding the cost of the procedure calls, each iteration costs $O(m)$, so this contributes a cost of $O(nm^2CU^2)$. This dominates the other costs, and is thus the overall time complexity of the algorithm.
 \end{proof}
 
 \section{Cost scaling algorithm} \label{sec:impl-cost-scaling}
