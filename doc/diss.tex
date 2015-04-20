@@ -92,8 +92,13 @@
 % tick and cross marks
 % per http://tex.stackexchange.com/questions/42619/x-mark-to-match-checkmark
 \usepackage{pifont}
-\newcommand{\cmark}{{\color{green} \ding{51}}}
-\newcommand{\xmark}{{\color{red} \ding{55}}}
+\newcommand{\cmarkcolor}{\color{green}}
+\newcommand{\xmarkcolor}{\color{red}}
+\newcommand{\mmarkcolor}{\color{blue}}
+\newcommand{\cmark}{{\cmarkcolor \ding{51}}}
+\newcommand{\xmark}{{\xmarkcolor \ding{55}}}
+%\newcommand{\mmark}{{\color{yellow} \textbf{--}}}
+\newcommand{\mmark}{{\mmarkcolor \tikz \node[draw,circle]{};}}
 
 %%% Indexing
 %% Hyperref
@@ -252,6 +257,7 @@
 	\vspace*{5mm}
 	St John's College \\
 	\vspace*{5mm}
+    % PROOFREAD: Replace with fixed date. Make sure to have 'th/nd' in superscript
 	\today
 \end{center}
 \clearpage
@@ -311,6 +317,7 @@ any substantial extent for a comparable purpose.
 \bigskip
 \leftline{Signed}
 \medskip
+% PROOFREAD: Replace with fixed date. Make sure to have 'th/nd' in superscript
 \leftline{Date: \today}
 
 \clearpage

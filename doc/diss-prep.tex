@@ -5,15 +5,16 @@
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
 % TODO: Get some references from Malte/Ionel on this?
-Much as an operating system schedulers maps threads to processor cores, a cluster scheduler maps tasks to machines. Better scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their important, cluster schedulers remain an active area of research, both within academia and in industry.
+Much as an operating system schedulers maps threads to processor cores, a cluster scheduler maps tasks to machines. Better scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their importance, cluster schedulers remain an active area of research, both within academia and in industry.
 
-I will start by outlining desirable properties for cluster schedulers. Following this, I will summarise the prevailing approaches to scheduling. To conclude, I will discuss the principles underlying Firmament, and show how it improves upon competing approaches with its use of flow scheduling.
+To start, desirable properties of cluster schedulers are outlined. Following this, the prevailing approaches to scheduling are summarised. This section concludes by discussing the principles underlying Firmament, showing how it improves upon competing approaches with its use of flow scheduling.
 
 \subsection{Design goals} \label{sec:prep-scheduling-goals}
 
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
-The cluster scheduler faces a challenging task. The scheduler policy must be targeted to meet the specific needs of the applications it is scheduling. To effectively implement a policy, the scheduler may need to process a wide variety of factors, such as the load at each machine and the resource requirements of every task. This should all take place as fast as possible, to support interactive applications. Furthermore, the system must be able to scale to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}.
+% SOMEDAY: Rephrase 2nd sentence: "Moreover, ... may need to analyse a large amount of data ..."
+The cluster scheduler's policy must be suitable for the applications it is scheduling. Moreover, to effectively implement a policy the scheduler may need to analyse a large amount of data, such as the load at each machine and the resource requirements of every task. To support interactive applications, all decisions should be made as quickly as possible. Furthermore, the system must be able to scale to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}.
 
 \begin{table}
     \begin{tabular}{c|l}
@@ -28,16 +29,17 @@ The cluster scheduler faces a challenging task. The scheduler policy must be tar
     \label{table:cluster-scheduler-design-goals}
 \end{table}
 
-Scheduler policies may have a variety of objectives. The traditional use case of clusters is batch jobs, where the goal is to maximise throughput. Increasingly, clusters run interactive jobs, where low latency is critical. Modern clusters are often multi-tenant: it is important to ensure \emph{fairness}, an equitable distribution of resources between users. Naturally, objectives often conflict with each other: each application must choose a particular trade-off. It is essential, then, that scheduler policy can be targeted to meet the needs of different applications.
+% SOMEDAY: Bring the word "targeting" into it somehow?
+Scheduler policies can have a variety of objectives. They may want to maximise job throughput for batch processing, or achieve low latency for interactive jobs. Modern clusters are often multi-tenant: it is important to ensure \emph{fairness}, an equitable distribution of resources between users. Naturally, objectives often conflict with each other: each scheduler must choose a particular trade-off.
 
-Getting the objectives right can be hard enough. Implementing a scheduler which effectively achieves those objectives is more difficult still. Particularly challenging is the sheer amount of information that must be processed. As a simple example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it must monitor the performance of every task running in the cluster, building up a profile of how each application interacts with others.
-\footnotetext{In fact the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
+Getting the objectives right is hard, but implementing a scheduler which effectively achieves those objectives is more difficult still. Particularly challenging is the sheer amount of information that must be processed: as an example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it monitors the performance of \emph{every} task running in the cluster, building up a profile of how each application interacts with others.
+\footnotetext{In fact, the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
 
 % SOMEDAY: Terminology re: latency is a bit confused. Here you're talking about scheduling latency to do with the solver being slow. But in the next section you talk about latency due to policy: a FIFO queue.
-Finally, the system should remain fast at scale. Today's warehouse scale computer may contain tens of thousands of machines, running hundreds of thousands of tasks\footnotemark. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform. These applications may demand sub-second or lower scheduling latency~\cite{Ousterhout:2013}.
-\footnotetext{At full utilisation, there will certainly be as many tasks on each machine as there are cores, perhaps more. There may also be tasks in the system which remain unscheduled.}
+Finally, the system should remain responsive at scale. Today's warehouse scale computers contain tens of thousands of machines, running hundreds of thousands of tasks. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform, requiring sub-second scheduling latency~\cite{Ousterhout:2013}.
 
 \subsection{Prevailing approaches}
+% XXX: This needs serious editing/rewriting to talk about other schedulers
 
 % PROOFREAD: 1. Minor edits.
 
@@ -69,23 +71,23 @@ However, the information which is public suggests that the basic approach is the
     \textbf{System} & \textbf{Targeted} & \textbf{Effective} & \textbf{Fast and scalable} \tabularnewline
     \hline
     \textit{Heuristic approach} \tabularnewline
-    FIFO Queue & 1 & 3 & 4 \tabularnewline
-    Fair Scheduler & 2 & 4 & 3 \tabularnewline 
-    Capacity Scheduler & 2 & 4 & 3 \tabularnewline 
-    LATE & 1 & 5 & 3 \tabularnewline 
-    Sparrow & 2 & 3 & 5 \tabularnewline 
+    FIFO Queue & \xmark & \mmark & \cmark \tabularnewline
+    Fair Scheduler & \mmark & \cmark & \mmark \tabularnewline 
+    Capacity Scheduler & \mmark & \cmark & \mmark \tabularnewline 
+    LATE & \xmark & \cmark & \mmark \tabularnewline 
+    Sparrow & \xmark & \mmark & \cmark \tabularnewline 
     \hline
     \textit{Flow-based system} \tabularnewline
-    Quincy & 2 & 5 & 1 \tabularnewline 
-    Firmament & 4 & 5 & 1 \tabularnewline 
+    Quincy & \xmark & \cmark & \xmark \tabularnewline 
+    Firmament & \cmark & \cmark & \xmark \tabularnewline 
     \hline
 \end{tabular}
-\caption{Scheduler feature matrix}
+\caption[Scheduler feature matrix]{Scheduler feature matrix showing {\cmarkcolor full \cmark}, {\mmarkcolor partial \mmark} or {\xmarkcolor no \xmark} support.}
 \label{table:cluster-scheduler-feature-matrix}
 \end{table}
 \todo{Graphical representation of the numerical ratings} % TODO
 
-Schedulers have traditionally relied on \textit{ad hoc} heuristics to implement a hard-coded policy. This approach has yielded impressive results, however there are signs it may be reaching its limits.
+Schedulers have traditionally relied on \textit{ad hoc} heuristics to provide a hard-coded policy. This approach is easy to implement, but is inflexible.
 
 \Cref{table:cluster-scheduler-feature-matrix} summarises the results of the previous section, and previews this section. It is apparent that the key drawback of the heuristic approach is an inability to \emph{target} the scheduling policy. This has led to a proliferation of different schedulers, but it will never be possible to meet all application needs in this way.
 
