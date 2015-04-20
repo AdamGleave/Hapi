@@ -4477,7 +4477,7 @@ inline void growArray(T **array,
 	// (YUCK. This was not my choice.)
 	T *old_array = *array + 1;
 	T *new_array = new T[new_size];
-	memcpy(new_array, old_array, sizeof(T)*new_size);
+	memcpy(new_array, old_array, sizeof(T)*old_size);
 	delete old_array;
 
 	*array = new_array - 1;
@@ -4496,6 +4496,7 @@ inline void RelaxIV::MemGrowNodes( MCFClass::Index new_nmax )
   CHECK_GE(new_nmax, nmax);
   Index old_nmax = nmax;
   nmax = computeNewSize(old_nmax, new_nmax);
+  LOG(INFO) << "Growing # nodes: " << old_nmax << "->" << nmax;
 
   growArray(&FIn, old_nmax, nmax);
   growArray(&FOu, old_nmax, nmax);
@@ -4519,6 +4520,7 @@ inline void RelaxIV::MemGrowArcs ( MCFClass::Index new_mmax ) {
   CHECK_GE(new_mmax, mmax);
   Index old_mmax = mmax;
   mmax = computeNewSize(old_mmax, new_mmax);
+  LOG(INFO) << "Growing # arcs: " << old_mmax << "->" << mmax;
 
   growArray(&Startn, old_mmax, mmax);
   growArray(&Endn, old_mmax, mmax);
