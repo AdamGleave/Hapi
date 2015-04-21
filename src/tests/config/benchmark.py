@@ -201,7 +201,7 @@ FULL_IMPLEMENTATIONS = {
      "arguments" : ["augmenting_path"]
   },
   "ap_full_djikstra": {
-     "version": "opt_ap_full_djikstra",
+     "version": "opt_ap_fulldjikstra",
      "target": "find_min_cost",
      "path": "bin/find_min_cost",
      "arguments" : ["augmenting_path"]
