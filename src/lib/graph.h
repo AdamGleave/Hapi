@@ -1,5 +1,5 @@
-#ifndef GRAPH_H_
-#define GRAPH_H_
+#ifndef LIB_GRAPH_H_
+#define LIB_GRAPH_H_
 
 #include <boost/concept/assert.hpp>
 #include <boost/concept_check.hpp>
@@ -23,7 +23,7 @@ public:
 
 	BOOST_CONCEPT_USAGE(Graph) {
 		// needed for DIMACS import
-		X graph(10);
+		X graph(10, 21);
 		graph.addArc(1, 2, 42, 5);
 		flowsolver::Arc &arc = *graph.getArc(1,2);
 		graph.setSupply(1, 20);
@@ -38,6 +38,36 @@ public:
 	}
 };
 
+template<class X>
+struct DynamicGraphCallbacks {
+public:
+	X &graph;
+
+	// we do this so as to not require any ability to construct type X:
+	// we just need to be able to manipulate an instance we are given
+	DynamicGraphCallbacks(X &graph) : graph(graph) {};
+
+	BOOST_CONCEPT_USAGE(DynamicGraphCallbacks) {
+		Arc *arc = graph.getArc(1, 2);
+		graph.addNode(5);
+		graph.addArc(1, 5, 1, 1);
+		graph.changeArcCapacity(1, 5, 3);
+		graph.changeArcCost(1, 5, 2);
+		graph.removeArc(1, 5);
+		graph.setSupply(1, 5);
+		graph.removeNode(1);
+
+		// TODO: If you remove sink supply adjustment in DIMACS, remove this too.
+		graph.getSupply(1);
+	}
+};
+
+template<class X>
+struct DynamicGraph {
+	BOOST_CONCEPT_ASSERT((Graph<X>));
+	BOOST_CONCEPT_ASSERT((DynamicGraphCallbacks<X>));
+};
+
 }
 
-#endif /* GRAPH_H_ */
+#endif /* LIB_GRAPH_H_ */

@@ -2,20 +2,39 @@
  * Exports the resulting graph representation in DIMACS format on stdout.
  * (Output should be identical to input, modulo missing comments.)
  */
+#include "dimacs.h"
 
 #include <iostream>
 #include <glog/logging.h>
 
-#include "dimacs.h"
 #include "residual_network.h"
+#include "flow_network.h"
 
 using namespace flowsolver;
 
-int main(int, char *argv[]) {
+int main(int argc, char *argv[]) {
+	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
 
-	ResidualNetwork *g = DIMACS<ResidualNetwork>::readDIMACSMin(std::cin);
-	DIMACS<ResidualNetwork>::writeDIMACSMin(*g, std::cout);
+	std::string graph;
+	if (argc == 1) {
+		graph = "FlowNetwork";
+	} else if (argc == 2) {
+		graph = argv[1];
+	} else {
+		std::cerr << "usage: " << argv[0] << " [FlowNetwork|ResidualNetwork]";
+		return -1;
+	}
+
+	if (graph == "FlowNetwork") {
+		FlowNetwork *g = DIMACSOriginalImporter<FlowNetwork>(std::cin).read();
+		DIMACSExporter<FlowNetwork>(*g, std::cout).write();
+	} else if (graph == "ResidualNetwork") {
+		ResidualNetwork *g = DIMACSOriginalImporter<ResidualNetwork>(std::cin).read();
+		DIMACSExporter<ResidualNetwork>(*g, std::cout).write();
+	} else {
+		assert(false);
+	}
 
 	return 0;
 }

@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef CYCLE_CANCELLING_H_
-#define CYCLE_CANCELLING_H_
+#ifndef LIB_CYCLE_CANCELLING_H_
+#define LIB_CYCLE_CANCELLING_H_
 
 #include <queue>
 
@@ -17,16 +17,17 @@
 namespace flowsolver {
 
 class CycleCancelling {
-	ResidualNetwork &g;
 public:
-	CycleCancelling(ResidualNetwork &g) : g(g) { };
+	explicit CycleCancelling(ResidualNetwork &g) : g(g) { };
 
 	/**
 	 * Side-effect: changes graph capacities to encode flow.
 	 */
 	void run();
+private:
+	ResidualNetwork &g;
 };
 
 } /* namespace flowsolver */
 
-#endif /* CYCLE_CANCELLING_H_ */
+#endif /* LIB_CYCLE_CANCELLING_H_ */

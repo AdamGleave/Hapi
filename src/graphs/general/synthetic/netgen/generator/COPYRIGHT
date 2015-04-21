@@ -1,0 +1,5 @@
+Attribution: http://lemon.cs.elte.hu/trac/lemon/browser/lemon-benchmark
+
+This was itself a modification of the original NETGEN code from the first DIMACS implementation challenge at ftp://dimacs.rutgers.edu/pub/netflow/generators/network/netgen/
+
+Main change was to allow it to generate larger problem instances.

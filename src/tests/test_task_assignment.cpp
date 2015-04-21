@@ -1,10 +1,11 @@
+#include "task_assignment.h"
+
 #include <fstream>
 
 #include <gtest/gtest.h>
 
-#include "flow_network.h"
 #include "dimacs.h"
-#include "task_assignment.h"
+#include "flow_network.h"
 
 // TODO: test graphs with invalid format as well?
 // TODO: test graphs with & without unscheduled tasks?
@@ -19,7 +20,8 @@ protected:
 	fs::FlowNetwork *original;
 	fs::FlowNetwork *augmented;
 
-	const std::string GRAPH_PATH = CMAKE_SRC_DIR "/tests/graphs/";
+	const std::string GRAPH_PATH =
+			CMAKE_SRC_DIR "/graphs/clusters/synthetic/handmade/";
 	const std::string GRAPH_FILENAME = GRAPH_PATH + "task_assignments.in";
 	const std::string SOLUTION_FILENAME = GRAPH_PATH + "task_assignments.s";
 	void SetUp() {
@@ -28,10 +30,10 @@ protected:
 		solved_file.open(SOLUTION_FILENAME, std::fstream::in);
 		ASSERT_FALSE(solved_file.fail()) << "unable to open " << SOLUTION_FILENAME;
 
-		original = fs::DIMACS<fs::FlowNetwork>::readDIMACSMin(graph_file);
-		ASSERT_NE(original, (void *)0) << "DIMACS parse error";
+		original = fs::DIMACSOriginalImporter<fs::FlowNetwork>(graph_file).read();
+		ASSERT_NE(original, nullptr) << "DIMACS parse error";
 		augmented = new fs::FlowNetwork(*original);
-		fs::DIMACS<fs::FlowNetwork>::readDIMACSMinFlow(solved_file, *augmented);
+		fs::DIMACSFlowImporter<fs::FlowNetwork>(solved_file, *augmented).read();
 	}
 };
 

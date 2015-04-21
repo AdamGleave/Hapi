@@ -9,7 +9,11 @@
 #include <boost/format.hpp>
 #include <glog/logging.h>
 
-namespace flowsolver {
+// this code is useful for debug, but not used otherwise
+/*
+namespace {
+
+using namespace flowsolver;
 
 int64_t compute_balance(const FlowNetwork &g,
 						std::vector<int64_t> initial_supply, uint32_t id) {
@@ -61,6 +65,11 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 	}
 }
 
+} // namespace (unnamed)
+*/
+
+namespace flowsolver {
+
 CostScaling::CostScaling(FlowNetwork &g, uint32_t scaling_factor)
 	: g(g), epsilon(0), num_iterations(0),
 	  SCALING_FACTOR(scaling_factor),
@@ -73,6 +82,8 @@ CostScaling::CostScaling(FlowNetwork &g, uint32_t scaling_factor)
 }
 
 CostScaling::CostScaling(FlowNetwork &g) : CostScaling(g, 2) {}
+
+CostScaling::~CostScaling() {}
 
 int64_t CostScaling::reducedCost(Arc &arc, uint32_t src_id) {
 	uint32_t dst_id;
@@ -274,7 +285,6 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 	}
 
 	while (epsilon > 1 && continue_running()) {
-		std::cout << "epsilon: " << epsilon << std::endl;
 		/*
 		 * The below computation will decrease epsilon by (slightly) more than
 		 * a factor of two when epsilon is odd, since integer division truncates
@@ -465,9 +475,6 @@ bool CostScaling::runStatistics(std::string csv_path) {
 	delete csv_file;
 
 	return success;
-}
-
-CostScaling::~CostScaling() {
 }
 
 } /* namespace flowsolver */

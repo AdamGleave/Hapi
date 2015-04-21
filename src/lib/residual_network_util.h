@@ -5,8 +5,8 @@
  *      Author: adam
  */
 
-#ifndef RESIDUAL_NETWORK_UTIL_H_
-#define RESIDUAL_NETWORK_UTIL_H_
+#ifndef LIB_RESIDUAL_NETWORK_UTIL_H_
+#define LIB_RESIDUAL_NETWORK_UTIL_H_
 
 #include <queue>
 
@@ -15,13 +15,19 @@
 namespace flowsolver {
 
 class ResidualNetworkUtil {
+public:
+	ResidualNetworkUtil() = delete;
+	static std::queue<Arc *> predecessorPath(ResidualNetwork &,
+			        uint32_t src, uint32_t dst, const std::vector<uint32_t>& parents);
+	static void augmentPath(ResidualNetwork &, std::queue<Arc *>);
+	static void augmentPath(ResidualNetwork &,
+			        uint32_t src, uint32_t dst, const std::vector<uint32_t>& parents);
+	static void cancelCycle(ResidualNetwork &, std::queue<Arc *>);
+private:
 	static uint64_t augmentingFlow(std::queue<Arc *>);
 	static void pushFlow(ResidualNetwork &, std::queue<Arc *>, uint64_t);
-public:
-	static void augmentPath(ResidualNetwork &, std::queue<Arc *>);
-	static void cancelCycle(ResidualNetwork &, std::queue<Arc *>);
 };
 
 } /* namespace flowsolver */
 
-#endif /* RESIDUAL_NETWORK_UTIL_H_ */
+#endif /* LIB_RESIDUAL_NETWORK_UTIL_H_ */

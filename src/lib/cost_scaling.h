@@ -1,5 +1,5 @@
-#ifndef COST_SCALING_H_
-#define COST_SCALING_H_
+#ifndef LIB_COST_SCALING_H_
+#define LIB_COST_SCALING_H_
 
 #include <vector>
 #include <forward_list>
@@ -11,25 +11,11 @@
 namespace flowsolver {
 
 class CostScaling {
-	FlowNetwork &g;
-	uint64_t epsilon, num_iterations;
-	const uint64_t SCALING_FACTOR, COST_SCALING_FACTOR;
-	std::vector<int64_t> potentials;
-	std::forward_list<uint32_t> vertices;
-	std::vector<std::forward_list<Arc *>::iterator> current_edges;
-
-	int64_t reducedCost(Arc &arc, uint32_t src_id);
-	void relabel(uint32_t id);
-	// returns true if potential of id increases
-	bool pushOrUpdate(uint32_t id);
-	// returns true if potential of id increases
-	bool discharge(uint32_t id);
-	bool costThreshold(double minimum_factor);
-	void refine();
-	bool run(std::function<bool()> continue_running);
 public:
-	CostScaling(FlowNetwork &g);
+	explicit CostScaling(FlowNetwork &g);
 	CostScaling(FlowNetwork &g, uint32_t scaling_factor);
+	virtual ~CostScaling();
+
 	/**
 	 * All the run algorithms return true if a min-cost flow is found;
 	 * false if no feasible solution exists. Side-effect that graph is updated
@@ -64,9 +50,25 @@ public:
 	 * is less than min_assignments between two successive iterations.
 	 */
 	bool runTaskAssignmentThreshold(uint64_t min_assignments);
-	virtual ~CostScaling();
+private:
+	int64_t reducedCost(Arc &arc, uint32_t src_id);
+	void relabel(uint32_t id);
+	// returns true if potential of id increases
+	bool pushOrUpdate(uint32_t id);
+	// returns true if potential of id increases
+	bool discharge(uint32_t id);
+	bool costThreshold(double minimum_factor);
+	void refine();
+	bool run(std::function<bool()> continue_running);
+
+	FlowNetwork &g;
+	uint64_t epsilon, num_iterations;
+	const uint64_t SCALING_FACTOR, COST_SCALING_FACTOR;
+	std::vector<int64_t> potentials;
+	std::forward_list<uint32_t> vertices;
+	std::vector<std::forward_list<Arc *>::iterator> current_edges;
 };
 
 } /* namespace flowsolver */
 
-#endif /* COST_SCALING_H_ */
+#endif /* LIB_COST_SCALING_H_ */

@@ -2,14 +2,24 @@ perf.data
 perf.data.old
 .project
 .cproject
+.pydevproject
 .settings/
 *.pyc
+*~
 
 tmp/
 
 src/ext/
 src/include/
-src/tests/graphs/google_all.in
-src/cs2/cs2
+src/graphs/general/natural/road/*.min
+src/graphs/general/natural/vision/*.min
+src/graphs/general/synthetic/netgen/generator/netgen
+src/graphs/general/synthetic/netgen/generated/
+src/graphs/general/synthetic/goto/goto
+src/graphs/general/synthetic/goto/generated/
+src/graphs/clusters/natural/google_trace/
+src/RelaxIV/doc/
+src/tests/config/benchmark_local.py
 
-build/
+build*/
+benchmark/

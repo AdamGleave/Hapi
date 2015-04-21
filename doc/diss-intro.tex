@@ -1,0 +1,96 @@
+\chapter{Introduction} \label{chap:intro}
+
+% Proofread: Once
+
+% Summarize project, make novelty of project clear, sneak peak of results
+TBC: Brief intro
+
+\section{Motivation} \label{sec:intro-motivation}
+% PROOFREAD: 1, significant edits. 2, minor edits.
+Clusters of commodity servers have become the dominant platform for high-throughput computing. With the adoption of cloud computing, many applications now run on these platforms. Machines in a cluster can collaborate to provide the abstraction of a single ``warehouse-scale'' computer~\cite{WarehouseScale:2009}. Making efficient use of such warehouse-scale computers is a major challenge faced by today's leading web companies, and an active area of distributed systems research.
+
+A \emph{cluster scheduler} chooses which tasks to run on each machine. The choice of scheduler has considerable ramifications on cluster performance and efficiency. Despite this, most approaches rely on \emph{ad hoc} heuristics, which makes it difficult for the scheduler to adapt itself to different cluster designs and application requirements.
+
+The Firmament cluster scheduling platform has been developed to overcome this limitation\footnotemark~\cite[ch.~5]{Schwarzkopf:2015}. In a striking departure from traditional designs, Firmament represents scheduling as an optimisation problem over a flow network. Machines and tasks are represented as nodes. Flow drains from each task node into either a machine node (to schedule the task there), or a special node (leaving the task unscheduled).
+\footnotetext{Firmament has been developed by the supervisors for this project, Malte Schwarzkopf and Ionel Gog, as part of the Cambridge Systems at Scale initiative (\url{http://camsas.org}).}
+
+The capacity values on arcs within the flow network restrict the possible schedules, e.g.\ limiting the number of tasks which can run on each machine. Cost values specify preferences between possible scheduling assignments. Solving the minimum-cost flow problem on this network yields a schedule that is optimal for the given costs.
+
+This ``flow scheduling'' approach was pioneered by the Quincy system, developed at Microsoft Research~\cite{Isard:2009}. Quincy aimed for \emph{data locality}: placing tasks close to where their data is stored. Costs in the network represented bandwidth usage, with the optimal schedule being the one which minimised traffic. Cluster throughput under the Quincy system increased by 40\%, demonstrating the efficacy of this approach.
+
+The key benefit to flow scheduling, however, is its flexibility. Firmament supports a variety of policies, with goals ranging from energy efficiency to minimising co-location interference. Adding a policy is as simple as defining a new cost model.
+
+% TODO: Update these figures
+However, solving the minimum-cost flow problem is extremely computationally expensive at scale, but must be done for every schedule update. This can be a problem: many applications are sensitive to scheduling latency.
+
+Quincy was originally tested on a cluster of 243 machines, where the scheduling latency was less than \SI{10}{\milli\second}. On a simulated cluster of 2,500 machines, latency had already risen to of over a second. Today's warehouse-scale computers may consist of tens or hundreds of thousands of servers, and continue to grow. Simulations show that on a 10,000 machine cluster, the scheduling latency could easily exceed \SI{90}{\second}.
+
+Throwing more hardware at the problem does not help: flow algorithms have limited parallelism, and the scalar performance of processors has mostly peaked. The only way to get faster is by algorithmic improvements: this is the focus of my project.
+
+In the rest of the dissertation, I explore approaches to improve the performance of algorithms on networks produced by flow schedulers. My goal is to enable these systems to scale to the largest warehouse-scale computers. Moreover, reducing the scheduling latency will allow flow schedulers to be used for applications which require rapid decisions.
+
+\section{Challenges} \label{sec:intro-challenges}
+% Proofread: 1, minor edits.
+
+Research into the minimum-cost flow problem has been ongoing for over 60 years. There is consequently considerable prior work, outlined in~\cref{sec:intro-related-work}. I had to assimilate this large body of existing material before I could attempt to improve upon it.
+
+Given that many seasoned researchers have spent their careers working on this problem, realising a significant performance improvement appeared difficult. Not only has there been considerable work to develop efficient algorithms, the reference implementations for these algorithms have been optimised extensively.
+
+While the task seemed daunting, the reward more than justified the risk: success could enable a new generation of schedulers, able to address the challenges facing today's major technology companies.
+
+\section{Related work} \label{sec:intro-related-work}
+% Proofread: 1, minor edits.
+% TODO: Table summarising the different algorithms.
+
+Research into flow networks has been ongoing since the 1940s, driven by their numerous practical applications. The area remains active, with new algorithms and implementation techniques continuing to be devised.
+
+Study of the area began with the transportation problem, a special case of the minimum-cost flow problem. The problem was first formulated by Kantorovich in 1939~\cite{Kantorovich:1960}, although his work did not receive recognition outside Russia until sometime later. Study of the problem in the Western world began with Hitchcock in 1941~\cite{Hitchcock:1941}. Koopmans followed in 1949, demonstrating the theory applied in an economic context~\cite{Koopmans:1949}. Kantorovich and Koopmans later received a Nobel prize for their research\footnotemark.
+\footnotetext{Hitchcock missed out on the prize as it was awarded in 1975, after he had passed away.}
+
+Flow problems are a special case of what are now known as linear programming problems. Study of linear programming was originally motivated by flow networks: indeed, the first statement of the general linear programming problem is due to Kantorovich~\cite{Kantorovich:1960}. It became established as a distinct field with the publication in 1949 of Dantzig's seminal work on the now well-known simplex algorithm~\cite{Dantzig:1949}. One of the earliest applications of this method was to flow networks, with Dantzig specialising the simplex algorithm to the transportation problem in 1951~\cite{Dantzig:1951}.
+
+Growing interest in linear programming spurred further study of flow networks. During the 1950s, researchers explored the maximum flow problem and the more general minimum-cost flow problem. By the end of the decade, there were dedicated algorithms for both problems. Ford and Fulkerson developed a number of primal-dual combinatorial algorithms, whereas Dantzig continued his focus on simplex methods~\cite{FordFulkerson:1962,Dantzig:1962}.
+
+Given this early excitement, the field might be expected to have peaked soon after. However, if anything the pace of innovation has accelerated in recent years, with modern algorithms offering considerable performance gains. Unfortunately, it is impractical for me to discuss all the existing work in detail. In the rest of this section, I thus focus on the contemporary algorithms which offer the highest performance.
+
+\subsection{Network simplex}
+
+The network simplex algorithm can claim to be the oldest flow solution method still in use today. Indeed, the simplex approach of Dantzig~\cite{Dantzig:1949} was one of the first approaches used in the solution of flow problems. Specialised versions, known as \emph{network simplex} algorithms, offer considerable performance gains over the generic approach~\cite{Dantzig:1962}.
+
+The generic network simplex algorithm is not guaranteed to run in polynomial time\footnotemark, although many variants have been devised with a polynomial bound~\cite{Tarjan:1991,Goldfarb:1992}. Apart from algorithmic improvements, there has also been considerable work to develop efficient implementations~\cite{Lobel:1996,Grigoriadis:1986}.
+\footnotetext{Although in practice it is typically rather efficient.}
+
+\subsection{Successive shortest path} \label{sec:intro-related-work-ssp}
+
+This algorithm was invented independently by several authors~\cite{Jewell:1958,Iri:1960,BusackerGowen:1960}. Edmonds and Karp~\cite{Edmonds:1972} and Tomizawa~\cite{Tomizawa:1971} independently suggested a technique to maintain non-negative arc costs during the algorithm; this allows for more efficient shortest path computations, considerably improving its performance. The variant given by Edmonds and Karp is notable for being the first (weakly) polynomial time algorithm\footnotemark.
+\footnotetext{In a weakly polynomial algorithm, the maximum cost and capacity of arcs may feature in the polynomial bound. By contrast, for a (strongly) polynomial algorithm, the bound is a function only of the dimensions of the problem: the number of vertices and arcs.}
+
+While successive shortest path is of significant historical interest, its performance is inferior to more modern approaches. The relaxation algorithm is an approach of more recent vintage, developed in 1987 by Bertsekas and Tseng~\cite{BertsekasMethod:1988,BertsekasCodes:1988,BertsekasTseng:94}. Its approach is inspired by Lagrangian relaxation, a technique used for solving integer programming problems. Perhaps surprisingly, it can be shown to be a special case of the successive shortest-path algorithm~\cite[\S9.10]{Ahuja:1993}.
+
+The worst-case runtime complexity of the relaxation algorithm is exponential. But in practice, the method is highly efficient on many problem instances, and is sometimes the fastest solution method~\cite{KiralyKovacs:2012}.
+
+\subsection{Cycle cancelling}
+
+Originally proposed by Klein~\cite{Klein:1967}, cycle cancelling has inspired a large number of variants. Klein's version of the algorithm runs in exponential time, but variants have improved on this by carefully choosing which cycles to cancel.
+
+An important special-case is the minimum-mean cycle cancelling algorithm, devised by Goldberg and Tarjan~\cite{Goldberg:1989}, which is (strongly) polynomial. Although not the first polynomial time algorithm devised for the minimum-cost flow problem, it is one of the simplest. Research into variants of cycle cancelling has continued into recent years, with Sokkalingam \textit{et al.}\ publishing in 2000 an algorithm with an improved asymptotic bound~\cite{Sokkalingam:2000}.
+
+\subsection{Cost scaling}
+
+The most modern class of minimum-cost flow algorithms, cost scaling, was first proposed in the 1980s by Rock~\cite{Rock:1980} and, independently, Bland and Jensen~\cite{Bland:1985}. Goldberg and Tarjan developed an improved method in 1990~\cite{Goldberg:1990}, using the concept of $\epsilon$-optimality due (independently) to Bertsekas~\cite{Bertsekas:1979} and Tardos~\cite{Tardos:1985}. This can be viewed as a generalisation of their well-known and highly successful push-relabel algorithm for the maximum flow problem~\cite{Goldberg:1988}.
+
+The algorithm by Goldberg and Tarjan offers some of the best theoretical and practical performance. Moreover, Goldberg \textit{et al.}\ spent considerable time in the late 1990s developing efficient implementations of this algorithm, including devising heuristics to guide the solver~\cite{Goldberg:1997,Bunnagel:1998}.
+
+Work has continued up until the present day. In 2008, Goldberg published an improved version of his push-relabel algorithm for the maximum flow problem~\cite{Goldberg:2008}. Kiraly and Kovacs demonstrated in 2012 that this approach can also be incorporated into the minimum-cost flow algorithm, with similar performance gains~\cite{KiralyKovacs:2012}.
+
+\subsection{Comparative evaluation}
+
+As we have seen, many different classes of flow algorithm have been developed, each with a number of variants. The above list is by no means comprehensive: I have intentionally omitted the numerous other algorithms which have been supplanted by recent algorithmic advances.
+
+The goal of my project is to develop a solution method that outperforms state-of-the-art solvers, when applied to the problem of flow scheduling. But how can algorithms be compared, to identify the current state of the art? 
+
+Asymptotic complexity can be a useful basis for evaluation, but is sometimes misleading. Flow algorithms usually considerably outperform their worst-case time complexity. The relaxation algorithm described in \cref{sec:intro-related-work-ssp} is perhaps the most extreme example of this: in the worst case it is exponential, but in practice it outperforms many strongly polynomial algorithms.
+
+Consequently, comparison of flow algorithms is most often done by empirical benchmarks. The most up to date study in this area is due to Kiraly and Kovacs, who tested all the algorithms described above on a variety of different classes of flow networks~\cite{KiralyKovacs:2012,Kovacs:2015}.
+
+In addition, many implementations of these algorithms are available. These include CS2 for the cost-scaling algorithm~\cite{CS2:2009}, RelaxIV for the relaxation algorithm~\cite{RelaxIV:2011} and the LEMON optimisation library which provides most of the algorithms described above~\cite{LEMON:2011,LEMON:Software}. I draw on these implementations during my evaluation to compare my solver against the state of the art.

@@ -14,6 +14,8 @@ BellmanFord::BellmanFord(ResidualNetwork &g) : g(g) {
 	distance.resize(numNodes + 1);
 }
 
+BellmanFord::~BellmanFord() { }
+
 void BellmanFord::relax(const Arc &arc) {
 	uint32_t src = arc.getSrcId(), dst = arc.getDstId();
 	int64_t through_distance = distance[src] + arc.getCost();
@@ -103,7 +105,5 @@ std::set<std::queue<Arc *>> BellmanFord::run() {
 	relaxRepeatedly();
 	return negativeCycles();
 }
-
-BellmanFord::~BellmanFord() { }
 
 } /* namespace flowsolver */

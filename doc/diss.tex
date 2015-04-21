@@ -1,0 +1,388 @@
+\documentclass[12pt,a4paper,twoside,notitlepage]{report}
+
+% Allow large number of packages to be used. Workaround LaTeX limitation.
+\usepackage{etex}
+\reserveinserts{28}
+
+% Explictly specify character encoding
+\usepackage[utf8]{inputenc}
+
+% Change font to Palatino
+\usepackage[sc]{mathpazo}
+\linespread{1.05}         % apparently Palatino needs more leading space between lines
+\usepackage[T1]{fontenc}
+
+% Page formatting
+\usepackage[parfill]{parskip} 
+\usepackage[margin=1in]{geometry}
+
+% Internationalization: customize to UK English style
+\usepackage{csquotes}
+\usepackage[UKenglish]{babel}
+
+% Make list environments more configurable
+\usepackage{enumitem}
+
+% PROOFREAD ONLY
+\usepackage{showidx}
+\usepackage[textsize=footnotesize,textwidth=0.8in]{todonotes}
+\setlength{\marginparwidth}{0.9in}
+\usepackage{todonotes}
+
+\usepackage{gitinfo}
+
+% Hyperlinks
+% Note must load url before hyperref
+\usepackage[hyphens]{url}
+
+% Citations
+\usepackage{varioref}
+\usepackage{nameref}
+% TODO: What citation style should I use?
+\usepackage[backend=biber,bibencoding=UTF-8,style=numeric]{biblatex}
+\bibliography{diss.bib}
+\DeclareBibliographyCategory{cited}
+\AtEveryCitekey{\addtocategory{cited}{\thefield{entrykey}}}
+\usepackage{footnote}
+
+%%% Mathematics
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{braket}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+
+%% Theorems
+\theoremstyle{plain}
+% Define theorem to be numbered by section
+% Make lemma and corollary share same counter
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+% Define style for definitions, remarks
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{assumption}{Assumption}[section]
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+
+%% Some new operators
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+% Figures
+\usepackage{verbatim} % environment where formatting preserved exactly
+\usepackage{tikz} % language for figures
+\usepackage{booktabs}
+\usepackage{subcaption} 
+\usepackage{xcolor}
+\usepackage[export]{adjustbox}
+\usepackage{graphicx}
+\usepackage[justification=centering,font=it]{caption}
+\usepackage{colortbl}
+\usepackage{tabularx}
+
+\graphicspath{figures/}
+\DeclareGraphicsExtensions{.pdf, .png, .jpg}
+
+% Formatting of units
+\usepackage{siunitx}
+
+% tick and cross marks
+% per http://tex.stackexchange.com/questions/42619/x-mark-to-match-checkmark
+\usepackage{pifont}
+\newcommand{\cmarkcolor}{\color{green}}
+\newcommand{\xmarkcolor}{\color{red}}
+\newcommand{\mmarkcolor}{\color{blue}}
+\newcommand{\cmark}{{\cmarkcolor \ding{51}}}
+\newcommand{\xmark}{{\xmarkcolor \ding{55}}}
+%\newcommand{\mmark}{{\color{yellow} \textbf{--}}}
+\newcommand{\mmark}{{\mmarkcolor \tikz \node[draw,circle]{};}}
+
+%%% Indexing
+%% Hyperref
+\usepackage[bookmarks,pdftex,pdfpagelabels,verbose]{hyperref}
+% Colour of links, and bio information
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black},
+    pdfauthor = {Adam Gleave},
+    pdftitle = {Flow network scheduling},
+    pdfcreator = {LaTeX, git commit \gitAbbrevHash}
+}
+
+%% Index
+\usepackage{makeidx}
+\makeindex
+
+%%% Pseudocode and code listings
+%% Pseudocode
+\usepackage[section]{algorithm} % floating environment
+\usepackage[noend]{algpseudocode} % algorithmicx package
+% custom commands for algorithmicx
+\newcommand*\Let[2]{\State #1 $\gets$ #2}
+\newcommand{\Break}{\State \textbf{break} }
+\renewcommand{\algorithmicrequire}{\textbf{Precondition:}}
+\renewcommand{\algorithmicensure}{\textbf{Postcondition:}}
+
+%% Code listings
+\usepackage{listings}
+% default listings package configuration for highlighting C code
+\lstset{
+    language = C,
+    basicstyle=\ttfamily,
+    keywordstyle=\color[rgb]{0,0,1}\ttfamily\bfseries,
+    identifierstyle=\ttfamily,
+    stringstyle=\color[rgb]{0.627,0.126,0.941}\ttfamily,
+    commentstyle=\color[rgb]{0.133,0.545,0.133}\ttfamily,
+    morecomment=[l][\color{magenta}]{\#},
+    captionpos=b,
+}
+
+
+%%% Cleverref: must load after hyperref, so orphaned
+\usepackage{cleveref}
+% use \S and \S\S for section references
+% SOMEDAY: do we even want the \S symbol?
+\makeatletter
+\newcommand{\crefformats}[2]{%
+    \@for\next:=#1\do{%
+        \expandafter\crefformat\expandafter{\next}{#2}%
+    }%
+}
+\makeatother
+\makeatletter
+\newcommand{\crefnames}[3]{%
+    \@for\next:=#1\do{%
+        \expandafter\crefname\expandafter{\next}{#2}{#3}%
+    }%
+}
+\makeatother
+\newcommand{\crefsections}[0]{
+    % override singular case, getting rid of any space
+    \crefformats{chapter,section,subsection}{\S##2##1##3}
+    % this overrides the default singular case, which has already been overridden; no-op. But replaces plural case with \S\S.
+    \crefnames{chapter,section,subsection}{\S}{\S\S}
+}
+\crefsections
+% Tell cleveref what plural forms for theorems are
+\crefname{thm}{theorem}{theorems}
+\crefname{lemma}{lemma}{lemmas}
+\crefname{cor}{corollary}{corollaries}
+\crefname{defn}{definition}{definitions}
+\crefname{assumption}{assumption}{assumptions}
+\crefname{remark}{remark}{remarks}
+
+% makes line numbers in different algorithms distinguishable from each other
+\makeatletter
+\newcounter{algorithmicH}% New algorithmic-like hyperref counter
+\let\oldalgorithmic\algorithmic
+\renewcommand{\algorithmic}{%
+    \stepcounter{algorithmicH}% Step counter
+    \oldalgorithmic}% Do what was always done with algorithmic environment
+\renewcommand{\theHALG@line}{ALG@line.\thealgorithmicH.\arabic{ALG@line}}
+\makeatother
+
+% Customize Table of Contents. Don't include list of figures or table of contents in the table of contents. Do still show the bibliography.
+\usepackage[nottoc,notlof,notlot]{tocbibind}
+% This gives more control over lists of {figures,tables,...} sections
+% In particular, it by default disables the (unwanted) page break between them
+\usepackage{tocloft}
+
+% Miscellaneous formatting
+\raggedbottom					% try to avoid widows and orphans
+\sloppy
+\clubpenalty 1000
+\widowpenalty 1000
+\hyphenpenalty 10000
+\makeatletter
+\pgfdeclareshape{document}{
+	\inheritsavedanchors[from=rectangle] % this is nearly a rectangle
+	\inheritanchorborder[from=rectangle]
+	\inheritanchor[from=rectangle]{center}
+	\inheritanchor[from=rectangle]{north}
+	\inheritanchor[from=rectangle]{south}
+	\inheritanchor[from=rectangle]{west}
+	\inheritanchor[from=rectangle]{east}
+	\inheritanchor[from=rectangle]{north east}
+	\inheritanchor[from=rectangle]{north west}
+	% ... and possibly more
+	\backgroundpath{% this is new
+	% store lower right in xa/ya and upper right in xb/yb
+	\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+	\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+	% compute corner of ‘‘flipped page’’
+	\pgf@xc=\pgf@xb \advance\pgf@xc by-10pt % this should be a parameter
+	\pgf@yc=\pgf@yb \advance\pgf@yc by-10pt
+	% construct main path
+	\pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+	\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+	\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+	\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+	\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+	\pgfpathclose
+	% add little corner
+	\pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+	\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+	\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+	\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+	}
+}
+\makeatother
+
+\begin{document}
+
+\nocite{*}                      % detect unused references
+%\bibliographystyle{acm}		% used ieeetr in the proposal
+								% what is the style guide consensus?
+
+%TC:ignore
+%%
+\pagenumbering{Alph}
+\pagestyle{empty}
+
+\hfill{\large \bf Adam Gleave}
+
+\vspace*{30mm}
+
+\begin{center}
+	% TODO: Name for project; logo; snappy title
+	{\LARGE \textbf{Cluster scheduling using flow networks}} \\
+    \large
+	\vspace*{5mm}
+	Computer Science Tripos, Part II \\
+	\vspace*{5mm}
+	St John's College \\
+	\vspace*{5mm}
+    % PROOFREAD: Replace with fixed date. Make sure to have 'th/nd' in superscript
+	\today
+\end{center}
+\clearpage
+\vspace*{\fill}
+
+TBC: Back of cover sheet
+
+\vspace*{\fill}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proforma
+
+\setcounter{page}{1}
+\pagenumbering{roman}
+\pagestyle{plain}
+\chapter*{Proforma}
+\vspace*{-2em}
+{
+	\begin{tabular}{ll}
+		Name:			& \textbf{Adam Gleave}					\\
+		College:		& \textbf{St John's College}\\
+    Project Title:	& \textbf{Cluster scheduling using flow networks}\\
+		Examination:	& \textbf{Computer Science Tripos, Part II (June 2015)}\\
+    Word Count:		& \textbf{\input{diss-auto-wordcount} \unskip}\\
+		Project Originators:	& \textbf{Ionel Gog}\\
+    Supervisors:	& \textbf{Ionel Gog \& Malte Schwarzkopf}\\
+	\end{tabular}
+}
+
+% move this here so the table above doesn't get extra space added (which I don't want)
+\renewcommand{\arraystretch}{1.3}
+\vspace*{-1em}
+\section*{Original aims of the project}
+
+TBC
+
+\vspace*{-1em}
+\section*{Work completed}
+
+TBC
+
+\vspace*{-1em}
+\section*{Special difficulties}
+
+TBC
+
+\newpage
+
+\section*{Declaration}
+
+I, Adam Gleave of St John's College, being a candidate for Part II of the 
+Computer Science Tripos, hereby declare that this dissertation and the work 
+described in it are my own work, unaided except as may be specified below, and
+that the dissertation does not contain material that has already been used to
+any substantial extent for a comparable purpose.
+
+\bigskip
+\leftline{Signed}
+\medskip
+% PROOFREAD: Replace with fixed date. Make sure to have 'th/nd' in superscript
+\leftline{Date: \today}
+
+\clearpage
+
+\tableofcontents
+
+\listofalgorithms
+\listoffigures
+\listoftables
+
+\newpage
+\section*{Acknowledgements}
+
+TODO
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapters
+\clearpage	% before we change the page numbering
+
+%TC:endignore
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\pagestyle{headings}
+
+\include{diss-intro}
+
+\cleardoublepage
+\include{diss-prep}
+
+\cleardoublepage
+\include{diss-impl}
+
+\cleardoublepage
+\include{diss-eval}
+
+\cleardoublepage
+\include{diss-conc}
+
+\cleardoublepage
+
+% Bib and Appendices etc
+\printbibliography[heading=bibintoc,category=cited]
+
+% PROOFREAD ONLY
+% N.B. Will give warnings about defernumbers=true recommended
+% These can safely be ignored, since this section should be empty
+\printbibliography[title={WARNING: Uncited},notcategory=cited]
+
+% PROOFREAD ONLY
+% % Index
+% \cleardoublepage
+% %\addcontentsline{toc}{chapter}{Index}
+% \printindex
+
+%TC:ignore
+\appendix
+\chapter{Heuristics for the cost scaling algorithm} \label{appendix:csheuristics}
+\input{diss-csheuristics} 
+
+\chapter{Test specifications}
+State specifications of test machine/cluster.
+
+% Note project proposal must appear at very end of dissertation, so do not move this!
+\chapter{Project proposal} \label{appendix:proposal}
+\input{propbody}
+%TC:endignore
+
+\end{document}
