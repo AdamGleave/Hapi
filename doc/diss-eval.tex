@@ -35,13 +35,45 @@ Comparisons between different versions of the *same* algorithm implementation. S
 
 Optimisations may be algorithmic in nature, or more low-level, e.g. laying out data to make use of caches.
 
+\subsection{Successive shortest path algorithm}
+
+% OPT: Complete list
+
+\subsubsection{Large vs small heap}
+
+\subsubsection{Vector vs map reverse index}
+
+\subsubsection{Terminating Djikstra early}
+
+\subsection{Relaxation algorithm}
+
+% OPT: Complete list
+
+\subsubsection{Caching zero reduced cost arcs crossing cut}
+
+\subsubsection{Cache positive reduced cost arcs as well} 
+
 \subsection{Cost scaling}
 
-% First-active approach: when relabel happens, add s to rear or front of Q?
+% OPT: Complete list
 
-\subsection{Augmenting path}
+\subsubsection{Wave vs FIFO}
+
+\subsubsection{Scaling factor}
+
+% Could also test out first-active approach: when relabel happens, add s to front of Q rather than rear
 
 \subsection{DIMACS Parser}
+
+% OPT: Complete list
+
+\subsubsection{Pruning zero capacity arcs}
+
+% This is a bit trivial, is it really worth it?
+
+\subsubsection{Set vs getArc}
+
+% Maintain set of arcs that already exist, to speed lookup. This is a bit less trivial and has some interesting scope for data structures discussion, so perhaps worth using.
 
 \section{Performance evaluation}
 

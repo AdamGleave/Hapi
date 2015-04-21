@@ -100,7 +100,6 @@ On networks produced by flow schedulers, the asymptotic complexity is $O(n^3CU)$
 
 % Proofread: 1 major edits, 2 minor edits
 
-% Note this algorithm offers polynomial performance for Quincy-like graphs because it is independent of cost, whereas cycle cancelling is not
 In general, this algorithm runs in weakly polynomial time. However, for the class of networks produced by flow schedulers this improves to a strongly polynomial time bound of $O(n^2 \lg n)$. Successive shortest path lends itself readily to an incremental implementation (see \cref{sec:impl-incremental}), but is inappropriate for an approximate solver.
 
 \subsection{Algorithm description}
@@ -132,9 +131,6 @@ Each iteration of the algorithm identifies a source node $s$ and sink node $t$. 
 The amount of flow $\delta$ sent over the path is limited by the minimum residual capacity of arcs along $P$. $\delta$ is further restricted so that a non-negative supply at $s$ and demand at $t$ are maintained. This guarantees the excess at supply nodes and deficit at demand nodes is monotonically decreasing, ensuring each iteration improves the feasibility of the flow.
 
 \subsection{Optimisations}
-
-% TBC: ap_big_vs_small_heap: keep all vertices in the priority queue, or just add them as needed? Performance will depend on how many vertices get explored before Djikstra quits.
-% Unclear whether best to put it here, or in the evaluation section, or both?
 
 \subsubsection{Choice of shortest-path algorithm}
 The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure.
