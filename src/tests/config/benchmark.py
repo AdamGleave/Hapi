@@ -239,27 +239,27 @@ FULL_IMPLEMENTATIONS = {
    "arguments" : ["cost_scaling"]
   },
   ## Parser
-  "parser_getarc": {
-    "version": "5682b38",
+  # Note some of these implementations are so old they don't report ALGOTIME.
+  # (But you don't want that measure anyway, since you want to capture
+  # the parser *overhead*!)
+  "parser_unoptimised": {
+    "version": "opt_parser_unoptimised",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments" : ["cost_scaling"]
   },
-   "parser_set": {
-     "version": "04db7f8",
+  "parser_ignore_zero_capacity": {
+    "version": "opt_parser_ignore_zero_cap",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments" : ["cost_scaling"]
+  },
+   "parser_set_of_arcs": {
+     "version": "opt_parser_set_arc",
      "target": "find_min_cost",
      "path": "bin/find_min_cost",
      "arguments" : ["cost_scaling"]
   },
-  # Note this implementation is so old it doesn't report ALGOTIME.
-  # (But you don't want that measure anyway, since you want to capture
-  # the parser *overhead*!)
-  "parser_ignore_zero_capacity": {
-    "version": "31a0d47",
-    "target": "find_min_cost",
-    "path": "bin/find_min_cost",
-    "arguments" : ["cost_scaling"]
-  }
 }
 
 # Reference implementations - LEMON
@@ -424,10 +424,10 @@ FULL_TESTS = {
     "iterations": 5,
     "tests": {
       "set": {
-        "implementation": "f_parser_set",
+        "implementation": "f_parser_set_of_arcs",
       },
       "getarc": {
-        "implementation": "f_parser_getarc",
+        "implementation": "f_parser_ignore_zero_capacity",
       },
     },
   },
@@ -436,7 +436,7 @@ FULL_TESTS = {
    "iterations": 5,
    "tests": {
      "all_arcs": {
-       "implementation": "f_parser_getarc",
+       "implementation": "f_parser_unoptimised",
      },
      "ignore_zero_cap": {
        "implementation": "f_parser_ignore_zero_capacity",

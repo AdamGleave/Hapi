@@ -41,17 +41,23 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 \subsubsection{Large vs small heap}
 
+% Covered by: ap_big_vs_small_heap
+
 \subsubsection{Vector vs map reverse index}
 
+% Covered by: ap_big_vs_small_heap
+
 \subsubsection{Terminating Djikstra early}
+
+% Covered by: ap_full_vs_partial_djikstra
 
 \subsection{Relaxation algorithm}
 
 % OPT: Complete list
 
-\subsubsection{Caching zero reduced cost arcs crossing cut}
+\subsubsection{Caching arcs crossing the cut}
 
-\subsubsection{Cache positive reduced cost arcs as well} 
+% Covered by: relax_cache_arcs
 
 \subsection{Cost scaling}
 
@@ -59,7 +65,11 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 \subsubsection{Wave vs FIFO}
 
+% Covered by: cs_wave_fs_fifo
+
 \subsubsection{Scaling factor}
+
+% Covvered by: cs_scaling_factor
 
 % Could also test out first-active approach: when relabel happens, add s to front of Q rather than rear
 
@@ -69,11 +79,14 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 \subsubsection{Pruning zero capacity arcs}
 
-% This is a bit trivial, is it really worth it?
+% This is a bit trivial. Possibly best ignored.
+% Covered by: parser_ignore_zero_capacity
 
 \subsubsection{Set vs getArc}
 
 % Maintain set of arcs that already exist, to speed lookup. This is a bit less trivial and has some interesting scope for data structures discussion, so perhaps worth using.
+
+% Covered by: parser_set_vs_getarc
 
 \section{Performance evaluation}
 
