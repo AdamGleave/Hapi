@@ -155,10 +155,6 @@ void RELAX::update_cut(uint32_t new_node) {
 				// ignore -- not in residual network
 			}
 		}
-
-		if (reduced_cost == 0) {
-
-		}
 	}
 }
 
