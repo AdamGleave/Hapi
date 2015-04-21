@@ -129,6 +129,42 @@ RUNTIME_MAX = 2**64 - 1
 def percentRuntime(p):
   return TRACE_START + (TRACE_LENGTH - TRACE_START) * (p / 100.0)
 
+##### Compilers
+
+STANDARD_FLAGS = "-DNDEBUG" 
+
+# Template
+# "cc": C compiler
+# "cxx": C++ compiler
+# "flags": C & C++ flags
+# "cflags": C-only flags
+# "cxxflags": C++-only flags
+
+COMPILER_GCC = {
+    "cc": "gcc",
+    "cxx": "g++",
+}
+
+COMPILER_CLANG = {
+    "cc": "clang",
+    "cxx": "clang++",
+} 
+
+COMPILERS = {
+  "gcc_debug": extendDict(COMPILER_GCC, {"flags": "-g"}),
+  "gcc_O0": extendDict(COMPILER_GCC, {"flags": "-O0"}),
+  "gcc_O1": extendDict(COMPILER_GCC, {"flags": "-O1 -DNDEBUG"}),
+  "gcc_O2": extendDict(COMPILER_GCC, {"flags": "-O2 -DNDEBUG"}),
+  "gcc_O3": extendDict(COMPILER_GCC, {"flags": "-O3 -DNDEBUG"}),
+  "clang_debug": extendDict(COMPILER_CLANG, {"flags": "-g"}),
+  "clang_O0": extendDict(COMPILER_CLANG, {"flags": "-O0"}),
+  "clang_O1": extendDict(COMPILER_CLANG, {"flags": "-O1 -DNDEBUG"}),
+  "clang_O2": extendDict(COMPILER_CLANG, {"flags": "-O2 -DNDEBUG"}),
+  "clang_O3": extendDict(COMPILER_CLANG, {"flags": "-O3 -DNDEBUG"}),
+}
+
+DEFAULT_COMPILER = "gcc_O3"
+
 ##### Implementations
 
 ### Full solvers
@@ -327,6 +363,20 @@ FULL_TESTS = {
         "implementation": "f_cs_goldberg",
       },
     },
+  },   
+  "development_only_compilers": {
+    "files": FULL_DATASET["google"],
+    "iterations": 1,
+    "tests": {
+      "goldberg_slow": {
+        "implementation": "f_cs_goldberg",
+        "compiler": "gcc_debug"
+      },
+      "goldberg_fast": {
+        "implementation": "f_cs_goldberg",
+        "compiler": "gcc_O3"
+      },
+    },
   },
               
   ### Optimisation tests
@@ -413,7 +463,7 @@ FULL_TESTS = {
     "tests": { 
       str(x): {
         "implementation": "f_cs_latest",
-        "arguments": ["--scaling--factor", x]
+        "arguments": ["--scaling-factor", x]
       } for x in range(2,32)
     }
   },

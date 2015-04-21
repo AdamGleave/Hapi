@@ -55,3 +55,8 @@ def mergeDicts(dicts, tags, prefix):
     result.update(new_dict)
   
   return result
+
+def extendDict(d1, d2):
+  d = d1.copy()
+  d.update(d2)
+  return d

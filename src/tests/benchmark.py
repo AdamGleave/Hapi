@@ -22,6 +22,12 @@ class flushfile:
 def versionDirectory(version):
   return os.path.join(config.WORKING_DIRECTORY, version)
 
+def implementationKey(instance):
+  key = instance["implementation"]
+  if "compiler" in instance:
+    key += "_" + instance["compiler"]
+  return key
+
 def gitCommitID(version):
   # Make sure we're inside the git repository
   os.chdir(config.PROJECT_ROOT)
@@ -35,17 +41,21 @@ def gitCommitID(version):
   return commit_id.decode("utf-8")
 
 def findImplementations(tests):
-  implementation_names = set()
-  for case in tests.values():
-    for instances in case["tests"].values():
-      implementation_names.add(instances["implementation"])
-  
   implementations = {}
-  for name in implementation_names:
-    implementation = config.IMPLEMENTATIONS[name]
-    # rewrite to canonical version
-    implementation["version"] = gitCommitID(implementation["version"])
-    implementations[name] = implementation
+  for case in tests.values():
+    for instance in case["tests"].values():
+      name = instance["implementation"]
+      key = name
+      if "compiler" in instance:
+        key += "_" + instance["compiler"]
+        
+      if key not in implementations:   
+        implementation = config.IMPLEMENTATIONS[name].copy()
+        # rewrite to canonical version
+        implementation["version"] = gitCommitID(implementation["version"])
+        if "compiler" in instance:
+          implementation["compiler"] = instance["compiler"]
+        implementations[key] = implementation
   
   return implementations
 
@@ -53,9 +63,12 @@ def findBuildTargets(implementations):
   build_targets = {}
   for implementation in implementations.values():
     version = implementation["version"]
-    existing_targets = build_targets.get(version, set())
+    compiler = implementation.get("compiler", config.DEFAULT_COMPILER)
+    existing_compilers = build_targets.get(version, dict())
+    existing_targets = existing_compilers.get(compiler, set())
     existing_targets.add(implementation["target"])
-    build_targets[version] = existing_targets
+    existing_compilers[compiler] = existing_targets
+    build_targets[version] = existing_compilers
   return build_targets
 
 def clean():
@@ -83,29 +96,41 @@ def gitCheckout(version):
     sh.tar(sh.git.archive(version), "-xC", directory)
     return True
   
-def build(version, targets):
+def build(version, to_build):
   saved_cwd = os.getcwd()
+
+  root_directory = os.path.join(config.WORKING_DIRECTORY, version)
+  source_directory = os.path.join(root_directory, config.SOURCE_PREFIX)
   
-  directory = os.path.join(config.WORKING_DIRECTORY, version)
-  build_directory = os.path.join(directory, config.BUILD_PREFIX)
-  source_directory = os.path.join(directory, config.SOURCE_PREFIX)
-  log_directory = os.path.join(directory, "log") 
+  for (compiler_name, targets) in to_build.items():
+    directory = os.path.join(root_directory, compiler_name)
+    build_directory = os.path.join(directory, config.BUILD_PREFIX)
+    log_directory = os.path.join(directory, "log") 
+    
+    compiler = config.COMPILERS[compiler_name]
   
-  try:
-    os.mkdir(build_directory)
-    os.mkdir(log_directory)
+    try:
+      os.makedirs(build_directory)
+      os.mkdir(log_directory)
+    except FileExistsError:
+      # ignore -- we have already built before, directories exist
+      pass
     os.chdir(build_directory)
-    sh.cmake(source_directory)
-  except FileExistsError:
-    # ignore -- we have already built before, no need to regenerate cmake
-    pass
-  # always re-run make: we might be building a new target.
-  # (If not, it's harmless: make will do nothing for targets already built.)
-  os.chdir(build_directory)
-  sh.make(config.MAKE_FLAGS, *targets, 
-          _out=os.path.join(log_directory, "makefile.out"),
-          _err=os.path.join(log_directory, "makefile.err"))
-  
+    
+    # run cmake
+    c_flags = compiler.get("flags", "") + " " + compiler.get("cflags", "")
+    cxx_flags = compiler.get("flags", "") + " " + compiler.get("cxxflags", "")
+    sh.cmake(source_directory, "-DCMAKE_BUILD_TYPE=Custom",
+             "-DCMAKE_C_COMPILER=" + compiler["cc"], 
+             "-DCMAKE_CXX_COMPILER=" + compiler["cxx"],
+             "-DCMAKE_C_FLAGS_CUSTOM=" + c_flags,
+             "-DCMAKE_CXX_FLAGS_CUSTOM=" + cxx_flags)
+    
+    # run make 
+    sh.make(config.MAKE_FLAGS, *targets, 
+            _out=os.path.join(log_directory, "makefile.out"),
+            _err=os.path.join(log_directory, "makefile.err"))
+    
   os.chdir(saved_cwd)
   
 def buildImplementations(implementations):
@@ -151,13 +176,12 @@ def createWrapperCommand(exe_path, arguments):
   return runCommand
 
 def helperCreateTestInstance(instance):
-  implementation_name = instance["implementation"]
-  implementation = implementations[implementation_name]
+  implementation = implementations[implementationKey(instance)]
   
   version_directory = versionDirectory(implementation["version"])
-  exe_path = os.path.join(version_directory,
-                          config.BUILD_PREFIX,
-                          implementation["path"])
+  compiler = implementation.get("compiler", config.DEFAULT_COMPILER)
+  exe_path = os.path.join(version_directory, compiler, 
+                          config.BUILD_PREFIX, implementation["path"])
   arguments = []
   if "arguments" in implementation:
     arguments += implementation["arguments"]
@@ -598,7 +622,6 @@ if __name__ == "__main__":
   
   print("*** Building ***")
   implementations = findImplementations(tests)
-  # TODO: uncomment/make an option
   buildImplementations(implementations)
   
   print("*** Running tests ***")

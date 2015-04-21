@@ -2,13 +2,26 @@ cmake_minimum_required(VERSION 2.8.12)
 set(PROJECT_NAME_STR flowsolver)
 project(${PROJECT_NAME_STR} C CXX)
 
+if(CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_CONFIGURATION_TYPES Debug Release Custom)
+  set(CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES}" CACHE STRING
+                                "Reset the configurations to what we need"
+                                 FORCE)
+endif()
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
-set(GNU_LIKE_FLAGS "-Wall -Wextra -pedantic -std=c++11 -g")
-if(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS ${GNU_LIKE_FLAGS})
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS ${GNU_LIKE_FLAGS})
+set(GNU_LIKE_FLAGS "-Wall -Wextra -pedantic")
+set(GNU_LIKE_CXX_FLAGS "-std=c++11")
+set(GNU_LIKE_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(GNU_LIKE_FLAGS_DEBUG "-g")
+if((CMAKE_COMPILER_IS_GNUCXX) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
+  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${GNU_LIKE_FLAGS})
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${GNU_LIKE_FLAGS} ${GNU_LIKE_CXX_FLAGS})
+  set(CMAKE_C_FLAGS_RELEASE ${GNU_LIKE_FLAGS_RELEASE})
+  set(CMAKE_CXX_FLAGS_RELEASE ${GNU_LIKE_FLAGS_RELEASE})
+  set(CMAKE_C_FLAGS_DEBUG ${GNU_LIKE_FLAGS_DEBUG})
+  set(CMAKE_CXX_FLAGS_DEBUG ${GNU_LIKE_FLAGS_DEBUG})
 endif()
 
 # treated as system include folder
