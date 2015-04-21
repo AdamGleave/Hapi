@@ -181,7 +181,7 @@ FULL_IMPLEMENTATIONS = {
   ### My implementations - specific versions
   ### These are used for testing particular optimisations which have been applied
   
-  # Augmenting path    
+  ## Augmenting path    
   "ap_bigheap": {
      "version": "1540fc0",
      "target": "find_min_cost",
@@ -199,8 +199,33 @@ FULL_IMPLEMENTATIONS = {
      "target": "find_min_cost",
      "path": "bin/find_min_cost",
      "arguments" : ["augmenting_path"]
-  }, 
-  # Cost scaling
+  },
+  "ap_full_djikstra": {
+     "version": "opt_ap_full_djikstra",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+  },
+  ## RELAX
+  "relax_firstworking": {
+    "version": "73e0b68",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["relax"]
+  },
+  "relax_cache_zerorc": {
+    "version": "afe3a21",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["relax"]
+  },
+  "relax_cache_all": {
+    "version": "86f751f",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["relax"]
+  },
+  ## Cost scaling
   "cs_wave": {
    "version": "cs_wave",
    "target": "find_min_cost",
@@ -213,7 +238,7 @@ FULL_IMPLEMENTATIONS = {
    "path": "bin/find_min_cost",
    "arguments" : ["cost_scaling"]
   },
-  # Parser
+  ## Parser
   "parser_getarc": {
     "version": "5682b38",
     "target": "find_min_cost",
@@ -226,13 +251,15 @@ FULL_IMPLEMENTATIONS = {
      "path": "bin/find_min_cost",
      "arguments" : ["cost_scaling"]
   },
-  # RELAX
-  "relax_firstworking": {
-    "version": "f2cc904",
+  # Note this implementation is so old it doesn't report ALGOTIME.
+  # (But you don't want that measure anyway, since you want to capture
+  # the parser *overhead*!)
+  "parser_ignore_zero_capacity": {
+    "version": "31a0d47",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments": ["relax"]
-  },                
+    "arguments" : ["cost_scaling"]
+  }
 }
 
 # Reference implementations - LEMON
@@ -332,6 +359,41 @@ FULL_TESTS = {
     },
   },
               
+  # Test early termination of Djikstra's algorithm
+  "ap_full_vs_partial_djikstra": {
+    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
+    "iterations": 5,
+    "tests": {
+      "full": {
+        "implementation": "f_ap_full_djikstra",
+      },
+      "partial": {
+        "implementation": "f_ap_latest",
+      },
+    }, 
+  },
+              
+  ## Relaxation
+  
+  # Caching arcs crossing the cut
+  # zerorc case: only zero reduced cost cuts
+  # all case: every arc crossing the cut (separated into positive and zero rc)
+  "relax_cache_arcs": {
+    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
+    "iterations": 5,
+    "tests": {
+      "none": {
+        "implementation": "f_relax_firstworking",
+      },
+      "cache_zerorc": {
+        "implementation": "f_relax_cache_zerorc",
+      },
+      "cache_all": {
+        "implementation": "f_relax_cache_all",
+      },
+    }, 
+  },
+              
   ## Cost scaling
   "cs_wave_vs_fifo": {
     "files": FULL_DATASET["synthetic"],
@@ -368,6 +430,18 @@ FULL_TESTS = {
         "implementation": "f_parser_getarc",
       },
     },
+  },
+  "parser_ignore_zero_capacity": {
+   "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+   "iterations": 5,
+   "tests": {
+     "all_arcs": {
+       "implementation": "f_parser_getarc",
+     },
+     "ignore_zero_cap": {
+       "implementation": "f_parser_ignore_zero_capacity",
+     },
+   },
   },
  
   ### Comparison tests
