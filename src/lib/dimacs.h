@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstring>
 #include <vector>
+#include <unordered_set>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -36,6 +37,7 @@ public:
 		std::string line;
 
 		T *g = 0;
+		std::vector<std::unordered_set<uint32_t>> arcs_seen;
 		bool seen_node = false, seen_arc = false;
 		while (getline(is, line)) {
 			line_num++;
@@ -72,6 +74,7 @@ public:
 				assert(strcmp(problem, "min") == 0);
 
 				g = new T(num_nodes);
+				arcs_seen.resize(num_nodes + 1);
 				break;
 			case 'n':
 				// node descriptor line
@@ -108,7 +111,8 @@ public:
 
 				assert(lower_bound == 0);
 
-				if (g->getArc(src,dst) != 0) {
+				if (arcs_seen[src].count(dst) > 0 ||
+					arcs_seen[dst].count(src) > 0) {
 					LOG(WARNING) << "Duplicate definition of arc "
 								 << src << "->" << dst
 								 << " at line " << line_num;
@@ -116,6 +120,8 @@ public:
 					if (upper_bound != 0) {
 						// ignore zero-capacity arcs
 						g->addArc(src, dst, upper_bound, cost);
+						arcs_seen[src].insert(dst);
+						arcs_seen[dst].insert(src);
 					}
 				}
 
@@ -201,7 +207,7 @@ public:
 
 		// node descriptor lines
 		for (uint32_t id = 1; id <= num_nodes; ++id) {
-			int64_t supply = g.getSupply(id);
+			int64_t supply = g.getBalance(id);
 			if (supply != 0) {
 				os << boost::format("n %u %ld\n") % id % supply;
 			}
