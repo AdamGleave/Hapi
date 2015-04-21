@@ -171,12 +171,13 @@ def helperCreateTestInstance(instance):
 
 def createFullTestInstance(instance):
   parameters = helperCreateTestInstance(instance)
+  implementation = parameters["implementation"]
   
   arguments = parameters["arguments"].copy()
   if "offline_arguments" in implementation:
     arguments += implementation["offline_arguments"]
   
-  solver_type = parameters["implementation"]["type"]
+  solver_type = implementation["type"]
   if solver_type == "full":
     test_command = createNativeCommand(parameters["exe_path"],
                                        arguments)

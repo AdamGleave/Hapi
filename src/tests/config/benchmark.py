@@ -233,7 +233,7 @@ FULL_IMPLEMENTATIONS = {
    "arguments" : ["cost_scaling"]
   },
   "cs_vertexqueue": {
-   "version": "5784157",
+   "version": "1653e9e",
    "target": "find_min_cost",
    "path": "bin/find_min_cost",
    "arguments" : ["cost_scaling"]
