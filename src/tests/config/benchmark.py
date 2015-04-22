@@ -349,6 +349,8 @@ IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS]
 
 ##### Test cases
 
+DEFAULT_TIMEOUT = 360 # s, i.e. 10 minutes
+
 ### Tests on full graphs, comparing only full solvers
 FULL_TESTS = {
   # For testing benchmark suite only

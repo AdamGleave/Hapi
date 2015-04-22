@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
 import config.benchmark as config
-import os, sys, time 
-import csv, hashlib, sh, shutil 
+import os, sys, time, sh, shutil, signal, csv, hashlib 
+
+class Alarm(Exception):
+    pass
+
+def alarm_handler(signum, frame):
+    raise Alarm
 
 def error(*args):
   print(*args, file=sys.stderr)
@@ -180,6 +185,7 @@ def helperCreateTestInstance(instance):
   
   version_directory = versionDirectory(implementation["version"])
   compiler = implementation.get("compiler", config.DEFAULT_COMPILER)
+  timeout = instance.get("timeout", config.DEFAULT_TIMEOUT)
   exe_path = os.path.join(version_directory, compiler, 
                           config.BUILD_PREFIX, implementation["path"])
   arguments = []
@@ -190,6 +196,7 @@ def helperCreateTestInstance(instance):
   
   return {"implementation": implementation,
           "version_directory": version_directory,
+          "timeout": timeout,
           "exe_path": exe_path,
           "arguments": arguments}
 
@@ -205,7 +212,10 @@ def createFullTestInstance(instance):
   if solver_type == "full":
     test_command = createNativeCommand(parameters["exe_path"],
                                        arguments)
-    return (test_command, parameters["version_directory"])
+    return {"cmd": test_command,
+            "timeout": parameters["timeout"], 
+            "version_directory": parameters["version_directory"]
+           }
   else:
     error("Illegal solver type ", solver_type, "for full test")
 
@@ -226,11 +236,14 @@ def createIncrementalTestInstance(instance):
     test_command = createNativeCommand(exe_path, arguments)
   else: 
     error("Unrecognised implementation type ", implementation)
-      
-  return (test_command, parameters["version_directory"])
+
+  return {"cmd": test_command,
+          "timeout": parameters["timeout"], 
+          "version_directory": parameters["version_directory"]
+         }
 
 def runTestInstance(test_name, test_command, log_directory, fname, iteration,
-                    log_fname=None):
+                    timeout, log_fname=None):
   input_path = os.path.join(config.DATASET_ROOT, fname)
   
   if not log_fname:
@@ -253,36 +266,45 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
   out_path = os.path.join(log_directory, prefix + ".out")
   err_path = os.path.join(log_directory, prefix + ".err")
   with open(err_path, 'w') as err_file:      
-    running_command = test_command(input_path, out_path)
-    
-    start_time = time.time()
-    
-    algotime_prefix = "ALGOTIME: "
-    for error_line in running_command:
-      if error_line == "STARTTIME\n":
-        # Reset timer. We will not always receive STARTTIME, only when there
-        # is some overhead we want to discount. For example, snapshot_solver
-        # outputs STARTTIME immediately before launching the solver. This way,
-        # we can discount the time taken to generate the snapshots themselves.
-        start_time = time.time()
-      elif error_line.find(algotime_prefix) == 0:
-        # record algorithm running time
-        algorithm_running_time = error_line[len(algotime_prefix):].strip()
-        
-        # record total time (includes parsing, etc)          
-        end_time = time.time()
-        # TODO: Is this an accurate way of measuring the total times?
-        time_elapsed = end_time - start_time
-        
-        yield((algorithm_running_time, time_elapsed))
-        
-        # reset timer
-        start_time = time.time()
-      else:
-        err_file.write(error_line)
-    
-  if running_command.exit_code != 0:
-    raise ExitCodeException(result.exit_code)
+    signal.alarm(timeout)
+    try:
+      running_command = test_command(input_path, out_path)
+      
+      start_time = time.time()
+      
+      algotime_prefix = "ALGOTIME: "
+      for error_line in running_command:
+        if error_line == "STARTTIME\n":
+          # Reset timer. We will not always receive STARTTIME, only when there
+          # is some overhead we want to discount. For example, snapshot_solver
+          # outputs STARTTIME immediately before launching the solver. This way,
+          # we can discount the time taken to generate the snapshots themselves.
+          start_time = time.time()
+        elif error_line.find(algotime_prefix) == 0:
+          # record algorithm running time
+          algorithm_running_time = error_line[len(algotime_prefix):].strip()
+          
+          # record total time (includes parsing, etc)          
+          end_time = time.time()
+          # TODO: Is this an accurate way of measuring the total times?
+          time_elapsed = end_time - start_time
+          
+          yield((algorithm_running_time, time_elapsed))
+          
+          # reset timer
+          start_time = time.time()
+          # reset timeout
+          signal.alarm(timeout)
+        else:
+          err_file.write(error_line)
+      
+      # clear timeout
+      signal.alarm(0)  
+      if running_command.exit_code != 0:
+        raise ExitCodeException(result.exit_code)
+    except Alarm:
+      yield (("Timeout", "Timeout"))
+      running_command.terminate()
 
 # SOMEDAY: Ugly how logic and IO are intermixed here. You could perhaps switch
 # to putting the logic in a generator, and iterate over the results yielded
@@ -300,12 +322,18 @@ def runFullTest(case_name, case_config, result_file):
   for fname in case_config["files"]:
     print("\t", fname, ": ", end="")
     
+    timedout = set()
     for i in range(iterations):
       print(i, " ", end="")
       
-      for test_name, (test_command, version_directory) in test_instances.items():
-        log_directory = os.path.join(version_directory, "log", case_name)
-        run = runTestInstance(test_name, test_command, log_directory, fname, i)
+      for test_name, test_config in test_instances.items():
+        if test_name in timedout:
+          continue
+        
+        log_directory = os.path.join(test_config["version_directory"],
+                                     "log", case_name)
+        run = runTestInstance(test_name, test_config["cmd"], log_directory,
+                              fname, i, test_config["timeout"])
         times = list(run)
         
         assert(len(times) == 1)
@@ -318,6 +346,9 @@ def runFullTest(case_name, case_config, result_file):
                    "total_time": time_elapsed }
         result_writer.writerow(result)
         result_file.flush()
+        
+        if algorithm_time == "Timeout":
+          timedout.add(test_name)
         
     print("")
 
@@ -338,12 +369,18 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
     for i in range(iterations):
       print(i, " ", end="")
       
-      for test_name, (test_command, version_directory) in test_instances.items():
-        log_directory = os.path.join(version_directory, "log", case_name)
+      timedout = set()
+      for test_name, test_config in test_instances.items():
+        if test_name in timedout:
+          continue
+        
+        log_directory = os.path.join(test_config["version_directory"],
+                                     "log", case_name)
         
         delta_id = 0
-        for (algorithm_time, time_elapsed) in \
-              runTestInstance(test_name, test_command, log_directory, fname, i):
+        for (algorithm_time, time_elapsed) in runTestInstance(test_name, 
+                                              test_config["cmd"], log_directory, 
+                                              fname, i, test_config["timeout"]):
           result = { "test": test_name,
                      "file": fname,
                      "delta_id": delta_id, 
@@ -353,6 +390,9 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
           result_writer.writerow(result)
           result_file.flush()
           delta_id += 1
+          
+          if algorithm_time == "Timeout":
+            timedout.add(test_name)
         
     print("")
 
@@ -530,16 +570,22 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
     for i in range(iterations):
       print(i, " ", end="")
       
-      for test_name, (test_command, version_directory) in test_instances.items():
-        log_directory = os.path.join(version_directory, "log", case_name)
+      timedout = set()
+      
+      for test_name, test_config in test_instances.items():
+        if test_name in timedout:
+          continue
+        
+        log_directory = os.path.join(test_config["version_directory"], 
+                                     "log", case_name)
         
         delta_id = 0
         input_graph = trace_files[test_name]
         log_fname = os.path.relpath(os.path.join(log_directory, test_name),
                                     input_graph)
         for (algorithm_time, time_elapsed) in runTestInstance(
-                                         test_name, test_command, log_directory,
-                                         input_graph, i, log_fname=log_fname):
+                      test_name, test_config["cmd"], log_directory, input_graph, 
+                      i, test_config["timeout"], log_fname=log_fname):
           result = { "test": test_name,
                      "trace": trace_name,
                      "delta_id": delta_id, 
@@ -549,6 +595,9 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
           result_writer.writerow(result)
           result_file.flush()
           delta_id += 1
+          
+          if algorithm_time == "Timeout":
+            timedout.add(test_name)
         
     print("")
 
@@ -611,6 +660,9 @@ if __name__ == "__main__":
   # Unbuffered output. This is needed for progress indicators to display correctly,
   # since a new line is printed only at the end of each test.    
   sys.stdout = flushfile(sys.stdout)
+  
+  # Install signal handler for timeouts
+  signal.signal(signal.SIGALRM, alarm_handler)
       
   if len(sys.argv) == 1:
     # no arguments
