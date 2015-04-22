@@ -1,53 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def swapFileImpl(data):
-  new_data = {} 
-  for (file_name, file_res) in data.items():
-    for (impl_name, impl_res) in file_res.items():
-      new_impl_res = new_data.get(impl_name, {})
-      new_file_res = impl_res
-      new_impl_res[file_name] = new_file_res
-      new_data[impl_name] = new_impl_res
-      
-  return new_data
-
-def convertTime(time_str):
-  if time_str == 'Timeout':
-    return float('+inf')
-  else:
-    return float(time_str)
-    
-def mapOnFull(func, d):
-  res = {k1 : 
-           {k2 : func(v2) 
-            for k2, v2 in v1.items()}
-         for k1, v1 in d.items()}
-  return res
-
-def extractTime(d, final_key):
-  def timeLambda(x):
-    return list(map(lambda x : convertTime(x[final_key]), x))
-  return mapOnFull(timeLambda, d)
-
-def summaryStats(d):
-  def statsLambda(x):
-    return {'mean': np.mean(x), 'sd': np.std(x)}
-  return mapOnFull(statsLambda, d)
-
-def extractSummaryStats(l):
-  mean = [x['mean'] for x in l]
-  sd = [x['sd'] for x in l]
-  return (mean, sd)
-  
-def flattenDict(d, keys):
-  return [d[k] for k in keys]
+import analysis
 
 def generate(data, figconfig):
   # get means and standard deviation of each implementation on each dataset
-  data = swapFileImpl(data)
-  times = extractTime(data, 'algo')
-  stats = summaryStats(times)      
+  data = analysis.full_swap_file_impl(data)
+  times = analysis.full_extract_time(data, 'algo')
+  stats = analysis.full_summary_stats(times)      
   
   fig, ax = plt.subplots()
   
@@ -60,8 +20,8 @@ def generate(data, figconfig):
  
   nbar = 0
   for implementation in figconfig['implementations']:
-    data = flattenDict(stats[implementation], figconfig['datasets'])
-    mean, sd = extractSummaryStats(data)
+    data = analysis.flatten_dict(stats[implementation], figconfig['datasets'])
+    mean, sd = analysis.extract_summary_stats(data)
     
     bars = plt.bar(index + nbar * bar_width, mean, bar_width,
                    log=True,

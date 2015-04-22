@@ -26,11 +26,11 @@ if __name__ == "__main__":
     data_fname = os.path.join(config.DATA_ROOT, data_name + ".csv")
     data = None
     if test_type == "f":
-      data = parse.parseFull(data_fname, file_filter, test_filter)
+      data = parse.full(data_fname, file_filter, test_filter)
     elif test_type == "iof" or test_type == "ihy":
-      data = parse.parseIncrementalOffline(data_fname, file_filter, test_filter)
+      data = parse.incremental_offline(data_fname, file_filter, test_filter)
     elif test_type == "ion":
-      data = parse.parseIncrementalOnline(data_fname, file_filter, test_filter)
+      data = parse.incremental_online(data_fname, file_filter, test_filter)
     else:
       assert(false)
 

@@ -7,7 +7,7 @@ ONLINE_FIELDNAMES = ["test", "trace", "delta_id", "cluster_timestamp",
                      "iteration", "scheduling_latency", "algorithm_time", 
                      "flowsolver_time", "total_time"]
 
-def parse(fname, expected_fieldnames):
+def _parse(fname, expected_fieldnames):
   with open(fname) as csvfile:
     reader = csv.DictReader(csvfile)
     assert(reader.fieldnames == expected_fieldnames)
@@ -17,10 +17,10 @@ def parse(fname, expected_fieldnames):
 def identity(x):
   return x
   
-def parseFull(fname, file_filter=identity, test_filter=identity):
+def full(fname, file_filter=identity, test_filter=identity):
   """Returns in format dict of filenames -> dict of implementations 
      -> array of iterations -> dict of times (algo, total)"""
-  data = parse(fname, FULL_FIELDNAMES)
+  data = _parse(fname, FULL_FIELDNAMES)
   res = {}
   for row in data:
     file = file_filter(row['file'])
@@ -41,13 +41,13 @@ def parseFull(fname, file_filter=identity, test_filter=identity):
     
   return res
 
-def parseIncrementalOffline(fname, file_filter=identity, test_filter=identity):
+def incremental_offline(fname, file_filter=identity, test_filter=identity):
   """Returns in format dict of filename/trace -> array indexed by delta IDs -> 
      -> dict of implementations -> array of iterations 
      -> dict of times (algo, total)
      
      Covers offline and hybrid tests."""
-  data = parse(fname, OFFLINE_FIELDNAMES)
+  data = _parse(fname, OFFLINE_FIELDNAMES)
   res = {}
   for row in data:
     file = file_filter(row['file'])
@@ -74,13 +74,13 @@ def parseIncrementalOffline(fname, file_filter=identity, test_filter=identity):
     
   return res
 
-def parseIncrementalOnline(fname, trace_filter=identity, test_filter=identity):
+def incremental_online(fname, trace_filter=identity, test_filter=identity):
   """Returns in format dict of filename/trace -> dict of implementations ->  
      -> array of iterations 
      -> array of datums (cluster_timestamp, dict of algo, total, flowsolver, scheduling) 
      
      Covers offline and hybrid tests."""
-  data = parse(fname, ONLINE_FIELDNAMES)
+  data = _parse(fname, ONLINE_FIELDNAMES)
   res = {}
   for row in data:
     trace = trace_filter(row['trace'])
