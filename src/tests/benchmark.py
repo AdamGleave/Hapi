@@ -425,44 +425,6 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   out_path = os.path.join(log_directory, prefix + ".out")
   err_path = os.path.join(log_directory, prefix + ".err")
   
-  ### Record deltas for offline tests
-  if type == "hybrid":
-    trace_directory = os.path.join(parameters["version_directory"], "trace", 
-                                   trace_name, 
-                                   parameters["implementation"]["target"])
-    try:
-      os.makedirs(trace_directory)
-    except OSError:
-      # directory already created if not first time we've been run
-      pass
-    
-    # We must never generate the same trace path for two invocations which could
-    # produce *different* results. Different algorithms may certainly produce  
-    # different solutions, and hence different traces. Parameters may also 
-    # effect this. 
-    cli = " ".join([parameters["exe_path"]] + parameters["arguments"])
-    hash = hashlib.md5(cli.encode('utf-8'))
-    
-    delta_file = os.path.join(trace_directory, hash.hexdigest() + ".imin")
-    if os.path.exists(delta_file): 
-      yield (delta_file, "cached")
-    else:
-      yield (delta_file, "generating") 
-    simulator = simulator.bake("-graph_output_file", delta_file) 
-  
-  ### Configuration for the trace  
-  simulator = simulator.bake("-trace_path", trace_spec["dir"])
-  simulator = simulator.bake("-num_files_to_process", trace_spec["num_files"])
-  if "runtime" in trace_config:
-    simulator = simulator.bake("-runtime", trace_config["runtime"])
-  if "num_events" in trace_config:
-    simulator = simulator.bake("-max_events", trace_config["num_events"])
-  if "scheduling_rounds" in trace_config:
-    simulator = simulator.bake("-max_scheduling_rounds",
-                               trace_config["scheduling_rounds"])
-  if "percentage" in trace_config:
-    simulator = simulator.bake("-percentage", trace_config["percentage"])
-  
   ### General parameters
   if type == "hybrid":
     batch_step = config.DEFAULT_BATCH_STEP
@@ -496,6 +458,47 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   # as setting FLAGS_incremental_flow, and then a positional argument False.
   # So have to construct the argument string ourselves
   simulator = simulator.bake("-incremental_flow=" + str(incremental))
+  
+  ### Configuration for the trace  
+  simulator = simulator.bake("-trace_path", trace_spec["dir"])
+  simulator = simulator.bake("-num_files_to_process", trace_spec["num_files"])
+  if "runtime" in trace_config:
+    simulator = simulator.bake("-runtime", trace_config["runtime"])
+  if "num_events" in trace_config:
+    simulator = simulator.bake("-max_events", trace_config["num_events"])
+  if "scheduling_rounds" in trace_config:
+    simulator = simulator.bake("-max_scheduling_rounds",
+                               trace_config["scheduling_rounds"])
+  if "percentage" in trace_config:
+    simulator = simulator.bake("-percentage", trace_config["percentage"])
+  
+  ### Record deltas for offline tests
+  if type == "hybrid":
+    trace_directory = os.path.join(parameters["version_directory"], "trace", 
+                                   trace_name, 
+                                   parameters["implementation"]["target"])
+    try:
+      os.makedirs(trace_directory)
+    except OSError:
+      # directory already created if not first time we've been run
+      pass
+    
+    # We must never generate the same trace path for two invocations which could
+    # produce *different* results. Different algorithms may certainly produce  
+    # different solutions, and hence different traces. Parameters may also 
+    # effect this. 
+    hash = hashlib.md5()
+    
+    cli = " ".join([parameters["exe_path"]] + parameters["arguments"])
+    hash.update(cli.encode('utf-8'))
+    hash.update(str(simulator).encode('utf-8'))
+    
+    delta_file = os.path.join(trace_directory, hash.hexdigest() + ".imin")
+    if os.path.exists(delta_file): 
+      yield (delta_file, "cached")
+    else:
+      yield (delta_file, "generating") 
+    simulator = simulator.bake("-graph_output_file", delta_file) 
   
   ### Setup pipe for statistics output from the simulator
   if type == "online":
