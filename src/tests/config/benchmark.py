@@ -165,6 +165,16 @@ COMPILERS = {
 
 DEFAULT_COMPILER = "gcc_O3"
 
+def compilerTests(test_cases, compilers):
+  d = {}
+  for test_name, test_config in test_cases.items():
+    for compiler in compilers:
+      key = test_name + "_" + compiler
+      value = test_config.copy()
+      value["compiler"] = compiler
+      d.update({key : value})
+  return d
+
 ##### Implementations
 
 ### Full solvers
@@ -349,7 +359,7 @@ IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS]
 
 ##### Test cases
 
-DEFAULT_TIMEOUT = 360 # s, i.e. 10 minutes
+DEFAULT_TIMEOUT = 300 # s, i.e. 5 minutes
 
 ### Tests on full graphs, comparing only full solvers
 FULL_TESTS = {
@@ -496,7 +506,45 @@ FULL_TESTS = {
    },
   },
  
-  ### Comparison tests
+  ### Compiler comparisons
+  ## My implementations
+  "ap_compilers": {
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "iterations": 5,              
+    "tests": compilerTests({"ap": {"implementation": "f_ap_latest"}},
+                           COMPILERS.keys())
+  },
+  "cc_compilers": {
+    "files": FULL_DATASET["synthetic_small"],
+    "iterations": 5,              
+    "tests": compilerTests({"cc": {"implementation": "f_cc_latest"}},
+                           COMPILERS.keys())
+  },
+  "cs_compilers": {
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "iterations": 5,              
+    "tests": compilerTests({"cs": {"implementation": "f_cs_latest"}},
+                           COMPILERS.keys())
+  },
+  "relax_compilers": {
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "iterations": 5,              
+    "tests": compilerTests({"relax": {"implementation": "f_relax_latest"}},
+                           COMPILERS.keys())
+  },
+  ## Reference implementations
+  "cs_goldberg_compilers": {
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "iterations": 5,              
+    "tests": compilerTests({"goldberg": {"implementation": "f_cs_goldberg"}},
+                           COMPILERS.keys())
+  },
+  "relax_frangioni_compilers": {
+    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "iterations": 5,              
+    "tests": compilerTests({"frangioni": {"implementation": "f_relax_frangioni"}},
+                           COMPILERS.keys())
+  },
 }
 
 INCREMENTAL_TESTS_OFFLINE = {
