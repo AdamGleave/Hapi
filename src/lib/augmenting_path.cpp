@@ -158,14 +158,13 @@ public:
 
 	// returns ID of permanently labelled deficit node
 
-	uint64_t run(uint32_t source) {
+	uint32_t run(uint32_t source) {
 		reset(source);
 
-		uint32_t id = 0;
 		while (!priority_queue.empty()) {
-			id = priority_queue.extractMin();
-			permanently_labelled.insert(id);
+			uint32_t id = priority_queue.extractMin();
 			VLOG(2) << "Djikstra: permanently labelling " << id;
+			permanently_labelled.insert(id);
 
 			const std::unordered_map<uint32_t, Arc*>& adjacencies = g.getAdjacencies(id);
 			for (auto adjacency : adjacencies) {
@@ -178,19 +177,23 @@ public:
 					// not in residual network, ignore
 				}
 			}
+
+			if (g.getBalance(id) < 0) {
+				// id, which is now permanently labelled, is a deficit node
+				return id;
+			}
 		}
 
-		return distances[id];
+		LOG(FATAL) << "Not encountered any deficit node: illegal graph";
+		return 0;
 	}
 
 	const std::vector<uint64_t>& getShortestDistances() const {
 		return distances;
 	}
-
-	const std::set<uint32_t>& getPermanentlyLabelled() const {
+	const std::set<uint32_t>& getPermanentlyLabelledNodes() const {
 		return permanently_labelled;
 	}
-
 	const std::vector<uint32_t>& getParents() const {
 		return parents;
 	}
@@ -230,21 +233,25 @@ void AugmentingPath::reoptimize() {
 		uint32_t source = *sources.begin();
 
 		// compute shortest path distances
-		uint64_t longest_distance = shortest_paths.run(source);
+		uint32_t sink = shortest_paths.run(source);
 		const std::vector<uint64_t>& distances =
-																          shortest_paths.getShortestDistances();
-
-		// pick a sink node
-		const std::set<uint32_t> &sinks = g.getSinks();
-		CHECK(!sinks.empty());
-		uint32_t sink = *sinks.begin();
+																   shortest_paths.getShortestDistances();
+		VLOG(1) << "Permanently labeled deficit node " << sink
+				    << " with distance " << distances[sink];
 
 		// update potentials
 		VLOG(1) << "Updating potentials";
 		const std::set<uint32_t>& permanently_labelled =
-				                                shortest_paths.getPermanentlyLabelled();
+											             shortest_paths.getPermanentlyLabelledNodes();
+		uint64_t sink_distance = distances[sink];
 		for (uint32_t id : permanently_labelled) {
-			potentials[id] += longest_distance - distances[id];
+			VLOG(3) << "Distance to " << id << " is " << distances[id];
+		}
+		for (uint32_t id : permanently_labelled) {
+			uint32_t node_distance = distances[id];
+			uint64_t new_potential = potentials[id] + sink_distance - node_distance;
+			potentials[id] = new_potential;
+			VLOG(3) << "Updating potential of " << id << " to " << new_potential;
 		}
 
 		// augment flow along path
