@@ -16,9 +16,6 @@ def parse(fname, expected_fieldnames):
 
 def identity(x):
   return x
-
-def dictFilter(d):
-  return lambda k : d[k]
   
 def parseFull(fname, file_filter=identity, test_filter=identity):
   """Returns in format dict of filenames -> dict of implementations 
