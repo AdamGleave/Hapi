@@ -369,7 +369,7 @@ FULL_TESTS = {
   # For testing benchmark suite only
   "development_only": {
     "files": FULL_DATASET["development_only"],
-    "iterations": 1,
+    "iterations": 3,
     "tests": {
       "my": {
         "implementation": "f_cc_latest",
@@ -554,7 +554,7 @@ INCREMENTAL_TESTS_OFFLINE = {
   # For testing benchmark suite only.
   "development_only": {
     "files": INCREMENTAL_DATASET["development_only"],
-    "iterations": 1,
+    "iterations": 3,
     "tests": {
       "my": {
         "implementation": "i_ap_latest",

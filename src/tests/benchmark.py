@@ -537,7 +537,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     raise ExitCodeException(result.exit_code)
 
 def runIncrementalHybridTest(case_name, case_config, result_file): 
-  fieldnames = ["test", "trace", "delta_id", 
+  fieldnames = ["test", "file", "delta_id", 
                 "iteration", "algorithm_time", "total_time"]
   result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
   result_writer.writeheader()
@@ -587,7 +587,7 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
                       test_name, test_config["cmd"], log_directory, input_graph, 
                       i, test_config["timeout"], log_fname=log_fname):
           result = { "test": test_name,
-                     "trace": trace_name,
+                     "file": trace_name,
                      "delta_id": delta_id, 
                      "iteration": i,
                      "algorithm_time": algorithm_time,
