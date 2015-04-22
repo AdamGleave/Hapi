@@ -7,6 +7,9 @@ class FigureTypes():
 def dictFilter(d):
   return lambda k : d[k]
 
+### Miscellaneous settings
+CONFIDENCE_LEVEL = 0.95
+
 ### Paths
 
 # SCRIPT_ROOT = PROJECT_ROOT/src/tests/visualisation

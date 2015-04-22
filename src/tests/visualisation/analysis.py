@@ -1,4 +1,33 @@
+import math
 import numpy as np
+import scipy.stats
+
+def _error(x):
+  mu = np.mean(x)
+  sigma = np.std(x)
+  n = len(x)
+  sample_sigma = sigma / math.sqrt(n)
+  
+  return (mu, sample_sigma, n)
+
+def normal_error(alpha, x):
+  (_mu, sample_sigma, _n) = _error(x)
+  return scipy.stats.norm.interval(alpha, scale=sample_sigma)
+
+def t_error(alpha, x):
+  (_mu, sample_sigma, n) = _error(x)
+  return scipy.stats.t.interval(alpha, n, scale=sample_sigma)
+
+def interval_to_upper_lower(l):
+  def firstElt(x):
+    f, _ = x
+    return f
+  def secondElt(x):
+    _, s = x
+    return s
+  lower = list(map(lambda x : list(map(lambda y : y[0], x)), l))
+  upper = list(map(lambda x : list(map(lambda y : y[1], x)), l))
+  return (lower, upper)
 
 def convert_time(time_str):
   if time_str == 'Timeout':
@@ -18,10 +47,11 @@ def full_extract_time(d, final_key):
     return list(map(lambda x : convert_time(x[final_key]), x))
   return full_map_on_iterations(timeLambda, d)
 
-def full_summary_stats(d):
-  def statsLambda(x):
-    return {'mean': np.mean(x), 'sd': np.std(x)}
-  return full_map_on_iterations(statsLambda, d)
+def full_mean(d):
+  return full_map_on_iterations(np.mean, d)
+
+def full_sd(d):
+  return full_map_on_iterations(np.std, d)
 
 def full_swap_file_impl(data):
   new_data = {} 
@@ -39,5 +69,10 @@ def extract_summary_stats(l):
   sd = [x['sd'] for x in l]
   return (mean, sd)
   
-def flatten_dict(d, keys):
-  return [d[k] for k in keys]
+def flatten_dict(d, key_matrix):
+  if len(key_matrix) == 0:
+    return d
+  else:
+    keys = key_matrix[0]
+    key_matrix = key_matrix[1:]
+    return [flatten_dict(d[k], key_matrix) for k in keys]
