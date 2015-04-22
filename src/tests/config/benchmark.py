@@ -129,6 +129,9 @@ RUNTIME_MAX = 2**64 - 1
 def percentRuntime(p):
   return TRACE_START + (TRACE_LENGTH - TRACE_START) * (p / 100.0)
 
+def absoluteRuntime(s):
+  return TRACE_START + (s * 1000 * 1000)
+
 ##### Compilers
 
 STANDARD_FLAGS = "-DNDEBUG" 
@@ -643,6 +646,44 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "iterations": 5,
     "tests": {
       "full": { "implementation": "f_cs_goldberg" },
+    },
+  },
+  "generate_dataset_small": {
+    "traces": [
+      {
+       "name": "small_trace",
+       "runtime": absoluteRuntime(3600), # run for an hour
+       "percentage": 1,
+      }
+    ],
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
+    },
+  },
+  "generate_dataset_medium": {
+    "traces": [
+      {
+       "name": "small_trace",
+       "runtime": absoluteRuntime(3600), # run for an hour
+       "percentage": 10,
+      }
+    ],
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
+    },
+  },
+  "generate_dataset_large": {
+    "traces": [
+      {
+       "name": "small_trace",
+       "runtime": absoluteRuntime(3600), # run for an hour
+      }
+    ],
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
     },
   },
   # Run optimized implementation on whole trace. Get an idea for how fast
