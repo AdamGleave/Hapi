@@ -2,7 +2,8 @@ import os
 from enum import Enum
 
 class FigureTypes():
-  optimisation = 0
+  optimisation_absolute = 0
+  optimisation_relative = 1
 
 def dictFilter(d):
   return lambda k : d[k]
@@ -34,8 +35,9 @@ OPTIMISATION_FILE_FILTER = dictFilter({
 OPTIMISATION_FIGURES = {
   ### Optimisations
   ## Augmenting path
-  'ap_big_vs_small': {
+  'ap_big_vs_small_absolute': {
     'data': 'f_ap_big_vs_small_heap',
+    'type': FigureTypes.optimisation_absolute,
     'file_filter': OPTIMISATION_FILE_FILTER,
     'test_filter': dictFilter({
       'big': 'Big Heap',
@@ -50,24 +52,39 @@ OPTIMISATION_FIGURES = {
       'Small Heap': 'b',
     }
   },
+  'ap_big_vs_small_relative': {
+    'data': 'f_ap_big_vs_small_heap',
+    'type': FigureTypes.optimisation_relative,
+    'file_filter': OPTIMISATION_FILE_FILTER,
+    'test_filter': dictFilter({
+      'big': 'Big Heap',
+      'small_vector': 'Small Heap',
+      'small_map': None
+    }),
+    
+    'datasets': ['Small', 'Medium', 'Large'],
+    'implementations': ['Big Heap', 'Small Heap'],
+    'baseline': 'Big Heap',
+    'colours': {
+      'Big Heap': 'r',
+      'Small Heap': 'b',
+    }
+  },                      
 }
 
 ### All figures
 
 # For merging dictionaries, and tagging elements
-def mergeDicts(dicts, tags, prefix):
-  assert(len(dicts) == len(tags) == len(prefix))
+def mergeDicts(dicts, prefix):
+  assert(len(dicts) == len(prefix))
       
   result = {}
-  for (dict,tag,prefix) in zip(dicts,tags,prefix):
+  for (dict,prefix) in zip(dicts,prefix):
     new_dict = {k : v.copy() for (k,v) in dict.items()}
-    for v in new_dict.values():
-      v.update({"type": tag})
     new_dict = {prefix + "_" + k : v for (k,v) in new_dict.items()}
     result.update(new_dict)
   
   return result
 
-FIGURES = mergeDicts([OPTIMISATION_FIGURES],
-                    [FigureTypes.optimisation], 
-                    ["opt"])
+FIGURES = mergeDicts([OPTIMISATION_FIGURES], 
+                     ["opt"])

@@ -19,15 +19,13 @@ def t_error(alpha, x):
   return scipy.stats.t.interval(alpha, n, scale=sample_sigma)
 
 def interval_to_upper_lower(l):
-  def firstElt(x):
-    f, _ = x
-    return f
-  def secondElt(x):
-    _, s = x
-    return s
-  lower = list(map(lambda x : list(map(lambda y : y[0], x)), l))
-  upper = list(map(lambda x : list(map(lambda y : y[1], x)), l))
-  return (lower, upper)
+  def upper_lower(x):
+    # note pyplot expects all errors to be positive
+    # negate sign for lower
+    lower = list(map(lambda y : -y[0], x))
+    upper = list(map(lambda y : y[1], x))
+    return [lower, upper]
+  return list(map(upper_lower, l))
 
 def convert_time(time_str):
   if time_str == 'Timeout':

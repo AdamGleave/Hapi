@@ -15,7 +15,7 @@ if __name__ == "__main__":
     figure_names = sys.argv[1:]
     figures = {k : config.FIGURES[k] for k in figure_names}
     
-  for (figname, figconfig) in config.FIGURES.items():
+  for (figname, figconfig) in figures.items():
     # Import CSV input
     data_name = figconfig['data']
     test_type = data_name.split("_")[0]
@@ -36,8 +36,10 @@ if __name__ == "__main__":
 
     # Process the data, generate the graph
     figure_type = figconfig['type']
-    if figure_type == config.FigureTypes.optimisation:
-      fig = gen_optimisation.generate(data, figconfig)
+    if figure_type == config.FigureTypes.optimisation_absolute:
+      fig = gen_optimisation.generate_absolute(data, figconfig)
+    elif figure_type == config.FigureTypes.optimisation_relative:
+      fig = gen_optimisation.generate_relative(data, figconfig)
     else:
       assert(false)      
     # TODO: Process and generate the graph
