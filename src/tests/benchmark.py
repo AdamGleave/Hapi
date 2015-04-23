@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import config.benchmark as config
-import os, sys, time, sh, shutil, signal, csv, hashlib 
+import os, sys, time, sh, shutil, signal, csv, hashlib, re 
 
 class Alarm(Exception):
     pass
@@ -667,13 +667,21 @@ if __name__ == "__main__":
   # Install signal handler for timeouts
   signal.signal(signal.SIGALRM, alarm_handler)
       
+  test_cases = None
   if len(sys.argv) == 1:
     # no arguments
-    tests = config.TESTS
+    test_cases = config.TESTS.keys()
   else:
-    # arguments are list of tests
-    test_cases = sys.argv[1:]
-    tests = {k : config.TESTS[k] for k in test_cases}
+    # arguments are list of test patterns
+    test_patterns = sys.argv[1:]
+    test_cases = set()
+    for pattern_regex in test_patterns:
+      pattern = re.compile(pattern_regex)
+      for test_case in config.TESTS:
+        if pattern.match(test_case):
+          test_cases.add(test_case)
+  print("Running: ", test_cases)
+  tests = {k : config.TESTS[k] for k in test_cases}
   
   print("*** Building ***")
   implementations = findImplementations(tests)

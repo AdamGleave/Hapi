@@ -413,7 +413,7 @@ FULL_TESTS = {
   # as a vector or a map. Vector will give guaranteed O(1) lookup, and we 
   # don't care about the memory consumption, but map may actually perform 
   # better since it can be better cached.
-  "ap_big_vs_small_heap": {
+  "opt_ap_big_vs_small_heap": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
@@ -430,7 +430,7 @@ FULL_TESTS = {
   },
               
   # Test early termination of Djikstra's algorithm
-  "ap_full_vs_partial_djikstra": {
+  "opt_ap_full_vs_partial_djikstra": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
@@ -448,7 +448,7 @@ FULL_TESTS = {
   # Caching arcs crossing the cut
   # zerorc case: only zero reduced cost cuts
   # all case: every arc crossing the cut (separated into positive and zero rc)
-  "relax_cache_arcs": {
+  "opt_relax_cache_arcs": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
@@ -465,7 +465,7 @@ FULL_TESTS = {
   },
               
   ## Cost scaling
-  "cs_wave_vs_fifo": {
+  "opt_cs_wave_vs_fifo": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
@@ -477,7 +477,7 @@ FULL_TESTS = {
       },
     },
   },
-  "cs_scaling_factor": {
+  "opt_cs_scaling_factor": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": { 
@@ -489,7 +489,7 @@ FULL_TESTS = {
   },
               
  ## DIMACS parser
- "parser_set_vs_getarc": {
+ "opt_parser_set_vs_getarc": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
@@ -501,7 +501,7 @@ FULL_TESTS = {
       },
     },
   },
-  "parser_ignore_zero_capacity": {
+  "opt_parser_ignore_zero_capacity": {
    "files": FULL_DATASET["octopus_1hour"],
    "iterations": 5,
    "tests": {
@@ -516,38 +516,38 @@ FULL_TESTS = {
  
   ### Compiler comparisons
   ## My implementations
-  "ap_compilers": {
+  "compilers_ap": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"ap": {"implementation": "f_ap_latest"}},
                            COMPILERS.keys())
   },
-  "cc_compilers": {
+  "compilers_cc": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"cc": {"implementation": "f_cc_latest"}},
                            COMPILERS.keys())
   },
-  "cs_compilers": {
+  "compilers_cs": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"cs": {"implementation": "f_cs_latest"}},
                            COMPILERS.keys())
   },
-  "relax_compilers": {
+  "compilers_relax": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"relax": {"implementation": "f_relax_latest"}},
                            COMPILERS.keys())
   },
   ## Reference implementations
-  "cs_goldberg_compilers": {
+  "compilers_cs_goldberg": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"goldberg": {"implementation": "f_cs_goldberg"}},
                            COMPILERS.keys())
   },
-  "relax_frangioni_compilers": {
+  "compilers_relax_frangioni": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"frangioni": {"implementation": "f_relax_frangioni"}},
@@ -708,7 +708,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   ### How does the performance of an incremental solver compare to using the
   ### same solver in a non-incremental mode? Similarly, what proportion of work
   ### must the incremental solver do?
-  "ap_same": {
+  "same_ap": {
     # Augmenting path is slow. Give it a small dataset.
     "traces": [
       {
@@ -723,7 +723,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_ap_latest" },
     },
   },
-  "relax_same": {
+  "same_relax": {
     # This implementation of RELAX is 4-5x faster than augmenting path.
     # But still too slow for a large dataset.
     "traces": [
@@ -739,7 +739,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_relax_latest" },
     },
   },
-  "relaxf_same": {
+  "same_relaxf": {
     # This is the optimised version of RELAX. Give it a full-size dataset.
     "traces": [
       {
@@ -756,7 +756,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   
   ### Comparisons between types
   # Evaluation against the best of my (unoptimized) implementations.
-  "my_head_to_head": {
+  "head_to_head_my": {
     # Give them a small dataset
     "traces": [
       {
@@ -773,7 +773,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   # Fight against the best optimized implementations.
   # Goldberg for full solver, modified RelaxIV for incremental solver.
-  "optimized_head_to_head": {
+  "head_to_head_optimised": {
     # These implementations can handle a full-size dataset
     "traces": [
       {
@@ -786,8 +786,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_relaxf_latest" },
     },
   },
-  "optimized_head_to_head_short": {
-    # These implementations can handle a full-size dataset
+  "head_to_head_optimised_short": {
     "traces": [
       {
        "name": "small_trace",
@@ -800,8 +799,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_relaxf_latest" },
     },
   },
-  "optimized_head_to_head_very_short": {
-    # These implementations can handle a full-size dataset
+  "head_to_head_optimised_very_short": {
     "traces": [
       {
        "name": "small_trace",
