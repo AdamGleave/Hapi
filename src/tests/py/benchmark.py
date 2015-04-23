@@ -185,7 +185,6 @@ def helperCreateTestInstance(instance):
   
   version_directory = versionDirectory(implementation["version"])
   compiler = implementation.get("compiler", config.DEFAULT_COMPILER)
-  timeout = instance.get("timeout", config.DEFAULT_TIMEOUT)
   exe_path = os.path.join(version_directory, compiler, 
                           config.BUILD_PREFIX, implementation["path"])
   arguments = []
@@ -196,7 +195,6 @@ def helperCreateTestInstance(instance):
   
   return {"implementation": implementation,
           "version_directory": version_directory,
-          "timeout": timeout,
           "exe_path": exe_path,
           "arguments": arguments}
 
@@ -212,8 +210,7 @@ def createFullTestInstance(instance):
   if solver_type == "full":
     test_command = createNativeCommand(parameters["exe_path"],
                                        arguments)
-    return {"cmd": test_command,
-            "timeout": parameters["timeout"], 
+    return {"cmd": test_command, 
             "version_directory": parameters["version_directory"]
            }
   else:
@@ -238,7 +235,6 @@ def createIncrementalTestInstance(instance):
     error("Unrecognised implementation type ", implementation)
 
   return {"cmd": test_command,
-          "timeout": parameters["timeout"], 
           "version_directory": parameters["version_directory"]
          }
 
@@ -332,8 +328,9 @@ def runFullTest(case_name, case_config, result_file):
         
         log_directory = os.path.join(test_config["version_directory"],
                                      "log", case_name)
+        timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
         run = runTestInstance(test_name, test_config["cmd"], log_directory,
-                              fname, i, test_config["timeout"])
+                              fname, i, timeout)
         times = list(run)
         
         assert(len(times) == 1)
@@ -378,9 +375,10 @@ def runIncrementalOfflineTest(case_name, case_config, result_file):
                                      "log", case_name)
         
         delta_id = 0
+        timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
         for (algorithm_time, time_elapsed) in runTestInstance(test_name, 
                                               test_config["cmd"], log_directory, 
-                                              fname, i, test_config["timeout"]):
+                                              fname, i, timeout):
           result = { "test": test_name,
                      "file": fname,
                      "delta_id": delta_id, 
@@ -449,6 +447,8 @@ def runSimulator(case_name, case_config, test_name, test_instance,
   
   ### Configuration for the solver
   simulator = simulator.bake("-solver", "custom")
+  timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
+  simulator = simulator.bake("-solver_timeout", timeout)
   simulator = simulator.bake("-flow_scheduling_binary", parameters["exe_path"])
   arguments = parameters["arguments"]
   if arguments:
@@ -586,9 +586,10 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
         input_graph = trace_files[test_name]
         log_fname = os.path.relpath(os.path.join(log_directory, test_name),
                                     input_graph)
+        timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
         for (algorithm_time, time_elapsed) in runTestInstance(
                       test_name, test_config["cmd"], log_directory, input_graph, 
-                      i, test_config["timeout"], log_fname=log_fname):
+                      i, timeout, log_fname=log_fname):
           result = { "test": test_name,
                      "file": trace_name,
                      "delta_id": delta_id, 
