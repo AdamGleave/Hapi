@@ -7,6 +7,7 @@ class FigureTypes():
   optimisation_absolute = 0
   optimisation_relative = 1
   incremental_cdf = 2
+  incremental_hist = 3
 
 def dictFilter(d):
   return lambda k : d[k]
@@ -82,6 +83,18 @@ INCREMENTAL_FIGURES = {
   'optimised_cdf': {
     'data': 'ion_optimized_head_to_head_quick',
     'type': FigureTypes.incremental_cdf,
+    'test_filter': INCREMENTAL_TEST_FILTER,
+    
+    'trace': 'small_trace',
+    'implementations': ['Standard', 'Incremental'],
+    'colours': {
+      'Standard': 'r',
+      'Incremental': 'b',
+    }
+  }, 
+  'optimised_hist': {
+    'data': 'ion_optimized_head_to_head_quick',
+    'type': FigureTypes.incremental_hist,
     'test_filter': INCREMENTAL_TEST_FILTER,
     
     'trace': 'small_trace',

@@ -44,6 +44,8 @@ if __name__ == "__main__":
       fig = gen_optimisation.generate_relative(data, figconfig)
     elif figure_type == config.FigureTypes.incremental_cdf:
       fig = gen_incremental.generate_cdf(data, figconfig)
+    elif figure_type == config.FigureTypes.incremental_hist:
+      fig = gen_incremental.generate_hist(data, figconfig)
     else:
       assert(false)      
     # TODO: Process and generate the graph
