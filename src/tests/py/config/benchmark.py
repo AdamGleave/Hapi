@@ -138,6 +138,23 @@ def percentRuntime(p):
 def absoluteRuntime(s):
   return TRACE_START + (s * 1000 * 1000)
 
+STANDARD_TRACE_CONFIG_TEMPLATE = {
+  "small": { "percentage": 1 },
+  "medium": { "percentage": 5 },
+  "large": { "percentage": 25 },                        
+  "full_size": { "percentage": 100 },
+}
+
+_STANDARD_TRACE_CONFIG_SHORT_EXTENSION = { "trace": "small_trace",
+                                           "scheduling_rounds": 50 }
+STANDARD_TRACE_CONFIG_SHORT = { k : extendDict(v, _STANDARD_TRACE_CONFIG_SHORT_EXTENSION)
+                                for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
+
+_STANDARD_TRACE_CONFIG_1HOUR_EXTENSION = { "trace": "small_trace", 
+                                            "runtime": absoluteRuntime(3600)}
+STANDARD_TRACE_CONFIG_1HOUR = { k : extendDict(v,_STANDARD_TRACE_CONFIG_1HOUR_EXTENSION) 
+                                for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
+
 ##### Compilers
 
 STANDARD_FLAGS = "-DNDEBUG" 
@@ -642,52 +659,9 @@ INCREMENTAL_TESTS_ANYONLINE = {
       },
     },
    },
-   "debug_firmament": {
-    "traces": [
-      {
-       "name": "small_trace",
-       "scheduling_rounds": 100,
-       "percentage": 1,
-      }
-    ],
-    "iterations": 5,
-    "tests": {
-      "full": { "implementation": "f_cs_goldberg" },
-    },
-  },
-  "generate_dataset_small": {
-    "traces": [
-      {
-       "name": "small_trace",
-       "runtime": absoluteRuntime(3600), # run for an hour
-       "percentage": 1,
-      }
-    ],
-    "iterations": 0,
-    "tests": {
-      "goldberg": { "implementation": "f_cs_goldberg" },
-    },
-  },
-  "generate_dataset_medium": {
-    "traces": [
-      {
-       "name": "small_trace",
-       "runtime": absoluteRuntime(3600), # run for an hour
-       "percentage": 10,
-      }
-    ],
-    "iterations": 0,
-    "tests": {
-      "goldberg": { "implementation": "f_cs_goldberg" },
-    },
-  },
-  "generate_dataset_large": {
-    "traces": [
-      {
-       "name": "small_trace",
-       "runtime": absoluteRuntime(3600), # run for an hour
-      }
-    ],
+  # For producing datasets used in optimisation tests
+  "generate_dataset": {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },
@@ -696,11 +670,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   # Run optimized implementation on whole trace. Get an idea for how fast
   # we can get through it. 
   "how_long_can_we_go": {
-    "traces": [
-      {
-       "name": "google_trace",
-      }
-    ],
+    "traces": {"google": {"name": "google_trace"}},
     "iterations": 1,
     "tests": {
       "i_relaxf":    { "implementation": "i_relaxf_latest" },
@@ -712,13 +682,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   ### must the incremental solver do?
   "same_ap": {
     # Augmenting path is slow. Give it a small dataset.
-    "traces": [
-      {
-       "name": "small_trace",
-       "scheduling_rounds": 50,
-       "percentage": 1
-      }
-    ],
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_ap_latest" },
@@ -728,13 +692,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   "same_relax": {
     # This implementation of RELAX is 4-5x faster than augmenting path.
     # But still too slow for a large dataset.
-    "traces": [
-      {
-       "name": "small_trace",
-       "scheduling_rounds": 50,
-       "percentage": 1
-      }
-    ],
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_latest" },
@@ -743,12 +701,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   "same_relaxf": {
     # This is the optimised version of RELAX. Give it a full-size dataset.
-    "traces": [
-      {
-       "name": "small_trace",
-       "scheduling_rounds": 100,
-      }
-    ],
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_frangioni" },
@@ -760,13 +713,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   # Evaluation against the best of my (unoptimized) implementations.
   "head_to_head_my": {
     # Give them a small dataset
-    "traces": [
-      {
-       "name": "small_trace",
-       "scheduling_rounds": 50,
-       "percentage": 1
-      }
-    ],
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_cs_latest" },
@@ -777,11 +724,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   # Goldberg for full solver, modified RelaxIV for incremental solver.
   "head_to_head_optimised": {
     # These implementations can handle a full-size dataset
-    "traces": [
-      {
-       "name": "google_trace",
-      }
-    ],
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },
@@ -789,12 +732,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
   },
   "head_to_head_optimised_short": {
-    "traces": [
-      {
-       "name": "small_trace",
-       "scheduling_rounds": 100,
-      }
-    ],
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },
@@ -802,13 +740,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
   },
   "head_to_head_optimised_very_short": {
-    "traces": [
-      {
-       "name": "small_trace",
-       "scheduling_rounds": 100,
-       "percentage": 1,
-      }
-    ],
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },

@@ -83,7 +83,7 @@ def incremental_online(fname, trace_filter=identity, test_filter=identity):
   data = _parse(fname, ONLINE_FIELDNAMES)
   res = {}
   for row in data:
-    trace = trace_filter(row['trace'])
+    trace = trace_filter(row['dataset'])
     if not trace:
       continue
     

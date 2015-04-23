@@ -605,7 +605,7 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
     print("")
 
 def runIncrementalOnlineTest(case_name, case_config, result_file):
-  fieldnames = ["test", "trace", "delta_id", "cluster_timestamp", "iteration",
+  fieldnames = ["test", "dataset", "delta_id", "cluster_timestamp", "iteration",
       "scheduling_latency", "algorithm_time", "flowsolver_time", "total_time"]
   result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
   result_writer.writeheader()
@@ -613,11 +613,11 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
   iterations = case_config["iterations"]
   tests = case_config["tests"]
   
-  for trace_config in case_config["traces"]:
-    trace_name = trace_config["name"]
+  for (dataset_name, dataset_config) in case_config["traces"].items():
+    trace_name = dataset_config["trace"]
     trace_spec = config.TRACE_DATASET[trace_name]
     
-    print("\t", trace_name, ": ", end="")
+    print("\t", dataset_name, ": ", end="")
     
     for i in range(iterations):
       print(i, " ", end="")
@@ -625,9 +625,9 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
       for (test_name, test_instance) in tests.items():
         row_number = 0
         for row in runSimulator(case_name, case_config, test_name, test_instance,
-                           trace_name, trace_config, trace_spec, i, type="online"):
+                           trace_name, dataset_config, trace_spec, i, type="online"):
           result = { "test": test_name,
-                     "trace": trace_name,
+                     "dataset": dataset_name,
                      "delta_id": row_number, 
                      "iteration": i,
                      "cluster_timestamp": row["cluster_timestamp"],
@@ -676,7 +676,7 @@ if __name__ == "__main__":
     test_patterns = sys.argv[1:]
     test_cases = set()
     for pattern_regex in test_patterns:
-      pattern = re.compile(pattern_regex)
+      pattern = re.compile(pattern_regex + "$")
       for test_case in config.TESTS:
         if pattern.match(test_case):
           test_cases.add(test_case)
