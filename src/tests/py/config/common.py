@@ -4,9 +4,9 @@ import os, sys, glob, itertools, functools, sh
 BUFFER_SIZE = 4 * 1024
 
 ### Directories
-# SCRIPT_ROOT = PROJECT_ROOT/src/tests/config/
+# SCRIPT_ROOT = PROJECT_ROOT/src/tests/py/config/
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_ROOT)))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_ROOT))))
 BUILD_PREFIX = "build"
 SOURCE_PREFIX = "src"
 DATASET_ROOT = os.path.join(PROJECT_ROOT, SOURCE_PREFIX, "graphs")
@@ -43,14 +43,20 @@ def graphGlob(pathname):
   return list(map(lambda x : os.path.relpath(x, DATASET_ROOT), fnames))
 
 # For merging dictionaries, and tagging elements
-def mergeDicts(dicts, tags, prefix):
-  assert(len(dicts) == len(tags) == len(prefix))
-      
+def mergeDicts(dicts, prefix, tags=None):
+  assert(len(dicts) == len(prefix))
+  tags_enabled = bool(tags)
+  if tags_enabled:
+    assert(len(dicts) == len(tags))
+  else:
+    tags = [None] * len(dicts) # for zip
+  
   result = {}
   for (dict,tag,prefix) in zip(dicts,tags,prefix):
     new_dict = {k : v.copy() for (k,v) in dict.items()}
-    for v in new_dict.values():
-      v.update({"type": tag})
+    if tags_enabled:
+      for v in new_dict.values():
+        v.update({"type": tag})
     new_dict = {prefix + "_" + k : v for (k,v) in new_dict.items()}
     result.update(new_dict)
   

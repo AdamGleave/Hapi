@@ -132,7 +132,7 @@ def build(version, to_build):
              "-DCMAKE_CXX_FLAGS_CUSTOM=" + cxx_flags)
     
     # run make 
-    sh.make(config.MAKE_FLAGS, *targets, 
+    sh.make(config.MAKE_FLAGS + list(targets), 
             _out=os.path.join(log_directory, "makefile.out"),
             _err=os.path.join(log_directory, "makefile.err"))
     

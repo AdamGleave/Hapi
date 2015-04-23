@@ -5,11 +5,6 @@
 
 import os, sh
 
-from config.common import *
-
-WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
-RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
-FIRMAMENT_ROOT = os.path.join(os.path.dirname(PROJECT_ROOT), "firmament")
 MAKE_FLAGS = []
 
 try:
@@ -17,6 +12,12 @@ try:
   from config.benchmark_local import *
 except ImportError:
   pass
+
+from config.common import *
+
+WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
+RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
+FIRMAMENT_ROOT = os.path.join(os.path.dirname(PROJECT_ROOT), "firmament")
 
 ##### Executables
  
@@ -49,7 +50,7 @@ FULL_DATASET = {
   # Graphs after 1 hour into Google Trace. Using Octopus cost model.
   # Generated with CS2 solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
-  "octopus_1hour": graphGlob("clusters/natural/google_trace/octupus/1hour/*"),
+  "octopus_1hour": graphGlob("clusters/natural/google_trace/octopus/1hour/*"),
   
   ### General flow networks
   ### See https://lemon.cs.elte.hu/trac/lemon/wiki/MinCostFlowData
@@ -363,7 +364,7 @@ INCREMENTAL_IMPLEMENTATIONS = {
 }
 
 IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS],
-                             ["full", "incremental"], ["f", "i"])
+                             ["f", "i"], ["full", "incremental"])
 
 ##### Test cases
 
@@ -823,5 +824,5 @@ TESTS = mergeDicts(
    INCREMENTAL_TESTS_OFFLINE, 
    INCREMENTAL_TESTS_HYBRID,
    INCREMENTAL_TESTS_ONLINE], 
-  ["full", "incremental_offline", "incremental_hybrid", "incremental_online"],
-  ["f", "iof", "ihy", "ion"])
+  ["f", "iof", "ihy", "ion"],
+  ["full", "incremental_offline", "incremental_hybrid", "incremental_online"])

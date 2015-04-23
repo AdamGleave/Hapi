@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import functools
-import config
 
-import analysis
+import config.visualisation as config
+from visualisation import analysis
 
 def errorsZero(e):
   def arrayZero(a):

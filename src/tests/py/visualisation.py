@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-
-import config, parse
-import gen_optimisation
+ 
+import config.visualisation as config
+from visualisation import parse, gen_optimisation
 
 import os, sys
 from matplotlib.backends.backend_pdf import PdfPages

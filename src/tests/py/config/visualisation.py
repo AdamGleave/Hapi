@@ -1,6 +1,8 @@
 import os
 from enum import Enum
 
+from config.common import *
+
 class FigureTypes():
   optimisation_absolute = 0
   optimisation_relative = 1
@@ -12,10 +14,6 @@ def dictFilter(d):
 CONFIDENCE_LEVEL = 0.95
 
 ### Paths
-
-# SCRIPT_ROOT = PROJECT_ROOT/src/tests/visualisation
-SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_ROOT)))
 
 DOC_PREFIX = "doc"
 DATA_PREFIX = "data"
@@ -29,7 +27,15 @@ FIGURE_ROOT = os.path.join(DOC_ROOT, FIGURE_PREFIX)
 OPTIMISATION_FILE_FILTER = dictFilter({
   'clusters/synthetic/firmament/graph_100m_8j_100t_10p.in': 'Small',
   'clusters/synthetic/firmament/graph_100m_16j_100t_10p.in': 'Medium',
-  'clusters/synthetic/firmament/graph_1000m_32j_100t_10p.in': 'Large', 
+  'clusters/synthetic/firmament/graph_1000m_32j_100t_10p.in': 'Large',
+  'clusters/synthetic/firmament/google_all.in': None, 
+})
+
+OPTIMISATION_FILE_FILTER = dictFilter({
+  'clusters/synthetic/firmament/graph_100m_8j_100t_10p.in': 'Small',
+  'clusters/synthetic/firmament/graph_100m_16j_100t_10p.in': 'Medium',
+  'clusters/synthetic/firmament/graph_1000m_32j_100t_10p.in': 'Large',
+  'clusters/natural/google_trace/google_all.in': None, 
 })
 
 OPTIMISATION_FIGURES = {
@@ -73,18 +79,6 @@ OPTIMISATION_FIGURES = {
 }
 
 ### All figures
-
-# For merging dictionaries, and tagging elements
-def mergeDicts(dicts, prefix):
-  assert(len(dicts) == len(prefix))
-      
-  result = {}
-  for (dict,prefix) in zip(dicts,prefix):
-    new_dict = {k : v.copy() for (k,v) in dict.items()}
-    new_dict = {prefix + "_" + k : v for (k,v) in new_dict.items()}
-    result.update(new_dict)
-  
-  return result
 
 FIGURES = mergeDicts([OPTIMISATION_FIGURES], 
                      ["opt"])
