@@ -26,12 +26,13 @@ def barchart(means, errors, bar_labels, group_labels, colours,
   error_config = {'ecolor': '0.3'}
   
   for i in range(len(means)):
-    label = bar_labels[i]
     if errorsZero(errors[i]):
       yerr = None 
     else:
       yerr = errors[i]
-    print(yerr)
+      
+    label = bar_labels[i]
+
     bars = plt.bar(index + i * bar_width, means[i], bar_width,
                alpha=opacity,
                color=colours[label],
@@ -45,23 +46,33 @@ def barchart(means, errors, bar_labels, group_labels, colours,
     
   return (fig, ax)
 
-def analyse_absolute(data, figconfig):
+def analyse_generic_start(data):
   # get means and standard deviation of each implementation on each dataset
-  data = analysis.full_swap_file_impl(data)
   times = analysis.full_extract_time(data, 'algo')
   means = analysis.full_map_on_iterations(np.mean, times)
   errors = analysis.full_map_on_iterations(
             functools.partial(analysis.t_error, config.CONFIDENCE_LEVEL), times)
- 
-  key_matrix = [figconfig['implementations'], figconfig['datasets']]
+  
+  return (means, errors)
+
+def analyse_generic_end(means, errors, group1, group2):
+  key_matrix = [group1, group2]
   means = analysis.flatten_dict(means, key_matrix)
   errors = analysis.flatten_dict(errors, key_matrix)
   errors = analysis.interval_to_upper_lower(errors)
   
   return (means, errors)
 
+def analyse_absolute(data, group1, group2):
+  means, errors = analyse_generic_start(data)
+  means, errors = analyse_generic_end(means, errors, group1, group2)
+  
+  return (means, errors)
+
 def generate_absolute(data, figconfig):
-  means, errors = analyse_absolute(data, figconfig)
+  data = analysis.full_swap_file_impl(data)
+  means, errors = analyse_absolute(data, figconfig['implementations'],
+                                   figconfig['datasets'])
   
   fig, ax = barchart(means, errors, 
                      figconfig['implementations'], figconfig['datasets'],
@@ -86,7 +97,6 @@ def compute_relative(m1, e1, m2, e2):
   l2 = m2 + e2[0]
   u2 = m2 + e2[1]
 
-  
   mres = m1 / m2
   lres = l1 / u2
   ures = u1 / l2
@@ -97,49 +107,45 @@ def compute_relative_error(m1, e1, m2, e2):
   _, eres = compute_relative(m1, e1, m2, e2)
   return eres
 
-def analyse_relative(data, figconfig):
-  # get means and standard deviation of each implementation on each dataset
-  data = analysis.full_swap_file_impl(data)
-  times = analysis.full_extract_time(data, 'algo')
-  means = analysis.full_map_on_iterations(np.mean, times)
-  errors = analysis.full_map_on_iterations(
-            functools.partial(analysis.t_error, config.CONFIDENCE_LEVEL), times)
+def analyse_relative(data, baseline, group1, group2):
+  means, errors = analyse_generic_start(data)
   
-  baseline = figconfig['baseline']
   baseline_means = means[baseline]
   baseline_errors = errors[baseline]
   
   relative_means = {}
   relative_errors = {}
-  for implementation in figconfig['implementations']:
-    if implementation == baseline:
-      relative_means[implementation] = {k : 1.0 for k in figconfig['datasets']}
-      relative_errors[implementation] = {k : (0.0, 0.0) for k in figconfig['datasets']}
-    else:
+  relative_means[baseline] = {k : 1.0 for k in group2}
+  relative_errors[baseline] = {k : (0.0, 0.0) for k in group2}
+  for implementation in group1:
+    if implementation != baseline:
       implementation_means = means[implementation]
-      relative_means[implementation] = {k : baseline_means[k] / v  
-                                        for k, v in implementation_means.items()}
       implementation_errors = errors[implementation]
-      relative_errors[implementation] = {k : compute_relative_error( 
-                              baseline_means[k], baseline_errors[k],
-                              implementation_means[k], v)  
-                              for k, v in implementation_errors.items()}
+      implementation_relative_means = {}
+      implementation_relative_errors = {}
+      for dataset in group2:
+        mean, error = compute_relative(
+                  baseline_means[dataset], baseline_errors[dataset],
+                  implementation_means[dataset], implementation_errors[dataset])
+        implementation_relative_means[dataset] = mean
+        implementation_relative_errors[dataset] = error
+      
+      relative_means[implementation] = implementation_relative_means  
+      relative_errors[implementation] = implementation_relative_errors
   
-  key_matrix = [figconfig['implementations'], figconfig['datasets']]
-  relative_means = analysis.flatten_dict(relative_means, key_matrix)
-  print(relative_errors)
-  relative_errors = analysis.flatten_dict(relative_errors, key_matrix)
-  print(relative_errors)
-  relative_errors = analysis.interval_to_upper_lower(relative_errors)
+  relative_means, relative_errors = \
+            analyse_generic_end(relative_means, relative_errors, group1, group2)
   
   return (relative_means, relative_errors)
 
 def generate_relative(data, figconfig):
-  means, errors = analyse_relative(data, figconfig)
-  
+  data = analysis.full_swap_file_impl(data)
+  means, errors = analyse_relative(data, figconfig['baseline'],
+                            figconfig['implementations'], figconfig['datasets'])
+   
   fig, ax = barchart(means, errors, 
-                   figconfig['implementations'], figconfig['datasets'],
-                   figconfig['colours'])
+                     figconfig['implementations'], figconfig['datasets'],
+                     figconfig['colours'])
   
   plt.xlabel('Cluster size')
   plt.ylabel('Speedup')
