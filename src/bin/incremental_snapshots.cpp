@@ -23,11 +23,18 @@ void exportGraph(DIMACSExporter<ResidualNetwork> &exporter) {
 }
 
 int main(int argc, char *argv[]) {
-	// initialise logging
-	if (argc == 2 && strcmp(argv[1], "quiet") == 0) {
+	// CLI parsing
+	bool last_only = false;
+	for (int i = 1; i < argc; i++) {
+		char *str = argv[i];
+		if (strcmp(str, "quiet") == 0) {
 			FLAGS_minloglevel = google::ERROR;
-	} else if (argc > 1) {
-		fprintf(stderr, "usage: %s [quiet]\n", argv[0]);
+		} else if (strcmp(str, "last_only") == 0) {
+			last_only = true;
+		} else {
+			fprintf(stderr, "usage: %s [quiet] [last_only]\n", argv[0]);
+			return -1;
+		}
 	}
 	FLAGS_logtostderr = true;
 	google::InitGoogleLogging(argv[0]);
@@ -38,13 +45,20 @@ int main(int argc, char *argv[]) {
 
 	// re-export immediately: this is our initial snapshot
 	DIMACSExporter<ResidualNetwork> exporter(*g, std::cout);
-	exportGraph(exporter);
+	if (!last_only) {
+		exportGraph(exporter);
+	}
 
 	// now process stream of incremental deltas, outputting snapshots
 	DIMACSIncrementalDeltaImporter<ResidualNetwork>
 	                                           incremental_importer(std::cin, *g);
 
 	while (incremental_importer.read()) {
+		if (!last_only) {
+			exportGraph(exporter);
+		}
+	}
+	if (last_only) {
 		exportGraph(exporter);
 	}
 
