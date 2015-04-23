@@ -46,6 +46,11 @@ FULL_DATASET = {
   # Network from Google cluster trace
   "google": ["clusters/natural/google_trace/google_all.in"],
   
+  # Graphs after 1 hour into Google Trace. Using Octopus cost model.
+  # Generated with CS2 solver, 10 us scheduling interval.
+  # Have graphs with 100, 1000 & 10,000 machines.
+  "octopus_1hour": graphGlob("clusters/natural/google_trace/octupus/1hour/*"),
+  
   ### General flow networks
   ### See https://lemon.cs.elte.hu/trac/lemon/wiki/MinCostFlowData
   
@@ -409,7 +414,7 @@ FULL_TESTS = {
   # don't care about the memory consumption, but map may actually perform 
   # better since it can be better cached.
   "ap_big_vs_small_heap": {
-    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
       "big": {
@@ -426,7 +431,7 @@ FULL_TESTS = {
               
   # Test early termination of Djikstra's algorithm
   "ap_full_vs_partial_djikstra": {
-    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
       "full": {
@@ -444,7 +449,7 @@ FULL_TESTS = {
   # zerorc case: only zero reduced cost cuts
   # all case: every arc crossing the cut (separated into positive and zero rc)
   "relax_cache_arcs": {
-    "files": FULL_DATASET["synthetic"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
       "none": {
@@ -461,7 +466,7 @@ FULL_TESTS = {
               
   ## Cost scaling
   "cs_wave_vs_fifo": {
-    "files": FULL_DATASET["synthetic"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
       "wave": {
@@ -473,7 +478,7 @@ FULL_TESTS = {
     },
   },
   "cs_scaling_factor": {
-    "files": FULL_DATASET["all"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": { 
       str(x): {
@@ -485,7 +490,7 @@ FULL_TESTS = {
               
  ## DIMACS parser
  "parser_set_vs_getarc": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
     "tests": {
       "set": {
@@ -497,7 +502,7 @@ FULL_TESTS = {
     },
   },
   "parser_ignore_zero_capacity": {
-   "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+   "files": FULL_DATASET["octopus_1hour"],
    "iterations": 5,
    "tests": {
      "all_arcs": {
@@ -512,38 +517,38 @@ FULL_TESTS = {
   ### Compiler comparisons
   ## My implementations
   "ap_compilers": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"ap": {"implementation": "f_ap_latest"}},
                            COMPILERS.keys())
   },
   "cc_compilers": {
-    "files": FULL_DATASET["synthetic_small"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"cc": {"implementation": "f_cc_latest"}},
                            COMPILERS.keys())
   },
   "cs_compilers": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"cs": {"implementation": "f_cs_latest"}},
                            COMPILERS.keys())
   },
   "relax_compilers": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"relax": {"implementation": "f_relax_latest"}},
                            COMPILERS.keys())
   },
   ## Reference implementations
   "cs_goldberg_compilers": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"goldberg": {"implementation": "f_cs_goldberg"}},
                            COMPILERS.keys())
   },
   "relax_frangioni_compilers": {
-    "files": FULL_DATASET["synthetic_large"] + FULL_DATASET["google"],
+    "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"frangioni": {"implementation": "f_relax_frangioni"}},
                            COMPILERS.keys())
