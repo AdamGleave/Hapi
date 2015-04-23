@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
  
 import config.visualisation as config
-from visualisation import parse, gen_optimisation
+from visualisation import parse, gen_optimisation, gen_incremental
 
 import os, sys
 from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
   if len(sys.argv) == 1:
@@ -35,11 +36,14 @@ if __name__ == "__main__":
       assert(false)
 
     # Process the data, generate the graph
+    fig = None
     figure_type = figconfig['type']
     if figure_type == config.FigureTypes.optimisation_absolute:
       fig = gen_optimisation.generate_absolute(data, figconfig)
     elif figure_type == config.FigureTypes.optimisation_relative:
       fig = gen_optimisation.generate_relative(data, figconfig)
+    elif figure_type == config.FigureTypes.incremental_cdf:
+      fig = gen_incremental.generate_cdf(data, figconfig)
     else:
       assert(false)      
     # TODO: Process and generate the graph

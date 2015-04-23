@@ -6,6 +6,7 @@ from config.common import *
 class FigureTypes():
   optimisation_absolute = 0
   optimisation_relative = 1
+  incremental_cdf = 2
 
 def dictFilter(d):
   return lambda k : d[k]
@@ -25,24 +26,16 @@ FIGURE_ROOT = os.path.join(DOC_ROOT, FIGURE_PREFIX)
 ### Optimisation test cases
 
 OPTIMISATION_FILE_FILTER = dictFilter({
-  'clusters/synthetic/firmament/graph_100m_8j_100t_10p.in': 'Small',
-  'clusters/synthetic/firmament/graph_100m_16j_100t_10p.in': 'Medium',
-  'clusters/synthetic/firmament/graph_1000m_32j_100t_10p.in': 'Large',
-  'clusters/synthetic/firmament/google_all.in': None, 
-})
-
-OPTIMISATION_FILE_FILTER = dictFilter({
-  'clusters/synthetic/firmament/graph_100m_8j_100t_10p.in': 'Small',
-  'clusters/synthetic/firmament/graph_100m_16j_100t_10p.in': 'Medium',
-  'clusters/synthetic/firmament/graph_1000m_32j_100t_10p.in': 'Large',
-  'clusters/natural/google_trace/google_all.in': None, 
+  'clusters/natural/google_trace/octopus/1hour/large_100percent.min': None,
+  'clusters/natural/google_trace/octopus/1hour/medium_10percent.min': 'Medium',
+  'clusters/natural/google_trace/octopus/1hour/small_1percent.min': 'Small',
 })
 
 OPTIMISATION_FIGURES = {
   ### Optimisations
   ## Augmenting path
   'ap_big_vs_small_absolute': {
-    'data': 'f_ap_big_vs_small_heap',
+    'data': 'f_opt_ap_big_vs_small_heap',
     'type': FigureTypes.optimisation_absolute,
     'file_filter': OPTIMISATION_FILE_FILTER,
     'test_filter': dictFilter({
@@ -51,7 +44,7 @@ OPTIMISATION_FIGURES = {
       'small_map': None
     }),
     
-    'datasets': ['Small', 'Medium', 'Large'],
+    'datasets': ['Small', 'Medium'],
     'implementations': ['Big Heap', 'Small Heap'],
     'colours': {
       'Big Heap': 'r',
@@ -59,7 +52,7 @@ OPTIMISATION_FIGURES = {
     }
   },
   'ap_big_vs_small_relative': {
-    'data': 'f_ap_big_vs_small_heap',
+    'data': 'f_opt_ap_big_vs_small_heap',
     'type': FigureTypes.optimisation_relative,
     'file_filter': OPTIMISATION_FILE_FILTER,
     'test_filter': dictFilter({
@@ -68,7 +61,7 @@ OPTIMISATION_FIGURES = {
       'small_map': None
     }),
     
-    'datasets': ['Small', 'Medium', 'Large'],
+    'datasets': ['Small', 'Medium'],
     'implementations': ['Big Heap', 'Small Heap'],
     'baseline': 'Big Heap',
     'colours': {
@@ -78,7 +71,29 @@ OPTIMISATION_FIGURES = {
   },                      
 }
 
+### Incremental test cases
+
+INCREMENTAL_TEST_FILTER = dictFilter({
+  'full': 'Standard',
+  'incremental': 'Incremental',
+})
+
+INCREMENTAL_FIGURES = {
+  'optimised_cdf': {
+    'data': 'ion_optimized_head_to_head_quick',
+    'type': FigureTypes.incremental_cdf,
+    'test_filter': INCREMENTAL_TEST_FILTER,
+    
+    'trace': 'small_trace',
+    'implementations': ['Standard', 'Incremental'],
+    'colours': {
+      'Standard': 'r',
+      'Incremental': 'b',
+    }
+  }, 
+}
+
 ### All figures
 
-FIGURES = mergeDicts([OPTIMISATION_FIGURES], 
-                     ["opt"])
+FIGURES = mergeDicts([OPTIMISATION_FIGURES, INCREMENTAL_FIGURES], 
+                     ["opt", "inc"])

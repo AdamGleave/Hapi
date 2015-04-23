@@ -2,6 +2,8 @@ import math
 import numpy as np
 import scipy.stats
 
+import itertools
+
 def _error(x):
   mu = np.mean(x)
   sigma = np.std(x)
@@ -27,23 +29,14 @@ def interval_to_upper_lower(l):
     return [lower, upper]
   return list(map(upper_lower, l))
 
-def convert_time(time_str):
-  if time_str == 'Timeout':
-    return float('+inf')
+def dict_map(func, d, depth=1):
+  if depth==1:
+    return {k : func(v) for k, v in d.items()}
   else:
-    return float(time_str)
+    return {k : dict_map(func, v, depth-1) for k, v in d.items()}
 
 def full_map_on_iterations(func, d):
-  res = {k1 : 
-           {k2 : func(v2) 
-            for k2, v2 in v1.items()}
-         for k1, v1 in d.items()}
-  return res
-
-def full_extract_time(d, final_key):
-  def timeLambda(x):
-    return list(map(lambda x : convert_time(x[final_key]), x))
-  return full_map_on_iterations(timeLambda, d)
+  return dict_map(func, d, 2)
 
 def full_mean(d):
   return full_map_on_iterations(np.mean, d)
@@ -62,10 +55,11 @@ def full_swap_file_impl(data):
       
   return new_data
 
-def extract_summary_stats(l):
-  mean = [x['mean'] for x in l]
-  sd = [x['sd'] for x in l]
-  return (mean, sd)
+def ion_map_on_implementations(func, d):
+  return dict_map(func, d, 2)
+
+def ion_map_on_iterations(func, d):
+  return ion_map_on_implementations(lambda x : list(map(func, x)), d)
   
 def flatten_dict(d, key_matrix):
   if len(key_matrix) == 0:
@@ -74,3 +68,27 @@ def flatten_dict(d, key_matrix):
     keys = key_matrix[0]
     key_matrix = key_matrix[1:]
     return [flatten_dict(d[k], key_matrix) for k in keys]
+  
+def chain_lists(l):
+  return list(itertools.chain(*l))
+  
+def convert_time(time_str):
+  if time_str == 'Timeout':
+    return float('+inf')
+  else:
+    return float(time_str)
+
+def full_extract_time(d, final_key):
+  def timeLambda(x):
+    return list(map(lambda y : convert_time(y[final_key]), x))
+  return full_map_on_iterations(timeLambda, d)
+
+def ion_extract_time(d, final_key):
+  def timeLambda(x):
+    return list(map(lambda y : (y[0], convert_time(y[1][final_key])), x))
+  return ion_map_on_iterations(timeLambda, d)
+
+def ion_drop_cluster_timestamp(d):
+  def dropTimestampLambda(x):
+    return list(map(lambda y : y[1], x))
+  return ion_map_on_iterations(dropTimestampLambda, d)

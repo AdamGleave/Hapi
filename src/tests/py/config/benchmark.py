@@ -469,6 +469,7 @@ FULL_TESTS = {
   "opt_cs_wave_vs_fifo": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
+    "timeout": 1200,
     "tests": {
       "wave": {
         "implementation": "f_cs_wave",
