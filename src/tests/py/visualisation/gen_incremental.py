@@ -10,9 +10,9 @@ def get_start_time(figconfig):
   return figconfig.get('start_time', config.DEFAULT_INCREMENTAL_START)
 
 def analyse_distribution(data, start_time, index1, group2):
-  times = analysis.ion_extract_time(data, 'scheduling')
-  times = analysis.ion_filter_cluster_time(times, start_time)
-  times = analysis.ion_drop_cluster_timestamp(times)
+  times = analysis.ion_map_on_iterations(analysis.ion_extract_time('scheduling'), data)
+  times = analysis.ion_map_on_iterations(analysis.ion_filter_cluster_time(start_time), times)
+  times = analysis.ion_map_on_iterations(analysis.ion_get_scheduler_time, times)
   
   # for the CDF, we can just concatenate all iterations together
   times = analysis.ion_map_on_implementations(analysis.chain_lists, times)
@@ -71,16 +71,15 @@ def generate_hist(data, figconfig):
   plt.title('Distribution of scheduling latency')
   
 def generate_over_time(data, figconfig):
-  times = analysis.ion_extract_time(data, 'scheduling')
-  times = analysis.ion_filter_cluster_time(times, get_start_time(figconfig))
+  times = analysis.ion_map_on_iterations(analysis.ion_extract_time('scheduling'), data)
+  start_time = get_start_time(figconfig)
+  times = analysis.ion_map_on_iterations(analysis.ion_filter_cluster_time(start_time), times)
+  times = analysis.ion_map_on_implementations(analysis.chain_lists, times)
   
-  cluster_times = analysis.ion_extract_cluster_timestamp(times)
+  times = analysis.ion_map_on_implementations(lambda l : np.sort(l, axis=0), times)
   
-  scheduling_latency = analysis.ion_drop_cluster_timestamp(times)
-  
-  # concatenate iterations together
-  cluster_times = analysis.ion_map_on_implementations(analysis.chain_lists, cluster_times)
-  scheduling_latency = analysis.ion_map_on_implementations(analysis.chain_lists, scheduling_latency)
+  cluster_times = analysis.ion_map_on_implementations(analysis.ion_get_cluster_timestamp, times)
+  scheduling_latency = analysis.ion_map_on_implementations(analysis.ion_get_scheduler_time, times)
   
   cluster_times = cluster_times[figconfig['trace']]
   scheduling_latency = scheduling_latency[figconfig['trace']] 
