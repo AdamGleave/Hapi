@@ -550,16 +550,16 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
   test_instances = {test_name : createIncrementalTestInstance(tests[test_name])
                    for test_name in tests}
   
-  for trace_config in case_config["traces"]:
-    trace_name = trace_config["name"]
+  for (dataset_name, dataset_config) in case_config["traces"].items():
+    trace_name = dataset_config["trace"]
     trace_spec = config.TRACE_DATASET[trace_name]
     trace_files = {}
     
-    print("\t", trace_name, " - online: ", end="")
+    print("\t", dataset_name, " - online: ", end="")
     
     for (test_name, test_instance) in tests.items(): 
       result = runSimulator(case_name, case_config, test_name, test_instance,
-                  trace_name, trace_config, trace_spec, 0, type="hybrid")
+                  trace_name, dataset_config, trace_spec, 0, type="hybrid")
       result = list(result)
       assert(len(result) == 1)
       

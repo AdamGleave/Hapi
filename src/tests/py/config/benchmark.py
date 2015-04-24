@@ -6,6 +6,7 @@
 import os, sh
 
 MAKE_FLAGS = []
+WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
 
 try:
   # allow settings to be overridden on a local basis
@@ -15,7 +16,6 @@ except ImportError:
 
 from config.common import *
 
-WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
 RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
 FIRMAMENT_ROOT = os.path.join(os.path.dirname(PROJECT_ROOT), "firmament")
 
