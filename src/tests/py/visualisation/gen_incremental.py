@@ -49,25 +49,20 @@ def generate_cdf(data, figconfig):
 def plot_hist(times, labels, colours, sum_to_one=True, **kwargs):
   num_groups = len(times)
   
-  # SOMEDAY: Can pass sequences of arrays to plt.hist
-  # But this doesn't play nicely with weights, I don't think.
-  # If you want bars side-by-side, you'll need to rewrite this, 
-  # e.g. perhaps applying weighting yourself. 
-  for i in range(num_groups):
-    label = labels[i]
-    colour = colours[label]
-    x = times[i]
-    weights = None
-    if sum_to_one:
-      weights = np.ones_like(x) / len(x)
-    plt.hist(x, weights=weights, label=label, color=colour, histtype='step',
-             **kwargs)
+  weights = None 
+  if sum_to_one:
+    weights = []
+    for i in range(len(times)):
+      weights.append(np.ones_like(times[i]) / len(times[i]))
+      
+  colours = analysis.flatten_dict(colours, [labels])
+  plt.hist(times, weights=weights, label=labels, color=colours, **kwargs)
   
 def generate_hist(data, figconfig):
   times = analyse_distribution(data, get_start_time(figconfig),
                                figconfig['trace'], figconfig['implementations'])
   plot_hist(times, figconfig['implementations'], figconfig['colours'],
-            histtype='step', bins=10)
+            histtype='bar', bins=10)
   
   plt.legend(loc='upper right')
   
