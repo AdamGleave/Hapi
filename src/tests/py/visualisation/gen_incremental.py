@@ -27,13 +27,13 @@ def plot_cdf(times, labels, colours, **kwargs):
   # can compute empirical CDF using sampling with scipy
   # see http://stackoverflow.com/questions/3209362/
   # I don't think the datasets you're dealing with are big enough for this to matter
-  num_groups, num_elts = np.shape(sorted)
-  ecdf = np.linspace(0, 1, num_elts, endpoint=False)
-  sorted = np.sort(times) 
+  num_groups = len(times)
   
   for i in range(num_groups):
+    x = np.sort(times[i])
+    y = np.linspace(0, 1, len(x), endpoint=False)
     label = labels[i]
-    plt.plot(sorted[i], ecdf, label=label, color=colours[label])
+    plt.plot(x, y, label=label, color=colours[label])
     
 def generate_cdf(data, figconfig):
   times = analyse_distribution(data, get_start_time(figconfig),
@@ -47,23 +47,27 @@ def generate_cdf(data, figconfig):
   plt.title('CDF for scheduling latency')
 
 def plot_hist(times, labels, colours, sum_to_one=True, **kwargs):
-  colour_array = analysis.flatten_dict(colours, [labels])
+  num_groups = len(times)
   
-  times = np.transpose(times)
-  weights = None
-  if sum_to_one:
-    # Make sum of histogram heights = one.
-    # This differs from normed option of hist which makes *area*
-    # under histograms equal to one.
-    num_elts, num_groups = np.shape(times)
-    weights = np.ones_like(times) / num_elts
-  plt.hist(times, weights=weights, label=labels, color=colour_array, **kwargs)
+  # SOMEDAY: Can pass sequences of arrays to plt.hist
+  # But this doesn't play nicely with weights, I don't think.
+  # If you want bars side-by-side, you'll need to rewrite this, 
+  # e.g. perhaps applying weighting yourself. 
+  for i in range(num_groups):
+    label = labels[i]
+    colour = colours[label]
+    x = times[i]
+    weights = None
+    if sum_to_one:
+      weights = np.ones_like(x) / len(x)
+    plt.hist(x, weights=weights, label=label, color=colour, histtype='step',
+             **kwargs)
   
 def generate_hist(data, figconfig):
   times = analyse_distribution(data, get_start_time(figconfig),
                                figconfig['trace'], figconfig['implementations'])
   plot_hist(times, figconfig['implementations'], figconfig['colours'],
-            bins=10)
+            histtype='step', bins=10)
   
   plt.legend(loc='upper right')
   
@@ -99,3 +103,7 @@ def generate_over_time(data, figconfig):
   plt.xlabel('Cluster time (s)')
   plt.ylabel('Scheduling latency (s)')
   plt.title('Scheduling latency against time')
+  
+# Problem: want to display multiple iterations.
+# Would ideally like some indication of central tendency, and of variance.
+# Although CDF is the more 'scientific' way of displaying these results anyway
