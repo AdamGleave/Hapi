@@ -83,10 +83,24 @@ def full_extract_time(d, final_key):
     return list(map(lambda y : convert_time(y[final_key]), x))
   return full_map_on_iterations(timeLambda, d)
 
+def cluster_time_to_seconds(cluster_time):
+  seconds = float(cluster_time) / (1000 * 1000)
+  return seconds - 600
+
 def ion_extract_time(d, final_key):
   def timeLambda(x):
-    return list(map(lambda y : (y[0], convert_time(y[1][final_key])), x))
+    return list(map(lambda y : (cluster_time_to_seconds(y[0]), convert_time(y[1][final_key])), x))
   return ion_map_on_iterations(timeLambda, d)
+
+def ion_filter_cluster_time(d, at_least):
+  def filterClusterTime(x):
+    return list(filter(lambda y : y[0] > at_least, x))
+  return ion_map_on_iterations(filterClusterTime, d)
+
+def ion_extract_cluster_timestamp(d):
+  def getClusterTimestamp(x):
+    return list(map(lambda y : y[0], x))
+  return ion_map_on_iterations(getClusterTimestamp, d)
 
 def ion_drop_cluster_timestamp(d):
   def dropTimestampLambda(x):

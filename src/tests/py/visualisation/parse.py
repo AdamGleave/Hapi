@@ -3,7 +3,7 @@ import csv
 FULL_FIELDNAMES = ["test", "file", "iteration", "algorithm_time", "total_time"]
 OFFLINE_FIELDNAMES = ["test", "file", "delta_id", "iteration",
                       "algorithm_time", "total_time"]
-ONLINE_FIELDNAMES = ["test", "trace", "delta_id", "cluster_timestamp", 
+ONLINE_FIELDNAMES = ["test", "dataset", "delta_id", "cluster_timestamp", 
                      "iteration", "scheduling_latency", "algorithm_time", 
                      "flowsolver_time", "total_time"]
 

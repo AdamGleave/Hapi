@@ -2,12 +2,7 @@ import os
 from enum import Enum
 
 from config.common import *
-
-class FigureTypes():
-  optimisation_absolute = 0
-  optimisation_relative = 1
-  incremental_cdf = 2
-  incremental_hist = 3
+from visualisation.test_types import FigureTypes
 
 def dictFilter(d):
   return lambda k : d[k]
@@ -74,6 +69,10 @@ OPTIMISATION_FIGURES = {
 
 ### Incremental test cases
 
+# Time, in seconds, *after* proper start of cluster.
+# So 600s would be after time 12,000,000,000 in cluster.
+DEFAULT_INCREMENTAL_START = 600
+
 INCREMENTAL_TEST_FILTER = dictFilter({
   'full': 'Standard',
   'incremental': 'Incremental',
@@ -103,7 +102,19 @@ INCREMENTAL_FIGURES = {
       'Standard': 'r',
       'Incremental': 'b',
     }
-  }, 
+  },
+  'optimised_over_time': {
+    'data': 'ion_optimized_head_to_head_quick',
+    'type': FigureTypes.incremental_over_time,
+    'test_filter': INCREMENTAL_TEST_FILTER,
+    
+    'trace': 'small_trace',
+    'implementations': ['Standard', 'Incremental'],
+    'colours': {
+      'Standard': 'r',
+      'Incremental': 'b',
+    }
+  },  
 }
 
 ### All figures

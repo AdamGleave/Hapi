@@ -2,10 +2,19 @@
  
 import config.visualisation as config
 from visualisation import parse, gen_optimisation, gen_incremental
+from visualisation.test_types import FigureTypes
 
 import os, sys
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+
+figure_generators = {
+  FigureTypes.optimisation_absolute : gen_optimisation.generate_absolute,
+  FigureTypes.optimisation_relative : gen_optimisation.generate_relative,
+  FigureTypes.incremental_cdf : gen_incremental.generate_cdf,
+  FigureTypes.incremental_hist : gen_incremental.generate_hist,
+  FigureTypes.incremental_over_time : gen_incremental.generate_over_time,  
+}
 
 if __name__ == "__main__":
   if len(sys.argv) == 1:
@@ -36,19 +45,8 @@ if __name__ == "__main__":
       assert(false)
 
     # Process the data, generate the graph
-    fig = None
-    figure_type = figconfig['type']
-    if figure_type == config.FigureTypes.optimisation_absolute:
-      fig = gen_optimisation.generate_absolute(data, figconfig)
-    elif figure_type == config.FigureTypes.optimisation_relative:
-      fig = gen_optimisation.generate_relative(data, figconfig)
-    elif figure_type == config.FigureTypes.incremental_cdf:
-      fig = gen_incremental.generate_cdf(data, figconfig)
-    elif figure_type == config.FigureTypes.incremental_hist:
-      fig = gen_incremental.generate_hist(data, figconfig)
-    else:
-      assert(false)      
-    # TODO: Process and generate the graph
+    generate_function = figure_generators[figconfig['type']]
+    fig = generate_function(data, figconfig)
     
     # Export figure
     figure_fname = os.path.join(config.FIGURE_ROOT, figname + ".pdf")
