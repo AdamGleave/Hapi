@@ -29,6 +29,25 @@ def interval_to_upper_lower(l):
     return [lower, upper]
   return list(map(upper_lower, l))
 
+def moving_average(x, n, type='simple'):
+  # from pyplot demo
+  """
+  compute an n period moving average.
+
+  type is 'simple' | 'exponential'
+  """                                                                                                                                                        
+  x = np.asarray(x)
+  if type == 'simple':
+      weights = np.ones(n)
+  else:                                                                                                                                   
+      weights = np.exp(np.linspace(-1., 0., n))
+
+  weights /= weights.sum()
+
+  a =  np.convolve(x, weights, mode='full')[:len(x)]
+  a[:n] = a[n]
+  return a
+
 def dict_map(func, d, depth=1):
   if depth==1:
     return {k : func(v) for k, v in d.items()}
@@ -59,7 +78,7 @@ def ion_map_on_implementations(func, d):
   return dict_map(func, d, 2)
 
 def ion_map_on_iterations(func, d):
-  return ion_map_on_implementations(lambda x : list(map(func, x)), d)
+  return ion_map_on_implementations(lambda x : np.array(list(map(func, x))), d)
   
 def flatten_dict(d, key_matrix):
   if len(key_matrix) == 0:
@@ -87,14 +106,19 @@ def cluster_time_to_seconds(cluster_time):
   seconds = float(cluster_time) / (1000 * 1000)
   return seconds - 600
 
-def ion_extract_time(final_key):
+def ion_extract_time(d, final_key):
+  dtype = [('cluster_time', 'float'), (final_key, 'float')]
   def extract_lambda(x):
-    return list(map(lambda y : (cluster_time_to_seconds(y[0]),
-                                convert_time(y[1][final_key])), x))
-  return extract_lambda
+    extracted = list(map(lambda y : (cluster_time_to_seconds(y[0]),
+                                     convert_time(y[1][final_key])), x))
+    return np.array(extracted, dtype=dtype)
+  return ion_map_on_implementations(lambda x : list(map(extract_lambda, x)), d)
 
 def ion_filter_cluster_time(at_least):
-  return lambda x : list(filter(lambda y : y[0] > at_least, x))
+  def filter_lambda(x):
+    mask = np.where(x['cluster_time'] >= at_least)
+    return x[mask]
+  return filter_lambda
 
 def ion_get_cluster_timestamp(x):
   return list(map(lambda y : y[0], x))

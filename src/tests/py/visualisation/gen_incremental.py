@@ -9,14 +9,20 @@ from visualisation import analysis
 def get_start_time(figconfig):
   return figconfig.get('start_time', config.DEFAULT_INCREMENTAL_START)
 
-def analyse_distribution(data, start_time, index1, group2):
-  times = analysis.ion_map_on_iterations(analysis.ion_extract_time('scheduling'), data)
-  times = analysis.ion_map_on_iterations(analysis.ion_filter_cluster_time(start_time), times)
-  times = analysis.ion_map_on_iterations(analysis.ion_get_scheduler_time, times)
-  
-  # for the CDF, we can just concatenate all iterations together
+def analyse_generic(data, start_time):
+  # extract times
+  times = analysis.ion_extract_time(data, 'scheduling')
+  times = analysis.ion_map_on_iterations(
+                            analysis.ion_filter_cluster_time(start_time), times)
+  # concatenate all iterations together
   times = analysis.ion_map_on_implementations(analysis.chain_lists, times)
   
+  return times
+  
+def analyse_distribution(data, start_time, index1, group2):
+  times = analyse_generic(data, start_time)
+  times = analysis.ion_map_on_implementations(analysis.ion_get_scheduler_time,
+                                              times)
   times = times[index1]
   times = analysis.flatten_dict(times, [group2])
   
@@ -70,13 +76,14 @@ def generate_hist(data, figconfig):
   plt.ylabel('Probability')
   plt.title('Distribution of scheduling latency')
   
+# SOMEDAY: Would be nice to include some indication of variance
 def generate_over_time(data, figconfig):
-  times = analysis.ion_map_on_iterations(analysis.ion_extract_time('scheduling'), data)
+  # get data
   start_time = get_start_time(figconfig)
-  times = analysis.ion_map_on_iterations(analysis.ion_filter_cluster_time(start_time), times)
-  times = analysis.ion_map_on_implementations(analysis.chain_lists, times)
+  times = analyse_generic(data, start_time)
   
-  times = analysis.ion_map_on_implementations(lambda l : np.sort(l, axis=0), times)
+  # sort it
+  times = analysis.ion_map_on_implementations(lambda l : np.sort(l, order='cluster_time'), times)                                                                                                                                         
   
   cluster_times = analysis.ion_map_on_implementations(analysis.ion_get_cluster_timestamp, times)
   scheduling_latency = analysis.ion_map_on_implementations(analysis.ion_get_scheduler_time, times)
@@ -87,17 +94,15 @@ def generate_over_time(data, figconfig):
   cluster_times = analysis.flatten_dict(cluster_times, [figconfig['implementations']])
   scheduling_latency = analysis.flatten_dict(scheduling_latency, [figconfig['implementations']])
   
+  window_size = figconfig.get('window_size', config.DEFAULT_WINDOW_SIZE)
   colours = analysis.flatten_dict(figconfig['colours'], [figconfig['implementations']])
   for i in range(len(figconfig['implementations'])):
-    plt.plot(cluster_times[i], scheduling_latency[i],
+    smoothed = analysis.moving_average(scheduling_latency[i], window_size)
+    plt.plot(cluster_times[i], smoothed,
              label=figconfig['implementations'][i], color=colours[i])
-    
+  
   plt.legend(loc='upper right')
   
   plt.xlabel('Cluster time (s)')
   plt.ylabel('Scheduling latency (s)')
-  plt.title('Scheduling latency against time')
-  
-# Problem: want to display multiple iterations.
-# Would ideally like some indication of central tendency, and of variance.
-# Although CDF is the more 'scientific' way of displaying these results anyway
+  plt.title('Moving average of scheduling latency against time')

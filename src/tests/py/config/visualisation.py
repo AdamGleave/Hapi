@@ -73,6 +73,9 @@ OPTIMISATION_FIGURES = {
 # So 600s would be after time 12,000,000,000 in cluster.
 DEFAULT_INCREMENTAL_START = 600
 
+# Number of elements to include in moving average (for incremental_over_time)
+DEFAULT_WINDOW_SIZE = 100
+
 INCREMENTAL_TEST_FILTER = dictFilter({
   'full': 'Standard',
   'incremental': 'Incremental',

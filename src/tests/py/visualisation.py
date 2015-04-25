@@ -46,6 +46,8 @@ if __name__ == "__main__":
 
     # Process the data, generate the graph
     generate_function = figure_generators[figconfig['type']]
+    # new figure
+    plt.figure()
     fig = generate_function(data, figconfig)
     
     # Export figure
