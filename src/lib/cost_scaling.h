@@ -32,7 +32,7 @@ public:
 	 * algorithm and reports them, along with other statistics, for each
 	 * iteration in CSV format into file csv_path.
 	 */
-	bool runStatistics(std::string csv_path);
+	bool runStatistics(std::string csv_path, bool task_assignments);
 	/**
 	 * Approximate algorithm. Terminates when epsilon is < threshold.
 	 */

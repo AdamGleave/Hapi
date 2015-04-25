@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
 			("help", "produce help message")
 			("scaling-factor", po::value<uint32_t>(), "factor by which to divide epsilon on each iteration")
 			("statistics", po::value<std::string>(), "output statistics on each iteration to CSV file specified")
+			("scheduling-graph", "Flag used in conjunction with -statistics. Is the input network produced by a flow scheduler? If so, the number of task assignments modified is computed.")
 			("epsilon", po::value<double>(), "threshold for epsilon-optimality")
 			("iterations", po::value<uint64_t>(), "threshold for number of iterations")
 			("cost-threshold", po::value<double>(), "minimum factor cost reduced by between iterations")
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]) {
 
 		if (vm.count("statistics") + vm.count("epsilon") + vm.count("iterations")
 				+ vm.count("cost-threshold") + vm.count("task-assignments") > 1) {
-			throw po::invalid_option_value("at most one of --epsilon, "
+			throw po::invalid_option_value("at most one of --statistics, --epsilon, "
 							"--iterations and --cost-threshold can be used");
 		}
 
@@ -137,7 +138,8 @@ int main(int argc, char *argv[]) {
 
 		if (vm.count("statistics")) {
 			std::string path = vm["statistics"].as<std::string>();
-			success = cc->runStatistics(path);
+			bool scheduling_graph = vm.count("scheduling-graph");
+			success = cc->runStatistics(path, scheduling_graph);
 		} else if (vm.count("epsilon")) {
 			double threshold = vm["epsilon"].as<double>();
 			success = cc->runEpsilonOptimal(threshold);

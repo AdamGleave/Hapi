@@ -419,28 +419,36 @@ uint64_t DurationToMicro(std::chrono::duration<Rep,Period> &d) {
 	return std::chrono::duration_cast<std::chrono::microseconds>(d).count();
 }
 
-bool CostScaling::runStatistics(std::string csv_path) {
-	TaskAssignmentDelta *tad = new TaskAssignmentDelta(g);
+bool CostScaling::runStatistics(std::string csv_path, bool task_assignments) {
+	TaskAssignmentDelta *tad = nullptr;
+	if (task_assignments) {
+		tad = new TaskAssignmentDelta(g);
+	}
+
 	std::fstream *csv_file;
 	csv_file = new std::fstream(csv_path.c_str(),
 						        std::fstream::out | std::fstream::trunc);
 	if (csv_file->fail()) {
 		LOG(FATAL) << "Cannot open " << csv_path;
 	}
-	*csv_file << "iteration #,refine time,overhead time,epsilon,"
-			     "cost,# task assignments changed" << std::endl;;
+	*csv_file << "iteration,refine_time,overhead_time,epsilon,"
+			         "cost,task_assignments_changed" << std::endl;;
 
 	// note the reported time for the first iteration will include some setup,
 	// such as finding the maximum cost and checking for feasibility
 	std::chrono::time_point<std::chrono::high_resolution_clock> *last;
 	last = new std::chrono::time_point<std::chrono::high_resolution_clock>();
 	*last = std::chrono::high_resolution_clock::now();
-	bool success = run([csv_file, tad, last, this]() -> bool {
+	bool success = run([csv_file, tad, last, task_assignments, this]() -> bool {
 		auto after_refine = std::chrono::high_resolution_clock::now();
 		auto refine_time = after_refine - *last;
 
 		uint64_t total_cost = totalCost(g);
-		uint32_t num_assignments = tad->update(g);
+
+		int64_t num_assignments = -1;
+		if (task_assignments) {
+			num_assignments = tad->update(g);
+		}
 
 		auto after_update = std::chrono::high_resolution_clock::now();
 		auto overhead_time = after_update - after_refine;
