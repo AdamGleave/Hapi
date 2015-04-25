@@ -146,7 +146,7 @@ STANDARD_TRACE_CONFIG_TEMPLATE = {
 }
 
 _STANDARD_TRACE_CONFIG_SHORT_EXTENSION = { "trace": "small_trace",
-                                           "scheduling_rounds": 50 }
+                                           "runtime": absoluteRuntime(1800) }
 STANDARD_TRACE_CONFIG_SHORT = { k : extendDict(v, _STANDARD_TRACE_CONFIG_SHORT_EXTENSION)
                                 for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
 
