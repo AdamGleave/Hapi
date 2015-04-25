@@ -541,7 +541,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
 
 def runIncrementalHybridTest(case_name, case_config, result_file): 
   fieldnames = ["test", "file", "delta_id", 
-                "iteration", "algorithm_time", "total_time"]
+                "iteration", "algorithm_time", "total_time"] + CHANGE_FIELDNAMES
   result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
   result_writer.writeheader()
   iterations = case_config["iterations"]
@@ -607,7 +607,9 @@ def runIncrementalHybridTest(case_name, case_config, result_file):
 
 def runIncrementalOnlineTest(case_name, case_config, result_file):
   fieldnames = ["test", "dataset", "delta_id", "cluster_timestamp", "iteration",
-      "scheduling_latency", "algorithm_time", "flowsolver_time", "total_time"]
+      "scheduling_latency", "algorithm_time", "flowsolver_time", "total_time",
+      "total_changes","new_node","remove_node",
+      "new_arc","change_arc","remove_arc"]
   result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
   result_writer.writeheader()
   
@@ -630,12 +632,12 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
           result = { "test": test_name,
                      "dataset": dataset_name,
                      "delta_id": row_number, 
-                     "iteration": i,
-                     "cluster_timestamp": row["cluster_timestamp"],
-                     "scheduling_latency": row["scheduling_latency"],
-                     "algorithm_time": row["algorithm_time"],
-                     "flowsolver_time": row["flowsolver_time"],
-                     "total_time": row["total_time"] }
+                     "iteration": i}
+          fields = ["cluster_timestamp", "scheduling_latency", 
+                    "algorithm_time", "flowsolver_time", "total_time",
+                    "total_changes","new_node","remove_node",
+                    "new_arc","change_arc","remove_arc"]
+          result.update({k: row[k] for k in fields})
           result_writer.writerow(result)
           result_file.flush()
           row_number += 1
