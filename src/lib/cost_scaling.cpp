@@ -10,13 +10,13 @@
 #include <glog/logging.h>
 
 // this code is useful for debug, but not used otherwise
-
+/*
 namespace {
 
 using namespace flowsolver;
 
 int64_t compute_balance(const FlowNetwork &g,
-						std::vector<int64_t> &initial_supply, uint32_t id) {
+						std::vector<int64_t> initial_supply, uint32_t id) {
 	const std::forward_list<Arc *> &adjacencies = g.getAdjacencies(id);
 	std::forward_list<Arc *>::const_iterator it;
 	int64_t flow_sum = initial_supply[id];
@@ -35,7 +35,7 @@ int64_t compute_balance(const FlowNetwork &g,
 	return flow_sum;
 }
 
-void check_invariants(const FlowNetwork &g, std::vector<int64_t> &initial_supply,
+void check_invariants(const FlowNetwork &g, std::vector<int64_t> initial_supply,
 					  bool circulation_expected) {
 	bool active_seen = false;
 	int64_t balance_sum = 0;
@@ -66,15 +66,14 @@ void check_invariants(const FlowNetwork &g, std::vector<int64_t> &initial_supply
 }
 
 } // namespace (unnamed)
-
+*/
 
 namespace flowsolver {
 
 CostScaling::CostScaling(FlowNetwork &g, uint32_t scaling_factor)
 	: g(g), epsilon(0), num_iterations(0),
 	  SCALING_FACTOR(scaling_factor),
-	  COST_SCALING_FACTOR(scaling_factor * g.getNumNodes()),
-		initial_supply(g.balances) {
+	  COST_SCALING_FACTOR(scaling_factor * g.getNumNodes()) {
 	assert(scaling_factor > 1);
 	uint32_t num_nodes = g.getNumNodes();
 
@@ -155,12 +154,9 @@ bool CostScaling::pushOrUpdate(uint32_t id) {
 			// apply push
 			int64_t flow = std::min(residual_capacity, g.getBalance(id));
 			int64_t new_balance = g.pushFlow(current_edge, id, flow);
-			VLOG(2) << id << ": Push " << flow << " from " << id << "on "
-					    << current_edge.getSrcId() << "->" << current_edge.getDstId();
 			if (new_balance > 0 && new_balance <= flow) {
 				// destination vertex is active, and excess is less than flow;
 				// so this push just *made* it active.
-				VLOG(1) << id << ": " << current_edge.getOppositeId(id) << " has become active.";
 				active_vertices.push(current_edge.getOppositeId(id));
 			}
 			return false;
@@ -172,14 +168,11 @@ bool CostScaling::pushOrUpdate(uint32_t id) {
 	++current_edges[id];
 	if (current_edges[id] != adjacencies.end()) {
 		// not the last edge in list
-		VLOG(2) << "Skipping " << current_edge.getSrcId() << "->" << current_edge.getDstId();
 		return false;
 	} else {
 		// last edge in the list
 		// wrap-around to first edge in list, and relabel the vertex
-		VLOG(2) << "Wrapping around at " << current_edge.getSrcId() << "->" << current_edge.getDstId();
 		current_edges[id] = adjacencies.begin();
-		VLOG(1) << id << ": relabel";
 		relabel(id);
 		return true;
 	}
@@ -237,14 +230,9 @@ void CostScaling::refine() {
 	}
 
 	/*** main loop */
-	int num_iterations = 0;
 	while (!active_vertices.empty()) {
-		if (num_iterations % 100 == 0) {
-			check_invariants(g, initial_supply, false);
-		}
 		uint32_t active = active_vertices.front();
 		active_vertices.pop();
-		VLOG(1) << "Discharging " << active;
 		discharge(active);
 	}
 }
@@ -302,7 +290,6 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 		 */
 		epsilon = std::max(1ul, epsilon / SCALING_FACTOR);
 		refine();
-		check_invariants(g, initial_supply, true);
 		num_iterations++;
 	}
 	return true;

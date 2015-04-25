@@ -104,6 +104,8 @@ int main(int argc, char *argv[]) {
 		po::options_description desc("cost scaling options");
 		desc.add_options()
 			("help", "produce help message")
+			("forbid-antiparallel-arcs", "do not allow an arc to be defined from src->dst and dst->src")
+			("permit-duplicate-arcs", "allow multiple arcs between two nodes")
 			("scaling-factor", po::value<uint32_t>(), "factor by which to divide epsilon on each iteration")
 			("statistics", po::value<std::string>(), "output statistics on each iteration to CSV file specified")
 			("scheduling-graph", "Flag used in conjunction with -statistics. Is the input network produced by a flow scheduler? If so, the number of task assignments modified is computed.")
@@ -124,41 +126,44 @@ int main(int argc, char *argv[]) {
 							"--iterations and --cost-threshold can be used");
 		}
 
-		FlowNetwork *g = DIMACSOriginalImporter<FlowNetwork>(std::cin).read();
-		CostScaling *cc;
+		bool forbid_antiparallel_arcs = vm.count("forbid-antiparallel-arcs");
+		bool allow_duplicate_arcs = vm.count("permit-duplicate-arcs");
+		FlowNetwork *g = DIMACSOriginalImporter<FlowNetwork>(std::cin,
+				                !forbid_antiparallel_arcs, allow_duplicate_arcs).read();
+		CostScaling *cs;
 
 		t.start();
 		if (vm.count("scaling-factor")) {
 			uint32_t scaling_factor = vm["scaling-factor"].as<uint32_t>();
-			cc = new CostScaling(*g, scaling_factor);
+			cs = new CostScaling(*g, scaling_factor);
 		} else {
-			cc = new CostScaling(*g);
+			cs = new CostScaling(*g);
 		}
 		bool success;
 
 		if (vm.count("statistics")) {
 			std::string path = vm["statistics"].as<std::string>();
 			bool scheduling_graph = vm.count("scheduling-graph");
-			success = cc->runStatistics(path, scheduling_graph);
+			success = cs->runStatistics(path, scheduling_graph);
 		} else if (vm.count("epsilon")) {
 			double threshold = vm["epsilon"].as<double>();
-			success = cc->runEpsilonOptimal(threshold);
+			success = cs->runEpsilonOptimal(threshold);
 		} else if (vm.count("iterations")) {
 			uint64_t max_iterations = vm["iterations"].as<uint64_t>();
-			success = cc->runFixedIterations(max_iterations);
+			success = cs->runFixedIterations(max_iterations);
 		} else if (vm.count("cost-threshold")) {
 			double min_factor = vm["cost-threshold"].as<double>();
-			success = cc->runCostThreshold(min_factor);
+			success = cs->runCostThreshold(min_factor);
 		} else if (vm.count("task-assignments")) {
 			uint32_t min_assignments = vm["task-assignments"].as<uint32_t>();
-			success = cc->runTaskAssignmentThreshold(min_assignments);
+			success = cs->runTaskAssignmentThreshold(min_assignments);
 		} else {
-			success = cc->runOptimal();
+			success = cs->runOptimal();
 		}
 
 		t.stop();
 		t.report();
-		delete cc;
+		delete cs;
 		LOG_IF(ERROR, !success) << "No feasible solution.";
 
 		if (flow) {

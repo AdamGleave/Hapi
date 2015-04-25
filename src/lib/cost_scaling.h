@@ -68,8 +68,6 @@ private:
 	// TODO: implementation of the queue? dequeue and list both possible
 	std::queue<uint32_t> active_vertices;
 	std::vector<std::forward_list<Arc *>::iterator> current_edges;
-
-	std::vector<int64_t> initial_supply;
 };
 
 } /* namespace flowsolver */

@@ -73,7 +73,11 @@ template<class T>
 class DIMACSOriginalImporter : public DIMACSImporter {
 	BOOST_CONCEPT_ASSERT((Graph<T>));
 public:
-	explicit DIMACSOriginalImporter(std::istream &is) : DIMACSImporter(is) {};
+	explicit DIMACSOriginalImporter(std::istream &is,
+			                            bool allow_antiparallel_arcs=false,
+																	bool allow_duplicates=false)
+	    : DIMACSImporter(is), allow_antiparallel_arcs(allow_antiparallel_arcs),
+				allow_duplicates(allow_duplicates) {};
 
 	T *read() {
 		parse();
@@ -139,19 +143,24 @@ protected:
 
 			CHECK(lower_bound == 0);
 
-			/*if (arcs_seen[src].count(dst) > 0 ||
-				arcs_seen[dst].count(src) > 0) {
+			if (!allow_duplicates && arcs_seen[src].count(dst) > 0) {
 				LOG(WARNING) << "Duplicate definition of arc "
 							 << src << "->" << dst
-							 << " at line " << line_num;
-			} else {*/
+							 << " at line " << line_num << " -- ignoring.";
+			} else if (!allow_antiparallel_arcs && arcs_seen[dst].count(src) > 0) {
+				LOG(ERROR) << "Anti-paralell arc "
+						       << src << "->" << dst
+									 << " at line " << line_num << " -- ignoring.";
+			} else {
 				if (upper_bound != 0) {
 					// ignore zero-capacity arcs
 					g->addArc(src, dst, upper_bound, cost);
 					arcs_seen[src].insert(dst);
-					arcs_seen[dst].insert(src);
+					if (!allow_antiparallel_arcs) {
+						arcs_seen[dst].insert(src);
+					}
 				}
-			//}
+			}
 
 			break;
 		default:
@@ -165,6 +174,7 @@ protected:
 	T *g = nullptr;
 	std::vector<std::unordered_set<uint32_t>> arcs_seen;
 	bool seen_node = false, seen_arc = false;
+	bool allow_antiparallel_arcs, allow_duplicates;
 };
 
 template<class T>
