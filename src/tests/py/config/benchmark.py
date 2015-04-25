@@ -50,7 +50,10 @@ FULL_DATASET = {
   # Graphs after 1 hour into Google Trace. Using Octopus cost model.
   # Generated with CS2 solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
-  "octopus_1hour": graphGlob("clusters/natural/google_trace/octopus/1hour/*"),
+  "octopus_1hour_small": prefix_list("clusters/natural/google_trace/octopus/1hour/",
+                                     ["small.min", "medium.min"]),
+  "octopus_1hour_large": prefix_list("clusters/natural/google_trace/octopus/1hour/",
+                       ["large.min", "full_size.min"]),
   
   ### General flow networks
   ### See https://lemon.cs.elte.hu/trac/lemon/wiki/MinCostFlowData
@@ -95,6 +98,8 @@ FULL_DATASET = {
 
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
                           + FULL_DATASET["synthetic_large"]
+FULL_DATASET["octopus_1hour"] = FULL_DATASET["octopus_1hour_small"] \
+                              + FULL_DATASET["octopus_1hour_large"]  
 
 all_files = set()
 for files in FULL_DATASET.values():
@@ -149,6 +154,8 @@ _STANDARD_TRACE_CONFIG_SHORT_EXTENSION = { "trace": "small_trace",
                                            "runtime": absoluteRuntime(1800) }
 STANDARD_TRACE_CONFIG_SHORT = { k : extendDict(v, _STANDARD_TRACE_CONFIG_SHORT_EXTENSION)
                                 for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
+STANDARD_TRACE_CONFIG_SHORT_AND_SMALL = { k : STANDARD_TRACE_CONFIG_SHORT[k] 
+                                          for k in ["small", "medium"]}
 
 _STANDARD_TRACE_CONFIG_1HOUR_EXTENSION = { "trace": "small_trace", 
                                             "runtime": absoluteRuntime(3600)}
@@ -385,7 +392,7 @@ IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS]
 
 ##### Test cases
 
-DEFAULT_TIMEOUT = 300 # s, i.e. 5 minutes
+DEFAULT_TIMEOUT = 60 # 1 minute
 
 ### Tests on full graphs, comparing only full solvers
 FULL_TESTS = {
@@ -432,7 +439,7 @@ FULL_TESTS = {
   # don't care about the memory consumption, but map may actually perform 
   # better since it can be better cached.
   "opt_ap_big_vs_small_heap": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["octopus_1hour_small"],
     "iterations": 5,
     "tests": {
       "big": {
@@ -449,7 +456,7 @@ FULL_TESTS = {
               
   # Test early termination of Djikstra's algorithm
   "opt_ap_full_vs_partial_djikstra": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["octopus_1hour_small"],
     "iterations": 5,
     "tests": {
       "full": {
@@ -462,12 +469,14 @@ FULL_TESTS = {
   },
               
   ## Relaxation
-  
   # Caching arcs crossing the cut
   # zerorc case: only zero reduced cost cuts
   # all case: every arc crossing the cut (separated into positive and zero rc)
   "opt_relax_cache_arcs": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["octopus_1hour_small"],
+    # The pathological case of RELAX seems to be triggered, ugh.
+    # Bump the timeout so we can collect results for small & medium.
+    "timeout": 600,
     "iterations": 5,
     "tests": {
       "none": {
@@ -486,7 +495,6 @@ FULL_TESTS = {
   "opt_cs_wave_vs_fifo": {
     "files": FULL_DATASET["octopus_1hour"],
     "iterations": 5,
-    "timeout": 1200,
     "tests": {
       "wave": {
         "implementation": "f_cs_wave",
@@ -536,13 +544,13 @@ FULL_TESTS = {
   ### Compiler comparisons
   ## My implementations
   "compilers_ap": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["octopus_1hour_small"],
     "iterations": 5,              
     "tests": compilerTests({"ap": {"implementation": "f_ap_latest"}},
                            COMPILERS.keys())
   },
   "compilers_cc": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["octopus_1hour_small"],
     "iterations": 5,              
     "tests": compilerTests({"cc": {"implementation": "f_cc_latest"}},
                            COMPILERS.keys())
@@ -554,7 +562,7 @@ FULL_TESTS = {
                            COMPILERS.keys())
   },
   "compilers_relax": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["octopus_1hour_small"],
     "iterations": 5,              
     "tests": compilerTests({"relax": {"implementation": "f_relax_latest"}},
                            COMPILERS.keys())
@@ -681,8 +689,8 @@ INCREMENTAL_TESTS_ANYONLINE = {
   ### same solver in a non-incremental mode? Similarly, what proportion of work
   ### must the incremental solver do?
   "same_ap": {
-    # Augmenting path is slow. Give it a small dataset.
-    "traces": STANDARD_TRACE_CONFIG_SHORT,
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "timeout": 3,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_ap_latest" },
@@ -690,9 +698,8 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
   },
   "same_relax": {
-    # This implementation of RELAX is 4-5x faster than augmenting path.
-    # But still too slow for a large dataset.
-    "traces": STANDARD_TRACE_CONFIG_SHORT,
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "timeout": 3,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_latest" },
@@ -700,8 +707,8 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
   },
   "same_relaxf": {
-    # This is the optimised version of RELAX. Give it a full-size dataset.
-    "traces": STANDARD_TRACE_CONFIG_SHORT,
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "timeout": 3,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_frangioni" },
@@ -713,35 +720,33 @@ INCREMENTAL_TESTS_ANYONLINE = {
   # Evaluation against the best of my (unoptimized) implementations.
   "head_to_head_my": {
     # Give them a small dataset
-    "traces": STANDARD_TRACE_CONFIG_SHORT,
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "iterations": 5,
+    # first run may take a long time, but incremental will be fast after this
+    "timeout": 3600,
     "tests": {
       "full":           { "implementation": "f_cs_latest" },
-      "incremental":    { "implementation": "i_relax_latest" },
+      "inc_ap":    { "implementation": "i_ap_latest" },
+      "inc_relax":    { "implementation": "i_relax_latest" },
     }
   },
   # Fight against the best optimized implementations.
   # Goldberg for full solver, modified RelaxIV for incremental solver.
   "head_to_head_optimised": {
     # These implementations can handle a full-size dataset
-    "traces": STANDARD_TRACE_CONFIG_SHORT,
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "iterations": 5,
+    # first run may take a long time, but incremental will be fast after this
+    "timeout": 3600,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },
       "incremental":    { "implementation": "i_relaxf_latest" },
     },
   },
-  "head_to_head_optimised_short": {
-    "traces": STANDARD_TRACE_CONFIG_SHORT,
-    "iterations": 5,
-    "tests": {
-      "full":           { "implementation": "f_cs_goldberg" },
-      "incremental":    { "implementation": "i_relaxf_latest" },
-    },
-  },
-  "head_to_head_optimised_very_short": {
-    "traces": STANDARD_TRACE_CONFIG_SHORT,
-    "iterations": 5,
+  "head_to_head_optimised_quick": {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "iterations": 3,
+    "timeout": 600,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },
       "incremental":    { "implementation": "i_relaxf_latest" },

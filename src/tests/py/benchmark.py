@@ -620,12 +620,17 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
     trace_name = dataset_config["trace"]
     trace_spec = config.TRACE_DATASET[trace_name]
     
+    timedout = set()
+    
     print("\t", dataset_name, ": ", end="")
     
     for i in range(iterations):
       print(i, " ", end="")
       
       for (test_name, test_instance) in tests.items():
+        if test_name in timedout:
+          continue
+        
         row_number = 0
         for row in runSimulator(case_name, case_config, test_name, test_instance,
                            trace_name, dataset_config, trace_spec, i, type="online"):
@@ -641,6 +646,9 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
           result_writer.writerow(result)
           result_file.flush()
           row_number += 1
+          
+          if row["algorithm_time"] == "Timeout":
+            timedout.add(test_name)
         
     print("")
 
