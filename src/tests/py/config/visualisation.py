@@ -22,9 +22,10 @@ FIGURE_ROOT = os.path.join(DOC_ROOT, FIGURE_PREFIX)
 ### Optimisation test cases
 
 OPTIMISATION_FILE_FILTER = dictFilter({
-  'clusters/natural/google_trace/octopus/1hour/large_100percent.min': None,
-  'clusters/natural/google_trace/octopus/1hour/medium_10percent.min': 'Medium',
-  'clusters/natural/google_trace/octopus/1hour/small_1percent.min': 'Small',
+  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse Scale',
+  'clusters/natural/google_trace/octopus/1hour/large.min': 'Large',
+  'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium',
+  'clusters/natural/google_trace/octopus/1hour/small.min': 'Small',
 })
 
 OPTIMISATION_FIGURES = {
@@ -83,7 +84,7 @@ INCREMENTAL_TEST_FILTER = dictFilter({
 
 INCREMENTAL_FIGURES = {
   'optimised_cdf': {
-    'data': 'ion_optimized_head_to_head_quick',
+    'data': 'ion_head_to_head_optimised',
     'type': FigureTypes.incremental_cdf,
     'test_filter': INCREMENTAL_TEST_FILTER,
     
@@ -95,7 +96,7 @@ INCREMENTAL_FIGURES = {
     }
   }, 
   'optimised_hist': {
-    'data': 'ion_optimized_head_to_head_quick',
+    'data': 'ion_head_to_head_optimised',
     'type': FigureTypes.incremental_hist,
     'test_filter': INCREMENTAL_TEST_FILTER,
     
@@ -107,7 +108,7 @@ INCREMENTAL_FIGURES = {
     }
   },
   'optimised_over_time': {
-    'data': 'ion_optimized_head_to_head_quick',
+    'data': 'ion_head_to_head_optimised',
     'type': FigureTypes.incremental_over_time,
     'test_filter': INCREMENTAL_TEST_FILTER,
     

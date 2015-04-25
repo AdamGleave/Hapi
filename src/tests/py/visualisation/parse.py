@@ -3,9 +3,11 @@ import csv
 FULL_FIELDNAMES = ["test", "file", "iteration", "algorithm_time", "total_time"]
 OFFLINE_FIELDNAMES = ["test", "file", "delta_id", "iteration",
                       "algorithm_time", "total_time"]
+CHANGE_FIELDNAMES = ["total_changes","new_node","remove_node",
+                     "new_arc","change_arc","remove_arc"]
 ONLINE_FIELDNAMES = ["test", "dataset", "delta_id", "cluster_timestamp", 
                      "iteration", "scheduling_latency", "algorithm_time", 
-                     "flowsolver_time", "total_time"]
+                     "flowsolver_time", "total_time"] + CHANGE_FIELDNAMES
 
 def _parse(fname, expected_fieldnames):
   with open(fname) as csvfile:
@@ -34,13 +36,29 @@ def full(fname, file_filter=identity, test_filter=identity):
       continue
     
     test_res = file_res.get(test, [])
-    test_res.append({'algo': row['algorithm_time'], 'total': row['total_time']})
+    test_res.append({'algo': row['algorithm_time'],
+                     'total': row['total_time'], 
+                     'changes': {
+                            }})
     
     file_res[test] = test_res
     res[file] = file_res
     
   return res
 
+def get_changes_dict(row):
+  return {'total': row['total_changes'],
+          'node': {
+            'new': row['new_node'],
+            'remove': row['remove_node']
+          },
+          'arc': {
+            'add': row['new_arc'],
+            'change': row['change_arc'],
+            'remove': row['remove_arc']
+          },
+        }
+  
 def incremental_offline(fname, file_filter=identity, test_filter=identity):
   """Returns in format dict of filename/trace -> array indexed by delta IDs -> 
      -> dict of implementations -> array of iterations 
@@ -66,7 +84,9 @@ def incremental_offline(fname, file_filter=identity, test_filter=identity):
       continue
     
     test_res = delta_res.get(test, [])
-    test_res.append({'algo': row['algorithm_time'], 'total': row['total_time']})
+    test_res.append({'algo': row['algorithm_time'],
+                     'total': row['total_time',
+                     'changes': get_changes_dict(row)]})
     
     delta_res[test] = test_res
     file_res[delta_id] = delta_res
@@ -104,7 +124,8 @@ def incremental_online(fname, trace_filter=identity, test_filter=identity):
        { 'scheduling': row['scheduling_latency'],
          'algo': row['algorithm_time'], 
          'flowsolver': row['flowsolver_time'], 
-         'total': row['total_time']
+         'total': row['total_time'],
+         'changes': get_changes_dict(row)
        })
     )
     
