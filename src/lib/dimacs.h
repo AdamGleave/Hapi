@@ -139,19 +139,19 @@ protected:
 
 			CHECK(lower_bound == 0);
 
-			if (arcs_seen[src].count(dst) > 0 ||
+			/*if (arcs_seen[src].count(dst) > 0 ||
 				arcs_seen[dst].count(src) > 0) {
 				LOG(WARNING) << "Duplicate definition of arc "
 							 << src << "->" << dst
 							 << " at line " << line_num;
-			} else {
+			} else {*/
 				if (upper_bound != 0) {
 					// ignore zero-capacity arcs
 					g->addArc(src, dst, upper_bound, cost);
 					arcs_seen[src].insert(dst);
 					arcs_seen[dst].insert(src);
 				}
-			}
+			//}
 
 			break;
 		default:

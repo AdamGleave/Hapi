@@ -74,7 +74,9 @@ private:
 			                uint64_t capacity, int64_t cost);
 
 	uint32_t num_nodes, num_arcs;
+public:
 	std::vector<int64_t> balances;
+private:
 	std::vector<std::forward_list<Arc *>> arcs;
 };
 
