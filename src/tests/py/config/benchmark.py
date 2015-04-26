@@ -112,7 +112,7 @@ INCREMENTAL_DATASET = {
   # Not real data, and too small to be useful. Good for testing benchmark script.
   "development_only": ["clusters/natural/google_trace/tiny_trace.imin"],
   # CS2 on the small Google trace. Only the first 7 deltas.
-  "google_small_trace_truncated": ["clusters/natural/google_trace/small_trace.imin"],
+  "google_small_trace_truncated": ["clusters/natural/google_trace/small_trace_truncated.imin"],
 }
 
 ### Google cluster trace(s)
@@ -784,21 +784,27 @@ INCREMENTAL_TESTS_ONLINE = INCREMENTAL_TESTS_ANYONLINE.copy()
 
 ### Approximate tests
 
-REFERENCE_SOLVER = "f_cs_goldberg"
+REFERENCE_SOLVER = {"implementation": "f_cs_goldberg"}
 APPROXIMATE_DEFAULT_TEST = { 
   "implementation": "f_cs_latest", 
 }
 
 APPROXIMATE_TESTS_FULL = {
   "road": {
-    "files": FULL_DATASET["road_flow_small"],
-    "test": "f_cs_latest_nonscheduling",
+    "files": FULL_DATASET["road_flow"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
     "timeout": 600,
     "iterations": 5,
   },
 }
 
-APPROXIMATE_TESTS_INCREMENTAL_OFFLINE = {}
+APPROXIMATE_TESTS_INCREMENTAL_OFFLINE = {
+  "small_trace_truncated": {
+    "files": INCREMENTAL_DATASET["google_small_trace_truncated"],
+    "timeout": 600,
+    "iterations": 3,
+  }
+}
 
 APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
   "1hour": {

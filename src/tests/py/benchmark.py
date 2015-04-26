@@ -51,7 +51,9 @@ def findImplementations(tests):
     tests = []
     if case["type"].find("approximate") == 0:
       instance = case.get("test", config.APPROXIMATE_DEFAULT_TEST)
-      tests = [instance]
+      tests.append(instance)
+      if case["type"] == "approximate_incremental_hybrid":
+        tests.append(config.REFERENCE_SOLVER)
     else:
       tests += case["tests"].values()
       
@@ -185,11 +187,16 @@ def createWrapperCommand(exe_path, arguments):
   '''full solver to be used as incremental'''
   snapshots = config.SNAPSHOT_CREATOR_PROGRAM
   command = config.SNAPSHOT_SOLVER_PROGRAM.bake(exe_path, *arguments)
-  def runCommand(input_path, output_path):
+  def runCommand(input_path, output_path, *extra_arguments, error_path=None):
     # See createNativeCommand for why I'm using cat
-    return command(
+    if not error_path:
+      return command(
                 snapshots(sh.cat(input_path, _piped="direct"), _piped="direct"), 
                 _out=output_path, _iter="err")
+    else:
+      return command(
+                snapshots(sh.cat(input_path, _piped="direct"), _piped="direct"), 
+                _out=output_path, _err=error_path, _bg=True)
   return runCommand
 
 def helperCreateTestInstance(instance):
@@ -353,7 +360,6 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
     running_command = test_command(input_path, out_path, error_path=err_path,
                                    *arguments)
     
-    delta_id = 0
     while running_command.process.is_alive():
       csv_rows = None
       with open(fifo_path, 'r') as stats_file:
@@ -363,8 +369,7 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
       # reset timeout
       signal.alarm(timeout)
       
-      yield (delta_id, csv_rows)
-      delta_id += 1
+      yield csv_rows
       
       # give process time to terminate, if it's going to
       # TODO: This is a hack, but not easy to do non-blocking IO in Python
@@ -771,13 +776,134 @@ def runApproximateFullTest(case_name, case_config, result_file):
                        "task_assignments_changed": -1})
         break
       else:
-        delta_id, rows = test_result
-        assert(delta_id == 0)
-        for row in rows:
+        for row in test_results:
           output = base_output.copy()
           output.update(row)
           result_writer.writerow(output)
       result_file.flush()
+        
+    print("")
+    
+def runApproximateIncrementalOfflineTest(case_name, case_config, result_file):
+  fieldnames = ["file", "delta_id", "test_iteration"] + APPROXIMATE_FIELDS
+  result_writer = csv.DictWriter(result_file, fieldnames=fieldnames)
+  result_writer.writeheader()
+  
+  iterations = case_config["iterations"]
+  instance = case_config.get("test", config.APPROXIMATE_DEFAULT_TEST)
+  
+  test_instance = createIncrementalTestInstance(instance)
+  
+  for fname in case_config["files"]:
+    print("\t", fname, ": ", end="")
+    
+    for i in range(iterations):
+      print(i, " ", end="")
+        
+      log_directory = os.path.join(test_instance["version_directory"],
+                                   "log", case_name)
+      timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
+      
+      run = runApproximateTestInstance("approximate", test_instance["cmd"], 
+                                       log_directory, fname, i, timeout)
+      delta_id = 0
+      timedout = False
+      for test_result in run:
+        base_output = { "file": fname,
+                        "test_iteration": i }
+        if test_result == "Timeout":
+          output = base_output.copy()
+          output.update({"delta_id": delta_id,
+                         "refine_iteration": 0,
+                         "refine_time": "Timeout",
+                         "overhead_time": "Timeout",
+                         "epsilon": -1,
+                         "cost": -1,
+                         "task_assignments_changed": -1})
+          result_writer.writerow(output)
+          result_file.flush()
+          timedout = True
+          break
+        else:
+          for row in test_result:
+            output = base_output.copy()
+            output.update(row)
+            output.update({"delta_id": delta_id})
+            result_writer.writerow(output)
+          delta_id += 1
+          result_file.flush()
+        
+      if timedout:
+        break
+        
+    print("")
+      
+def runApproximateIncrementalHybridTest(case_name, case_config, result_file):
+  fieldnames = ["dataset", "delta_id", "test_iteration"] + APPROXIMATE_FIELDS
+  result_writer = csv.DictWriter(result_file, fieldnames=fieldnames)
+  result_writer.writeheader()
+  
+  iterations = case_config["iterations"]
+  test_instance = case_config.get("test", config.APPROXIMATE_DEFAULT_TEST)
+  test_instance = createIncrementalTestInstance(test_instance)
+  
+  for (dataset_name, dataset_config) in case_config["traces"].items():
+    trace_name = dataset_config["trace"]
+    trace_spec = config.TRACE_DATASET[trace_name]
+    
+    print("\t", dataset_name, " - online: ", end="")
+    
+    result = runSimulator(case_name, case_config, "approximate", config.REFERENCE_SOLVER,
+                trace_name, dataset_config, trace_spec, 0, type="hybrid")
+    result = list(result)
+    assert(len(result) == 1)
+    
+    trace_file, status = result[0]
+          
+    print(status, end=" ")
+    
+    print("/ offline: ", end="")
+    for i in range(iterations):
+      print(i, " ", end="")
+        
+      log_directory = os.path.join(test_instance["version_directory"],
+                                   "log", case_name)
+      timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
+      input_graph = trace_files[test_name]
+      log_fname = os.path.relpath(os.path.join(log_directory, test_name),
+                                  input_graph)
+      run = runApproximateTestInstance("approximate", test_instance["cmd"], 
+                    log_directory, input_graph, i, timeout, log_fname=log_fname)
+      
+      delta_id = 0
+      timedout = False
+      for test_result in run:
+        base_output = { "file": fname,
+                        "test_iteration": i }
+        if test_result == "Timeout":
+          output = base_output.copy()
+          output.update({"delta_id": delta_id,
+                         "refine_iteration": 0,
+                         "refine_time": "Timeout",
+                         "overhead_time": "Timeout",
+                         "epsilon": -1,
+                         "cost": -1,
+                         "task_assignments_changed": -1})
+          result_writer.writerow(output)
+          result_file.flush()
+          timedout = True
+          break
+        else:
+          for row in test_result:
+            output = base_output.copy()
+            output.update(row)
+            output.update({"delta_id": delta_id})
+            result_writer.writerow(output)
+          delta_id += 1
+          result_file.flush()
+        
+      if timedout:
+        break
         
     print("")
 
@@ -799,9 +925,9 @@ def runTests(tests):
       elif test_type == "approximate_full":
         runApproximateFullTest(case_name, case_config, result_file)
       elif test_type == "approximate_incremental_offline":
-        error("Not implemented")
+        runApproximateIncrementalOfflineTest(case_name, case_config, result_file)
       elif test_type == "approximate_incremental_hybrid":
-        error("Not implemented")
+        runApproximateIncrementalHybridTest(case_name, case_config, result_file)
       else:
         error("Unrecognised test type: ", test_type)
 
