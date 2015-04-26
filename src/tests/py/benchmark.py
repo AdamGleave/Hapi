@@ -872,7 +872,7 @@ def runApproximateIncrementalOfflineTest(case_name, case_config, result_file):
     print("")
       
 def runApproximateIncrementalHybridTest(case_name, case_config, result_file):
-  fieldnames = ["dataset", "delta_id", "test_iteration"] + APPROXIMATE_FIELDS
+  fieldnames = ["file", "delta_id", "test_iteration"] + APPROXIMATE_FIELDS
   result_writer = csv.DictWriter(result_file, fieldnames=fieldnames)
   result_writer.writeheader()
   

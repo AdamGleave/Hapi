@@ -3,11 +3,18 @@ import csv
 FULL_FIELDNAMES = ["test", "file", "iteration", "algorithm_time", "total_time"]
 OFFLINE_FIELDNAMES = ["test", "file", "delta_id", "iteration",
                       "algorithm_time", "total_time"]
+
 CHANGE_FIELDNAMES = ["total_changes","new_node","remove_node",
                      "new_arc","change_arc","remove_arc"]
 ONLINE_FIELDNAMES = ["test", "dataset", "delta_id", "cluster_timestamp", 
                      "iteration", "scheduling_latency", "algorithm_time", 
                      "flowsolver_time", "total_time"] + CHANGE_FIELDNAMES
+                     
+APPROXIMATE_FIELDNAMES = ["refine_iteration", "refine_time", "overhead_time",
+                          "epsilon", "cost","task_assignments_changed"]
+APPROXIMATE_FULL_FIELDNAMES = ["file", "test_iteration"] + APPROXIMATE_FIELDNAMES
+APPROXIMATE_INCREMENTAL_OFFLINE_FIELDNAMES = \
+                 ["file", "delta_id", "test_iteration"] + APPROXIMATE_FIELDNAMES
 
 def _parse(fname, expected_fieldnames):
   with open(fname) as csvfile:
@@ -18,11 +25,17 @@ def _parse(fname, expected_fieldnames):
 
 def identity(x):
   return x
-  
-def full(fname, file_filter=identity, test_filter=identity):
+
+def _helper_full_or_offline(type, fname,
+                            file_filter=identity, test_filter=identity):
   """Returns in format dict of filenames -> dict of implementations 
      -> array of iterations -> dict of times (algo, total)"""
-  data = _parse(fname, FULL_FIELDNAMES)
+  data = None
+  if type == "full":
+    data = _parse(fname, FULL_FIELDNAMES)
+  else:
+    data = _parse(fname, OFFLINE_FIELDNAMES)
+  
   res = {}
   for row in data:
     file = file_filter(row['file'])
@@ -31,20 +44,43 @@ def full(fname, file_filter=identity, test_filter=identity):
     
     file_res = res.get(file, {})
     
+    delta_id = None
+    if type == "full":
+      dict_of_implementations = file_res
+    else:
+      delta_id = int(row['delta_id'])
+      assert(delta_id <= len(file_res))
+      if delta_id == len(file_res):
+        file_res.append({})
+      dict_of_implementations = file_res[delta_id]
+    
     test = test_filter(row['test'])
     if not test:
       continue
     
-    test_res = file_res.get(test, [])
+    test_res = dict_of_implementations.get(test, [])
     test_res.append({'algo': row['algorithm_time'],
-                     'total': row['total_time'], 
-                     'changes': {
-                            }})
+                     'total': row['total_time']})
     
-    file_res[test] = test_res
+    dict_of_implementations[test] = test_res
+    if type == "offline":
+      file_res[delta_id] = dict_of_implementations
     res[file] = file_res
     
   return res
+  
+def full(*args, **kwargs):
+  """Returns in format dict of filenames -> dict of implementations 
+     -> array of iterations -> dict of times (algo, total)"""
+  return _helper_full_or_offline('full', *args, **kwargs)
+
+def incremental_offline(fname, file_filter=identity, test_filter=identity):
+  """Returns in format dict of filename/trace -> array indexed by delta IDs -> 
+     -> dict of implementations -> array of iterations 
+     -> dict of times (algo, total)
+     
+     Covers offline and hybrid tests."""
+  return _helper_full_or_offline('offline', *args, **kwargs)
 
 def get_changes_dict(row):
   return {'total': row['total_changes'],
@@ -58,41 +94,6 @@ def get_changes_dict(row):
             'remove': row['remove_arc']
           },
         }
-  
-def incremental_offline(fname, file_filter=identity, test_filter=identity):
-  """Returns in format dict of filename/trace -> array indexed by delta IDs -> 
-     -> dict of implementations -> array of iterations 
-     -> dict of times (algo, total)
-     
-     Covers offline and hybrid tests."""
-  data = _parse(fname, OFFLINE_FIELDNAMES)
-  res = {}
-  for row in data:
-    file = file_filter(row['file'])
-    if not file:
-      continue
-    
-    file_res = res.get(file, [])
-    delta_id = int(row['delta_id'])
-    assert(delta_id <= len(file_res))
-    if delta_id == len(file_res):
-      file_res.append({})
-    delta_res = file_res[delta_id]
-    
-    test = test_filter(row['test'])
-    if not test:
-      continue
-    
-    test_res = delta_res.get(test, [])
-    test_res.append({'algo': row['algorithm_time'],
-                     'total': row['total_time',
-                     'changes': get_changes_dict(row)]})
-    
-    delta_res[test] = test_res
-    file_res[delta_id] = delta_res
-    res[file] = file_res
-    
-  return res
 
 def incremental_online(fname, trace_filter=identity, test_filter=identity):
   """Returns in format dict of filename/trace -> dict of implementations ->  
@@ -134,3 +135,56 @@ def incremental_online(fname, trace_filter=identity, test_filter=identity):
     res[trace] = trace_res
     
   return res
+
+def _helper_approximate_full_or_offline(type, fname, file_filter=identity):
+  data = None
+  if type == "full":
+    data = _parse(fname, APPROXIMATE_FULL_FIELDNAMES)
+  else:
+    data = _parse(fname, APPROXIMATE_INCREMENTAL_OFFLINE_FIELDNAMES)
+  
+  res = {}
+  for row in data:
+    file = file_filter(row['file'])
+    if not file:
+      continue
+    file_res = res.get(file, [])
+    
+    if type == "full":
+      array_of_iterations = file_res
+    else:
+      delta_id = int(row['delta_id'])
+      assert(delta_id <= len(file_res))
+      if delta_id == len(file_res):
+        file_res.append([])
+      array_of_iterations = file_res[delta_id]
+    
+    test_iteration = int(row['test_iteration'])
+    assert(test_iteration <= len(array_of_iterations))
+    if test_iteration == len(array_of_iterations):
+      array_of_iterations.append([])
+    refine_iteration_res = array_of_iterations[test_iteration] 
+    
+    assert(int(row['refine_iteration']) == len(refine_iteration_res))
+    output_fieldnames = APPROXIMATE_FIELDNAMES[1:] # chop off refine_iteration
+    refine_iteration_res.append({k : row[k] for k in output_fieldnames})
+    
+    array_of_iterations[test_iteration] = refine_iteration_res
+    if type == "offline":
+      file_res[delta_id] = array_of_iterations
+    res[file] = file_res
+    
+  return res
+
+def approximate_full(*args, **kwargs):
+  """Returns in format dict of filenames -> array of test iterations 
+     -> array of refine iterations -> dict of parameters 
+     (refine_time, overhead_time, epsilon, cost, task_assignments_changed)"""
+  return _helper_approximate_full_or_offline('full', *args, **kwargs)
+
+def approximate_incremental_offline(*args, **kwargs):
+  """Returns in format dict of filenames -> array of delta IDs
+     -> array of test iterations -> array of refine iterations 
+     -> dict of parameters (refine_time, overhead_time, epsilon, 
+     cost, task_assignments_changed)"""
+  return _helper_approximate_full_or_offline('offline', *args, **kwargs)
