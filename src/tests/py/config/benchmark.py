@@ -63,6 +63,7 @@ FULL_DATASET = {
   # ROAD-FLOW: capacity set to 40/60/80/100 depending on road category
   "road_paths": graphGlob("general/natural/road/road_paths_*.min"),
   "road_flow": graphGlob("general/natural/road/road_flow_*.min"),
+  "road_flow_small": graphGlob("general/natural/road/road_flow_01_*.min"),
   "road": graphGlob("general/natural/road/road_*.min"),
   
   ## VISION
@@ -232,6 +233,13 @@ FULL_IMPLEMENTATIONS = {
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments": ["cost_scaling", "--quiet"],
+    "offline_arguments": ["--flow", "false"]
+  },
+  "cs_latest_nonscheduling": {
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["cost_scaling", "--quiet", "--permit-duplicate-arcs"],
     "offline_arguments": ["--flow", "false"]
   },
   "relax_latest": {
@@ -783,7 +791,9 @@ APPROXIMATE_DEFAULT_TEST = {
 
 APPROXIMATE_TESTS_FULL = {
   "road": {
-    "files": FULL_DATASET["road_flow"],
+    "files": FULL_DATASET["road_flow_small"],
+    "test": "f_cs_latest_nonscheduling",
+    "timeout": 600,
     "iterations": 5,
   },
 }

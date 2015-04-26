@@ -318,7 +318,7 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
       running_command.terminate()
 
 def runApproximateTestInstance(test_name, test_command, log_directory, fname,
-          iteration, timeout, *extra_arguments, log_fname=None):
+          iteration, timeout, log_fname=None):
   input_path = os.path.join(config.DATASET_ROOT, fname)
   
   if not log_fname:
@@ -341,7 +341,7 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
   out_path = os.path.join(log_directory, prefix + ".out")
   err_path = os.path.join(log_directory, prefix + ".err")
   
-  fifo_path = os.path.join(log_directory, "stats_fifo.csv")
+  fifo_path = os.path.join(log_directory, test_name + "-stats_fifo.csv")
   if os.path.exists(fifo_path):
     print("WARNING: removing stale FIFO ", fifo_path)
     os.unlink(fifo_path)
@@ -353,17 +353,22 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
     running_command = test_command(input_path, out_path, error_path=err_path,
                                    *arguments)
     
-    # TODO: multiple iterations
-    with open(fifo_path, 'r') as stats_file:
-      print("FIFO opened")
-      csv_reader = csv.DictReader(stats_file)
-      print("Headers read")
-      for csv_row in csv_reader:
-        print("Iteration read")
-        yield csv_row
+    delta_id = 0
+    while running_command.process.is_alive():
+      csv_rows = None
+      with open(fifo_path, 'r') as stats_file:
+        csv_reader = csv.DictReader(stats_file)
+        csv_rows = list(csv_reader)
 
-    # reset timeout
-    signal.alarm(timeout)
+      # reset timeout
+      signal.alarm(timeout)
+      
+      yield (delta_id, csv_rows)
+      delta_id += 1
+      
+      # give process time to terminate, if it's going to
+      # TODO: This is a hack, but not easy to do non-blocking IO in Python
+      time.sleep(1)
         
     # clear timeout
     signal.alarm(0)
@@ -371,7 +376,7 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
     if running_command.exit_code != 0:
       raise ExitCodeException(result.exit_code)
   except Alarm:
-    yield (("Timeout", "Timeout"))
+    yield "Timeout"
     running_command.terminate()
   finally:
     os.unlink(fifo_path)
@@ -726,7 +731,7 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
         
     print("")
 
-APPROXIMATE_FIELDS = ["refine_iteration", "refine_time", "overhead_time", 
+APPROXIMATE_FIELDS = ["refine_iteration", "refine_time", "overhead_time",
                       "epsilon", "cost","task_assignments_changed"]
 def runApproximateFullTest(case_name, case_config, result_file):
   fieldnames = ["file", "test_iteration"] + APPROXIMATE_FIELDS
@@ -741,7 +746,6 @@ def runApproximateFullTest(case_name, case_config, result_file):
   for fname in case_config["files"]:
     print("\t", fname, ": ", end="")
     
-    timedout = set()
     for i in range(iterations):
       print(i, " ", end="")
         
@@ -749,26 +753,31 @@ def runApproximateFullTest(case_name, case_config, result_file):
                                    "log", case_name)
       timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
       
-      # create FIFO for statistics
-      fifo_path = os.path.join(log_directory, "stats_fifo.csv")
-      if os.path.exists(fifo_path):
-        print("WARNING: removing stale FIFO ", fifo_path)
-        os.unlink(fifo_path)
-      try:
-        os.makedirs(log_directory)
-      except FileExistsError:
-        pass
-      os.mkfifo(fifo_path)
-      arguments = ["--statistics", fifo_path]
-      
       run = runApproximateTestInstance("approximate", test_instance["cmd"], 
-                                   log_directory, fname, i, timeout, *arguments)
-      for row in run:
-        result = { "file": fname,
-                   "test_iteration": i }
-        result.update(row)
-        result_writer.writerow(result)
-        result_file.flush()
+                                       log_directory, fname, i, timeout)
+      test_results = list(run)
+      assert(len(test_results) == 1)
+      test_result = test_results[0]
+      base_output = { "file": fname,
+                      "test_iteration": i }
+      if test_result == "Timeout":
+        output = base_output.copy()
+        output.update({"delta_id": 0,
+                       "refine_iteration": 0,
+                       "refine_time": "Timeout",
+                       "overhead_time": "Timeout",
+                       "epsilon": -1,
+                       "cost": -1,
+                       "task_assignments_changed": -1})
+        break
+      else:
+        delta_id, rows = test_result
+        assert(delta_id == 0)
+        for row in rows:
+          output = base_output.copy()
+          output.update(row)
+          result_writer.writerow(output)
+      result_file.flush()
         
     print("")
 
