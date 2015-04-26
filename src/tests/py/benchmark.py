@@ -613,6 +613,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
     delta_file = os.path.join(trace_directory, hash.hexdigest() + ".imin")
     if os.path.exists(delta_file): 
       yield (delta_file, "cached")
+      return
     else:
       yield (delta_file, "generating") 
     simulator = simulator.bake("-graph_output_file", delta_file) 
