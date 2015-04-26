@@ -461,6 +461,9 @@ bool CostScaling::runStatistics(std::string csv_path, bool task_assignments) {
 		return true;
 	});
 
+	csv_file->flush();
+	csv_file->close();
+
 	delete tad;
 	delete csv_file;
 
