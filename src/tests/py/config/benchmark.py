@@ -676,7 +676,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
    },
   # For producing datasets used in optimisation tests
-  "generate_random": {
+  "generate_random": { # Random currently has some unimplemented functions
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "cost_model": "random",
     "iterations": 0,
@@ -684,7 +684,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "goldberg": { "implementation": "f_cs_goldberg" },
     },
   },
-  "generate_sjf": {
+  "generate_sjf": { # SJF currently has some unimplemented functions
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "cost_model": "sjf",
     "iterations": 0,
@@ -799,16 +799,19 @@ APPROXIMATE_TESTS_FULL = {
 }
 
 APPROXIMATE_TESTS_INCREMENTAL_OFFLINE = {
+  "development_only": {
+    "files": INCREMENTAL_DATASET["development_only"],
+    "iterations": 3,
+  },
   "small_trace_truncated": {
     "files": INCREMENTAL_DATASET["google_small_trace_truncated"],
-    "timeout": 600,
     "iterations": 3,
   }
 }
 
 APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
   "1hour": {
-    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "traces": STANDARD_TRACE_CONFIG_SHORT_AND_SMALL,
     "iterations": 5,
   },
 }

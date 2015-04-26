@@ -2,6 +2,7 @@
 
 import config.benchmark as config
 import os, sys, time, sh, shutil, signal, csv, hashlib, re 
+import threading
 
 class Alarm(Exception):
     pass
@@ -192,11 +193,11 @@ def createWrapperCommand(exe_path, arguments):
     if not error_path:
       return command(
                 snapshots(sh.cat(input_path, _piped="direct"), _piped="direct"), 
-                _out=output_path, _iter="err")
+                *extra_arguments, _out=output_path, _iter="err")
     else:
       return command(
                 snapshots(sh.cat(input_path, _piped="direct"), _piped="direct"), 
-                _out=output_path, _err=error_path, _bg=True)
+                *extra_arguments, _out=output_path, _err=error_path, _bg=True)
   return runCommand
 
 def helperCreateTestInstance(instance):
@@ -324,6 +325,24 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
       yield (("Timeout", "Timeout"))
       running_command.terminate()
 
+class ReadCsv(object):
+  def __init__(self, fifo_path, read_events):
+    self.fifo_path = fifo_path
+    self.read_events = read_events
+    self.csv_rows = None
+  def read(self):
+    with open(self.fifo_path, 'r') as stats_file:
+      csv_reader = csv.DictReader(stats_file)
+      self.csv_rows = list(csv_reader)
+    for e in self.read_events:
+      e.set()
+    
+def wait_for_completion(running_command, events):
+  running_command.wait()
+  time.sleep(1)
+  for e in events:
+    e.set()
+
 def runApproximateTestInstance(test_name, test_command, log_directory, fname,
           iteration, timeout, log_fname=None):
   input_path = os.path.join(config.DATASET_ROOT, fname)
@@ -355,25 +374,39 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
   os.mkfifo(fifo_path)
   arguments = ["--statistics", fifo_path]
   
-  signal.alarm(timeout)
   try:
     running_command = test_command(input_path, out_path, error_path=err_path,
                                    *arguments)
     
-    while running_command.process.is_alive():
-      csv_rows = None
-      with open(fifo_path, 'r') as stats_file:
-        csv_reader = csv.DictReader(stats_file)
-        csv_rows = list(csv_reader)
+    wake_up = threading.Event()
+    
+    stats_read = threading.Event()
+    stats_reader = ReadCsv(fifo_path, [stats_read, wake_up])
+    process_completed = threading.Event()
+    
+    # spin up threads
+    wait_t = threading.Thread(target=wait_for_completion,
+                              args=(running_command, [process_completed, wake_up]))
+    wait_t.start()
+    reader_t = threading.Thread(target=ReadCsv.read, args=(stats_reader,))
+    reader_t.setDaemon(True)
+    reader_t.start()
 
-      # reset timeout
-      signal.alarm(timeout)
+    while not process_completed.isSet():
+      wake_up.wait()
+      wake_up.clear()
       
-      yield csv_rows
-      
-      # give process time to terminate, if it's going to
-      # TODO: This is a hack, but not easy to do non-blocking IO in Python
-      time.sleep(1)
+      if stats_read.isSet():
+        # reset timeout
+        signal.alarm(timeout)
+        
+        yield stats_reader.csv_rows
+        
+        stats_read.clear()
+        t = threading.Thread(target=ReadCsv.read, args=(stats_reader,))
+        t.setDaemon(True)
+        t.start()
+    # process has terminated, end
         
     # clear timeout
     signal.alarm(0)
@@ -810,11 +843,11 @@ def runApproximateIncrementalOfflineTest(case_name, case_config, result_file):
       timedout = False
       for test_result in run:
         base_output = { "file": fname,
+                        "delta_id": delta_id,
                         "test_iteration": i }
         if test_result == "Timeout":
           output = base_output.copy()
-          output.update({"delta_id": delta_id,
-                         "refine_iteration": 0,
+          output.update({"refine_iteration": 0,
                          "refine_time": "Timeout",
                          "overhead_time": "Timeout",
                          "epsilon": -1,
@@ -828,7 +861,6 @@ def runApproximateIncrementalOfflineTest(case_name, case_config, result_file):
           for row in test_result:
             output = base_output.copy()
             output.update(row)
-            output.update({"delta_id": delta_id})
             result_writer.writerow(output)
           delta_id += 1
           result_file.flush()
@@ -869,21 +901,20 @@ def runApproximateIncrementalHybridTest(case_name, case_config, result_file):
       log_directory = os.path.join(test_instance["version_directory"],
                                    "log", case_name)
       timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
-      input_graph = trace_files[test_name]
-      log_fname = os.path.relpath(os.path.join(log_directory, test_name),
-                                  input_graph)
+      log_fname = os.path.relpath(os.path.join(log_directory, "approximate"),
+                                  trace_file)
       run = runApproximateTestInstance("approximate", test_instance["cmd"], 
-                    log_directory, input_graph, i, timeout, log_fname=log_fname)
+                    log_directory, trace_file, i, timeout, log_fname=log_fname)
       
       delta_id = 0
       timedout = False
       for test_result in run:
-        base_output = { "file": fname,
+        base_output = { "dataset": dataset_name,
+                        "delta_id": delta_id,
                         "test_iteration": i }
         if test_result == "Timeout":
           output = base_output.copy()
-          output.update({"delta_id": delta_id,
-                         "refine_iteration": 0,
+          output.update({"refine_iteration": 0,
                          "refine_time": "Timeout",
                          "overhead_time": "Timeout",
                          "epsilon": -1,
@@ -897,7 +928,6 @@ def runApproximateIncrementalHybridTest(case_name, case_config, result_file):
           for row in test_result:
             output = base_output.copy()
             output.update(row)
-            output.update({"delta_id": delta_id})
             result_writer.writerow(output)
           delta_id += 1
           result_file.flush()
