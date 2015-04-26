@@ -136,6 +136,21 @@ def incremental_online(fname, trace_filter=identity, test_filter=identity):
     
   return res
 
+def time_conversion(s):
+  if s == "Timeout":
+    return float('+inf')
+  else:
+    # time is in microseconds
+    return float(s) / (1000 * 1000)
+APPROXIMATE_CONVERSIONS = {"file": str,
+                           "test_iteration": int,
+                           "refine_iteration": int,
+                           "epsilon": int,
+                           "cost": int,
+                           "task_assignments_changed": int,
+                           "refine_time": time_conversion,
+                           "overhead_time": time_conversion}
+
 def _helper_approximate_full_or_offline(type, fname, file_filter=identity):
   data = None
   if type == "full":
@@ -145,6 +160,7 @@ def _helper_approximate_full_or_offline(type, fname, file_filter=identity):
   
   res = {}
   for row in data:
+    row = {k : APPROXIMATE_CONVERSIONS[k](v) for k,v in row.items()}
     file = file_filter(row['file'])
     if not file:
       continue
