@@ -48,7 +48,14 @@ def gitCommitID(version):
 def findImplementations(tests):
   implementations = {}
   for case in tests.values():
-    for instance in case["tests"].values():
+    tests = []
+    if case["type"].find("approximate") == 0:
+      instance = case.get("test", config.APPROXIMATE_DEFAULT_TEST)
+      tests = [instance]
+    else:
+      tests += case["tests"].values()
+      
+    for instance in tests:
       name = instance["implementation"]
       key = name
       if "compiler" in instance:
@@ -161,12 +168,17 @@ class ExitCodeException(Exception):
 
 def createNativeCommand(exe_path, arguments):
   native_command = sh.Command(exe_path).bake(*arguments)
-  def runCommand(input_path, output_path):
+  def runCommand(input_path, output_path, *extra_arguments, error_path=None):
     # Due to a quirk of sh's design, having cat pipe the file contents is
     # *considerably* faster than using _in directly (in which case Python
     # will have to read everything in, and then echo it out. Seriously slow.)
-    return native_command(sh.cat(input_path, _piped="direct"),
-                          _out=output_path, _iter="err")
+    if not error_path:
+      return native_command(sh.cat(input_path, _piped="direct"),
+                            *extra_arguments, _out=output_path, _iter="err")
+    else:
+      return native_command(sh.cat(input_path, _piped="direct"),
+                            *extra_arguments, _out=output_path, _err=error_path, 
+                            _bg=True)
   return runCommand
 
 def createWrapperCommand(exe_path, arguments):
@@ -198,13 +210,15 @@ def helperCreateTestInstance(instance):
           "exe_path": exe_path,
           "arguments": arguments}
 
-def createFullTestInstance(instance):
+def createFullTestInstance(instance, extra_arguments=None):
   parameters = helperCreateTestInstance(instance)
   implementation = parameters["implementation"]
   
   arguments = parameters["arguments"].copy()
   if "offline_arguments" in implementation:
     arguments += implementation["offline_arguments"]
+  if extra_arguments:
+    arguments += extra_arguments
   
   solver_type = implementation["type"]
   if solver_type == "full":
@@ -239,7 +253,7 @@ def createIncrementalTestInstance(instance):
          }
 
 def runTestInstance(test_name, test_command, log_directory, fname, iteration,
-                    timeout, log_fname=None):
+                    timeout, *extra_arguments, log_fname=None):
   input_path = os.path.join(config.DATASET_ROOT, fname)
   
   if not log_fname:
@@ -264,7 +278,8 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
   with open(err_path, 'w') as err_file:      
     signal.alarm(timeout)
     try:
-      running_command = test_command(input_path, out_path)
+      running_command = test_command(input_path, out_path, 
+                                     *extra_arguments, **extra_kwargs)
       
       start_time = time.time()
       
@@ -301,6 +316,65 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
     except Alarm:
       yield (("Timeout", "Timeout"))
       running_command.terminate()
+
+def runApproximateTestInstance(test_name, test_command, log_directory, fname,
+          iteration, timeout, *extra_arguments, log_fname=None):
+  input_path = os.path.join(config.DATASET_ROOT, fname)
+  
+  if not log_fname:
+    log_fname = fname
+  log_subpath = os.path.join(config.DATASET_ROOT, log_fname)
+  dirname = os.path.relpath(log_subpath, config.DATASET_ROOT)
+  log_directory = os.path.join(log_directory, dirname)
+  
+  if not(os.path.exists(input_path)):
+    print("Cannot open ", input_path, "for reading", file=sys.stderr)
+    sys.exit(1)
+    
+  try:
+    os.makedirs(log_directory)
+  except OSError:
+    # directory already created if not first time we've been run
+    pass
+  
+  prefix = test_name + "-offline_" + str(iteration)
+  out_path = os.path.join(log_directory, prefix + ".out")
+  err_path = os.path.join(log_directory, prefix + ".err")
+  
+  fifo_path = os.path.join(log_directory, "stats_fifo.csv")
+  if os.path.exists(fifo_path):
+    print("WARNING: removing stale FIFO ", fifo_path)
+    os.unlink(fifo_path)
+  os.mkfifo(fifo_path)
+  arguments = ["--statistics", fifo_path]
+  
+  signal.alarm(timeout)
+  try:
+    running_command = test_command(input_path, out_path, error_path=err_path,
+                                   *arguments)
+    
+    # TODO: multiple iterations
+    with open(fifo_path, 'r') as stats_file:
+      print("FIFO opened")
+      csv_reader = csv.DictReader(stats_file)
+      print("Headers read")
+      for csv_row in csv_reader:
+        print("Iteration read")
+        yield csv_row
+
+    # reset timeout
+    signal.alarm(timeout)
+        
+    # clear timeout
+    signal.alarm(0)
+      
+    if running_command.exit_code != 0:
+      raise ExitCodeException(result.exit_code)
+  except Alarm:
+    yield (("Timeout", "Timeout"))
+    running_command.terminate()
+  finally:
+    os.unlink(fifo_path)
 
 # SOMEDAY: Ugly how logic and IO are intermixed here. You could perhaps switch
 # to putting the logic in a generator, and iterate over the results yielded
@@ -541,7 +615,7 @@ def runSimulator(case_name, case_config, test_name, test_instance,
 
 def runIncrementalHybridTest(case_name, case_config, result_file): 
   fieldnames = ["test", "file", "delta_id", 
-                "iteration", "algorithm_time", "total_time"] + CHANGE_FIELDNAMES
+                "iteration", "algorithm_time", "total_time"]
   result_writer = csv.DictWriter(result_file,fieldnames=fieldnames)
   result_writer.writeheader()
   iterations = case_config["iterations"]
@@ -652,6 +726,52 @@ def runIncrementalOnlineTest(case_name, case_config, result_file):
         
     print("")
 
+APPROXIMATE_FIELDS = ["refine_iteration", "refine_time", "overhead_time", 
+                      "epsilon", "cost","task_assignments_changed"]
+def runApproximateFullTest(case_name, case_config, result_file):
+  fieldnames = ["file", "test_iteration"] + APPROXIMATE_FIELDS
+  result_writer = csv.DictWriter(result_file, fieldnames=fieldnames)
+  result_writer.writeheader()
+  
+  iterations = case_config["iterations"]
+  instance = case_config.get("test", config.APPROXIMATE_DEFAULT_TEST)
+  
+  test_instance = createFullTestInstance(instance)
+  
+  for fname in case_config["files"]:
+    print("\t", fname, ": ", end="")
+    
+    timedout = set()
+    for i in range(iterations):
+      print(i, " ", end="")
+        
+      log_directory = os.path.join(test_instance["version_directory"],
+                                   "log", case_name)
+      timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
+      
+      # create FIFO for statistics
+      fifo_path = os.path.join(log_directory, "stats_fifo.csv")
+      if os.path.exists(fifo_path):
+        print("WARNING: removing stale FIFO ", fifo_path)
+        os.unlink(fifo_path)
+      try:
+        os.makedirs(log_directory)
+      except FileExistsError:
+        pass
+      os.mkfifo(fifo_path)
+      arguments = ["--statistics", fifo_path]
+      
+      run = runApproximateTestInstance("approximate", test_instance["cmd"], 
+                                   log_directory, fname, i, timeout, *arguments)
+      for row in run:
+        result = { "file": fname,
+                   "test_iteration": i }
+        result.update(row)
+        result_writer.writerow(result)
+        result_file.flush()
+        
+    print("")
+
 def runTests(tests):
   for case_name, case_config in tests.items():
     print(case_name)
@@ -667,6 +787,12 @@ def runTests(tests):
         runIncrementalHybridTest(case_name, case_config, result_file)
       elif test_type == "incremental_online":
         runIncrementalOnlineTest(case_name, case_config, result_file)
+      elif test_type == "approximate_full":
+        runApproximateFullTest(case_name, case_config, result_file)
+      elif test_type == "approximate_incremental_offline":
+        error("Not implemented")
+      elif test_type == "approximate_incremental_hybrid":
+        error("Not implemented")
       else:
         error("Unrecognised test type: ", test_type)
 

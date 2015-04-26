@@ -431,8 +431,8 @@ bool CostScaling::runStatistics(std::string csv_path, bool task_assignments) {
 	if (csv_file->fail()) {
 		LOG(FATAL) << "Cannot open " << csv_path;
 	}
-	*csv_file << "iteration,refine_time,overhead_time,epsilon,"
-			         "cost,task_assignments_changed" << std::endl;;
+	*csv_file << "refine_iteration,refine_time,overhead_time,epsilon,cost,"
+			         "task_assignments_changed" << std::endl;;
 
 	// note the reported time for the first iteration will include some setup,
 	// such as finding the maximum cost and checking for feasibility

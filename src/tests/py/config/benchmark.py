@@ -158,7 +158,7 @@ STANDARD_TRACE_CONFIG_SHORT_AND_SMALL = { k : STANDARD_TRACE_CONFIG_SHORT[k]
                                           for k in ["small", "medium"]}
 
 _STANDARD_TRACE_CONFIG_1HOUR_EXTENSION = { "trace": "small_trace", 
-                                            "runtime": absoluteRuntime(3600)}
+                                           "runtime": absoluteRuntime(3600)}
 STANDARD_TRACE_CONFIG_1HOUR = { k : extendDict(v,_STANDARD_TRACE_CONFIG_1HOUR_EXTENSION) 
                                 for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
 
@@ -668,8 +668,25 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
    },
   # For producing datasets used in optimisation tests
-  "generate_dataset": {
+  "generate_random": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "cost_model": "random",
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
+    },
+  },
+  "generate_sjf": {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "cost_model": "sjf",
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
+    },
+  },
+  "generate_octopus": {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "cost_model": "octopus",
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },
@@ -751,16 +768,46 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "full":           { "implementation": "f_cs_goldberg" },
       "incremental":    { "implementation": "i_relaxf_latest" },
     },
-  },                                  
+  },
 }
 
 INCREMENTAL_TESTS_HYBRID = INCREMENTAL_TESTS_ANYONLINE.copy()
 INCREMENTAL_TESTS_ONLINE = INCREMENTAL_TESTS_ANYONLINE.copy()
 
+### Approximate tests
+
+REFERENCE_SOLVER = "f_cs_goldberg"
+APPROXIMATE_DEFAULT_TEST = { 
+  "implementation": "f_cs_latest", 
+}
+
+APPROXIMATE_TESTS_FULL = {
+  "road": {
+    "files": FULL_DATASET["road_flow"],
+    "iterations": 5,
+  },
+}
+
+APPROXIMATE_TESTS_INCREMENTAL_OFFLINE = {}
+
+APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
+  "1hour": {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "iterations": 5,
+  },
+}
+
+### All tests
+
 TESTS = mergeDicts(
-  [FULL_TESTS, 
+  [FULL_TESTS,
    INCREMENTAL_TESTS_OFFLINE, 
    INCREMENTAL_TESTS_HYBRID,
-   INCREMENTAL_TESTS_ONLINE], 
-  ["f", "iof", "ihy", "ion"],
-  ["full", "incremental_offline", "incremental_hybrid", "incremental_online"])
+   INCREMENTAL_TESTS_ONLINE,
+   APPROXIMATE_TESTS_FULL,
+   APPROXIMATE_TESTS_INCREMENTAL_OFFLINE,
+   APPROXIMATE_TESTS_INCREMENTAL_HYBRID],
+  ["f", "iof", "ihy", "ion", "af", "aio", "aih"],
+  ["full", "incremental_offline", "incremental_hybrid", "incremental_online",
+   "approximate_full", "approximate_incremental_offline", 
+   "approximate_incremental_hybrid"])
