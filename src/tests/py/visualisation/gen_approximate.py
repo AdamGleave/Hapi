@@ -5,7 +5,7 @@ import numpy as np
 import scipy.stats
 
 import config.visualisation as config
-from visualisation import analysis
+from visualisation import analysis, plot
 
 def af_map_on_stats(func, data):
   type, d = data
@@ -51,6 +51,10 @@ def aih_merge_iterations(d):
 def ageneric_merge_iterations(d):
   return ageneric_map_on_stats(_merge_iterations_helper, d)
 
+def discard_iterations(x):
+  # return first test iteration
+  return x[0]
+
 def minimum_cost(x):
   # cost of last refine iteration
   return x[-1]['cost']
@@ -79,7 +83,9 @@ def cost_change(x):
   res = []
   
   first_refine = x[0].copy()
-  first_refine['cost_change'] = 0.0
+  first_refine['cost_change_absolute'] = float('+inf')
+  first_refine['cost_change_relative'] = float('+inf')
+  first_refine['cost_change_as_in_policy'] = float('+inf')
   res.append(first_refine)
   
   for i in range(1, num_refines):
@@ -151,8 +157,8 @@ def reduce_everything(data, granularity):
       else:
         assert(False)
   return res
-  
-def analyse_oracle_policy(data, figconfig):
+
+def analyse_oracle_policy_points(data, figconfig):  
   stats = ageneric_merge_iterations(data)
   stats = ageneric_map_on_stats(relative_error, stats)
   stats = ageneric_map_on_stats(cumulative_time, stats)
@@ -174,9 +180,8 @@ def analyse_oracle_policy(data, figconfig):
       
   return (x,y)
 
-  
 def generate_oracle_policy_scatter(data, figconfig):
-  (x, y) = analyse_oracle_policy(daya, figconfig)
+  (x, y) = analyse_oracle_policy_scatter(data, figconfig)
   
   plt.scatter(x, y)
   
@@ -189,7 +194,7 @@ def generate_oracle_policy_scatter(data, figconfig):
   plt.title('Speedup against accuracy under oracle policy')  
 
 def generate_oracle_policy_binned(data, figconfig):
-  (x, y) = analyse_oracle_policy(data, figconfig)
+  (x, y) = analyse_oracle_policy_points(data, figconfig)
   
   accuracy_threshold = figconfig.get('min_accuracy',
                                      config.APPROXIMATE_ACCURACY_THRESHOLD)
@@ -216,11 +221,18 @@ def generate_oracle_policy_binned(data, figconfig):
   
   plt.bar(bins[0:-1], mean, yerr=[-lower_err, upper_err], alpha=opacity)
 
-def find_speedups(accuracy_threshold, test):
+def oracle_condition(accuracy_threshold, test):
   for refine_iteration in test:
     accuracy = calculate_relative_accuracy(refine_iteration['relative_error'])
     if accuracy >= accuracy_threshold:
-      return refine_iteration['speedup']
+      return refine_iteration
+    
+def oracle_speedups(accuracy_threshold, test):
+  return oracle_condition(accuracy_threshold, test)['speedup']
+
+def standard_condition(_parameter, test):
+  assert(_parameter == None)
+  return test[-1]
 
 def analyse_oracle_policy_interpolate(data, figconfig):
   stats = ageneric_merge_iterations(data)
@@ -237,7 +249,7 @@ def analyse_oracle_policy_interpolate(data, figconfig):
   lower_bounds = np.array([])
   upper_bounds = np.array([])
   for accuracy in accuracies:
-    f = functools.partial(find_speedups, accuracy)
+    f = functools.partial(oracle_speedups, accuracy)
     speedups = list(map(f, reduced))
     speedups = np.concatenate(speedups)
     
@@ -263,6 +275,136 @@ def generate_oracle_policy_interpolate(data, figconfig):
   
   plt.xlabel('Accuracy (%)')
   plt.ylabel('Speedup')
-  plt.title('Speedup against accuracy')
+  plt.title('Speedup against accuracy under oracle policy')
   
   plt.legend(loc='lower left')
+
+def cost_heuristic(cost_threshold, test):
+  for refine_it in test:
+    if refine_it['cost_change_as_in_policy'] < cost_threshold:
+      return refine_it
+  return test[-1]
+
+def task_assignment_heuristic(threshold, test):
+  pass
+
+def analyse_terminating_condition_parameter(stats, condition, extractValue, parameter):
+  if condition == 'cost':
+    f = cost_heuristic
+  elif condition == 'task_assignments':
+    f = task_assignment_heuristic
+  elif condition == 'oracle':
+    f = oracle_condition
+  elif condition == 'standard':
+    f = standard_condition
+  else:
+    assert(False)
+  def findValue(x):
+    refine_it = f(parameter, x)
+    return extractValue(refine_it)
+  values = np.array(list(map(findValue, stats)))
+  return values 
+
+def analyse_terminating_condition_setup(stats, figconfig):
+  stats = ageneric_map_on_stats(relative_error, stats)
+  if figconfig['condition'] == 'cost':
+    stats = ageneric_map_on_stats(cost_change, stats)
+  reduced = reduce_everything(stats, granularity='file')
+  return reduced
+
+def analyse_terminating_condition(stats, figconfig, extractValue):
+  condition = figconfig['condition']  
+  n_samples = 1000
+  if condition == 'cost':
+    max_cost_parameter = figconfig.get('max_cost_parameter', 
+                                       config.APPROXIMATE_MAX_COST_PARAMETER)
+    parameters = np.linspace(0, max_cost_parameter, n_samples)
+  elif condition == 'task_assignments':
+    max_ta_parameter = figconfig.get('max_task_assignments_parameter', 
+                                       config.APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER)
+    parameters = np.linspace(0, max_ta_parameter, n_samples)
+  else:
+    assert(False)
+  
+  n_tests = len(stats)
+  values_by_parameter = np.empty((n_samples, n_tests))
+  for i in range(n_samples):
+    values_by_parameter[i] = analyse_terminating_condition_parameter(
+                              condition, figconfig, extractValue, parameters[i])
+
+  return (parameters, values_by_parameter)
+
+def analyse_percentiles(data, percentiles):
+  return [np.percentile(data, p, axis=1) for p in percentiles]
+
+def extractAccuracy(refine_it):
+  return calculate_relative_accuracy(refine_it['relative_error'])
+
+def extractSpeeds(refine_it):
+  return refine_it['speedup']
+
+def generate_terminating_condition_accuracy_plot(data, figconfig):
+  stats = ageneric_map_on_stats(discard_iterations, data)
+  reduced = analyse_terminating_condition_setup(stats, figconfig)
+
+  (parameters, accuracies) = analyse_terminating_condition(
+                                            reduced, figconfig, extractAccuracy)
+  percentiles = analyse_percentiles(accuracies, figconfig['percentiles'])
+  
+  for i in range(len(percentiles)):
+    plt.plot(parameters, percentiles[i], label=str(figconfig['percentiles'][i]))
+  
+  plt.xlabel('Parameter')
+  plt.ylabel('Accuracy')
+  plt.title('Accuracy against heuristic parameter')
+  
+  plt.legend(loc='upper right')
+  
+# SOMEDAY: could write a terminating condition speed plot here?
+# But this is perhaps best reserved for when trying a particular parameter.
+
+# Other graphs: fixed parameter, CDF of error and speed distribution
+# Should be significant shared code with the above
+
+# TODO: Automate the training/testing process? Probably not worth the effort...
+
+def generate_terminating_condition_accuracy_distribution(data, figconfig):
+  stats = ageneric_map_on_stats(discard_iterations, data)
+  reduced = analyse_terminating_condition_setup(stats, figconfig)
+
+  accuracies = analyse_terminating_condition_parameter(reduced, figconfig, 
+                                        extractAccuracy, figconfig['parameter'])
+  
+  plt.figure()
+  plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
+  
+  plt.xlabel('Accuracy')
+  plt.ylabel('Cumulative probability')
+  plt.title('CDF for heuristic accuracy')
+  
+def generate_terminating_condition_speed_distribution(data, figconfig):
+  stats = ageneric_merge_iterations(data)
+  stats = ageneric_map_on_stats(cumulative_time, stats)
+  stats = ageneric_map_on_stats(speedup, stats)
+  reduced = analyse_terminating_condition_setup(stats, figconfig)
+
+  heuristic_speeds = analyse_terminating_condition_parameter(reduced, 
+                  figconfig['condition'], extractSpeeds, figconfig['heuristic_parameter'])
+  oracle_speeds = analyse_terminating_condition_parameter(reduced,
+                          'oracle', extractSpeeds, figconfig['target_accuracy'])
+  standard_speeds = analyse_terminating_condition_parameter(reduced,
+                          'standard', extractSpeeds, None)
+  
+  heuristic_speeds = np.concatenate(heuristic_speeds)
+  oracle_speeds = np.concatenate(oracle_speeds)
+  standard_speeds = np.concatenate(standard_speeds)
+  
+  plot.cdf([heuristic_speeds, oracle_speeds, standard_speeds],
+           labels=['Heuristic', 'Oracle', 'Standard'], 
+           colours={'Heuristic': 'r', 'Oracle': 'g', 'Standard': 'b'})
+  
+  plt.xlabel('Speedup')
+  plt.ylabel('Cumulative probability')
+  plt.title('CDF for speedup')
+  
+  plt.legend(loc='lower right')
