@@ -63,19 +63,23 @@ def full_mean(d):
 def full_sd(d):
   return full_map_on_iterations(np.std, d)
 
-def full_swap_file_impl(data):
-  new_data = {} 
-  for (file_name, file_res) in data.items():
+def full_swap_file_impl(x):
+  # SOMEDAY: stripping type here isn't the best way of handling it
+  type, d = x
+  new_d = {} 
+  for (file_name, file_res) in d.items():
     for (impl_name, impl_res) in file_res.items():
-      new_impl_res = new_data.get(impl_name, {})
+      new_impl_res = new_d.get(impl_name, {})
       new_file_res = impl_res
       new_impl_res[file_name] = new_file_res
-      new_data[impl_name] = new_impl_res
+      new_d[impl_name] = new_impl_res
       
-  return new_data
+  return new_d
 
-def ion_map_on_implementations(func, d):
-  return dict_map(func, d, 2)
+def ion_map_on_implementations(func, data):
+  type, d = data
+  assert(type == 'incremental_online')
+  return (type, dict_map(func, d, 2))
 
 def ion_map_on_iterations(func, d):
   return ion_map_on_implementations(lambda x : np.array(list(map(func, x))), d)

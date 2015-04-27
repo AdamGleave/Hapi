@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
  
 import config.visualisation as config
-from visualisation import parse, gen_optimisation, gen_incremental
+from visualisation import parse, gen_optimisation, gen_incremental, gen_approximate
 from visualisation.test_types import FigureTypes
 
 import os, sys

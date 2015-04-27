@@ -23,10 +23,12 @@ def analyse_distribution(data, start_time, index1, group2):
   times = analyse_generic(data, start_time)
   times = analysis.ion_map_on_implementations(analysis.ion_get_scheduler_time,
                                               times)
-  times = times[index1]
-  times = analysis.flatten_dict(times, [group2])
   
-  return times
+  type, data = times
+  data = data[index1]
+  data = analysis.flatten_dict(data, [group2])
+  
+  return (type, data)
 
 def plot_cdf(times, labels, colours, **kwargs):
   # currently am doing it the inefficient way
@@ -42,8 +44,9 @@ def plot_cdf(times, labels, colours, **kwargs):
     plt.plot(x, y, label=label, color=colours[label])
     
 def generate_cdf(data, figconfig):
-  times = analyse_distribution(data, get_start_time(figconfig),
-                               figconfig['trace'], figconfig['implementations'])
+  data = analyse_distribution(data, get_start_time(figconfig),
+                              figconfig['trace'], figconfig['implementations'])
+  type, times = data
   plot_cdf(times, figconfig['implementations'], figconfig['colours'])
   
   plt.legend(loc='lower right')
@@ -65,8 +68,9 @@ def plot_hist(times, labels, colours, sum_to_one=True, **kwargs):
   plt.hist(times, weights=weights, label=labels, color=colours, **kwargs)
   
 def generate_hist(data, figconfig):
-  times = analyse_distribution(data, get_start_time(figconfig),
+  data  = analyse_distribution(data, get_start_time(figconfig),
                                figconfig['trace'], figconfig['implementations'])
+  type, times = data
   plot_hist(times, figconfig['implementations'], figconfig['colours'],
             histtype='bar', bins=10)
   
@@ -80,16 +84,16 @@ def generate_hist(data, figconfig):
 def generate_over_time(data, figconfig):
   # get data
   start_time = get_start_time(figconfig)
-  times = analyse_generic(data, start_time)
+  data = analyse_generic(data, start_time)
   
   # sort it
-  times = analysis.ion_map_on_implementations(lambda l : np.sort(l, order='cluster_time'), times)                                                                                                                                         
+  data = analysis.ion_map_on_implementations(lambda l : np.sort(l, order='cluster_time'), data)                                                                                                                                         
   
-  cluster_times = analysis.ion_map_on_implementations(analysis.ion_get_cluster_timestamp, times)
-  scheduling_latency = analysis.ion_map_on_implementations(analysis.ion_get_scheduler_time, times)
+  cluster_times = analysis.ion_map_on_implementations(analysis.ion_get_cluster_timestamp, data)
+  scheduling_latency = analysis.ion_map_on_implementations(analysis.ion_get_scheduler_time, data)
   
-  cluster_times = cluster_times[figconfig['trace']]
-  scheduling_latency = scheduling_latency[figconfig['trace']] 
+  cluster_times = cluster_times[1][figconfig['trace']]
+  scheduling_latency = scheduling_latency[1][figconfig['trace']] 
   
   cluster_times = analysis.flatten_dict(cluster_times, [figconfig['implementations']])
   scheduling_latency = analysis.flatten_dict(scheduling_latency, [figconfig['implementations']])

@@ -88,7 +88,7 @@ INCREMENTAL_FIGURES = {
     'type': FigureTypes.incremental_cdf,
     'test_filter': INCREMENTAL_TEST_FILTER,
     
-    'trace': 'small_trace',
+    'trace': 'full_size',
     'implementations': ['Standard', 'Incremental'],
     'colours': {
       'Standard': 'r',
@@ -100,7 +100,7 @@ INCREMENTAL_FIGURES = {
     'type': FigureTypes.incremental_hist,
     'test_filter': INCREMENTAL_TEST_FILTER,
     
-    'trace': 'small_trace',
+    'trace': 'full_size',
     'implementations': ['Standard', 'Incremental'],
     'colours': {
       'Standard': 'r',
@@ -112,7 +112,7 @@ INCREMENTAL_FIGURES = {
     'type': FigureTypes.incremental_over_time,
     'test_filter': INCREMENTAL_TEST_FILTER,
     
-    'trace': 'small_trace',
+    'trace': 'full_size',
     'implementations': ['Standard', 'Incremental'],
     'colours': {
       'Standard': 'r',
