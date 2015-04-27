@@ -14,7 +14,10 @@ figure_generators = {
   FigureTypes.incremental_cdf : gen_incremental.generate_cdf,
   FigureTypes.incremental_hist : gen_incremental.generate_hist,
   FigureTypes.incremental_over_time : gen_incremental.generate_over_time,
-  #FigureTypes.approximate_oracle_policy : gen_approximate.generate_oracle_policy,  
+  FigureTypes.approximate_oracle_policy : gen_approximate.generate_oracle_policy_interpolate,
+  FigureTypes.approximate_policy_accuracy : gen_approximate.generate_terminating_condition_accuracy_plot,
+  FigureTypes.approximate_error_cdf : gen_approximate.generate_terminating_condition_accuracy_distribution,
+  FigureTypes.approximate_speed_cdf : gen_approximate.generate_terminating_condition_speed_distribution,
 }
 
 if __name__ == "__main__":
@@ -42,8 +45,12 @@ if __name__ == "__main__":
       data = parse.incremental_offline(data_fname, file_filter, test_filter)
     elif test_type == "ion":
       data = parse.incremental_online(data_fname, file_filter, test_filter)
+    elif test_type == "af":
+      data = parse.approximate_full(data_fname, file_filter)
+    elif test_type == "aio" or test_type == "aih":
+      data = parse.approximate_full(data_fname, file_filter)
     else:
-      assert(false)
+      assert(False)
 
     # Process the data, generate the graph
     generate_function = figure_generators[figconfig['type']]

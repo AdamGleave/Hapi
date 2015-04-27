@@ -275,7 +275,7 @@ def generate_oracle_policy_interpolate(data, figconfig):
   
   plt.xlabel('Accuracy (%)')
   plt.ylabel('Speedup')
-  plt.title('Speedup against accuracy under oracle policy')
+  plt.title('Speedup under oracle policy against accuracy')
   
   plt.legend(loc='lower left')
 
@@ -286,7 +286,10 @@ def cost_heuristic(cost_threshold, test):
   return test[-1]
 
 def task_assignment_heuristic(threshold, test):
-  pass
+  for refine_it in test:
+    if refine_it['task_assignments'] < threshold:
+      return refine_it
+  return test[-1]
 
 def analyse_terminating_condition_parameter(stats, condition, extractValue, parameter):
   if condition == 'cost':
@@ -353,13 +356,13 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
   percentiles = analyse_percentiles(accuracies, figconfig['percentiles'])
   
   for i in range(len(percentiles)):
-    plt.plot(parameters, percentiles[i], label=str(figconfig['percentiles'][i]))
+    plt.plot(parameters, percentiles[i], label=figconfig['labels'][i])
   
   plt.xlabel('Parameter')
   plt.ylabel('Accuracy (%)')
   plt.title('Accuracy against heuristic parameter')
   
-  plt.legend(loc='upper right')
+  plt.legend(loc='lower left')
   
 # SOMEDAY: could write a terminating condition speed plot here?
 # But this is perhaps best reserved for when trying a particular parameter.
@@ -371,13 +374,31 @@ def generate_terminating_condition_accuracy_distribution(data, figconfig):
   accuracies = analyse_terminating_condition_parameter(reduced,
       figconfig['condition'], extractAccuracy, figconfig['heuristic_parameter'])
   
-  plt.figure()
+  # draw vertical line at desired accuracy
+  target_accuracy = figconfig['target_accuracy']
+  plt.plot((target_accuracy, target_accuracy), (0, 1), 'k--')
+  width = 100 - target_accuracy
+  plt.xlim(target_accuracy - width * 0.1, 100)
+  
+  # draw CDF
   plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
   
+  # annotate target line
+#   locs, labels = plt.xticks()
+#   index = np.searchsorted(locs, target_accuracy)
+#   if abs(locs[index] - target_accuracy) > 0.01:
+#   #if locs[index] != target_accuracy:
+#     # not already present in list
+#     locs = np.insert(locs, index, target_accuracy)
+#   labels = [loc for loc in locs]
+#   labels[index] = str(labels[index]) + "\n(Target)"
+#   plt.xticks(locs, labels)
+  
+  # add labels
   plt.xlabel('Accuracy (%)')
   plt.ylabel('Cumulative probability')
   plt.title('CDF for heuristic parameter {0}, targeting {1}% accuracy)'.format(
-                figconfig['heuristic_parameter'], figconfig['target_accuracy']))
+                             figconfig['heuristic_parameter'], target_accuracy))
   
 def generate_terminating_condition_speed_distribution(data, figconfig):
   stats = ageneric_merge_iterations(data)

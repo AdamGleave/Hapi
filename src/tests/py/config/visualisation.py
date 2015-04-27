@@ -118,7 +118,7 @@ INCREMENTAL_FIGURES = {
       'Standard': 'r',
       'Incremental': 'b',
     }
-  },  
+  },
 }
 
 ### Approximate test cases
@@ -128,7 +128,49 @@ APPROXIMATE_NUM_BINS = 10
 APPROXIMATE_MAX_COST_PARAMETER = 0.05
 APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER = 20
 
+APPROXIMATE_FIGURES = {
+  'road_oracle_policy': {
+    'data': 'af_road',
+    'type': FigureTypes.approximate_oracle_policy,
+    
+    #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD 
+  },
+  'road_policy_accuracy': {
+    'data': 'af_road',
+    'type': FigureTypes.approximate_policy_accuracy,
+    
+    #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD
+    'condition': 'cost', # or 'task_assignments'
+    #'max_cost_parameter': 0.05, # defaults to APPROXIMATE_MAX_COST_PARAMETER
+    #'max_task_assignments_parameter': 20, # defaults to APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER
+    'percentiles': [1, 5, 25, 50],
+    'labels': ['$1^{\mathrm{st}}$ percentile', '$5^{\mathrm{th}}$ percentile',
+               '$25^{\mathrm{th}}$ percentile', 'Median']
+  },
+  'road_policy_error_cdf': {
+    'data': 'af_road',
+    'type': FigureTypes.approximate_error_cdf,
+    
+    #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD
+    'condition': 'cost', # or 'task_assignments'
+    'heuristic_parameter': 0.025, # threshold used by heuristic
+    'target_accuracy': 99 # in percent. Used for comparison
+  },
+  'road_policy_speed_cdf': {
+    'data': 'af_road',
+    'type': FigureTypes.approximate_speed_cdf,
+    
+    #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD
+    'condition': 'cost', # or 'task_assignments'
+    'heuristic_parameter': 0.025, # threshold used by heuristic
+    'target_accuracy': 99 # in percent. Used for comparison with oracle model
+  }
+                       
+}
+
 ### All figures
 
-FIGURES = mergeDicts([OPTIMISATION_FIGURES, INCREMENTAL_FIGURES], 
-                     ["opt", "inc"])
+FIGURES = mergeDicts([OPTIMISATION_FIGURES,
+                      INCREMENTAL_FIGURES,
+                      APPROXIMATE_FIGURES],
+                     ["opt", "inc", "app"])
