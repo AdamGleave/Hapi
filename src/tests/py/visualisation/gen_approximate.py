@@ -63,6 +63,9 @@ def relative_error(x):
     return res 
   return list(map(calculate_relative_error, x))
 
+def calculate_relative_accuracy(relative_error):
+  return 100.0 / (relative_error + 1.0)
+
 def absolute_error(x):
   min_cost = minimum_cost(x)
   def calculate_absolute_error(iteration):
@@ -131,17 +134,22 @@ def speedup(x):
       res.append(refine_it)
     return res
   
-def reduce_everything(data):
+def reduce_everything(data, granularity):
   type, d = data
   res = []
   for file_results in d.values():
-    if type == 'approximate_offline':
+    if type == 'approximate_incremental_offline':
       results = file_results
     else:
       results = [file_results]
     for delta_result in results:
-      for refine_result in delta_result:
-        res.append(refine_result)
+      if granularity == 'file':
+        res.append(delta_result)
+      elif granularity == 'refine':
+        for refine_result in delta_result:
+          res.append(refine_result)
+      else:
+        assert(False)
   return res
   
 def analyse_oracle_policy(data, figconfig):
@@ -150,7 +158,7 @@ def analyse_oracle_policy(data, figconfig):
   stats = ageneric_map_on_stats(cumulative_time, stats)
   stats = ageneric_map_on_stats(speedup, stats)
   stats = ageneric_map_on_stats(filter_first_optimal, stats)
-  reduced = reduce_everything(stats)
+  reduced = reduce_everything(stats, granularity='refine')
   
   accuracy_threshold = figconfig.get('min_accuracy',
                                      config.APPROXIMATE_ACCURACY_THRESHOLD)
@@ -158,13 +166,14 @@ def analyse_oracle_policy(data, figconfig):
   x = np.array([])
   y = np.array([])
   for pt in reduced:
-    accuracy = 100.0 / (pt['relative_error'] + 1.0)
+    accuracy = calculate_relative_accuracy(pt['relative_error'])
     if accuracy >= accuracy_threshold:
       y = np.concatenate((y, pt['speedup']))
       x_pts = np.ones_like(pt['speedup']) * accuracy 
       x = np.concatenate((x, x_pts))
       
   return (x,y)
+
   
 def generate_oracle_policy_scatter(data, figconfig):
   (x, y) = analyse_oracle_policy(daya, figconfig)
@@ -206,3 +215,54 @@ def generate_oracle_policy_binned(data, figconfig):
   opacity = 0.4
   
   plt.bar(bins[0:-1], mean, yerr=[-lower_err, upper_err], alpha=opacity)
+
+def find_speedups(accuracy_threshold, test):
+  for refine_iteration in test:
+    accuracy = calculate_relative_accuracy(refine_iteration['relative_error'])
+    if accuracy >= accuracy_threshold:
+      return refine_iteration['speedup']
+
+def analyse_oracle_policy_interpolate(data, figconfig):
+  stats = ageneric_merge_iterations(data)
+  stats = ageneric_map_on_stats(relative_error, stats)
+  stats = ageneric_map_on_stats(cumulative_time, stats)
+  stats = ageneric_map_on_stats(speedup, stats)
+  reduced = reduce_everything(stats, granularity='file')
+  
+  accuracy_threshold = figconfig.get('min_accuracy',
+                                     config.APPROXIMATE_ACCURACY_THRESHOLD)
+  accuracies = np.linspace(accuracy_threshold, 100.0, 1000)
+  
+  means = np.array([])
+  lower_bounds = np.array([])
+  upper_bounds = np.array([])
+  for accuracy in accuracies:
+    f = functools.partial(find_speedups, accuracy)
+    speedups = list(map(f, reduced))
+    speedups = np.concatenate(speedups)
+    
+    lower, upper = analysis.t_error(config.CONFIDENCE_LEVEL, speedups,
+                                    centred=False)
+    mean = np.mean(speedups)
+    
+    means = np.append(means, mean)
+    lower_bounds = np.append(lower_bounds, lower)
+    upper_bounds = np.append(upper_bounds, upper) 
+        
+  return (accuracies, means, lower_bounds, upper_bounds)
+  
+def generate_oracle_policy_interpolate(data, figconfig):
+  (accuracies, means, lowers, uppers) = analyse_oracle_policy_interpolate(data, figconfig)
+  
+  confidence_level = int(config.CONFIDENCE_LEVEL * 100)
+  plt.plot(accuracies, lowers, 'r:',
+           label='Lower bound ({0}% confidence)'.format(confidence_level))
+  plt.plot(accuracies, uppers, 'b:', 
+           label='Upper bound ({0}% confidence)'.format(confidence_level))
+  plt.plot(accuracies, means, 'g', label='Mean')
+  
+  plt.xlabel('Accuracy (%)')
+  plt.ylabel('Speedup')
+  plt.title('Speedup against accuracy')
+  
+  plt.legend(loc='lower left')
