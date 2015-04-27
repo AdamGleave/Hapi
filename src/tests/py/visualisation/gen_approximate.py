@@ -1,5 +1,8 @@
+import functools
+
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats
 
 import config.visualisation as config
 from visualisation import analysis
@@ -110,8 +113,10 @@ def first_optimal(x):
     if x[i]['cost'] == min_cost:
       return i
 
-#def first_optimal(x):
-#  return -1
+def filter_first_optimal(x):
+  '''only retain approximate refine iterations and the first one to attain optimality'''
+  first_optimal_index = first_optimal(x)
+  return x[0:first_optimal_index+1]
 
 # requires cumulative_time having been computed
 def speedup(x):
@@ -139,15 +144,14 @@ def reduce_everything(data):
         res.append(refine_result)
   return res
   
-def analyse_oracle_policy(data):
+def analyse_oracle_policy(data, figconfig):
   stats = ageneric_merge_iterations(data)
   stats = ageneric_map_on_stats(relative_error, stats)
   stats = ageneric_map_on_stats(cumulative_time, stats)
   stats = ageneric_map_on_stats(speedup, stats)
-  return reduce_everything(stats)
+  stats = ageneric_map_on_stats(filter_first_optimal, stats)
+  reduced = reduce_everything(stats)
   
-def generate_oracle_policy(data, figconfig):
-  reduced = analyse_oracle_policy(data)
   accuracy_threshold = figconfig.get('min_accuracy',
                                      config.APPROXIMATE_ACCURACY_THRESHOLD)
   
@@ -159,57 +163,46 @@ def generate_oracle_policy(data, figconfig):
       y = np.concatenate((y, pt['speedup']))
       x_pts = np.ones_like(pt['speedup']) * accuracy 
       x = np.concatenate((x, x_pts))
+      
+  return (x,y)
+  
+def generate_oracle_policy_scatter(data, figconfig):
+  (x, y) = analyse_oracle_policy(daya, figconfig)
   
   plt.scatter(x, y)
   
-  # Flip the x-axis so it is *decreasing* relative error
-  # XXX: Or make it relative accuracy instead?
   plt.autoscale(tight=True)
   ymin, ymax = plt.ylim()
-  # discard any speedups below 0
   plt.ylim ( (0, ymax) )
   
-  #plt.xscale('log')
   plt.xlabel('Accuracy (%)')
   plt.ylabel('Speedup')
-  plt.title('Speedup against accuracy under oracle policy')
+  plt.title('Speedup against accuracy under oracle policy')  
 
-  # Aggregating the data is the hard bit, but think need to do this otherwise
-  # you won't have enough data points.
+def generate_oracle_policy_binned(data, figconfig):
+  (x, y) = analyse_oracle_policy(data, figconfig)
   
-  # You could present it for just one graph? This might simplify things a bit.
-  # But limited validity -- you'd only be removing noise from test process.
+  accuracy_threshold = figconfig.get('min_accuracy',
+                                     config.APPROXIMATE_ACCURACY_THRESHOLD)
+  num_bins = figconfig.get('num_bins',
+                           config.APPROXIMATE_NUM_BINS)
   
-  # Only way I can think of is to bin on relative accuracy, then compute CI
-  # within that bin. The bins will   need to be logarithmic, though.
-  
-  # Presentation would thus be as a bar chart? Slightly strange, but maybe best.
-  
-  # Scatter plot is also a good format, actually.
-  
-  
+  # there's also a similar logspace function
+  bins = np.linspace(accuracy_threshold, 100, num_bins + 1)
+  confidence_interval = functools.partial(analysis.t_error, config.CONFIDENCE_LEVEL)
+  lower_err, _, _ = scipy.stats.binned_statistic(x, y, bins=bins, 
+                                 statistic=lambda x : confidence_interval(x)[0])
+  upper_err, _, _ = scipy.stats.binned_statistic(x, y, bins=bins, 
+                                 statistic=lambda x : confidence_interval(x)[1])
+  mean, _, _ = scipy.stats.binned_statistic(x, y, bins=bins, statistic='mean')
 
-  # Q: optimal iterations span from positive to zero speedup
+  # fix last bin to always be zero
+  # TODO: or just replace bins above with (..., num_bins, endpoint=False)?
+  #mean[-1] = lower_err[-1] = upper_err[-1] = 0
+  #plt.plot([x, x, x], [lower_bound, mean, upper_bound])
+  print(len(bins),len(mean))
   
-  # compute confidence interval of speedups (binned by accuracy?)
+  bar_width = bins[1] - bins[0]
+  opacity = 0.4
   
-  # merge iterations
-  # cumulative time
-  # speedups
-  # confidence intervals of speedups (probably need to bin by accuracy)
-  
-  
-  # x: relative accuracy
-  # y: refine speedups 
-  
-  # Input data: should aggregate over *everything* included. 
-  # (Could optionally apply a filter to limit the data range beforehand.)
-  
-  # Compute speedups to normalise times across different graphs
-  # Then plot speedups with confidence intervals 
-
-  # Will need some way of aggregating over af or aih as needed, worth writing
-  # this as a utility function.
-  
-  # Will also need to think about what the correct way of computing confidence
-  # intervals on relative values.  
+  plt.bar(bins[0:-1], mean, yerr=[-lower_err, upper_err], alpha=opacity)

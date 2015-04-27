@@ -123,6 +123,7 @@ INCREMENTAL_FIGURES = {
 
 ### Approximate test cases
 APPROXIMATE_ACCURACY_THRESHOLD = 90 # percent
+APPROXIMATE_NUM_BINS = 10
 
 ### All figures
 

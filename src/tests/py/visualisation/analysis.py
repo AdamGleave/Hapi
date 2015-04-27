@@ -12,13 +12,17 @@ def _error(x):
   
   return (mu, sample_sigma, n)
 
-def normal_error(alpha, x):
-  (_mu, sample_sigma, _n) = _error(x)
+def normal_error(alpha, x, centred=True):
+  (mu, sample_sigma, _n) = _error(x)
+  if centred:
+    mu = 0
   return scipy.stats.norm.interval(alpha, scale=sample_sigma)
 
-def t_error(alpha, x):
-  (_mu, sample_sigma, n) = _error(x)
-  return scipy.stats.t.interval(alpha, n, scale=sample_sigma)
+def t_error(alpha, x, centred=True):
+  (mu, sample_sigma, n) = _error(x)
+  if centred:
+    mu = 0
+  return scipy.stats.t.interval(alpha, n, loc=mu, scale=sample_sigma)
 
 def interval_to_upper_lower(l):
   def upper_lower(x):

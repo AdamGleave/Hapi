@@ -17,7 +17,7 @@ def barchart(means, errors, bar_labels, group_labels, colours,
   n_bars_in_group = len(bar_labels)
   assert(len(means) == len(errors) == len(bar_labels))
   
-  fig, ax = plt.subplots()
+  fig, ax = plt.figure()
 
   index = np.arange(n_groups)
   bar_width = group_width / n_bars_in_group
@@ -44,7 +44,7 @@ def barchart(means, errors, bar_labels, group_labels, colours,
   plt.xticks(index + bar_width, group_labels)
   plt.legend(loc='upper left')
     
-  return (fig, ax)
+  return fig
 
 def analyse_generic_start(data):
   # get means and standard deviation of each implementation on each dataset
