@@ -63,11 +63,11 @@ def _helper_full_or_offline(type, fname,
                      'total': row['total_time']})
     
     dict_of_implementations[test] = test_res
-    if type == "offline":
+    if type == 'incremental_offline':
       file_res[delta_id] = dict_of_implementations
     res[file] = file_res
     
-  return res
+  return (type, res)
   
 def full(*args, **kwargs):
   """Returns in format dict of filenames -> dict of implementations 
@@ -80,7 +80,7 @@ def incremental_offline(fname, file_filter=identity, test_filter=identity):
      -> dict of times (algo, total)
      
      Covers offline and hybrid tests."""
-  return _helper_full_or_offline('offline', *args, **kwargs)
+  return _helper_full_or_offline('incremental_offline', *args, **kwargs)
 
 def get_changes_dict(row):
   return {'total': row['total_changes'],
@@ -133,7 +133,8 @@ def incremental_online(fname, trace_filter=identity, test_filter=identity):
     test_res[iteration] = iteration_res
     trace_res[test] = test_res
     res[trace] = trace_res
-    
+  
+  return ('incremental_online', res)
   return res
 
 def time_conversion(s):
@@ -143,6 +144,7 @@ def time_conversion(s):
     # time is in microseconds
     return float(s) / (1000 * 1000)
 APPROXIMATE_CONVERSIONS = {"file": str,
+                           "delta_id": int,
                            "test_iteration": int,
                            "refine_iteration": int,
                            "epsilon": int,
@@ -186,11 +188,11 @@ def _helper_approximate_full_or_offline(type, fname, file_filter=identity):
     refine_iteration_res.append({k : row[k] for k in output_fieldnames})
     
     array_of_iterations[test_iteration] = refine_iteration_res
-    if type == "offline":
+    if type == "incremental_offline":
       file_res[delta_id] = array_of_iterations
     res[file] = file_res
-    
-  return res
+  
+  return ('approximate_' + type, res)
 
 def approximate_full(*args, **kwargs):
   """Returns in format dict of filenames -> array of test iterations 
@@ -203,4 +205,4 @@ def approximate_incremental_offline(*args, **kwargs):
      -> array of test iterations -> array of refine iterations 
      -> dict of parameters (refine_time, overhead_time, epsilon, 
      cost, task_assignments_changed)"""
-  return _helper_approximate_full_or_offline('offline', *args, **kwargs)
+  return _helper_approximate_full_or_offline('incremental_offline', *args, **kwargs)

@@ -4,3 +4,4 @@ class FigureTypes():
   incremental_cdf = 2
   incremental_hist = 3
   incremental_over_time = 4
+  approximate_oracle_policy = 5

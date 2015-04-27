@@ -910,7 +910,7 @@ def runApproximateIncrementalHybridTest(case_name, case_config, result_file):
       delta_id = 0
       timedout = False
       for test_result in run:
-        base_output = { "dataset": dataset_name,
+        base_output = { "file": dataset_name,
                         "delta_id": delta_id,
                         "test_iteration": i }
         if test_result == "Timeout":

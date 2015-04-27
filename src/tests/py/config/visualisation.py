@@ -121,6 +121,9 @@ INCREMENTAL_FIGURES = {
   },  
 }
 
+### Approximate test cases
+APPROXIMATE_ACCURACY_THRESHOLD = 90 # percent
+
 ### All figures
 
 FIGURES = mergeDicts([OPTIMISATION_FIGURES, INCREMENTAL_FIGURES], 

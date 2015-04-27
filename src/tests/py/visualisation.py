@@ -13,7 +13,8 @@ figure_generators = {
   FigureTypes.optimisation_relative : gen_optimisation.generate_relative,
   FigureTypes.incremental_cdf : gen_incremental.generate_cdf,
   FigureTypes.incremental_hist : gen_incremental.generate_hist,
-  FigureTypes.incremental_over_time : gen_incremental.generate_over_time,  
+  FigureTypes.incremental_over_time : gen_incremental.generate_over_time,
+  FigureTypes.approximate_oracle_policy : gen_approximate.generate_oracle_policy,  
 }
 
 if __name__ == "__main__":
