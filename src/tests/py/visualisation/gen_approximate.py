@@ -427,3 +427,29 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
                 figconfig['heuristic_parameter'], figconfig['target_accuracy']))
   
   plt.legend(loc='lower right')
+  
+def generate_cost_vs_time_plot(data, figconfig):
+  type, d = data
+  # easy enough to extend to incremental_offline, but would need to add
+  # 'delta_id' parameter to figconfig along with 'file' parameter
+  assert(type == 'approximate_full')
+  file = figconfig['file']
+  d = {file : d[file]}
+  
+  data = (type, d)
+  stats = ageneric_merge_iterations(data)
+  stats = ageneric_map_on_stats(cumulative_time, stats)
+  reduced = reduce_everything(stats, granularity='refine')
+  
+  xs = []
+  ys = []
+  for refine_it in reduced:
+    xs.append(np.mean(refine_it['refine_time_cumulative']))
+    ys.append(refine_it['cost'])
+  
+  plt.plot(xs, ys, marker='.')
+  plt.yscale('log')
+  
+  plt.xlabel('Runtime (s)')
+  plt.ylabel('Solution cost')
+  plt.title('Soltuion cost against algorithm runtime')

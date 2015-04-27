@@ -164,8 +164,13 @@ APPROXIMATE_FIGURES = {
     'condition': 'cost', # or 'task_assignments'
     'heuristic_parameter': 0.025, # threshold used by heuristic
     'target_accuracy': 99 # in percent. Used for comparison with oracle model
-  }
-                       
+  },
+  'road_cost_vs_time': {
+    'data': 'af_road',
+    'type': FigureTypes.approximate_cost_vs_time,
+    
+    'file': 'general/natural/road/road_flow_03_NH_e.min',
+  }                      
 }
 
 ### All figures

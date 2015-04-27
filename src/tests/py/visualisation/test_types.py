@@ -8,3 +8,4 @@ class FigureTypes():
   approximate_policy_accuracy = 6
   approximate_error_cdf = 7
   approximate_speed_cdf = 8
+  approximate_cost_vs_time = 9

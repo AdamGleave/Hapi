@@ -18,6 +18,7 @@ figure_generators = {
   FigureTypes.approximate_policy_accuracy : gen_approximate.generate_terminating_condition_accuracy_plot,
   FigureTypes.approximate_error_cdf : gen_approximate.generate_terminating_condition_accuracy_distribution,
   FigureTypes.approximate_speed_cdf : gen_approximate.generate_terminating_condition_speed_distribution,
+  FigureTypes.approximate_cost_vs_time : gen_approximate.generate_cost_vs_time_plot,
 }
 
 if __name__ == "__main__":
