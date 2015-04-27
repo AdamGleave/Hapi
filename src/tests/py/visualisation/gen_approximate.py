@@ -132,7 +132,7 @@ def speedup(x):
   if len(x) == 0:
     return []
   else: 
-    baseline = np.array(x[first_optimal(x)]['refine_time_cumulative'])
+    baseline = np.array(x[-1]['refine_time_cumulative'])
     res = []
     for refine_it in x:
       refine_it = refine_it.copy()
@@ -298,6 +298,7 @@ def analyse_terminating_condition_parameter(stats, condition, extractValue, para
   elif condition == 'standard':
     f = standard_condition
   else:
+    print("Unrecognised condition ", condition)
     assert(False)
   def findValue(x):
     refine_it = f(parameter, x)
@@ -329,8 +330,8 @@ def analyse_terminating_condition(stats, figconfig, extractValue):
   n_tests = len(stats)
   values_by_parameter = np.empty((n_samples, n_tests))
   for i in range(n_samples):
-    values_by_parameter[i] = analyse_terminating_condition_parameter(
-                              condition, figconfig, extractValue, parameters[i])
+    values_by_parameter[i] = analyse_terminating_condition_parameter(stats,
+                              condition, extractValue, parameters[i])
 
   return (parameters, values_by_parameter)
 
@@ -355,7 +356,7 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
     plt.plot(parameters, percentiles[i], label=str(figconfig['percentiles'][i]))
   
   plt.xlabel('Parameter')
-  plt.ylabel('Accuracy')
+  plt.ylabel('Accuracy (%)')
   plt.title('Accuracy against heuristic parameter')
   
   plt.legend(loc='upper right')
@@ -363,24 +364,20 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
 # SOMEDAY: could write a terminating condition speed plot here?
 # But this is perhaps best reserved for when trying a particular parameter.
 
-# Other graphs: fixed parameter, CDF of error and speed distribution
-# Should be significant shared code with the above
-
-# TODO: Automate the training/testing process? Probably not worth the effort...
-
 def generate_terminating_condition_accuracy_distribution(data, figconfig):
   stats = ageneric_map_on_stats(discard_iterations, data)
   reduced = analyse_terminating_condition_setup(stats, figconfig)
 
-  accuracies = analyse_terminating_condition_parameter(reduced, figconfig, 
-                                        extractAccuracy, figconfig['parameter'])
+  accuracies = analyse_terminating_condition_parameter(reduced,
+      figconfig['condition'], extractAccuracy, figconfig['heuristic_parameter'])
   
   plt.figure()
   plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
   
-  plt.xlabel('Accuracy')
+  plt.xlabel('Accuracy (%)')
   plt.ylabel('Cumulative probability')
-  plt.title('CDF for heuristic accuracy')
+  plt.title('CDF for heuristic parameter {0}, targeting {1}% accuracy)'.format(
+                figconfig['heuristic_parameter'], figconfig['target_accuracy']))
   
 def generate_terminating_condition_speed_distribution(data, figconfig):
   stats = ageneric_merge_iterations(data)
@@ -392,19 +389,20 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
                   figconfig['condition'], extractSpeeds, figconfig['heuristic_parameter'])
   oracle_speeds = analyse_terminating_condition_parameter(reduced,
                           'oracle', extractSpeeds, figconfig['target_accuracy'])
-  standard_speeds = analyse_terminating_condition_parameter(reduced,
-                          'standard', extractSpeeds, None)
+#   standard_speeds = analyse_terminating_condition_parameter(reduced,
+#                           'standard', extractSpeeds, None)
   
   heuristic_speeds = np.concatenate(heuristic_speeds)
   oracle_speeds = np.concatenate(oracle_speeds)
-  standard_speeds = np.concatenate(standard_speeds)
+#   standard_speeds = np.concatenate(standard_speeds)
   
-  plot.cdf([heuristic_speeds, oracle_speeds, standard_speeds],
-           labels=['Heuristic', 'Oracle', 'Standard'], 
-           colours={'Heuristic': 'r', 'Oracle': 'g', 'Standard': 'b'})
+  plot.cdf([heuristic_speeds, oracle_speeds],
+           labels=['Heuristic', 'Oracle'], 
+           colours={'Heuristic': 'g', 'Oracle': 'b'})
   
   plt.xlabel('Speedup')
   plt.ylabel('Cumulative probability')
-  plt.title('CDF for speedup')
+  plt.title('CDF for speedup (parameter {0}, targeting {1}% accuracy)'.format(
+                figconfig['heuristic_parameter'], figconfig['target_accuracy']))
   
   plt.legend(loc='lower right')
