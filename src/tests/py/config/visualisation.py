@@ -33,21 +33,103 @@ DOC_ROOT = os.path.join(PROJECT_ROOT, DOC_PREFIX)
 DATA_ROOT = os.path.join(DOC_ROOT, DATA_PREFIX)
 FIGURE_ROOT = os.path.join(DOC_ROOT, FIGURE_PREFIX)
 
-### Optimisation test cases
+### Compiler test cases
 
-OPTIMISATION_FILE_FILTER = dictFilter({
+FULL_FILE_FILTER = dictFilter({
   'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse Scale',
   'clusters/natural/google_trace/octopus/1hour/large.min': 'Large',
   'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium',
   'clusters/natural/google_trace/octopus/1hour/small.min': 'Small',
 })
 
+FULL_DATASETS = ['Small', 'Medium', 'Large', 'Warehouse Scale']
+
+COMPILER_IMPLEMENTATIONS_FULL = {
+  'clang_debug': 'Clang Debug',
+  'clang_O0': 'Clang Unoptimised',
+  'clang_O1': 'Clang O1',
+  'clang_O2': 'Clang O2',
+  'clang_O3': 'Clang O3',
+  'gcc_debug': 'GCC Debug',
+  'gcc_O0': 'GCC Unoptimised',
+  'gcc_O1': 'GCC O1',
+  'gcc_O2': 'GCC O2',
+  'gcc_O3': 'GCC O3',
+}
+
+COMPILER_IMPLEMENTATIONS_DEFAULT = ['clang_O2', 'clang_O3', 'gcc_O2', 'gcc_O3']
+
+COMPILER_IMPLEMENTATIONS_COLORS = {
+  'Clang O2': 'r',
+  'Clang O3': 'g',
+  'GCC O2': 'b',
+  'GCC O3': 'k',
+}
+
+def compiler_implementations(l, name):
+  return {name + '_' + k : v if k in l else None 
+          for k, v in COMPILER_IMPLEMENTATIONS_FULL.items()}
+
+# TODO: datasets, implementations, colours?
+# TODO: baseline doesn't really make sense, maybe need new class
+COMPILER_FIGURES = {
+  'ap': {
+    'data': 'f_compilers_ap',
+    'datasets': ['Small', 'Medium']
+  },
+  'cc': {
+    'data': 'f_compilers_cc',
+    'datasets': ['Small', 'Medium']
+  },
+  'cs': {
+    'data': 'f_compilers_cs',
+    'datasets': ['Large', 'Warehouse Scale']
+  },
+  'relax': {
+    'data': 'f_compilers_relax',
+    'datasets': ['Small']
+  },
+  # others implementations
+  'goldberg': {
+    'data': 'f_compilers_cs_goldberg',
+    'datasets': ['Large', 'Warehouse Scale']
+  },       
+  'frangioni': {
+    'data': 'f_compilers_relax_frangioni',
+    'datasets': ['Medium', 'Large']
+  },
+}
+
+def apply_compiler_defaults(d):
+  for k, v in d.items():
+    if 'file_filter' not in v:
+      v['file_filter'] = FULL_FILE_FILTER
+      if 'datasets' not in v:
+        v['datasets'] = FULL_DATASETS
+    if 'test_filter' not in v:
+      filter_dict = compiler_implementations(COMPILER_IMPLEMENTATIONS_DEFAULT, k)
+      v['test_filter'] = dictFilter(filter_dict)
+      assert('implementations' not in v)
+      v['implementations'] = [COMPILER_IMPLEMENTATIONS_FULL[k] 
+                              for k in COMPILER_IMPLEMENTATIONS_DEFAULT]
+      v['colours'] = COMPILER_IMPLEMENTATIONS_COLORS
+      
+apply_compiler_defaults(COMPILER_FIGURES)
+
+def updateCompilerFigures(d):
+  types = {'absolute': ([], FigureTypes.optimisation_absolute)}
+  return updateFiguresWithTypes(d, types)
+
+COMPILER_FIGURES = updateCompilerFigures(COMPILER_FIGURES)
+
+### Optimisation figures
+
 OPTIMISATION_FIGURES = {
   ### Optimisations
   ## Augmenting path
   'ap_big_vs_small': {
     'data': 'f_opt_ap_big_vs_small_heap',
-    'file_filter': OPTIMISATION_FILE_FILTER,
+    'file_filter': FULL_FILE_FILTER,
     'test_filter': dictFilter({
       'big': 'Big Heap',
       'small_vector': 'Small Heap',
@@ -206,6 +288,7 @@ APPROXIMATE_FIGURES = updateApproximateFigures(APPROXIMATE_FIGURES)
 ### All figures
 
 FIGURES = mergeDicts([OPTIMISATION_FIGURES,
+                      COMPILER_FIGURES,
                       INCREMENTAL_FIGURES,
                       APPROXIMATE_FIGURES],
-                     ["opt", "inc", "app"])
+                     ["opt", 'com', "inc", "app"])
