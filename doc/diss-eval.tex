@@ -37,56 +37,117 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 \subsection{Successive shortest path algorithm}
 
-% OPT: Complete list
-
 \subsubsection{Large vs small heap}
 
-% Covered by: ap_big_vs_small_heap
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{opt_ap_big_vs_small_relative}
+  \caption{Speedup when using small heap}
+  \label{fig:opt-ap-big-vs-small}
+\end{figure}
 
-\subsubsection{Vector vs map reverse index}
-
-% Covered by: ap_big_vs_small_heap
+Heap used as priority queue in Djikstra's algorithm. Large heap: all nodes in the graph are in the heap. Small heap: only insert nodes into heap once they're visited.
 
 \subsubsection{Terminating Djikstra early}
 
-% Covered by: ap_full_vs_partial_djikstra
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{opt_ap_full_vs_partial_relative}
+    \caption{Speedup when terminating Djikstra early}
+    \label{fig:opt-ap-terminate-djikstra-early}
+\end{figure}
+
+Partial: terminate Djikstra as soon as a node permanently labelled. Full: solve entire SSSP problem.
 
 \subsection{Relaxation algorithm}
 
-% OPT: Complete list
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{opt_relax_arc_cache_relative}
+    \caption{Speedup when caching arcs}
+    \label{fig:opt-relax-cache-arcs}
+\end{figure}
 
-\subsubsection{Caching arcs crossing the cut}
-
-% Covered by: relax_cache_arcs
+Relaxation algorithm requires knowing the arcs crossing the cut. None: iterate over all arcs and find out which ones cross the cut. Cache zero cost: maintain a list of zero reduced cost arcs crossing the cut. Cache all: maintain two lists, one of zero reduced cost and one of positive reduced cost arcs crossing the cut.
 
 \subsection{Cost scaling}
 
-% OPT: Complete list
-
 \subsubsection{Wave vs FIFO}
 
-% Covered by: cs_wave_fs_fifo
-
-\subsubsection{Scaling factor}
-
-% Covvered by: cs_scaling_factor
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{opt_cs_wave_vs_fifo_relative}
+    \caption{Speedup when using FIFO rather than wave}
+    \label{fig:opt-cs-wave-vs-fifo}
+\end{figure}
 
 % Could also test out first-active approach: when relabel happens, add s to front of Q rather than rear
 
+\subsubsection{Scaling factor}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{opt_cs_scaling_factor_relative}
+    \caption{Performance depending on scaling factor}
+    \label{fig:opt-cs-scaling-factor}
+\end{figure}
+
+What factor to reduce $\epsilon$ by on each iteration?
+
 \subsection{DIMACS Parser}
 
-% OPT: Complete list
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{opt_parser_set_vs_getarc_relative}
+    \caption{Speedup when maintaining cache of arcs present}
+    \label{fig:opt-dimacs-parser}
+\end{figure}
 
-\subsubsection{Pruning zero capacity arcs}
+Need to check for duplicate arcs when parsing. Linked list: consult underlying data structure. Set: maintain a separate set of the arcs present to speed lookup.
 
-% This is a bit trivial. Possibly best ignored.
-% Covered by: parser_ignore_zero_capacity
+Set actually works out slower. Conjecture: adjacency lists tend to be short, so overhead of linked list is low. Maintaining separate set harms cache performance, as increases working set?
 
-\subsubsection{Set vs getArc}
+\todo{Bother including this section or not? It's kind of trivial. Although discussing why the optimisation *didn't* work is maybe interesting.}
 
-% Maintain set of arcs that already exist, to speed lookup. This is a bit less trivial and has some interesting scope for data structures discussion, so perhaps worth using.
+\section{Compilers}
 
-% Covered by: parser_set_vs_getarc
+\begin{figure}
+    \centering
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{com_cc_absolute}
+        \caption{Cycle cancelling}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{com_ap_absolute}
+        \caption{Augmenting Path}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{com_relax_absolute}
+        \caption{Relaxation}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{com_cs_absolute}
+        \caption{Cost scaling}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{com_goldberg_absolute}
+        \caption{Goldberg's cost scaling}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{com_frangioni_absolute}
+        \caption{Frangioni's relaxation algorithm}
+    \end{subfigure}
+    \caption{Performance under different compilers and optimisation levels}
+    \label{fig:compilers}
+\end{figure}
+
+Want to make each implementation run as fast as possible: necessary for later tests to be fair. Different compilers use different optimisation techniques, and so may work better for some applications than others. Evaluated Clang and GCC, two compilers with sophisticated optimisations.
+
+Tested at all optimisation levels. (Table showing the levels? O0 to O3, with brief explanation.) Significant performance improvement when going to O2; limited performance gains in O3, perhaps even worse.
+
+Little difference between Clang and GCC. GCC O3 tended to be the fastest implementation. Given this, GCC O3 was chosen as the standard compiler for subsequent tests.
+
+Probably best not to dwell on this since results aren't that interesting, but worth mentioning it was carried out for thoroughness. Probably want to compact the results significantly. Maybe OK to just give example output from one or two implementations, and mention similar for others.
 
 \section{Performance evaluation}
 
