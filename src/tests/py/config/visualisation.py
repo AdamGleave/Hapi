@@ -129,22 +129,103 @@ OPTIMISATION_FIGURES = {
   ## Augmenting path
   'ap_big_vs_small': {
     'data': 'f_opt_ap_big_vs_small_heap',
-    'file_filter': FULL_FILE_FILTER,
     'test_filter': dictFilter({
-      'big': 'Big Heap',
-      'small_vector': 'Small Heap',
-      'small_map': None
+      'big': 'Big heap',
+      'small_vector': 'Small heap with vector',
+      'small_map': 'Small heap with map',
     }),
     
     'datasets': ['Small', 'Medium'],
-    'implementations': ['Big Heap', 'Small Heap'],
-    'baseline': 'Big Heap',
+    'implementations': ['Big heap', 
+                        'Small heap with vector', 'Small heap with map'],
+    'baseline': 'Big heap',
     'colours': {
-      'Big Heap': 'r',
-      'Small Heap': 'b',
+      'Big heap': 'r',
+      'Small heap with vector': 'g',
+      'Small heap with map': 'b',
     }
-  },                      
+  },
+  'ap_full_vs_partial': {
+    'data': 'f_opt_ap_full_vs_partial_djikstra',
+    'test_filter': dictFilter({
+      'full': 'Full',
+      'partial': 'Partial'
+    }),
+                         
+    'datasets': ['Small', 'Medium'],
+    'implementations': ['Full', 'Partial'],
+    'baseline': 'Full',
+    'colours': {
+      'Full': 'r',
+      'Partial': 'b',
+    }
+  },
+  'cs_wave_vs_fifo': {
+    'data': 'f_opt_cs_wave_vs_fifo',
+    'test_filter': dictFilter({
+      'wave': 'Wave',
+      'fifo': 'FIFO',
+    }),
+    
+    'datasets': ['Small', 'Medium', 'Large'],
+    'implementations': ['Wave', 'FIFO'],
+    'baseline': 'Wave',
+    'colours': {
+      'Wave': 'r',
+      'FIFO': 'b', 
+    }
+  },
+  # TODO: This is gonna need some careful formatting
+  # TODO: Octopus is a somewhat bogus model for this, since you reach optimality
+  # so early.
+  'cs_scaling_factor': {
+    'data': 'f_opt_cs_scaling_factor',
+    'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
+    
+    'datasets': ['Large', 'Warehouse Scale'],
+    'implementations': [str(k) for k in range(2,32)],
+    'baseline': '2',
+    'colours': {str(k) : 'k' for k in range(2,32)}
+  },
+  'relax_arc_cache': {
+    'data': 'f_opt_relax_cache_arcs',
+    'test_filter': dictFilter({'none': 'No caching',
+                               'cache_zerorc': 'Cache zero cost arcs',
+                               'cache_all': 'Cache all arcs'}),
+    
+    # TODO: Boost timeout, get data for 'Medium' too
+    'datasets': ['Small'],
+    'implementations': ['No caching', 'Cache zero cost arcs', 'Cache all arcs'],
+    'baseline': 'No caching',
+    'colours': {
+      'No caching': 'r', 
+      'Cache zero cost arcs': 'g',
+      'Cache all arcs': 'b',
+    }
+  },
+  'parser_set_vs_getarc': {
+    'data': 'f_opt_parser_set_vs_getarc',
+    'test_filter': dictFilter({'getarc': 'Linked list',
+                               'set': 'Set'}),
+                           
+    'datasets': ['Large', 'Warehouse Scale'],
+    'implementations': ['Linked list', 'Set'],
+    'baseline': 'Linked list',
+    'colours': {
+      'Linked list': 'r',
+      'Set': 'b',
+    }
+  },
 }
+
+def apply_optimisation_defaults(d):
+  for k, v in d.items():
+    if 'file_filter' not in v:
+      v['file_filter'] = FULL_FILE_FILTER
+      if 'datasets' not in v:
+        v['datasets'] = FULL_DATASETS
+        
+apply_optimisation_defaults(OPTIMISATION_FIGURES)
 
 def updateOptimisationFigures(d):
   types = {'absolute': ([], FigureTypes.optimisation_absolute),

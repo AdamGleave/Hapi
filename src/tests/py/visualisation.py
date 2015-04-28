@@ -70,4 +70,7 @@ if __name__ == "__main__":
     # Export figure
     figure_fname = os.path.join(config.FIGURE_ROOT, figname + ".pdf")
     with PdfPages(figure_fname) as out:
-      out.savefig(fig) 
+      out.savefig(fig)
+    
+    # release memory for current figure 
+    plt.close()

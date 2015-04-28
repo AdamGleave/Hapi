@@ -286,8 +286,7 @@ def runTestInstance(test_name, test_command, log_directory, fname, iteration,
   with open(err_path, 'w') as err_file:      
     signal.alarm(timeout)
     try:
-      running_command = test_command(input_path, out_path, 
-                                     *extra_arguments, **extra_kwargs)
+      running_command = test_command(input_path, out_path, *extra_arguments)
       
       start_time = time.time()
       
