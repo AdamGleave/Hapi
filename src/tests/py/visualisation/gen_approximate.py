@@ -454,4 +454,4 @@ def generate_cost_vs_time_plot(data, figconfig):
   
   plt.xlabel('Runtime (s)')
   plt.ylabel('Solution cost')
-  plt.title('Soltuion cost against algorithm runtime')
+  plt.title('Solution cost against algorithm runtime')

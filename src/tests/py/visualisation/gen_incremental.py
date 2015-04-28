@@ -61,6 +61,11 @@ def generate_over_time(data, figconfig):
   start_time = get_start_time(figconfig)
   data = analyse_generic(data, start_time)
   
+  # some traces might be empty, filter
+  type, times = data
+  times = {figconfig['trace'] : times[figconfig['trace']]}
+  data = type, times
+  
   # sort it
   data = analysis.ion_map_on_implementations(lambda l : np.sort(l, order='cluster_time'), data)                                                                                                                                         
   
@@ -76,6 +81,7 @@ def generate_over_time(data, figconfig):
   window_size = figconfig.get('window_size', config.DEFAULT_WINDOW_SIZE)
   colours = analysis.flatten_dict(figconfig['colours'], [figconfig['implementations']])
   for i in range(len(figconfig['implementations'])):
+    #return(scheduling_latency[i])
     smoothed = analysis.moving_average(scheduling_latency[i], window_size)
     plt.plot(cluster_times[i], smoothed,
              label=figconfig['implementations'][i], color=colours[i])
@@ -84,4 +90,4 @@ def generate_over_time(data, figconfig):
   
   plt.xlabel('Cluster time (s)')
   plt.ylabel('Scheduling latency (s)')
-  plt.title('Moving average of scheduling latency against time')
+  plt.title('Moving average ($\mathrm{{window}} = {0}$) of scheduling latency against time'.format(window_size))

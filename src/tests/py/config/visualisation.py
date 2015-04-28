@@ -241,7 +241,8 @@ OPTIMISATION_FIGURES = updateOptimisationFigures(OPTIMISATION_FIGURES)
 DEFAULT_INCREMENTAL_START = 600
 
 # Number of elements to include in moving average (for incremental_over_time)
-DEFAULT_WINDOW_SIZE = 100
+DEFAULT_WINDOW_SIZE = 5
+# XXX: Does it need smoothing at all?
 
 INCREMENTAL_TEST_FILTER = dictFilter({
   'full': 'Standard',
@@ -249,19 +250,58 @@ INCREMENTAL_TEST_FILTER = dictFilter({
 })
 
 INCREMENTAL_FIGURES = {
-  'optimised': {
+  # TODO: bigger datasets?
+  'same_ap': {
+    'data': 'ion_same_ap',
+    'trace': 'medium',
+  },
+  'same_relax': {
+    'data': 'ion_same_relax',
+    'trace': 'small',
+  },
+  'same_relaxf': {
+    'data': 'ion_same_relaxf',
+    'trace': 'medium',
+  },
+  # TODO: inc_ap works OK on full_size, too
+  'head_to_head_my': {
+    'data': 'ion_head_to_head_my',
+    'trace': 'large',
+    'window_size': 50,
+    'test_filter': dictFilter({'full': 'Standard cost scaling', 
+                               'inc_ap': 'Incremental augmenting path',
+                               #'inc_relax': 'Incremental relaxation'
+                               'inc_relax': None}),
+    'implementations': ['Standard cost scaling',
+                       'Incremental augmenting path'],#, 'Incremental relaxation'],
+    'colours': {'Standard cost scaling': 'r',
+                'Incremental augmenting path': 'g',
+                'Incremental relaxation': 'b'},
+  },
+  'head_to_head_optimised': {
     'data': 'ion_head_to_head_optimised',
-    'type': FigureTypes.incremental_cdf,
-    'test_filter': INCREMENTAL_TEST_FILTER,
-    
     'trace': 'full_size',
-    'implementations': ['Standard', 'Incremental'],
-    'colours': {
-      'Standard': 'r',
-      'Incremental': 'b',
-    }
+    'window_size': 50,
+    'test_filter': dictFilter({'full': 'Standard cost scaling', 
+                               'incremental': 'Incremental relaxation'}),
+    'implementations': ['Standard cost scaling', 'Incremental relaxation'],
+    'colours': {'Standard cost scaling': 'r',
+                'Incremental relaxation': 'b'},
   },
 } 
+
+def applyIncrementalDefault(d):
+  for k, v in d.items():
+    if 'test_filter' not in v:
+      v['test_filter'] = INCREMENTAL_TEST_FILTER
+      if 'implementations' not in v:
+        v['implementations'] = ['Standard', 'Incremental']
+        v['colours'] = {
+          'Standard': 'r',
+          'Incremental': 'b',
+        }
+        
+applyIncrementalDefault(INCREMENTAL_FIGURES)
 
 def updateIncrementalFigures(d):
   types = {'cdf': ([], FigureTypes.incremental_cdf),
