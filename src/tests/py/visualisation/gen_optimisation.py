@@ -17,7 +17,7 @@ def barchart(means, errors, bar_labels, group_labels, colours,
   n_bars_in_group = len(bar_labels)
   assert(len(means) == len(errors) == len(bar_labels))
   
-  fig, ax = plt.figure()
+  fig = plt.figure()
 
   index = np.arange(n_groups)
   bar_width = group_width / n_bars_in_group
@@ -74,9 +74,9 @@ def generate_absolute(data, figconfig):
   means, errors = analyse_absolute(data, figconfig['implementations'],
                                    figconfig['datasets'])
   
-  fig, ax = barchart(means, errors, 
-                     figconfig['implementations'], figconfig['datasets'],
-                     figconfig['colours'], log=True)
+  fig = barchart(means, errors, 
+                 figconfig['implementations'], figconfig['datasets'],
+                 figconfig['colours'], log=True)
   
   plt.xlabel('Cluster size')
   plt.ylabel('Runtime (s)')
@@ -143,9 +143,9 @@ def generate_relative(data, figconfig):
   means, errors = analyse_relative(data, figconfig['baseline'],
                             figconfig['implementations'], figconfig['datasets'])
    
-  fig, ax = barchart(means, errors, 
-                     figconfig['implementations'], figconfig['datasets'],
-                     figconfig['colours'])
+  fig = barchart(means, errors, 
+                 figconfig['implementations'], figconfig['datasets'],
+                 figconfig['colours'])
   
   plt.xlabel('Cluster size')
   plt.ylabel('Speedup')

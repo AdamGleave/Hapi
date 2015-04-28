@@ -339,7 +339,7 @@ def analyse_terminating_condition(stats, figconfig, extractValue):
   return (parameters, values_by_parameter)
 
 def analyse_percentiles(data, percentiles):
-  return [np.percentile(data, p, axis=1) for p in percentiles]
+  return {p : np.percentile(data, p, axis=1) for p in percentiles}
 
 def extractAccuracy(refine_it):
   return calculate_relative_accuracy(refine_it['relative_error'])
@@ -353,10 +353,12 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
 
   (parameters, accuracies) = analyse_terminating_condition(
                                             reduced, figconfig, extractAccuracy)
-  percentiles = analyse_percentiles(accuracies, figconfig['percentiles'])
+  percentiles_config = figconfig.get('percentiles', 
+                                     config.APPROXIMATE_DEFAULT_PERCENTILES)
+  percentiles = analyse_percentiles(accuracies, percentiles_config)
   
-  for i in range(len(percentiles)):
-    plt.plot(parameters, percentiles[i], label=figconfig['labels'][i])
+  for (percentile, percentile_label) in percentiles_config.items():
+    plt.plot(parameters, percentiles[percentile], label=percentile_label)
   
   plt.xlabel('Parameter')
   plt.ylabel('Accuracy (%)')
@@ -397,7 +399,7 @@ def generate_terminating_condition_accuracy_distribution(data, figconfig):
   # add labels
   plt.xlabel('Accuracy (%)')
   plt.ylabel('Cumulative probability')
-  plt.title('CDF for heuristic parameter {0}, targeting {1}% accuracy)'.format(
+  plt.title('CDF for accuracy (heuristic parameter {0}, targeting {1}% accuracy)'.format(
                              figconfig['heuristic_parameter'], target_accuracy))
   
 def generate_terminating_condition_speed_distribution(data, figconfig):

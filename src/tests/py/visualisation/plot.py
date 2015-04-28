@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from visualisation import analysis
+
 def cdf(times, labels, colours, **kwargs):
   # currently am doing it the inefficient way
   # can compute empirical CDF using sampling with scipy

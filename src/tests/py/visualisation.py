@@ -4,7 +4,7 @@ import config.visualisation as config
 from visualisation import parse, gen_optimisation, gen_incremental, gen_approximate
 from visualisation.test_types import FigureTypes
 
-import os, sys
+import os, sys, re
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
@@ -22,13 +22,21 @@ figure_generators = {
 }
 
 if __name__ == "__main__":
+  figure_names = None
   if len(sys.argv) == 1:
     # no arguments
-    figures = config.FIGURES
+    figure_names = config.FIGURES.keys()
   else:
-    # arguments are list of tests
-    figure_names = sys.argv[1:]
-    figures = {k : config.FIGURES[k] for k in figure_names}
+    # arguments are list of figure patterns
+    figure_patterns = sys.argv[1:]
+    figure_names = set()
+    for pattern_regex in figure_patterns:
+      pattern = re.compile(pattern_regex + "$")
+      for figure_name in config.FIGURES:
+        if pattern.match(figure_name):
+          figure_names.add(figure_name)
+  print("Generating: ", figure_names)
+  figures = {k : config.FIGURES[k] for k in figure_names}
     
   for (figname, figconfig) in figures.items():
     # Import CSV input

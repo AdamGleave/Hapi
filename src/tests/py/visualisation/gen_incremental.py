@@ -1,6 +1,7 @@
 import itertools
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 import config.visualisation as config
 from visualisation import analysis, plot
