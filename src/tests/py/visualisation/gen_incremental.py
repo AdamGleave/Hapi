@@ -112,6 +112,10 @@ def generate_over_time(data, figconfig):
     plt.plot(cluster_times[i], smoothed,
              label=figconfig['implementations'][i], color=colours[i])
   
+  ymin, ymax = plt.ylim()
+  ymin = -ymax*0.05
+  plt.ylim(ymin, ymax)
+  
   plt.legend(loc='upper right')
   
   plt.xlabel('Cluster time (\si{\second})')

@@ -74,6 +74,8 @@
 % Figures
 \usepackage{verbatim} % environment where formatting preserved exactly
 \usepackage{tikz} % language for figures
+\usepackage{tikzscale}
+\usepackage{pgfplots}
 \usepackage{booktabs}
 \usepackage{subcaption} 
 \usepackage{xcolor}
@@ -84,7 +86,8 @@
 \usepackage{tabularx}
 
 \graphicspath{ {./figures/} }
-\DeclareGraphicsExtensions{.pdf, .png, .jpg}
+\DeclareGraphicsExtensions{.tikz, .pgf}
+\newcommand{\includepgf}[1]{\input{./figures/#1.pgf}}
 
 % Formatting of units
 \usepackage{siunitx}

@@ -189,7 +189,7 @@ def generate_oracle_policy_scatter(data, figconfig):
   ymin, ymax = plt.ylim()
   plt.ylim ( (0, ymax) )
   
-  plt.xlabel('Accuracy (%)')
+  plt.xlabel(r'Accuracy (\%)')
   plt.ylabel('Speedup')
   plt.title('Speedup against accuracy under oracle policy')  
 
@@ -268,12 +268,12 @@ def generate_oracle_policy_interpolate(data, figconfig):
   
   confidence_level = int(config.CONFIDENCE_LEVEL * 100)
   plt.plot(accuracies, lowers, 'r:',
-           label='Lower bound ({0}% confidence)'.format(confidence_level))
+           label=r'Lower bound ({0}\% confidence)'.format(confidence_level))
   plt.plot(accuracies, uppers, 'b:', 
-           label='Upper bound ({0}% confidence)'.format(confidence_level))
+           label=r'Upper bound ({0}\% confidence)'.format(confidence_level))
   plt.plot(accuracies, means, 'g', label='Mean')
   
-  plt.xlabel('Accuracy (%)')
+  plt.xlabel(r'Accuracy (\%)')
   plt.ylabel('Speedup')
   plt.title('Speedup under oracle policy against accuracy')
   
@@ -361,7 +361,7 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
     plt.plot(parameters, percentiles[percentile], label=percentile_label)
   
   plt.xlabel('Parameter')
-  plt.ylabel('Accuracy (%)')
+  plt.ylabel(r'Accuracy (\%)')
   plt.title('Accuracy against heuristic parameter')
   
   plt.legend(loc='lower left')
@@ -397,9 +397,9 @@ def generate_terminating_condition_accuracy_distribution(data, figconfig):
 #   plt.xticks(locs, labels)
   
   # add labels
-  plt.xlabel('Accuracy (%)')
+  plt.xlabel(r'Accuracy (\%)')
   plt.ylabel('Cumulative probability')
-  plt.title('CDF for accuracy (heuristic parameter {0}, targeting {1}% accuracy)'.format(
+  plt.title(r'CDF for accuracy (heuristic parameter {0}, targeting {1}\% accuracy)'.format(
                              figconfig['heuristic_parameter'], target_accuracy))
   
 def generate_terminating_condition_speed_distribution(data, figconfig):
@@ -425,7 +425,7 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
   
   plt.xlabel('Speedup')
   plt.ylabel('Cumulative probability')
-  plt.title('CDF for speedup (parameter {0}, targeting {1}% accuracy)'.format(
+  plt.title(r'CDF for speedup (parameter {0}, targeting {1}\% accuracy)'.format(
                 figconfig['heuristic_parameter'], figconfig['target_accuracy']))
   
   plt.legend(loc='lower right')
@@ -452,6 +452,6 @@ def generate_cost_vs_time_plot(data, figconfig):
   plt.plot(xs, ys, marker='.')
   plt.yscale('log')
   
-  plt.xlabel('Runtime ($\si{\second})')
+  plt.xlabel('Runtime (\si{\second})')
   plt.ylabel('Solution cost')
   plt.title('Solution cost against algorithm runtime')

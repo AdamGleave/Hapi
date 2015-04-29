@@ -41,7 +41,7 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{opt_ap_big_vs_small_relative}
+  \includegraphics[width=0.5\textwidth]{opt_ap_big_vs_small_relative}
   \caption{Speedup when using small heap}
   \label{fig:opt-ap-big-vs-small}
 \end{figure}
@@ -52,7 +52,7 @@ Heap used as priority queue in Djikstra's algorithm. Large heap: all nodes in th
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{opt_ap_full_vs_partial_relative}
+    \includegraphics[width=0.5\textwidth]{opt_ap_full_vs_partial_relative}
     \caption{Speedup when terminating Djikstra early}
     \label{fig:opt-ap-terminate-djikstra-early}
 \end{figure}
@@ -63,7 +63,7 @@ Partial: terminate Djikstra as soon as a node permanently labelled. Full: solve 
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{opt_relax_arc_cache_relative}
+    \includegraphics[width=0.5\textwidth]{opt_relax_arc_cache_relative}
     \caption{Speedup when caching arcs}
     \label{fig:opt-relax-cache-arcs}
 \end{figure}
@@ -76,7 +76,7 @@ Relaxation algorithm requires knowing the arcs crossing the cut. None: iterate o
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{opt_cs_wave_vs_fifo_relative}
+    \includegraphics[width=0.5\textwidth]{opt_cs_wave_vs_fifo_relative}
     \caption{Speedup when using FIFO rather than wave}
     \label{fig:opt-cs-wave-vs-fifo}
 \end{figure}
@@ -87,7 +87,7 @@ Relaxation algorithm requires knowing the arcs crossing the cut. None: iterate o
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{opt_cs_scaling_factor}
+    \includegraphics[width=0.5\textwidth]{opt_cs_scaling_factor}
     \caption{Performance depending on scaling factor}
     \label{fig:opt-cs-scaling-factor}
 \end{figure}
@@ -98,7 +98,7 @@ What factor to reduce $\epsilon$ by on each iteration?
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{opt_parser_set_vs_getarc_relative}
+    \includegraphics[width=0.5\textwidth]{opt_parser_set_vs_getarc_relative}
     \caption{Speedup when maintaining cache of arcs present}
     \label{fig:opt-dimacs-parser}
 \end{figure}
@@ -159,7 +159,7 @@ Tests on final version of algorithms, with all optimisations enabled.
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{app_road_over_time}
+    \includegraphics[width=0.5\textwidth]{app_road_over_time}
     \caption{Successive approximations to the optimal solution}
     \label{fig:app-cost-over-time}
 \end{figure}
@@ -168,7 +168,7 @@ Tests on final version of algorithms, with all optimisations enabled.
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{app_road_oracle_policy}
+    \includegraphics[width=0.5\textwidth]{app_road_oracle_policy}
     \caption{Upper bound on speedup of approximation algorithm for a given accuracy}
     \label{fig:app-oracle-policy}
 \end{figure}
@@ -177,7 +177,7 @@ Tests on final version of algorithms, with all optimisations enabled.
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{app_road_policy_parameter_accuracy}
+    \includegraphics[width=0.5\textwidth]{app_road_policy_parameter_accuracy}
     \caption{Accuracy at percentiles for given parameter choices}
     \label{fig:app-policy-parameter-accuracy}
 \end{figure}

@@ -24,15 +24,18 @@ figure_generators = {
   FigureTypes.approximate_cost_vs_time : gen_approximate.generate_cost_vs_time_plot,
 }
 
+LATEX_PREAMBLE = r'\usepackage{siunitx}'
 def set_rcs():
   rc('font',**{'family':'serif', 'serif':['Palatino'], 'size':12})
   rc('text', usetex=True)
-  rc('text.latex', preamble=r'\usepackage{siunitx}')
+  rc('text.latex', preamble=LATEX_PREAMBLE)
   rc('legend', fontsize=7)
   rc('figure', figsize=(6,4))
   rc('figure.subplot', left=0.10, top=0.90, bottom=0.12, right=0.95)
   rc('axes', linewidth=0.5)
   rc('lines', linewidth=0.5)
+  
+#   rc('pgf', preamble=LATEX_PREAMBLE)
 
 if __name__ == "__main__":
   set_rcs()
@@ -86,6 +89,9 @@ if __name__ == "__main__":
     figure_fname = os.path.join(config.FIGURE_ROOT, figname + ".pdf")
     with PdfPages(figure_fname) as out:
       out.savefig(fig)
+      
+#     pgf_figure_fname = os.path.join(config.FIGURE_ROOT, figname + '.pgf')
+#     plt.savefig(pgf_figure_fname)
     
     # release memory for current figure 
     plt.close()
