@@ -421,7 +421,7 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
   
   plot.cdf([heuristic_speeds, oracle_speeds],
            labels=['Heuristic', 'Oracle'], 
-           colours={'Heuristic': 'g', 'Oracle': 'b'})
+           colours={'Heuristic': 'b', 'Oracle': 'g'})
   
   plt.xlabel('Speedup')
   plt.ylabel('Cumulative probability')
@@ -452,6 +452,6 @@ def generate_cost_vs_time_plot(data, figconfig):
   plt.plot(xs, ys, marker='.')
   plt.yscale('log')
   
-  plt.xlabel('Runtime (s)')
+  plt.xlabel('Runtime ($\si{\second})')
   plt.ylabel('Solution cost')
   plt.title('Solution cost against algorithm runtime')

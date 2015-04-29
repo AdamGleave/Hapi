@@ -41,7 +41,7 @@ def barchart(means, errors, bar_labels, group_labels, colours,
                label=label,
                **kwargs)
     
-  plt.xticks(index + bar_width, group_labels)
+  plt.xticks(index + group_width / 2, group_labels)
   plt.legend(loc='upper left')
     
   return fig
@@ -79,7 +79,7 @@ def generate_absolute(data, figconfig):
                  figconfig['colours'], log=True)
   
   plt.xlabel('Cluster size')
-  plt.ylabel('Runtime (s)')
+  plt.ylabel('Runtime (\si{\second})')
   plt.title('Runtimes by cluster size and implementation')
   
   plt.tight_layout()
@@ -150,6 +150,46 @@ def generate_relative(data, figconfig):
   plt.xlabel('Cluster size')
   plt.ylabel('Speedup')
   plt.title('Speedups by cluster size and implementation')
+  
+  plt.tight_layout()
+  
+  return fig
+
+def generate_scaling_factors(data, figconfig):
+  data = analysis.full_swap_file_impl(data)
+  dataset = figconfig['dataset']
+  means, errors = analyse_absolute(data, figconfig['implementations'],
+                                   [dataset])
+  n_mean_factors, n_mean_datasets = np.shape(means)
+  assert(n_mean_datasets == 1)
+  n_error_factors, n_error_errors, n_error_datasets = np.shape(errors)
+  assert(n_error_errors == 2 and n_error_datasets == 1)
+  assert(n_mean_factors == n_error_factors)
+  
+  n_factors = n_mean_factors
+  means = np.reshape(means, (n_factors, ))
+  errors = np.reshape(errors, (n_factors, 2))
+  errors = np.transpose(errors)
+
+  fig = plt.figure()
+
+  index = np.arange(n_factors)
+  bar_width = 1.0
+  
+  opacity = 0.4
+  error_config = {'ecolor': '0.3'}
+
+  bars = plt.bar(index, means, bar_width,
+                 alpha=opacity,
+                 color=figconfig['colours'],
+                 yerr=errors,
+                 error_kw=error_config)
+      
+  plt.xticks(index + bar_width / 2, figconfig['implementations'])
+  
+  plt.xlabel('Scaling factor')
+  plt.ylabel('Runtime (\si{\second})')
+  plt.title('Runtimes by scaling factor')
   
   plt.tight_layout()
   

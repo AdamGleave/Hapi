@@ -178,15 +178,6 @@ OPTIMISATION_FIGURES = {
   # TODO: This is gonna need some careful formatting
   # TODO: Octopus is a somewhat bogus model for this, since you reach optimality
   # so early.
-  'cs_scaling_factor': {
-    'data': 'f_opt_cs_scaling_factor',
-    'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
-    
-    'datasets': ['Large', 'Warehouse Scale'],
-    'implementations': [str(k) for k in range(2,32)],
-    'baseline': '2',
-    'colours': {str(k) : 'k' for k in range(2,32)}
-  },
   'relax_arc_cache': {
     'data': 'f_opt_relax_cache_arcs',
     'test_filter': dictFilter({'none': 'No caching',
@@ -234,6 +225,18 @@ def updateOptimisationFigures(d):
 
 OPTIMISATION_FIGURES = updateOptimisationFigures(OPTIMISATION_FIGURES)
 
+OPTIMISATION_FIGURES['cs_scaling_factor'] = {
+  'data': 'f_opt_cs_scaling_factor',
+  'type': FigureTypes.optimisation_scaling_factors,
+  'file_filter': FULL_FILE_FILTER,
+  'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
+  
+  'dataset': 'Warehouse Scale',
+  'implementations': [str(k) for k in range(2,32)],
+  'colours': ['b'],
+  'baseline': '2',
+}
+
 ### Incremental test cases
 
 # Time, in seconds, *after* proper start of cluster.
@@ -241,8 +244,7 @@ OPTIMISATION_FIGURES = updateOptimisationFigures(OPTIMISATION_FIGURES)
 DEFAULT_INCREMENTAL_START = 600
 
 # Number of elements to include in moving average (for incremental_over_time)
-DEFAULT_WINDOW_SIZE = 5
-# XXX: Does it need smoothing at all?
+DEFAULT_WINDOW_SIZE = 10
 
 INCREMENTAL_TEST_FILTER = dictFilter({
   'full': 'Standard',
@@ -274,9 +276,10 @@ INCREMENTAL_FIGURES = {
                                'inc_relax': None}),
     'implementations': ['Standard cost scaling',
                        'Incremental augmenting path'],#, 'Incremental relaxation'],
+    'incremental_implementation': 'Incremental augmenting path',
     'colours': {'Standard cost scaling': 'r',
-                'Incremental augmenting path': 'g',
-                'Incremental relaxation': 'b'},
+                'Incremental augmenting path': 'b',
+                'Incremental relaxation': 'g'},
   },
   'head_to_head_optimised': {
     'data': 'ion_head_to_head_optimised',
@@ -285,6 +288,7 @@ INCREMENTAL_FIGURES = {
     'test_filter': dictFilter({'full': 'Standard cost scaling', 
                                'incremental': 'Incremental relaxation'}),
     'implementations': ['Standard cost scaling', 'Incremental relaxation'],
+    'incremental_implementation': 'Incremental relaxation',
     'colours': {'Standard cost scaling': 'r',
                 'Incremental relaxation': 'b'},
   },
@@ -294,17 +298,21 @@ def applyIncrementalDefault(d):
   for k, v in d.items():
     if 'test_filter' not in v:
       v['test_filter'] = INCREMENTAL_TEST_FILTER
-      if 'implementations' not in v:
-        v['implementations'] = ['Standard', 'Incremental']
-        v['colours'] = {
-          'Standard': 'r',
-          'Incremental': 'b',
-        }
+    if 'implementations' not in v:
+      v['implementations'] = ['Standard', 'Incremental']
+      if 'incremental_implementation' not in v:
+        v['incremental_implementation'] = 'Incremental'
+    if 'colours' not in v:
+      v['colours'] = {
+        'Standard': 'r',
+        'Incremental': 'b',
+      }
         
 applyIncrementalDefault(INCREMENTAL_FIGURES)
 
 def updateIncrementalFigures(d):
   types = {'cdf': ([], FigureTypes.incremental_cdf),
+           'incremental_only_cdf': (['incremental_implementation'], FigureTypes.incremental_only_incremental_cdf),
            'hist': ([], FigureTypes.incremental_hist),
            'over_time': ([], FigureTypes.incremental_over_time)}
   return updateFiguresWithTypes(d, types)
@@ -360,51 +368,6 @@ def updateApproximateFigures(d):
   return updateFiguresWithTypes(d, types)
   
 APPROXIMATE_FIGURES = updateApproximateFigures(APPROXIMATE_FIGURES)
-
-# APPROXIMATE_FIGURES = {
-#   'road_oracle_policy': {
-#     'data': 'af_road',
-#     'type': FigureTypes.approximate_oracle_policy,
-#     
-#     #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD 
-#   },
-#   'road_policy_accuracy': {
-#     'data': 'af_road',
-#     'type': FigureTypes.approximate_policy_accuracy,
-#     
-#     #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD
-#     'condition': 'cost', # or 'task_assignments'
-#     #'max_cost_parameter': 0.05, # defaults to APPROXIMATE_MAX_COST_PARAMETER
-#     #'max_task_assignments_parameter': 20, # defaults to APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER
-#     'percentiles': [1, 5, 25, 50],
-#     'labels': ['$1^{\mathrm{st}}$ percentile', '$5^{\mathrm{th}}$ percentile',
-#                '$25^{\mathrm{th}}$ percentile', 'Median']
-#   },
-#   'road_policy_error_cdf': {
-#     'data': 'af_road',
-#     'type': FigureTypes.approximate_error_cdf,
-#     
-#     #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD
-#     'condition': 'cost', # or 'task_assignments'
-#     'heuristic_parameter': 0.025, # threshold used by heuristic
-#     'target_accuracy': 99 # in percent. Used for comparison
-#   },
-#   'road_policy_speed_cdf': {
-#     'data': 'af_road',
-#     'type': FigureTypes.approximate_speed_cdf,
-#     
-#     #'min_accuracy': 90 # in percent -- defaults to APPROXIMATE_ACCURACY_THRESHOLD
-#     'condition': 'cost', # or 'task_assignments'
-#     'heuristic_parameter': 0.025, # threshold used by heuristic
-#     'target_accuracy': 99 # in percent. Used for comparison with oracle model
-#   },
-#   'road_cost_vs_time': {
-#     'data': 'af_road',
-#     'type': FigureTypes.approximate_cost_vs_time,
-#     
-#     'file': 'general/natural/road/road_flow_03_NH_e.min',
-#   }                      
-# }
 
 ### All figures
 

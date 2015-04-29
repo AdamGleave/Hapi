@@ -87,7 +87,7 @@ Relaxation algorithm requires knowing the arcs crossing the cut. None: iterate o
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{opt_cs_scaling_factor_relative}
+    \includegraphics[scale=0.5]{opt_cs_scaling_factor}
     \caption{Performance depending on scaling factor}
     \label{fig:opt-cs-scaling-factor}
 \end{figure}
@@ -194,6 +194,7 @@ Tests on final version of algorithms, with all optimisations enabled.
       \includegraphics[width=\textwidth]{app_road_policy_speed_cdf}
       \caption{CDF of speed under heuristic (compared to optimal performance under oracle)}
     \end{subfigure}
+    \caption{Performance of heuristic}
     \label{fig:app-cdf}
 \end{figure}
 
@@ -225,11 +226,14 @@ Runtime compared to the {\it same} algorithm, running from scratch. Bit of a str
 
 \begin{figure}
     \centering
-    \begin{subfigure}[c]{0.45\textwidth}
+    \begin{subfigure}[c]{0.9\textwidth}
         \includegraphics[width=\textwidth]{inc_same_ap_over_time}
     \end{subfigure}
     \begin{subfigure}[c]{0.45\textwidth}
         \includegraphics[width=\textwidth]{inc_same_ap_cdf}
+    \end{subfigure}
+   \begin{subfigure}[c]{0.45\textwidth}
+       \includegraphics[width=\textwidth]{inc_same_ap_incremental_only_cdf}
     \end{subfigure}
     \caption{Performance of augmenting path in incremental vs standard mode}
     \label{fig:inc-same-ap}
@@ -239,11 +243,14 @@ Runtime compared to the {\it same} algorithm, running from scratch. Bit of a str
 
 \begin{figure}
     \centering
-    \begin{subfigure}[c]{0.45\textwidth}
+    \begin{subfigure}[c]{0.9\textwidth}
         \includegraphics[width=\textwidth]{inc_same_relax_over_time}
     \end{subfigure}
     \begin{subfigure}[c]{0.45\textwidth}
         \includegraphics[width=\textwidth]{inc_same_relax_cdf}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{inc_same_relax_incremental_only_cdf}
     \end{subfigure}
     \caption{Performance of relaxation in incremental vs standard mode}
     \label{fig:inc-same-relax}
@@ -253,11 +260,14 @@ My version in \cref{fig:inc-same-relax}.
 
 \begin{figure}
     \centering
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relax_over_time}
+    \begin{subfigure}[c]{0.9\textwidth}
+        \includegraphics[width=\textwidth]{inc_same_relaxf_over_time}
     \end{subfigure}
     \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relax_cdf}
+        \includegraphics[width=\textwidth]{inc_same_relaxf_cdf}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{inc_same_relaxf_incremental_only_cdf}
     \end{subfigure}
     \caption{Performance of relaxation in incremental vs standard mode}
     \label{fig:inc-same-relaxf}
@@ -275,6 +285,10 @@ Frangioni's version in \cref{fig:inc-same-relaxf}. \todo{Tempted to cut this ent
     \begin{subfigure}[c]{0.45\textwidth}
         \includegraphics[width=\textwidth]{inc_head_to_head_my_cdf}
     \end{subfigure}
+% These figures just aren't that interesting, similar scale to main one
+%    \begin{subfigure}[c]{0.45\textwidth}
+%        \includegraphics[width=\textwidth]{inc_head_to_head_my_incremental_only_cdf}
+%    \end{subfigure}
     \caption{Performance of incremental augmenting path vs standard cost scaling}
     \label{fig:inc-head-to-head-my}
 \end{figure}
@@ -311,6 +325,10 @@ Compare performance with reference implementations, such as Goldberg. Test only 
     \begin{subfigure}[c]{0.45\textwidth}
         \includegraphics[width=\textwidth]{inc_head_to_head_optimised_cdf}
     \end{subfigure}
+% These figures just aren't that interesting, similar scale to main one
+%    \begin{subfigure}[c]{0.45\textwidth}
+%        \includegraphics[width=\textwidth]{inc_head_to_head_optimised_incremental_only_cdf}
+%    \end{subfigure}
     \caption{Performance of optimised versions of incremental relaxation and cost scaling}
     \label{fig:inc-head-to-head-optimised}
 \end{figure}

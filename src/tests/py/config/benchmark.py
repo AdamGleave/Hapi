@@ -715,7 +715,9 @@ INCREMENTAL_TESTS_ANYONLINE = {
   ### must the incremental solver do?
   "same_ap": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "timeout": 3,
+    # there's one point where the latency spikes on full solver,
+    # bump the timeout higher than we'd normally have to let it get over this
+    "timeout": 10, 
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_ap_latest" },

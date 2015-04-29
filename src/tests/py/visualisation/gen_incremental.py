@@ -29,18 +29,44 @@ def analyse_distribution(data, start_time, index1, group2):
   data = analysis.flatten_dict(data, [group2])
   
   return (type, data)
-  
-def generate_cdf(data, figconfig):
+
+def adjust_units(times):
+  reduced_times = np.concatenate(times)
+  max_time = np.max(reduced_times)
+  if max_time >= 1:
+    return (r'\si{\second}', times)
+  else:
+    times = np.multiply(times, 1000)
+    return (r'\si{\milli\second}', times)
+
+def _generate_cdf_helper(data, figconfig, incremental_only):
+  if incremental_only:
+    implementations = [figconfig['incremental_implementation']]
+  else:
+    implementations = figconfig['implementations']
   data = analyse_distribution(data, get_start_time(figconfig),
-                              figconfig['trace'], figconfig['implementations'])
+                              figconfig['trace'], implementations)
   type, times = data
-  plot.cdf(times, figconfig['implementations'], figconfig['colours'])
+  
+  unit, times = adjust_units(times)
+  
+  plot.cdf(times, implementations, figconfig['colours'])
+  
+  xmin, xmax = plt.xlim()
+  xmin = -xmax*0.05
+  plt.xlim(xmin, xmax)
   
   plt.legend(loc='lower right')
   
-  plt.xlabel('Scheduling latency (s)')
+  plt.xlabel('Scheduling latency ({0})'.format(unit))
   plt.ylabel('Cumulative probability')
   plt.title('CDF for scheduling latency')
+  
+def generate_cdf(data, figconfig):
+  _generate_cdf_helper(data, figconfig, False)
+  
+def generate_incremental_only_cdf(data, figconfig):
+  _generate_cdf_helper(data, figconfig, True)
   
 def generate_hist(data, figconfig):
   data  = analyse_distribution(data, get_start_time(figconfig),
@@ -51,7 +77,7 @@ def generate_hist(data, figconfig):
   
   plt.legend(loc='upper right')
   
-  plt.xlabel('Scheduling latency (s)')
+  plt.xlabel('Scheduling latency (\si{\second})')
   plt.ylabel('Probability')
   plt.title('Distribution of scheduling latency')
   
@@ -88,6 +114,6 @@ def generate_over_time(data, figconfig):
   
   plt.legend(loc='upper right')
   
-  plt.xlabel('Cluster time (s)')
-  plt.ylabel('Scheduling latency (s)')
+  plt.xlabel('Cluster time (\si{\second})')
+  plt.ylabel('Scheduling latency (\si{\second})')
   plt.title('Moving average ($\mathrm{{window}} = {0}$) of scheduling latency against time'.format(window_size))

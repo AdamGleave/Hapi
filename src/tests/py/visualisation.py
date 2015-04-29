@@ -6,12 +6,15 @@ from visualisation.test_types import FigureTypes
 
 import os, sys, re
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib import rc
 import matplotlib.pyplot as plt
 
 figure_generators = {
   FigureTypes.optimisation_absolute : gen_optimisation.generate_absolute,
   FigureTypes.optimisation_relative : gen_optimisation.generate_relative,
+  FigureTypes.optimisation_scaling_factors : gen_optimisation.generate_scaling_factors,
   FigureTypes.incremental_cdf : gen_incremental.generate_cdf,
+  FigureTypes.incremental_only_incremental_cdf : gen_incremental.generate_incremental_only_cdf,
   FigureTypes.incremental_hist : gen_incremental.generate_hist,
   FigureTypes.incremental_over_time : gen_incremental.generate_over_time,
   FigureTypes.approximate_oracle_policy : gen_approximate.generate_oracle_policy_interpolate,
@@ -21,7 +24,19 @@ figure_generators = {
   FigureTypes.approximate_cost_vs_time : gen_approximate.generate_cost_vs_time_plot,
 }
 
+def set_rcs():
+  rc('font',**{'family':'serif', 'serif':['Palatino'], 'size':12})
+  rc('text', usetex=True)
+  rc('text.latex', preamble=r'\usepackage{siunitx}')
+  rc('legend', fontsize=7)
+  rc('figure', figsize=(6,4))
+  rc('figure.subplot', left=0.10, top=0.90, bottom=0.12, right=0.95)
+  rc('axes', linewidth=0.5)
+  rc('lines', linewidth=0.5)
+
 if __name__ == "__main__":
+  set_rcs()
+  
   figure_names = None
   if len(sys.argv) == 1:
     # no arguments
