@@ -119,15 +119,15 @@ INCREMENTAL_DATASET = {
 TRACE_DATASET = {
   "tiny_trace": 
   {
-    "dir": os.path.join(TRACE_ROOT, "tiny_trace"),
+    "dir": os.path.join(TRACE_ROOT, "bogus_tiny"),
     "num_files": 1,
   },
   "small_trace": {
-    "dir": os.path.join(TRACE_ROOT, "small_trace"),
+    "dir": os.path.join(TRACE_ROOT, "small"),
     "num_files": 1,
   },
   "google_trace": {
-    "dir": os.path.join(TRACE_ROOT, "google_trace"),
+    "dir": os.path.join(TRACE_ROOT, "full"),
     "num_files": 500,
   },
 }
@@ -646,7 +646,9 @@ COST_MODELS = {
                "quincy": 3,
                "whare": 4,
                "coco": 5,
-               "octopus": 6
+               "octopus": 6,
+               "void": 7,
+               "simulated_quincy": 8,
 }
 
 DEFAULT_COST_MODEL = "octopus"
@@ -695,6 +697,14 @@ INCREMENTAL_TESTS_ANYONLINE = {
   "generate_octopus": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "cost_model": "octopus",
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
+    },
+  },
+  "generate_quincy": {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "cost_model": "simulated_quincy",
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },

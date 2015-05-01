@@ -425,7 +425,7 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
   
   plt.xlabel('Speedup')
   plt.ylabel('Cumulative probability')
-  plt.title(r'CDF for speedup (parameter {0}, targeting {1}\% accuracy)'.format(
+  plt.title(r'CDF for speedup (parameter {0}, targeting {1})% accuracy)'.format(
                 figconfig['heuristic_parameter'], figconfig['target_accuracy']))
   
   plt.legend(loc='lower right')
