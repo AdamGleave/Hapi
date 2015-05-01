@@ -659,12 +659,12 @@ DEFAULT_ONLINE_MAX_TIME = 5 # seconds
 INCREMENTAL_TESTS_ANYONLINE = {
   # Testing benchmark suite only.
   "development_only": {
-    "traces": [
-      {
-       "name": "tiny_trace",
+    "traces": {
+      "tiny_trace": {
+       "trace": "tiny_trace",
        "runtime": RUNTIME_MAX
       },
-    ],
+    },
     "iterations": 3,
     "tests": {
       "my": {
