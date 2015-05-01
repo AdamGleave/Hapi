@@ -651,7 +651,7 @@ COST_MODELS = {
                "simulated_quincy": 8,
 }
 
-DEFAULT_COST_MODEL = "octopus"
+DEFAULT_COST_MODEL = "simulated_quincy"
 DEFAULT_BATCH_STEP = 10 # microseconds
 DEFAULT_ONLINE_FACTOR = 1
 DEFAULT_ONLINE_MAX_TIME = 5 # seconds
