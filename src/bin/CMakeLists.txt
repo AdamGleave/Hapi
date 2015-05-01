@@ -46,7 +46,9 @@ target_link_libraries(snapshot_solver PRIVATE ${GLOG_LIBRARY})
 add_executable (dimacs_echo dimacs_echo.cpp)
 target_link_libraries (dimacs_echo LINK_PUBLIC ${PROJECT_NAME_STR})
 
-add_executable(lemon_min_cost lemon_min_cost.cpp)
-set_target_properties(lemon_min_cost PROPERTIES
-                                     INCLUDE_DIRECTORIES ${LEMON_INCLUDE_DIRS})
-target_link_libraries(lemon_min_cost PRIVATE ${LEMON_LIBRARIES})
+if (LEMON_FOUND)
+    add_executable(lemon_min_cost lemon_min_cost.cpp)
+    set_target_properties(lemon_min_cost PROPERTIES
+                                         INCLUDE_DIRECTORIES ${LEMON_INCLUDE_DIRS})
+    target_link_libraries(lemon_min_cost PRIVATE ${LEMON_LIBRARIES})
+endif()
