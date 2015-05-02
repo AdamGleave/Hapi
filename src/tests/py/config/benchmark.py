@@ -522,6 +522,16 @@ FULL_TESTS = {
       } for x in range(2,32)
     }
   },
+  "opt_cs_goldberg_scaling_factor": {
+    "files": FULL_DATASET["octopus_1hour"],
+    "iterations": 5,
+    "tests": { 
+      str(x): {
+        "implementation": "f_cs_goldberg",
+        "arguments": ["-s", x]
+      } for x in range(2,32)
+    }
+  },
               
  ## DIMACS parser
  "opt_parser_set_vs_getarc": {
