@@ -990,7 +990,7 @@ if __name__ == "__main__":
     # no arguments
     test_cases = config.TESTS.keys()
   else:
-    if sys.argv[1] == "--build_only":
+    if sys.argv[1] == "--build-only":
       build_only = True
       sys.argv[1:] = sys.argv[2:]
     # arguments are list of test patterns
