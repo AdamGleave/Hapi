@@ -966,6 +966,16 @@ def runTests(tests):
       else:
         error("Unrecognised test type: ", test_type)
 
+def findTestCases(test_patterns):
+  test_cases = set()
+  for pattern_regex in test_patterns:
+    pattern = re.compile(pattern_regex + "$")
+    for test_case in config.TESTS:
+      if pattern.match(test_case):
+        test_cases.add(test_case)
+        
+  return test_cases
+
 if __name__ == "__main__":
   # Unbuffered output. This is needed for progress indicators to display correctly,
   # since a new line is printed only at the end of each test.    
@@ -974,19 +984,19 @@ if __name__ == "__main__":
   # Install signal handler for timeouts
   signal.signal(signal.SIGALRM, alarm_handler)
       
+  build_only = False
   test_cases = None
   if len(sys.argv) == 1:
     # no arguments
     test_cases = config.TESTS.keys()
   else:
+    if sys.argv[1] == "--build_only":
+      build_only = True
+      sys.argv[1:] = sys.argv[2:]
     # arguments are list of test patterns
     test_patterns = sys.argv[1:]
-    test_cases = set()
-    for pattern_regex in test_patterns:
-      pattern = re.compile(pattern_regex + "$")
-      for test_case in config.TESTS:
-        if pattern.match(test_case):
-          test_cases.add(test_case)
+    test_cases = findTestCases(test_patterns)
+    
   print("Running: ", test_cases)
   tests = {k : config.TESTS[k] for k in test_cases}
   
@@ -994,5 +1004,6 @@ if __name__ == "__main__":
   implementations = findImplementations(tests)
   buildImplementations(implementations)
   
-  print("*** Running tests ***")
-  runTests(tests)
+  if not build_only:
+    print("*** Running tests ***")
+    runTests(tests)
