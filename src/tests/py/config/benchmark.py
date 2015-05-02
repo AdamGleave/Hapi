@@ -5,8 +5,13 @@
 
 import os, sh
 
+from config.common import *
+
 MAKE_FLAGS = []
 WORKING_DIRECTORY = "/tmp/flowsolver_benchmark"
+
+RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
+FIRMAMENT_ROOT = os.path.join(os.path.dirname(PROJECT_ROOT), "firmament")
 
 try:
   # allow settings to be overridden on a local basis
@@ -14,10 +19,7 @@ try:
 except ImportError:
   pass
 
-from config.common import *
-
-RESULT_ROOT = os.path.join(PROJECT_ROOT, "benchmark")
-FIRMAMENT_ROOT = os.path.join(os.path.dirname(PROJECT_ROOT), "firmament")
+FIRMAMENT_MACHINE_DIR = os.path.join(FIRMAMENT_ROOT, "tests", "testdata")
 
 ##### Executables
  
@@ -25,7 +27,7 @@ GOOGLE_TRACE_SIMULATOR_PATH = os.path.join(FIRMAMENT_ROOT,
                       "build", "sim", "trace-extract", "google_trace_simulator")
 GOOGLE_TRACE_SIMULATOR_ARGS = ["--logtostderr"]
 GOOGLE_TRACE_SIMULATOR = sh.Command(GOOGLE_TRACE_SIMULATOR_PATH) \
-                           .bake(*GOOGLE_TRACE_SIMULATOR_ARGS)
+                           .bake(*GOOGLE_TRACE_SIMULATOR_ARGS)                          
 
 ##### Dataset
 # Note these variables are not used by the suite at all. They are provided
@@ -162,6 +164,15 @@ _STANDARD_TRACE_CONFIG_1HOUR_EXTENSION = { "trace": "small_trace",
                                            "runtime": absoluteRuntime(3600)}
 STANDARD_TRACE_CONFIG_1HOUR = { k : extendDict(v,_STANDARD_TRACE_CONFIG_1HOUR_EXTENSION) 
                                 for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
+
+### Machine topologies
+
+FIRMAMENT_MACHINES = prefix_dict(FIRMAMENT_MACHINE_DIR, 
+  {
+    "8core": "machine_topo.pbin",
+    "24core": "michael.pbin",
+  })
+FIRMAMENT_DEFAULT_MACHINE = "24core"
 
 ##### Compilers
 
@@ -689,32 +700,32 @@ INCREMENTAL_TESTS_ANYONLINE = {
    },
   # For producing datasets used in optimisation tests
   "generate_random": { # Random currently has some unimplemented functions
-    "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "cost_model": "random",
+    "traces": { k : extendDict(v, {"cost_model": "random"}) 
+                for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },
     },
   },
   "generate_sjf": { # SJF currently has some unimplemented functions
-    "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "cost_model": "sjf",
+    "traces": { k : extendDict(v, {"cost_model": "sjf"}) 
+                for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },
     },
   },
   "generate_octopus": {
-    "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "cost_model": "octopus",
+    "traces": { k : extendDict(v, {"cost_model": "octopus"}) 
+                for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },
     },
   },
   "generate_quincy": {
-    "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "cost_model": "simulated_quincy",
+    "traces": { k : extendDict(v, {"cost_model": "simulated_quincy"}) 
+                for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },

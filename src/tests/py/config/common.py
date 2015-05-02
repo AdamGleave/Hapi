@@ -38,6 +38,9 @@ SNAPSHOT_SOLVER_PROGRAM = sh.Command(SNAPSHOT_SOLVER_PROGRAM_PATH)
 def prefix_list(prefix, fnames):
   return list(map(functools.partial(os.path.join, prefix), fnames))
 
+def prefix_dict(prefix, d):
+  return {k : os.path.join(prefix, v) for (k,v) in d.items()}
+
 def graphGlob(pathname):
   fnames = glob.glob(os.path.join(DATASET_ROOT, pathname))
   return list(map(lambda x : os.path.relpath(x, DATASET_ROOT), fnames))

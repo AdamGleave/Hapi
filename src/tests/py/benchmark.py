@@ -556,10 +556,15 @@ def runSimulator(case_name, case_config, test_name, test_instance,
       online_max_time = case_config["online_max_time"]
     simulator = simulator.bake("-online_max_time", online_max_time)
   cost_model = config.DEFAULT_COST_MODEL
-  if "cost_model" in case_config:
-    cost_model = case_config["cost_model"]
+  if "cost_model" in trace_config:
+    cost_model = trace_config["cost_model"]
   simulator = simulator.bake("-flow_scheduling_cost_model",
                              config.COST_MODELS[cost_model])
+  machine_type = config.FIRMAMENT_DEFAULT_MACHINE
+  if "machine" in trace_config:
+    machine_type = trace_config["machine"]
+  simulator = simulator.bake("-machine_tmpl_file",
+                             config.FIRMAMENT_MACHINES[machine_type])
   
   ### Configuration for the solver
   simulator = simulator.bake("-solver", "custom")
