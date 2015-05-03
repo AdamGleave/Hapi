@@ -131,8 +131,9 @@ def generate_over_time(data, figconfig):
   
   plt.xlabel('Cluster time (\si{\second})')
   plt.ylabel('Scheduling latency (\si{\second})')
-  if window_type == 'p':
-    window_desc = '{0}\:\mathrm{{points}}'.format(window_size)
-  elif window_type == 's':
-    window_desc ='\SI{{ {0} }}{{\second}}'.format(window_size)
-  plt.title('Moving average ($\mathrm{{window}} = {0}$)\nof scheduling latency against time'.format(window_desc))
+#   if window_type == 'p':
+#     window_desc = '{0}\:\mathrm{{points}}'.format(window_size)
+#   elif window_type == 's':
+#     window_desc ='\SI{{ {0} }}{{\second}}'.format(window_size)
+#     plt.title('Moving average ($\mathrm{{window}} = {0}$)\nof scheduling latency against time'.format(window_desc))
+  plt.title('Scheduling latency against time')
