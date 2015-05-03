@@ -361,6 +361,14 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
   for (percentile, percentile_label) in percentiles_config.items():
     plt.plot(parameters, percentiles[percentile], label=percentile_label)
   
+  
+  min_accuracy = figconfig.get('min_accuracy', 
+                               config.APPROXIMATE_ACCURACY_THRESHOLD)
+  
+  ymin, ymax = plt.ylim()
+  ymin = max(min_accuracy, ymin)
+  plt.ylim(ymin, 100.0)
+  
   plt.xlabel('Parameter')
   plt.ylabel(r'Accuracy (\%)')
   plt.title('Accuracy against heuristic parameter')
