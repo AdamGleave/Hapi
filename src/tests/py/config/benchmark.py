@@ -734,7 +734,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   # Run optimized implementation on whole trace. Get an idea for how fast
   # we can get through it. 
   "how_long_can_we_go": {
-    "traces": {"google": {"name": "google_trace"}},
+    "traces": {"google": {"trace": "google_trace"}},
     "iterations": 1,
     "tests": {
       "i_relaxf":    { "implementation": "i_relaxf_latest" },
