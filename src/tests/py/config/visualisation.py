@@ -386,6 +386,7 @@ APPROXIMATE_FIGURES = {
     
     # Used by policy accuracy-parameter plot, policy error and speed CDF generators 
     'condition': 'cost', # or 'task_assignments'
+    'target_accuracy': 99, # in percent. Used for comparison
     
     # Used by policy accuracy-parameter plot
     #'max_cost_parameter': can be used to override APPROXIMATE_MAX_COST_PARAMETER
@@ -394,7 +395,6 @@ APPROXIMATE_FIGURES = {
     
     # Used by policy error and speed CDF generators
     'heuristic_parameter': 0.025, # threshold used by heuristic
-    'target_accuracy': 99, # in percent. Used for comparison
     
     # Used by over_time generator only
     'file': 'general/natural/road/road_flow_03_NH_e.min',

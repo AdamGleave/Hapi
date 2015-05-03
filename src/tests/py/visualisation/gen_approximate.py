@@ -361,7 +361,6 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
   for (percentile, percentile_label) in percentiles_config.items():
     plt.plot(parameters, percentiles[percentile], label=percentile_label)
   
-  
   min_accuracy = figconfig.get('min_accuracy', 
                                config.APPROXIMATE_ACCURACY_THRESHOLD)
   
@@ -369,6 +368,16 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
   ymin = max(min_accuracy, ymin)
   plt.ylim(ymin, 100.0)
   
+  plt.autoscale(axis='x', tight=True)
+  
+  xmin, xmax = plt.xlim()
+  target_accuracy = figconfig['target_accuracy']
+  plt.plot((xmin, xmax), (target_accuracy, target_accuracy), 'k--')
+  annotation = '{0}\% target'.format(target_accuracy)
+  plt.annotate(annotation, xy=(xmin, target_accuracy), xycoords='data',
+               xytext=(6,-2), textcoords='offset points',
+               verticalalignment='top') 
+    
   plt.xlabel('Parameter')
   plt.ylabel(r'Accuracy (\%)')
   plt.title('Accuracy against heuristic parameter')
@@ -391,26 +400,19 @@ def generate_terminating_condition_accuracy_distribution(data, figconfig):
   width = 100 - target_accuracy
   plt.xlim(target_accuracy - width * 0.1, 100)
   
+  annotation = 'accuracy target'.format(target_accuracy)
+  plt.annotate(annotation, xy=(target_accuracy, 0.5), xycoords='data',
+               xytext=(3,0), textcoords='offset points',
+               rotation='vertical', verticalalignment='center') 
+  
   # draw CDF
   plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
-  
-  # annotate target line
-#   locs, labels = plt.xticks()
-#   index = np.searchsorted(locs, target_accuracy)
-#   if abs(locs[index] - target_accuracy) > 0.01:
-#   #if locs[index] != target_accuracy:
-#     # not already present in list
-#     locs = np.insert(locs, index, target_accuracy)
-#   labels = [loc for loc in locs]
-#   labels[index] = str(labels[index]) + "\n(Target)"
-#   plt.xticks(locs, labels)
-  
+    
   # add labels
   plt.xlabel(r'Accuracy (\%)')
   plt.ylabel('Cumulative probability')
-  title = r'CDF for accuracy' + '\n' + \
-          r'\smaller{{Heuristic parameter {0}, targeting {1}\% accuracy}}'
-  title = title.format(figconfig['heuristic_parameter'], target_accuracy)
+  title = r'CDF for accuracy (heuristic parameter {0})'
+  title = title.format(figconfig['heuristic_parameter'])
   plt.title(title)
   
 def generate_terminating_condition_speed_distribution(data, figconfig):
@@ -436,10 +438,8 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
   
   plt.xlabel('Speedup (\%)')
   plt.ylabel('Cumulative probability')
-  title = r'CDF for speedup' + '\n' + \
-          r'\smaller{{Heuristic parameter {0}, targeting {1}\% accuracy}}'
-  title = title.format(figconfig['heuristic_parameter'], 
-                       figconfig['target_accuracy'])
+  title = r'CDF for speedup (heuristic parameter {0})'
+  title = title.format(figconfig['heuristic_parameter'])
   plt.title(title)
   
   plt.legend(loc='lower right')
