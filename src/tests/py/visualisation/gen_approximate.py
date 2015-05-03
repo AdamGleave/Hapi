@@ -408,8 +408,10 @@ def generate_terminating_condition_accuracy_distribution(data, figconfig):
   # add labels
   plt.xlabel(r'Accuracy (\%)')
   plt.ylabel('Cumulative probability')
-  plt.title(r'CDF for accuracy (heuristic parameter {0}, targeting {1}\% accuracy)'.format(
-                             figconfig['heuristic_parameter'], target_accuracy))
+  title = r'CDF for accuracy' + '\n' + \
+          r'\smaller{{Heuristic parameter {0}, targeting {1}\% accuracy}}'
+  title = title.format(figconfig['heuristic_parameter'], target_accuracy)
+  plt.title(title)
   
 def generate_terminating_condition_speed_distribution(data, figconfig):
   stats = ageneric_merge_iterations(data)
@@ -434,8 +436,11 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
   
   plt.xlabel('Speedup (\%)')
   plt.ylabel('Cumulative probability')
-  plt.title(r'CDF for speedup (parameter {0}, targeting {1})% accuracy)'.format(
-                figconfig['heuristic_parameter'], figconfig['target_accuracy']))
+  title = r'CDF for speedup' + '\n' + \
+          r'\smaller{{Heuristic parameter {0}, targeting {1}\% accuracy}}'
+  title = title.format(figconfig['heuristic_parameter'], 
+                       figconfig['target_accuracy'])
+  plt.title(title)
   
   plt.legend(loc='lower right')
   

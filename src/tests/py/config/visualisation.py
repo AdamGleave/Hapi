@@ -22,7 +22,7 @@ def updateFiguresWithTypes(d, types):
   return res
 
 ### Appearance
-LATEX_PREAMBLE = r'\usepackage{siunitx}'
+LATEX_PREAMBLE = r'\usepackage{siunitx},\usepackage{relsize}'
 def set_rcs_common():
   rc('font',**{'family':'serif', 'serif':['Palatino']})
   rc('text', usetex=True)
