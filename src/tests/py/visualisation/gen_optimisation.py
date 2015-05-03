@@ -142,13 +142,17 @@ def generate_relative(data, figconfig):
   data = analysis.full_swap_file_impl(data)
   means, errors = analyse_relative(data, figconfig['baseline'],
                             figconfig['implementations'], figconfig['datasets'])
-   
+  
+  # convert into percent
+  means = np.multiply(means, 100.0)
+  errors = np.multiply(errors, 100.0) 
+  
   fig = barchart(means, errors, 
                  figconfig['implementations'], figconfig['datasets'],
                  figconfig['colours'])
   
   plt.xlabel('Cluster size')
-  plt.ylabel('Speedup')
+  plt.ylabel('Speedup (\%)')
   plt.title('Speedups by cluster size and implementation')
   
   plt.tight_layout()

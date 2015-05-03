@@ -136,7 +136,8 @@ def speedup(x):
     res = []
     for refine_it in x:
       refine_it = refine_it.copy()
-      refine_it['speedup'] = (baseline / refine_it['refine_time_cumulative']) - 1.0
+      speedup = (baseline / refine_it['refine_time_cumulative']) - 1.0
+      refine_it['speedup'] = speedup * 100.0
       res.append(refine_it)
     return res
   
@@ -190,7 +191,7 @@ def generate_oracle_policy_scatter(data, figconfig):
   plt.ylim ( (0, ymax) )
   
   plt.xlabel(r'Accuracy (\%)')
-  plt.ylabel('Speedup')
+  plt.ylabel('Speedup (\%)')
   plt.title('Speedup against accuracy under oracle policy')  
 
 def generate_oracle_policy_binned(data, figconfig):
@@ -274,7 +275,7 @@ def generate_oracle_policy_interpolate(data, figconfig):
   plt.plot(accuracies, means, 'g', label='Mean')
   
   plt.xlabel(r'Accuracy (\%)')
-  plt.ylabel('Speedup')
+  plt.ylabel('Speedup (\%)')
   plt.title('Speedup under oracle policy against accuracy')
   
   plt.legend(loc='lower left')
@@ -423,7 +424,7 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
            labels=['Heuristic', 'Oracle'], 
            colours={'Heuristic': 'b', 'Oracle': 'g'})
   
-  plt.xlabel('Speedup')
+  plt.xlabel('Speedup (\%)')
   plt.ylabel('Cumulative probability')
   plt.title(r'CDF for speedup (parameter {0}, targeting {1})% accuracy)'.format(
                 figconfig['heuristic_parameter'], figconfig['target_accuracy']))
