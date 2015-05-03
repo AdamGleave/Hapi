@@ -46,7 +46,7 @@ def graphGlob(pathname):
   return list(map(lambda x : os.path.relpath(x, DATASET_ROOT), fnames))
 
 # For merging dictionaries, and tagging elements
-def mergeDicts(dicts, prefix, tags=None):
+def mergeDicts(dicts, prefix, tags=None, sep='_'):
   assert(len(dicts) == len(prefix))
   tags_enabled = bool(tags)
   if tags_enabled:
@@ -60,7 +60,7 @@ def mergeDicts(dicts, prefix, tags=None):
     if tags_enabled:
       for v in new_dict.values():
         v.update({"type": tag})
-    new_dict = {prefix + "/" + k : v for (k,v) in new_dict.items()}
+    new_dict = {prefix + sep + k : v for (k,v) in new_dict.items()}
     result.update(new_dict)
   
   return result

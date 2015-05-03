@@ -419,4 +419,4 @@ FIGURES = mergeDicts([OPTIMISATION_FIGURES,
                       COMPILER_FIGURES,
                       INCREMENTAL_FIGURES,
                       APPROXIMATE_FIGURES],
-                     ["opt", 'com', "inc", "app"])
+                     ["opt", 'com', "inc", "app"], sep='/')
