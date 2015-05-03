@@ -3,6 +3,7 @@ from enum import Enum
 
 from config.common import *
 from visualisation.test_types import FigureTypes
+from matplotlib import rc
 
 def dictFilter(d):
   return lambda k : d[k]
@@ -20,6 +21,36 @@ def updateFiguresWithTypes(d, types):
     res.update(d_for_type)
   return res
 
+### Appearance
+LATEX_PREAMBLE = r'\usepackage{siunitx}'
+def set_rcs_common():
+  rc('font',**{'family':'serif', 'serif':['Palatino']})
+  rc('text', usetex=True)
+  rc('text.latex', preamble=LATEX_PREAMBLE)
+  rc('axes', linewidth=0.5)
+  rc('lines', linewidth=0.5)
+  #rc('figure.subplot', left=0.10, top=0.90, bottom=0.12, right=0.95)
+  #rc('figure.subplot', left=0.10, top=0.90, bottom=0.2, right=0.95)
+  rc('figure', autolayout=True)
+  
+def set_rcs_full():
+  set_rcs_common()
+  
+  rc('font', size=12)
+  rc('legend', fontsize=7)
+  rc('figure', figsize=(6,4))
+  
+def set_rcs_twocol():
+  set_rcs_common()
+  
+  rc('font', size=8)
+  rc('legend', fontsize=7)
+  rc('figure', figsize=(3.33, 2.22))
+  
+DEFAULT_APPEARANCE = {
+  '1col': set_rcs_full,
+  '2col': set_rcs_twocol,
+}
 
 ### Miscellaneous settings
 CONFIDENCE_LEVEL = 0.95
@@ -282,7 +313,7 @@ INCREMENTAL_FIGURES = {
   'head_to_head_my': {
     'data': 'ion_head_to_head_my',
     'trace': 'large',
-    'window_size': 50,
+    'window_size': '5s',
     'test_filter': dictFilter({'full': 'Standard cost scaling', 
                                'inc_ap': 'Incremental augmenting path',
                                #'inc_relax': 'Incremental relaxation'
@@ -297,7 +328,7 @@ INCREMENTAL_FIGURES = {
   'head_to_head_optimised': {
     'data': 'ion_head_to_head_optimised',
     'trace': 'full_size',
-    'window_size': 50,
+    'window_size': '5s',
     'test_filter': dictFilter({'full': 'Standard cost scaling', 
                                'incremental': 'Incremental relaxation'}),
     'implementations': ['Standard cost scaling', 'Incremental relaxation'],

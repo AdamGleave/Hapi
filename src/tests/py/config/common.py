@@ -60,7 +60,7 @@ def mergeDicts(dicts, prefix, tags=None):
     if tags_enabled:
       for v in new_dict.values():
         v.update({"type": tag})
-    new_dict = {prefix + "_" + k : v for (k,v) in new_dict.items()}
+    new_dict = {prefix + "/" + k : v for (k,v) in new_dict.items()}
     result.update(new_dict)
   
   return result

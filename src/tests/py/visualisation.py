@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
  
 import config.visualisation as config
-from visualisation import parse, gen_optimisation, gen_incremental, gen_approximate
+from visualisation import parse, gen_optimisation, \
+                          gen_incremental, gen_approximate
 from visualisation.test_types import FigureTypes
 
 import os, sys, re
 from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib import rc
+import matplotlib
 import matplotlib.pyplot as plt
 
 figure_generators = {
@@ -24,22 +25,7 @@ figure_generators = {
   FigureTypes.approximate_cost_vs_time : gen_approximate.generate_cost_vs_time_plot,
 }
 
-LATEX_PREAMBLE = r'\usepackage{siunitx}'
-def set_rcs():
-  rc('font',**{'family':'serif', 'serif':['Palatino'], 'size':12})
-  rc('text', usetex=True)
-  rc('text.latex', preamble=LATEX_PREAMBLE)
-  rc('legend', fontsize=7)
-  rc('figure', figsize=(6,4))
-  rc('figure.subplot', left=0.10, top=0.90, bottom=0.12, right=0.95)
-  rc('axes', linewidth=0.5)
-  rc('lines', linewidth=0.5)
-  
-#   rc('pgf', preamble=LATEX_PREAMBLE)
-
 if __name__ == "__main__":
-  set_rcs()
-  
   figure_names = None
   if len(sys.argv) == 1:
     # no arguments
@@ -79,19 +65,26 @@ if __name__ == "__main__":
     else:
       assert(False)
 
-    # Process the data, generate the graph
-    generate_function = figure_generators[figconfig['type']]
-    # new figure
-    plt.figure()
-    fig = generate_function(data, figconfig)
+    appearance = figconfig.get('appearance', config.DEFAULT_APPEARANCE)
+    for style_name, style_rc in appearance.items():
+      matplotlib.rcdefaults() # reset style
+      style_rc() # apply new style
     
-    # Export figure
-    figure_fname = os.path.join(config.FIGURE_ROOT, figname + ".pdf")
-    with PdfPages(figure_fname) as out:
-      out.savefig(fig)
+      # Process the data, generate the graph
+      generate_function = figure_generators[figconfig['type']]
       
-#     pgf_figure_fname = os.path.join(config.FIGURE_ROOT, figname + '.pgf')
-#     plt.savefig(pgf_figure_fname)
-    
-    # release memory for current figure 
-    plt.close()
+      # new figure
+      fig = plt.figure()
+      generate_function(data, figconfig)
+      
+      # Export figure
+      figure_fname = figname + "_" + style_name + ".pdf"
+      figure_fname = os.path.join(config.FIGURE_ROOT, figure_fname)
+      with PdfPages(figure_fname) as out:
+        out.savefig(fig)
+        
+      # pgf_figure_fname = os.path.join(config.FIGURE_ROOT, figname + '.pgf')
+      # plt.savefig(pgf_figure_fname)
+      
+      # release memory for current figure 
+      plt.close()
