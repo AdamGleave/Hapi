@@ -48,17 +48,26 @@ def startBuilds(redo, machines, task_schedule):
       print machine, " - build launched"
       build_pids[machine] = pid    
   return build_pids
+
+def startTest(redo, task_schedule, machine):
+  machine_cases = task_schedule[machine]
+  assert(machine_cases) # not empty
+  cmdline = [REMOTE_BENCHMARK_CMD] + machine_cases 
+  cmdline = " ".join(cmdline)
+  return redo[machine].run(cmdline, block=False)
   
 def wait(redo, pids):
   while pids:
     for machine, pid in pids.items():
-      return_code = redo[machine].wait(pid, timeout=POLL)
-      if not return_code:
+      return_code = redo[machine].wait(pid, timeout=POLL)[0]
+      if return_code == None:
         # process has not finished
         continue
       if return_code != 0:
         # process has finished and non-zero return code
-        print >>sys.stderr, "ERROR: command failed on ", machine
+        print >>sys.stderr, "ERROR: command failed on ", machine, \
+                            " return code ", return_code
+        print >>sys.stderr, redo.getoutput(pid)
         sys.exit(1)
       if return_code == 0:
         yield machine
@@ -82,17 +91,17 @@ if __name__ == "__main__":
   build_pids = startBuilds(redo, machines, task_schedule)
   benchmark_pids = {}
   for machine_ready in wait(redo, build_pids):
-    print machine, " - build finished, starting test"
+    print machine_ready, " - build finished, starting test"
     pid = startTest(redo, task_schedule, machine_ready)
     benchmark_pids[machine_ready] = pid
     
   for machine_finished in wait(redo, benchmark_pids):
-    print machine, " - test finished, ", 
+    print machine_ready, " - test finished, ", 
     machine_cases = task_schedule[machine]
     for case in machine_cases:
       fname = case + ".csv"
-      redo.copy_from(os.path.join(REMOTE_BENCHMARK_DIR, fname),
-                     os.path.join(LOCAL_BENCHMARK_DIR, fname))
+      redo[machine].copy_from(os.path.join(REMOTE_BENCHMARK_DIR, fname),
+                              os.path.join(LOCAL_BENCHMARK_DIR, fname))
     print "files copied"
    
   print "All done!"

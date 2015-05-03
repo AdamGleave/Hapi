@@ -413,7 +413,7 @@ class Hosts:
     #Copy data from the remote host with scp
     def copy_from(self,srcs,dsts,timeout=None,block=True,returnout=True,tostdout=False):
         if type(srcs) is not list:
-            srcs = [srcs] * len(self.hostslist)
+            srcs = [srcs] * len(self.hostlist)
 
         if type(dsts) is not list:
             dsts = [dsts] * len(self.hostlist)
