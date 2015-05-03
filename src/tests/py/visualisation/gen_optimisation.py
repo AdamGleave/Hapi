@@ -16,8 +16,6 @@ def barchart(means, errors, bar_labels, group_labels, colours,
   n_groups = len(group_labels)
   n_bars_in_group = len(bar_labels)
   assert(len(means) == len(errors) == len(bar_labels))
-  
-  fig = plt.figure()
 
   index = np.arange(n_groups)
   bar_width = group_width / n_bars_in_group
@@ -33,18 +31,16 @@ def barchart(means, errors, bar_labels, group_labels, colours,
       
     label = bar_labels[i]
 
-    bars = plt.bar(index + i * bar_width, means[i], bar_width,
-               alpha=opacity,
-               color=colours[label],
-               yerr=yerr,
-               error_kw=error_config,
-               label=label,
-               **kwargs)
+    plt.bar(index + i * bar_width, means[i], bar_width,
+            alpha=opacity,
+            color=colours[label],
+            yerr=yerr,
+            error_kw=error_config,
+            label=label,
+            **kwargs)
     
   plt.xticks(index + group_width / 2, group_labels)
   plt.legend(loc='upper left')
-    
-  return fig
 
 def analyse_generic_start(data):
   # get means and standard deviation of each implementation on each dataset
@@ -147,17 +143,15 @@ def generate_relative(data, figconfig):
   means = np.multiply(means, 100.0)
   errors = np.multiply(errors, 100.0) 
   
-  fig = barchart(means, errors, 
-                 figconfig['implementations'], figconfig['datasets'],
-                 figconfig['colours'])
+  barchart(means, errors, 
+           figconfig['implementations'], figconfig['datasets'],
+           figconfig['colours'])
   
   plt.xlabel('Cluster size')
   plt.ylabel('Speedup (\%)')
   plt.title('Speedups by cluster size and implementation')
   
   plt.tight_layout()
-  
-  return fig
 
 def generate_scaling_factors(data, figconfig):
   data = analysis.full_swap_file_impl(data)
@@ -174,8 +168,6 @@ def generate_scaling_factors(data, figconfig):
   means = np.reshape(means, (n_factors, ))
   errors = np.reshape(errors, (n_factors, 2))
   errors = np.transpose(errors)
-
-  fig = plt.figure()
 
   index = np.arange(n_factors)
   bar_width = 1.0
@@ -196,5 +188,3 @@ def generate_scaling_factors(data, figconfig):
   plt.title('Runtimes by scaling factor')
   
   plt.tight_layout()
-  
-  return fig
