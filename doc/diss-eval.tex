@@ -41,7 +41,7 @@ Optimisations may be algorithmic in nature, or more low-level, e.g. laying out d
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.5\textwidth]{opt_ap_big_vs_small_relative}
+  \includegraphics{opt/ap_big_vs_small_relative_2col}
   \caption{Speedup when using small heap}
   \label{fig:opt-ap-big-vs-small}
 \end{figure}
@@ -52,7 +52,7 @@ Heap used as priority queue in Djikstra's algorithm. Large heap: all nodes in th
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{opt_ap_full_vs_partial_relative}
+    \includegraphics{opt/ap_full_vs_partial_relative_2col}
     \caption{Speedup when terminating Djikstra early}
     \label{fig:opt-ap-terminate-djikstra-early}
 \end{figure}
@@ -63,7 +63,7 @@ Partial: terminate Djikstra as soon as a node permanently labelled. Full: solve 
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{opt_relax_arc_cache_relative}
+    \includegraphics{opt/relax_arc_cache_relative_2col}
     \caption{Speedup when caching arcs}
     \label{fig:opt-relax-cache-arcs}
 \end{figure}
@@ -76,7 +76,7 @@ Relaxation algorithm requires knowing the arcs crossing the cut. None: iterate o
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{opt_cs_wave_vs_fifo_relative}
+    \includegraphics{opt/cs_wave_vs_fifo_relative_2col}
     \caption{Speedup when using FIFO rather than wave}
     \label{fig:opt-cs-wave-vs-fifo}
 \end{figure}
@@ -87,7 +87,7 @@ Relaxation algorithm requires knowing the arcs crossing the cut. None: iterate o
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{opt_cs_scaling_factor}
+    \includegraphics{opt/cs_scaling_factor_2col}
     \caption{Performance depending on scaling factor}
     \label{fig:opt-cs-scaling-factor}
 \end{figure}
@@ -98,7 +98,7 @@ What factor to reduce $\epsilon$ by on each iteration?
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{opt_parser_set_vs_getarc_relative}
+    \includegraphics{opt/parser_set_vs_getarc_relative_2col}
     \caption{Speedup when maintaining cache of arcs present}
     \label{fig:opt-dimacs-parser}
 \end{figure}
@@ -112,31 +112,32 @@ Set actually works out slower. Conjecture: adjacency lists tend to be short, so 
 \section{Compilers}
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{com_cc_absolute}
+    \begin{widepage}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{com/cc_absolute_2col}
         \caption{Cycle cancelling}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{com_ap_absolute}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{com/ap_absolute_2col}
         \caption{Augmenting Path}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{com_relax_absolute}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{com/relax_absolute_2col}
         \caption{Relaxation}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{com_cs_absolute}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{com/cs_absolute_2col}
         \caption{Cost scaling}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{com_goldberg_absolute}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{com/goldberg_absolute_2col}
         \caption{Goldberg's cost scaling}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{com_frangioni_absolute}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{com/frangioni_absolute_2col}
         \caption{Frangioni's relaxation algorithm}
     \end{subfigure}
+    \end{widepage}
     \caption{Performance under different compilers and optimisation levels}
     \label{fig:compilers}
 \end{figure}
@@ -159,7 +160,7 @@ Tests on final version of algorithms, with all optimisations enabled.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{app_road_over_time}
+    \includegraphics{app/road_over_time_2col}
     \caption{Successive approximations to the optimal solution}
     \label{fig:app-cost-over-time}
 \end{figure}
@@ -168,7 +169,7 @@ Tests on final version of algorithms, with all optimisations enabled.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{app_road_oracle_policy}
+    \includegraphics{app/road_oracle_policy_2col}
     \caption{Upper bound on speedup of approximation algorithm for a given accuracy}
     \label{fig:app-oracle-policy}
 \end{figure}
@@ -177,7 +178,7 @@ Tests on final version of algorithms, with all optimisations enabled.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{app_road_policy_parameter_accuracy}
+    \includegraphics{app/road_policy_parameter_accuracy_1col}
     \caption{Accuracy at percentiles for given parameter choices}
     \label{fig:app-policy-parameter-accuracy}
 \end{figure}
@@ -185,15 +186,16 @@ Tests on final version of algorithms, with all optimisations enabled.
 \cref{fig:app-policy-parameter-accuracy} is computed on training data, to determine a suitable parameter for the heuristic.
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[c]{0.45\textwidth}
-      \includegraphics[width=\textwidth]{app_road_policy_error_cdf}
+    \begin{widepage}
+    \begin{subfigure}[c]{0.5\textwidth}
+      \includegraphics[width=\textwidth]{app/road_policy_error_cdf_2col}
       \caption{CDF of heuristic error}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-      \includegraphics[width=\textwidth]{app_road_policy_speed_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+      \includegraphics[width=\textwidth]{app/road_policy_speed_cdf_2col}
       \caption{CDF of speed under heuristic (compared to optimal performance under oracle)}
     \end{subfigure}
+    \end{widepage}
     \caption{Performance of heuristic}
     \label{fig:app-cdf}
 \end{figure}
@@ -225,16 +227,17 @@ Runtime compared to the {\it same} algorithm, running from scratch. Bit of a str
 \paragraph{Augmenting path}
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[c]{0.9\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_ap_over_time}
+    \begin{widepage}
+    \begin{subfigure}[c]{\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_ap_over_time_1col}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_ap_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_ap_cdf_2col}
     \end{subfigure}
-   \begin{subfigure}[c]{0.45\textwidth}
-       \includegraphics[width=\textwidth]{inc_same_ap_incremental_only_cdf}
+   \begin{subfigure}[c]{0.5\textwidth}
+       \includegraphics[width=\textwidth]{inc/same_ap_incremental_only_cdf_2col}
     \end{subfigure}
+    \end{widepage}
     \caption{Performance of augmenting path in incremental vs standard mode}
     \label{fig:inc-same-ap}
 \end{figure}
@@ -242,16 +245,17 @@ Runtime compared to the {\it same} algorithm, running from scratch. Bit of a str
 \paragraph{Relaxation}
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[c]{0.9\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relax_over_time}
+    \begin{widepage} 
+    \begin{subfigure}[c]{\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_relax_over_time_1col}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relax_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_relax_cdf_2col}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relax_incremental_only_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_relax_incremental_only_cdf_2col}
     \end{subfigure}
+    \end{widepage}
     \caption{Performance of relaxation in incremental vs standard mode}
     \label{fig:inc-same-relax}
 \end{figure}
@@ -259,16 +263,17 @@ Runtime compared to the {\it same} algorithm, running from scratch. Bit of a str
 My version in \cref{fig:inc-same-relax}.
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[c]{0.9\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relaxf_over_time}
+    \begin{widepage} 
+    \begin{subfigure}[c]{\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_relaxf_over_time_1col}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relaxf_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_relaxf_cdf_2col}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_same_relaxf_incremental_only_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{inc/same_relaxf_incremental_only_cdf_2col}
     \end{subfigure}
+    \end{widepage}
     \caption{Performance of relaxation in incremental vs standard mode}
     \label{fig:inc-same-relaxf}
 \end{figure}
@@ -278,16 +283,17 @@ Frangioni's version in \cref{fig:inc-same-relaxf}. \todo{Tempted to cut this ent
 \subsubsection{Comparison with non-incremental, different type}
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_head_to_head_my_over_time}
+    \begin{widepage}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics{inc/head_to_head_my_over_time_2col}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_head_to_head_my_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics{inc/head_to_head_my_cdf_2col}
     \end{subfigure}
+    \end{widepage}
 % These figures just aren't that interesting, similar scale to main one
 %    \begin{subfigure}[c]{0.45\textwidth}
-%        \includegraphics[width=\textwidth]{inc_head_to_head_my_incremental_only_cdf}
+%        \includegraphics{inc_head_to_head_my_incremental_only_cdf}
 %    \end{subfigure}
     \caption{Performance of incremental augmenting path vs standard cost scaling}
     \label{fig:inc-head-to-head-my}
@@ -318,16 +324,17 @@ How does performance vary on new / more complicated cost models?
 Compare performance with reference implementations, such as Goldberg. Test only those algorithms found to be most competitive in the previous section -- no point testing algorithms which I already know are suboptimal.
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_head_to_head_optimised_over_time}
+    \begin{widepage}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics{inc/head_to_head_optimised_over_time_2col}
     \end{subfigure}
-    \begin{subfigure}[c]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{inc_head_to_head_optimised_cdf}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics{inc/head_to_head_optimised_cdf_2col}
     \end{subfigure}
+    \end{widepage}
 % These figures just aren't that interesting, similar scale to main one
 %    \begin{subfigure}[c]{0.45\textwidth}
-%        \includegraphics[width=\textwidth]{inc_head_to_head_optimised_incremental_only_cdf}
+%        \includegraphics{inc_head_to_head_optimised_incremental_only_cdf}
 %    \end{subfigure}
     \caption{Performance of optimised versions of incremental relaxation and cost scaling}
     \label{fig:inc-head-to-head-optimised}

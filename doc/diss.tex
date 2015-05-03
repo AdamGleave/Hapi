@@ -86,6 +86,14 @@
 \usepackage{colortbl}
 \usepackage{tabularx}
 
+\usepackage{changepage}
+% wide page for side by side figures, tables, etc
+\newlength{\offsetpage}
+\setlength{\offsetpage}{2.0cm}
+\newenvironment{widepage}{\begin{adjustwidth}{-\offsetpage}{-\offsetpage}%
+        \addtolength{\textwidth}{2\offsetpage}}%
+    {\end{adjustwidth}}
+
 \graphicspath{ {./figures/} }
 \DeclareGraphicsExtensions{.pdf}
 %\newcommand{\includepgf}[1]{\input{./figures/#1.pgf}}
@@ -101,7 +109,6 @@
 \newcommand{\mmarkcolor}{\color{blue}}
 \newcommand{\cmark}{{\cmarkcolor \ding{51}}}
 \newcommand{\xmark}{{\xmarkcolor \ding{55}}}
-%\newcommand{\mmark}{{\color{yellow} \textbf{--}}}
 \newcommand{\mmark}{{\mmarkcolor \tikz \node[draw,circle]{};}}
 
 %%% Indexing
