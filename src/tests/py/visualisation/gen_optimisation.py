@@ -115,8 +115,6 @@ def analyse_relative(data, baseline, group1, group2):
   
   relative_means = {}
   relative_errors = {}
-  relative_means[baseline] = {k : 1.0 for k in group2}
-  relative_errors[baseline] = {k : (0.0, 0.0) for k in group2}
   for implementation in group1:
     if implementation != baseline:
       implementation_means = means[implementation]
@@ -143,6 +141,8 @@ def generate_relative(data, figconfig):
   means, errors = analyse_relative(data, figconfig['baseline'],
                             figconfig['implementations'], figconfig['datasets'])
   
+  # convert from normalised runtime to speedup
+  means = np.subtract(means, 1.0)
   # convert into percent
   means = np.multiply(means, 100.0)
   errors = np.multiply(errors, 100.0) 

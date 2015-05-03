@@ -136,8 +136,7 @@ OPTIMISATION_FIGURES = {
     }),
     
     'datasets': ['Small', 'Medium'],
-    'implementations': ['Big heap', 
-                        'Small heap with vector', 'Small heap with map'],
+    'implementations': ['Small heap with vector', 'Small heap with map'],
     'baseline': 'Big heap',
     'colours': {
       'Big heap': 'r',
@@ -153,7 +152,7 @@ OPTIMISATION_FIGURES = {
     }),
                          
     'datasets': ['Small', 'Medium'],
-    'implementations': ['Full', 'Partial'],
+    'implementations': ['Partial'],
     'baseline': 'Full',
     'colours': {
       'Full': 'r',
@@ -168,7 +167,7 @@ OPTIMISATION_FIGURES = {
     }),
     
     'datasets': ['Small', 'Medium', 'Large'],
-    'implementations': ['Wave', 'FIFO'],
+    'implementations': ['FIFO'],
     'baseline': 'Wave',
     'colours': {
       'Wave': 'r',
@@ -186,7 +185,7 @@ OPTIMISATION_FIGURES = {
     
     # TODO: Boost timeout, get data for 'Medium' too
     'datasets': ['Small'],
-    'implementations': ['No caching', 'Cache zero cost arcs', 'Cache all arcs'],
+    'implementations': ['Cache zero cost arcs', 'Cache all arcs'],
     'baseline': 'No caching',
     'colours': {
       'No caching': 'r', 
@@ -200,7 +199,7 @@ OPTIMISATION_FIGURES = {
                                'set': 'Set'}),
                            
     'datasets': ['Large', 'Warehouse Scale'],
-    'implementations': ['Linked list', 'Set'],
+    'implementations': ['Set'],
     'baseline': 'Linked list',
     'colours': {
       'Linked list': 'r',
@@ -349,7 +348,7 @@ APPROXIMATE_FIGURES = {
   'road': {
     'data': 'af_road',
     
-    # Used by oracle policy
+    # Used by oracle policy and policy accuracy-parameter plot
     #'min_accuracy': can be used to override APPROXIMATE_ACCURACY_THRESHOLD
     
     # Used by policy accuracy-parameter plot, policy error and speed CDF generators 
