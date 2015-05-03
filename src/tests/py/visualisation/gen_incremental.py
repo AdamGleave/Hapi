@@ -88,9 +88,9 @@ def generate_over_time(data, figconfig):
   data = analyse_generic(data, start_time)
   
   # some traces might be empty, filter
-  type, times = data
+  datatype, times = data
   times = {figconfig['trace'] : times[figconfig['trace']]}
-  data = type, times
+  data = datatype, times
   
   # sort it
   data = analysis.ion_map_on_implementations(lambda l : np.sort(l, order='cluster_time'), data)                                                                                                                                         
@@ -101,15 +101,26 @@ def generate_over_time(data, figconfig):
   cluster_times = cluster_times[1][figconfig['trace']]
   scheduling_latency = scheduling_latency[1][figconfig['trace']] 
   
-  cluster_times = analysis.flatten_dict(cluster_times, [figconfig['implementations']])
-  scheduling_latency = analysis.flatten_dict(scheduling_latency, [figconfig['implementations']])
+  cluster_times = analysis.flatten_dict(cluster_times,
+                                        [figconfig['implementations']])
+  scheduling_latency = analysis.flatten_dict(scheduling_latency,
+                                             [figconfig['implementations']])
   
   window_size = figconfig.get('window_size', config.DEFAULT_WINDOW_SIZE)
-  colours = analysis.flatten_dict(figconfig['colours'], [figconfig['implementations']])
+  window_size, window_type = int(window_size[0:-1]), window_size[-1]
+  colours = analysis.flatten_dict(figconfig['colours'],
+                                  [figconfig['implementations']])
   for i in range(len(figconfig['implementations'])):
-    #return(scheduling_latency[i])
-    smoothed = analysis.moving_average(scheduling_latency[i], window_size)
-    plt.plot(cluster_times[i], smoothed,
+    x = scheduling_latency[i]
+    t = cluster_times[i]
+    if window_type == 'p': # points
+      ma_config = {'points_window': window_size}
+    elif window_type == 's': # seconds
+      ma_config = {'time_window': window_size}
+    else:
+      assert(false) 
+    smoothed_t, smoothed_x = analysis.moving_average(x, t, **ma_config)
+    plt.plot(smoothed_t, smoothed_x, 
              label=figconfig['implementations'][i], color=colours[i])
   
   ymin, ymax = plt.ylim()
@@ -120,4 +131,8 @@ def generate_over_time(data, figconfig):
   
   plt.xlabel('Cluster time (\si{\second})')
   plt.ylabel('Scheduling latency (\si{\second})')
-  plt.title('Moving average ($\mathrm{{window}} = {0}$) of scheduling latency against time'.format(window_size))
+  if window_type == 'p':
+    window_desc = '{0}\:\mathrm{{points}}'.format(window_size)
+  elif window_type == 's':
+    window_desc ='\SI{{ {0} }}{{\second}}'.format(window_size)
+  plt.title('Moving average ($\mathrm{{window}} = {0}$) of scheduling latency against time'.format(window_desc))

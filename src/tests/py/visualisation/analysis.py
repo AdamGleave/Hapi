@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pandas as pd
 import scipy.stats
 
 import itertools
@@ -33,7 +34,32 @@ def interval_to_upper_lower(l):
     return [lower, upper]
   return list(map(upper_lower, l))
 
-def moving_average(x, n, type='simple'):
+def panda_series(x, t):
+  t = pd.TimedeltaIndex(t, unit='s')
+  return pd.Series(x, t)
+
+def moving_average(x, t, points_window=None, time_window=None):
+  '''time window to be specified in seconds'''
+  assert(points_window or time_window)
+  assert((not points_window) or (not time_window))
+  
+  s = panda_series(x, t)
+  if time_window:
+    # Up-sample to second granularity. Where there are missing datapoints,
+    # fill forward from last known. Where there are multiple datapoints within
+    # a second, down-sample by taking the mean.
+    s = s.resample('1s', fill_method='ffill')
+    window = time_window
+  else:
+    window = points_window
+    
+  res = pd.rolling_mean(s, window, center=True)
+  res_t = res.index.get_values() # returns in nanoseconds
+  res_t /= 1000 * 1000 * 1000 # convert to seconds
+  res_x = res.get_values()
+  return (res_t, res_x)
+
+def moving_average_points(x, n, type='simple'):
   # from pyplot demo
   """
   compute an n period moving average.
@@ -51,6 +77,10 @@ def moving_average(x, n, type='simple'):
   a =  np.convolve(x, weights, mode='full')[:len(x)]
   a[:n] = a[n]
   return a
+
+def moving_average_time(x, t, n):
+  s = pd.Series(x, t)
+  pd.rolling_mean()
 
 def dict_map(func, d, depth=1):
   if depth==1:

@@ -255,7 +255,8 @@ OPTIMISATION_FIGURES['cs_goldberg_scaling_factor'] = {
 DEFAULT_INCREMENTAL_START = 600
 
 # Number of elements to include in moving average (for incremental_over_time)
-DEFAULT_WINDOW_SIZE = 5
+# s for seconds, p for points
+DEFAULT_WINDOW_SIZE = '5p'
 
 INCREMENTAL_TEST_FILTER = dictFilter({
   'full': 'Standard',
@@ -275,6 +276,7 @@ INCREMENTAL_FIGURES = {
   'same_relaxf': {
     'data': 'ion_same_relaxf',
     'trace': 'medium',
+    'window_size': '60s',
   },
   # TODO: inc_ap works OK on full_size, too
   'head_to_head_my': {
