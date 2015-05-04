@@ -17,6 +17,7 @@ To start, desirable properties of cluster schedulers are outlined. Following thi
 The cluster scheduler's policy must be suitable for the applications it is scheduling. Moreover, to effectively implement a policy the scheduler may need to analyse a large amount of data, such as the load at each machine and the resource requirements of every task. To support interactive applications, all decisions should be made as quickly as possible. Furthermore, the system must be able to scale to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}.
 
 \begin{table}
+    \centering
     \begin{tabular}{c|l}
         \textbf{Goal} & \textbf{Description}\tabularnewline
         \hline
@@ -67,23 +68,24 @@ However, the information which is public suggests that the basic approach is the
 % PROOFREAD: 1. Major edits. Need to reread.
 
 \begin{table}
-\begin{tabular}{lccc}
-    \textbf{System} & \textbf{Targeted} & \textbf{Effective} & \textbf{Fast and scalable} \tabularnewline
-    \hline
-    \textit{Heuristic approach} \tabularnewline
-    FIFO Queue & \xmark & \mmark & \cmark \tabularnewline
-    Fair Scheduler & \mmark & \cmark & \mmark \tabularnewline 
-    Capacity Scheduler & \mmark & \cmark & \mmark \tabularnewline 
-    LATE & \xmark & \cmark & \mmark \tabularnewline 
-    Sparrow & \xmark & \mmark & \cmark \tabularnewline 
-    \hline
-    \textit{Flow-based system} \tabularnewline
-    Quincy & \xmark & \cmark & \xmark \tabularnewline 
-    Firmament & \cmark & \cmark & \xmark \tabularnewline 
-    \hline
-\end{tabular}
-\caption[Scheduler feature matrix]{Scheduler feature matrix showing {\cmarkcolor full \cmark}, {\mmarkcolor partial \mmark} or {\xmarkcolor no \xmark} support.}
-\label{table:cluster-scheduler-feature-matrix}
+    \centering
+    \begin{tabular}{lccc}
+        \textbf{System} & \textbf{Targeted} & \textbf{Effective} & \textbf{Fast and scalable} \tabularnewline
+        \hline
+        \textit{Heuristic approach} \tabularnewline
+        FIFO Queue & \xmark & \mmark & \cmark \tabularnewline
+        Fair Scheduler & \mmark & \cmark & \mmark \tabularnewline 
+        Capacity Scheduler & \mmark & \cmark & \mmark \tabularnewline 
+        LATE & \xmark & \cmark & \mmark \tabularnewline 
+        Sparrow & \xmark & \mmark & \cmark \tabularnewline 
+        \hline
+        \textit{Flow-based system} \tabularnewline
+        Quincy & \xmark & \cmark & \xmark \tabularnewline 
+        Firmament & \cmark & \cmark & \xmark \tabularnewline 
+        \hline
+    \end{tabular}
+    \caption[Scheduler feature matrix]{Scheduler feature matrix showing {\cmarkcolor full \cmark}, {\mmarkcolor partial \mmark} or {\xmarkcolor no \xmark} support.}
+    \label{table:cluster-scheduler-feature-matrix}
 \end{table}
 \todo{Graphical representation of the numerical ratings} % TODO
 
@@ -237,6 +239,7 @@ Firmament supports three other cost models~\cite[ch.~5]{Schwarzkopf:2015}. The W
 Given such a variety of possible policies, the solver developed in this project must be independent of any particular cost model. However, having an intuition for how cost models operate is valuable. For reasons of brevity, I will only summarize the cost model in the original Quincy system. Further details of this model are available in~\cite{Isard:2009}. A description of the other models mentioned is in~\cite[ch.~5]{Schwarzkopf:2015}.
 
 \begin{table}
+    \centering
     \begin{tabular}{ccl}
         \hline 
         \textbf{Cost} & \textbf{Edge} & \textbf{Meaning}\tabularnewline
@@ -252,6 +255,7 @@ Given such a variety of possible policies, the solver developed in this project 
 \end{table}
 
 \begin{table}
+    \centering
     \begin{tabular}{cl}
         \hline 
         \textbf{Variable} & \textbf{Meaning}\tabularnewline
@@ -267,6 +271,7 @@ Given such a variety of possible policies, the solver developed in this project 
 \end{table}
 
 \begin{table}
+    \centering
     \begin{tabular}{cl}
         \hline 
         \textbf{Parameter} & \textbf{Meaning}\tabularnewline
@@ -520,32 +525,28 @@ With the background material mastered, it was time to start refining the initial
 % Quick summary?
 % Core deliverables: 
 
-The main goals for the project are listed in \cref{table:project-requirements}, broadly following the success criteria and extensions suggested in the original project proposal. Implementations are referenced in the final column.
+The main goals for the project are listed in \cref{table:prep-project-requirements}, broadly following the success criteria and extensions suggested in the original project proposal.
 
 \begin{table}
-% eliminate section prefix
-\crefformats{chapter,section,subsection}{#2#1#3}
-\crefnames{chapter,section,subsection}{}{}
-\begin{tabular}{clcccc}
-    \textbf{\#} & \textbf{Deliverable} & \textbf{Priority} & \textbf{Risk} & \textbf{Difficulty} & \textbf{Section}
-    \tabularnewline
-    \hline
-    & \textit{Success criteria} \tabularnewline
-    S1 & Implement standard flow algorithms & High & Low & High & \cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} \tabularnewline
-    S2 & Design an approximate solver & High & Medium & Low & \cref{sec:impl-approx} \tabularnewline
-    S3 & Develop a benchmark suite  & High & Low & Medium & \cref{sec:impl-benchmark-harness} \tabularnewline
-    S4 & Integrate system with Firmament & High & Low & Low & \cref{sec:eval-test-integration} \tabularnewline
-    \hline
-    & \textit{Optional extensions} \tabularnewline
-    E1 & Design an incremental solver & Medium & High & High & \cref{sec:impl-incremental} \tabularnewline
-    E2 & Build cluster simulator & Medium & Medium & Medium & \cref{sec:impl-benchmark-simulator} \tabularnewline
-    E3 & Optimise algorithm implementations & Low & Medium & High & \cref{sec:eval-optimisations} \tabularnewline
-    \hline
-\end{tabular}
-% restore section values
-\crefsections
-\caption{Deliverables for the project}
-\label{table:project-requirements}
+    \centering
+    \begin{tabular}{clccc}
+        \textbf{\#} & \textbf{Deliverable} & \textbf{Priority} & \textbf{Risk} & \textbf{Difficulty}
+        \tabularnewline
+        \hline
+        & \textit{Success criteria} \tabularnewline
+        S1 & Implement standard flow algorithms & High & Low & High \tabularnewline
+        S2 & Design an approximate solver & High & Medium & Low \tabularnewline
+        S3 & Develop a benchmark suite  & High & Low & Medium \tabularnewline
+        S4 & Integrate system with Firmament & High & Low & Low \tabularnewline
+        \hline
+        & \textit{Optional extensions} \tabularnewline
+        E1 & Design an incremental solver & Medium & High & High \tabularnewline
+        E2 & Build cluster simulator & Medium & Medium & Medium \tabularnewline
+        E3 & Optimise algorithm implementations & Low & Medium & High \tabularnewline
+        \hline
+    \end{tabular}
+    \caption{Deliverables for the project}
+    \label{table:prep-project-requirements}
 \end{table}
 
 Core success criteria are assigned a high priority: work on extensions will only begin once all success criteria are developed and tested (see \cref{sec:prep-implsched}). These deliverables are generally low risk, so I am confident that the core criteria can be met. Most of the risk is concentrated in the approximate solver. This approach has not previously been attempted, so it is difficult to predict how it will perform.

@@ -4,18 +4,70 @@
 
 \section{Project requirements} 
 
-Demonstrate you have satisfied the success criteria specified in proposal.
+\begin{table}
+    \centering
+    % eliminate section prefix
+    \crefformats{chapter,section,subsection}{#2#1#3}
+    \crefnames{chapter,section,subsection}{}{}
+    \begin{tabular}{clcccc}
+        \textbf{\#} & \textbf{Deliverable} & \textbf{Section}
+        \tabularnewline
+        \hline
+        & \textit{Success criteria} \tabularnewline
+        S1 & Implement standard flow algorithms & \cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} \tabularnewline
+        S2 & Design an approximate solver & \cref{sec:impl-approx} \tabularnewline
+        S3 & Develop a benchmark suite & \cref{sec:impl-benchmark-harness} \tabularnewline
+        S4 & Integrate system with Firmament & \cref{sec:eval-test-integration} \tabularnewline
+        \hline
+        & \textit{Optional extensions} \tabularnewline
+        E1 & Design an incremental solver & \cref{sec:impl-incremental} \tabularnewline
+        E2 & Build cluster simulator & \cref{sec:impl-benchmark-simulator} \tabularnewline
+        E3 & Optimise algorithm implementations & \cref{sec:eval-optimisations} \tabularnewline
+        \hline
+    \end{tabular}
+    % restore section values
+    \crefsections
+    \caption{Deliverables for the project}
+    \label{table:eval-project-requirements}
+\end{table}
 
-\section{Testing}
+All success criteria set forth in the project proposal (see \cref{appendix:proposal}) have been met, with many optional extensions implemented. \Cref{table:eval-project-requirements} summarises the work completed.
 
-Correctness testing: does this work, not how fast is it.
+\todo{Too short?}
+
+\section{Correctness testing}
+
+% For a project of this scope, it is easy for 
+
+% Could link this back to development approaches
+% Or just some generic bilge
+% Tested individually and when integrated into the system
+% Essential for each component to be verified: e.g. standard algorithm implementation being wrong could cause bugs which are hard to track down.
+
+Unit tests were developed for each component. In accordance with the spiral model proposed in \cref{sec:prep-management-model}, these were rerun as a regression test at the end of each development cycle. Integration tests were also performed as soon as the requisite components had been implemented.
 
 \subsection{Unit tests} \label{sec:eval-testing-unit}
-Some portions of the code covered with GTest: e.g. some aspects of the networks, task allocation code, etc. 
 
-Algorithms, etc. NOT covered with GTest. Use a Python script instead. Justification -- blackbox testing: test the interface. Interface presented by algorithms is effectively just take in data, spit out result, so can test just as effectively from Python running a command, and more flexible.
+Each flow algorithm was tested by comparing the solutions found to those produced by a reference implementation. The test dataset used is outlined in \cref{table:correctness-test-dataset}, and consists of some <TODO: nnn> GB of both natural and synthetic flow networks.
 
-Mention approach for incremental tests: same basic idea.
+\begin{table}
+    \begin{tabular}{c}
+        TBC
+    \end{tabular}
+    % N.B. Include incremental test sets as well!
+    \caption{Datasets for correctness testing}
+    \label{table:correctness-test-dataset}
+\end{table}
+
+Standard unit test frameworks are not designed to work with large, external datasets. I developed my own test harness in Python to automate verification of flow algorithms. \Cref{fig:unit-test-harness} shows an extract from a test session.
+
+\begin{figure} 
+    TBC
+    \caption{Unit test harness}
+    \label{fig:unit-test-harness}
+\end{figure}
+
+The aforementioned tests verify entire flow algorithms. Unit tests were also written for smaller components, such as data structures, using the GTest framework (see \cref{sec:prep-tools-libraries}).
 
 \subsection{Integration tests} \label{sec:eval-test-integration}
 
@@ -285,10 +337,10 @@ Frangioni's version in \cref{fig:inc-same-relaxf}. \todo{Tempted to cut this ent
 \begin{figure}
     \begin{widepage}
     \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics{inc/head_to_head_my_over_time_2col}
+        \includegraphics[width=\textwidth]{inc/head_to_head_my_over_time_2col}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics{inc/head_to_head_my_cdf_2col}
+        \includegraphics[width=\textwidth]{inc/head_to_head_my_cdf_2col}
     \end{subfigure}
     \end{widepage}
 % These figures just aren't that interesting, similar scale to main one
@@ -326,10 +378,10 @@ Compare performance with reference implementations, such as Goldberg. Test only 
 \begin{figure}
     \begin{widepage}
     \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics{inc/head_to_head_optimised_over_time_2col}
+        \includegraphics[width=\textwidth]{inc/head_to_head_optimised_over_time_2col}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics{inc/head_to_head_optimised_cdf_2col}
+        \includegraphics[width=\textwidth]{inc/head_to_head_optimised_cdf_2col}
     \end{subfigure}
     \end{widepage}
 % These figures just aren't that interesting, similar scale to main one
