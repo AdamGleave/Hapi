@@ -854,6 +854,7 @@ APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
   "1hour": {
     "traces": STANDARD_TRACE_CONFIG_SHORT_AND_SMALL,
     "iterations": 5,
+    "timeout": 600,
   },
 }
 

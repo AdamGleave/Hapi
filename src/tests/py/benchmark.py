@@ -49,16 +49,16 @@ def gitCommitID(version):
 def findImplementations(tests):
   implementations = {}
   for case in tests.values():
-    tests = []
+    case_tests = []
     if case["type"].find("approximate") == 0:
       instance = case.get("test", config.APPROXIMATE_DEFAULT_TEST)
-      tests.append(instance)
+      case_tests.append(instance)
       if case["type"] == "approximate_incremental_hybrid":
-        tests.append(config.REFERENCE_SOLVER)
+        case_tests.append(config.REFERENCE_SOLVER)
     else:
-      tests += case["tests"].values()
+      case_tests += case["tests"].values()
       
-    for instance in tests:
+    for instance in case_tests:
       name = instance["implementation"]
       key = name
       if "compiler" in instance:
@@ -396,8 +396,8 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
       wake_up.clear()
       
       if stats_read.isSet():
-        # reset timeout
-        signal.alarm(timeout)
+        # clear timeout 
+        signal.alarm(0)
         
         yield stats_reader.csv_rows
         
@@ -405,6 +405,9 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
         t = threading.Thread(target=ReadCsv.read, args=(stats_reader,))
         t.setDaemon(True)
         t.start()
+        
+        # reset timeout
+        signal.alarm(timeout)
     # process has terminated, end
         
     # clear timeout
