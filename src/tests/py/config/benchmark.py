@@ -845,6 +845,7 @@ APPROXIMATE_TESTS_INCREMENTAL_OFFLINE = {
 APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
   "1hour": {
     "traces": STANDARD_TRACE_CONFIG_SHORT_AND_SMALL,
+    "test": {"implementation": "f_cs_latest"},
     "iterations": 5,
   },
 }
