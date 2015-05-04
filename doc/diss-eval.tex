@@ -71,10 +71,31 @@ The aforementioned tests verify entire flow algorithms. Unit tests were also wri
 
 \subsection{Integration tests} \label{sec:eval-test-integration}
 
-Show it works in Firmament.
+In practice, the algorithms developed in this project would be used as part of a larger cluster scheduling system. To demonstrate this capability, the flow solvers implemented in the project were integrated into the Firmament system. \Cref{fig:firmament-ui} shows the system in action, on a cluster of 14 machines.
+
+\begin{figure}
+    TBC
+    \caption{Firmament scheduling tasks using this project's solver}
+    \label{fig:firmament-ui}
+\end{figure}
 
 \section{Performance testing strategy} \label{sec:eval-benchmark-strategy}
 
+%High-level points:
+%
+%* Simulator & Google trace
+%* Test methodology
+%* Benchmark suite
+% High-level points
+% Malte thought move test harness to this section. Can probably include the justification for testing at scale on a simulator, too.
+
+%
+% Test setup:
+% - Machines: Reference to appendix for specification. 
+% - Distributed, but all had same specs.
+% Methodology:
+% - Test machines: reference to appendix for specifications.
+% - Distributed, all had same specs. Individual
 Reference benchmark suite \ref{sec:impl-benchmark}. 
 
 Focus on methodology. Accuracy: repeat tests multiple time. Run algorithms round-robin to avoid caching effects. Discount time spent parsing: just measure what's relevant. etc.
