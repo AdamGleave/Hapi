@@ -748,7 +748,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     # there's one point where the latency spikes on full solver,
     # bump the timeout higher than we'd normally have to let it get over this
-    "timeout": 10, 
+    "timeout": 60, 
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_ap_latest" },
@@ -757,7 +757,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   "same_relax": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "timeout": 3,
+    "timeout": 60,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_latest" },
@@ -766,7 +766,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   "same_relaxf": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "timeout": 3,
+    "timeout": 60,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_frangioni" },
@@ -781,7 +781,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "iterations": 5,
     # first run may take a long time, but incremental will be fast after this
-    "timeout": 3600,
+    "timeout": 36000,
     "tests": {
       "full":           { "implementation": "f_cs_latest" },
       "inc_ap":    { "implementation": "i_ap_latest" },
@@ -795,7 +795,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "iterations": 5,
     # first run may take a long time, but incremental will be fast after this
-    "timeout": 3600,
+    "timeout": 36000,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },
       "incremental":    { "implementation": "i_relaxf_latest" },
@@ -804,7 +804,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   "head_to_head_optimised_quick": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "iterations": 3,
-    "timeout": 600,
+    "timeout": 3600,
     "tests": {
       "full":           { "implementation": "f_cs_goldberg" },
       "incremental":    { "implementation": "i_relaxf_latest" },
