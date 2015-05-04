@@ -704,7 +704,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
-      "goldberg": { "implementation": "f_cs_goldberg" },
+      "goldberg": { "implementation": "i_relaxf_latest"},
     },
   },
   "generate_sjf": { # SJF currently has some unimplemented functions
@@ -712,7 +712,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
-      "goldberg": { "implementation": "f_cs_goldberg" },
+      "goldberg": { "implementation": "i_relaxf_latest" },
     },
   },
   "generate_octopus": {
@@ -720,7 +720,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
-      "goldberg": { "implementation": "f_cs_goldberg" },
+      "goldberg": { "implementation": "i_relaxf_latest" },
     },
   },
   "generate_quincy": {
@@ -728,7 +728,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
-      "goldberg": { "implementation": "f_cs_goldberg" },
+      "goldberg": { "implementation": "i_relaxf_latest" },
     },
   },
   # Run optimized implementation on whole trace. Get an idea for how fast
