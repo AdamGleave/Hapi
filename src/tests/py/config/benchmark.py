@@ -246,6 +246,14 @@ FULL_IMPLEMENTATIONS = {
     "arguments": ["cost_scaling", "--quiet"],
     "offline_arguments": ["--flow", "false"]
   },
+  # Compute task assignments. Slows it down, but collects more data.
+  "cs_latest_scheduling": { 
+    "version": "master",
+    "target": "find_min_cost",
+    "path": "bin/find_min_cost",
+    "arguments": ["cost_scaling", "--quiet", "--scheduling-graph"],
+    "offline_arguments": ["--flow", "false"]
+  },
   "cs_latest_nonscheduling": {
     "version": "master",
     "target": "find_min_cost",
@@ -819,7 +827,7 @@ INCREMENTAL_TESTS_ONLINE = INCREMENTAL_TESTS_ANYONLINE.copy()
 
 REFERENCE_SOLVER = {"implementation": "f_cs_goldberg"}
 APPROXIMATE_DEFAULT_TEST = { 
-  "implementation": "f_cs_latest", 
+  "implementation": "f_cs_latest_scheduling", 
 }
 
 APPROXIMATE_TESTS_FULL = {
@@ -845,7 +853,6 @@ APPROXIMATE_TESTS_INCREMENTAL_OFFLINE = {
 APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
   "1hour": {
     "traces": STANDARD_TRACE_CONFIG_SHORT_AND_SMALL,
-    "test": {"implementation": "f_cs_latest"},
     "iterations": 5,
   },
 }
