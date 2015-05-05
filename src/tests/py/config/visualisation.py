@@ -6,7 +6,7 @@ from visualisation.test_types import FigureTypes
 from matplotlib import rc
 
 def dictFilter(d):
-  return lambda k : d[k]
+  return lambda k : d.get(k, None)
 
 def updateFiguresWithTypes(d, types):
   res = {}
@@ -67,13 +67,33 @@ FIGURE_ROOT = os.path.join(DOC_ROOT, FIGURE_PREFIX)
 ### Compiler test cases
 
 FULL_FILE_FILTER = dictFilter({
+  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse Scale (Quincy)',
+  'clusters/natural/google_trace/quincy/1hour/large.min': 'Large (Quincy)',
+  'clusters/natural/google_trace/quincy/1hour/medium.min': 'Medium (Quincy)',
+  'clusters/natural/google_trace/quincy/1hour/small.min': 'Small (Quincy)',
+  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse Scale (Octopus)',
+  'clusters/natural/google_trace/octopus/1hour/large.min': 'Large (Octopus)',
+  'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium (Octopus)',
+  'clusters/natural/google_trace/octopus/1hour/small.min': 'Small (Octopus)',
+})
+
+OCTOPUS_FILE_FILTER = dictFilter({
   'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse Scale',
   'clusters/natural/google_trace/octopus/1hour/large.min': 'Large',
   'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium',
   'clusters/natural/google_trace/octopus/1hour/small.min': 'Small',
 })
 
-FULL_DATASETS = ['Small', 'Medium', 'Large', 'Warehouse Scale']
+QUINCY_FILE_FILTER = dictFilter({
+  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse Scale',
+  'clusters/natural/google_trace/quincy/1hour/large.min': 'Large',
+  'clusters/natural/google_trace/quincy/1hour/medium.min': 'Medium',
+  'clusters/natural/google_trace/quincy/1hour/small.min': 'Small',
+})
+
+FULL_DATASETS = ['Small (Octopus)', 'Medium (Octopus)', 'Large (Octopus)', 'Warehouse Scale (Octopus)',
+                 'Small (Quincy)', 'Medium (Quincy)', 'Large (Quincy)', 'Warehouse Scale (Quincy)',]
+ONESHOT_DATASETS = ['Small', 'Medium', 'Large', 'Warehouse Scale']
 
 COMPILER_IMPLEMENTATIONS_FULL = {
   'clang_debug': 'Clang Debug',
@@ -136,7 +156,7 @@ def apply_compiler_defaults(d):
     if 'file_filter' not in v:
       v['file_filter'] = FULL_FILE_FILTER
       if 'datasets' not in v:
-        v['datasets'] = FULL_DATASETS
+        v['datasets'] = ONESHOT_DATASETS
     if 'test_filter' not in v:
       filter_dict = compiler_implementations(COMPILER_IMPLEMENTATIONS_DEFAULT, k)
       v['test_filter'] = dictFilter(filter_dict)
@@ -242,9 +262,9 @@ OPTIMISATION_FIGURES = {
 def apply_optimisation_defaults(d):
   for k, v in d.items():
     if 'file_filter' not in v:
-      v['file_filter'] = FULL_FILE_FILTER
+      v['file_filter'] = QUINCY_FILE_FILTER
       if 'datasets' not in v:
-        v['datasets'] = FULL_DATASETS
+        v['datasets'] = ONESHOT_DATASETS
         
 apply_optimisation_defaults(OPTIMISATION_FIGURES)
 
@@ -258,7 +278,7 @@ OPTIMISATION_FIGURES = updateOptimisationFigures(OPTIMISATION_FIGURES)
 OPTIMISATION_FIGURES['cs_scaling_factor'] = {
   'data': 'f_opt_cs_scaling_factor',
   'type': FigureTypes.optimisation_scaling_factors,
-  'file_filter': FULL_FILE_FILTER,
+  'file_filter': QUINCY_FILE_FILTER,
   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
   
   'dataset': 'Warehouse Scale',
@@ -270,7 +290,7 @@ OPTIMISATION_FIGURES['cs_scaling_factor'] = {
 # OPTIMISATION_FIGURES['cs_goldberg_scaling_factor'] = {
 #   'data': 'f_opt_cs_goldberg_scaling_factor',
 #   'type': FigureTypes.optimisation_scaling_factors,
-#   'file_filter': FULL_FILE_FILTER,
+#   'file_filter': QUINCY_FILE_FILTER,
 #   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
 #   
 #   'dataset': 'Warehouse Scale',
