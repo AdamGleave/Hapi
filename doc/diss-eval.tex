@@ -118,7 +118,7 @@ TBC: Intro
 This project seeks to develop algorithms which will achieve sub-second scheduling latency on warehouse-scale computers, comprising many thousands of compute nodes. Unfortunately, it is not practical to run experiments on such clusters. Performance evaluation must consequently take place using a simulated cluster\footnotemark.
 \footnotetext{This is a limitation common to most distributed systems research, not just Part II projects. Even the Quincy system, with all the resources of Microsoft Research behind it, was only ever tested on a small cluster of 243 machines.}
 
-Firmament includes a cluster simulator, however I modified it extensively to support this project (see \cref{sec:impl-firmament}). To ensure the test is realistic, the simulator replays a month-long trace of events from a production Google cluster of 12,000 machines~\cite{clusterdata:Wilkes2011,clusterdata:Reiss2011,Reiss:2012}. This is by far the most detailed trace released by any major cluster operator, enabling an accurate simulation.\todo{Do you agree with this? I've not come across any other comparable traces, but I don't feel confident I've not missed anything}
+Firmament includes a cluster simulator, however I modified it extensively to support this project (see \cref{sec:impl-firmament}). To ensure the test is realistic, the simulator replays a month-long trace of events from a production Google cluster of 12,000 machines~\cite{clusterdata:Wilkes2011,clusterdata:Reiss2011,Reiss:2012}. This is by far the most detailed trace released by any major cluster operator, enabling an accurate simulation.\todo{Do you agree with this? I've not come across any comparable traces, but I don't feel confident I've not missed anything}
 
 However, the trace is not perfect. To protect commercially sensitive information, much of the data was obfuscated by Google before release. Moreover, some data was simply never recorded: for example, the input file size of tasks. 
 
@@ -130,13 +130,40 @@ Although there is sufficient information to reconstruct the topology of the flow
 
 \subsection{Octopus cost model}
 
-The Octopus model implements a simple load balancing policy. Tasks and machines are assumed to be homogeneous. The cost of an arc from a task to a machine is proportional to the load on that machine, resulting in tasks being preferentially scheduled on idle machines. 
+The Octopus model implements a simple load balancing policy. Tasks and machines are assumed to be homogeneous. The cost of arcs into a machine are proportional to the load on that machine, resulting in tasks being preferentially scheduled on idle machines. 
 
-This policy is highly simplistic, and would never be used in production. However, it serves as a useful baseline for comparison. Producing flow networks that are easy to solve relative to more realistic cost models, it provides an upper bound on the real-world scheduling latency that can be achieved.
+This policy is too simplistic to be used in production. However, it serves as a useful baseline for comparison. Producing flow networks that are easy to solve compared to more realistic cost models, it provides an upper bound on the real-world scheduling latency that can be achieved.
 
 \subsection{Quincy cost model}
 
-% Whereas Octopus will likely never be used, Quincy was developed at Microsoft Research to address a real-world problem, ...
+Flow scheduling was pioneered by the Quincy system, developed at Microsoft Research~\cite{Isard:2009}. To enable a direct comparison between the two systems, I implemented the Quincy cost model in Firmament (see \cref{sec:prep-flow-scheduling,sec:impl-firmament}).
+
+In contrast to the Octopus model, Quincy has direct real-world applicability: throughput increased by 40\% and data transfer was reduced by a factor of 3.9~\cite{Isard:2009}. The flow networks produced are considerably more complex, being representative of realistic cost models. Moreover, this complexity can be controlled by specifying the length of the preference lists, supporting scalability testing of the algorithms.
+
+Quincy optimises for data locality, scheduling tasks close to where their input data is stored. To achieve this, the cost of arcs from a task to a machine is made proportional to the network bandwidth consumed were the task to be scheduled on that machine. The costs therefore depend upon location of blocks of input data for a task in the distributed filesystem.
+
+Utilising this fine-grained resource information is a major strength of the Quincy system, and flow scheduling in general. However, it poses a challenge for simulation: such detailed information is not present in the trace, and must instead be estimated. 
+
+Upon starting the simulator, a virtual distributed filesystem is built. Each machine is given 6 TB of simulated storage space, in line with typical specifications for machines in contemporary Google clusters~\cite{GoogleSlideDeck}. Files are replicated across three machines, in accordance with industry standards\footnotemark. Each file consists of 64 MB blocks, as in the Google File System~\cite{Ghemawat}.
+\footnotetext{In practice, the replication factor varies with the type of data. For example, it would be higher for critical information such as login credentials, and lower for data such as old e-mail attachments.}
+
+A collection of files is generated to saturate the available storage capacity\footnotemark, with file sizes randomly sampled from a distribution. Unfortunately, Google has not released any information on the file size distribution observed inside the cluster. Instead, I have used data from a similarly sized Facebook cluster to estimate a distribution~\cite{Chen}.
+\footnotetext{In practice, a cluster would never run at full disk utilisation, however this distinction is unimportant for this test.}
+
+When a task is submitted, an estimate of its input size $S$ is made. A set of input files is then assigned to the task, by randomly sampling from the distributed filesystem until the cumulative size reaches $S$. Google has not released any information on the input size distribution. For consistency, I have used data from the same Facebook cluster to estimate a distribution~\cite{Chen}.
+
+However, it is possible to do better than simply randomly sampling from this distribution. The Google cluster trace contains information about the runtime of individual tasks, and there is a correlation between runtime and input size. Consequently, I have taken the approach of computing the cumulative probability of the runtime for each submitted task, assigning an input size of the same cumulative probability. So, for example, a task of median runtime will be assigned a median input file size.\todo{Does this explanation make sense to you?}
+
+Given the paucity of the trace data, the simulation cannot be expected to exactly reproduce the behaviour of the original Google cluster. However, I believe that the simulation represents a realistic workload, which could plausibly occur in a production cluster today. 
+
+The exact performance of the algorithms will, of course, depend on the architecture and workload of individual clusters. Most metrics used in this chapter therefore measure \emph{relative} performance, which should be robust to such differences. Absolute runtimes are occasionally reported: while indicative of real-world performance, care should be taken not to generalise beyond the experiments conducted.
+
+\subsection{Test methodology}
+
+Reference prep for details of the actual cost model. This section should include:
+* Simulated Distributed Filesystem: assumptions made, cite papers and appendix.
+* Input file size: use runtime as proxy, cite papers and appendix.
+* Should provide Quincy parameters somewhere? This could be in appendix, again.
 
 This difference was mostly harmless for traditional `full' solvers, whose runtime does not depend on the number of changes.  But for incremental solvers, the difference is significant. The longer the period between scheduling rounds, the more changes there are, increasing the solver's runtime. The simulator defaulted to a very short fixed time interval, which unfairly skewed the test in favour of incremental solvers. 
 
