@@ -38,7 +38,8 @@ def barchart(means, errors, bar_labels, group_labels, colours,
             error_kw=error_config,
             label=label,
             **kwargs)
-    
+  
+  plt.autoscale(axis='x', tight=True)
   plt.xticks(index + group_width / 2, group_labels)
   plt.legend(loc='upper left')
 

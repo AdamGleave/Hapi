@@ -67,33 +67,33 @@ FIGURE_ROOT = os.path.join(DOC_ROOT, FIGURE_PREFIX)
 ### Compiler test cases
 
 FULL_FILE_FILTER = dictFilter({
-  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse Scale (Quincy)',
+  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse scale (Quincy)',
   'clusters/natural/google_trace/quincy/1hour/large.min': 'Large (Quincy)',
   'clusters/natural/google_trace/quincy/1hour/medium.min': 'Medium (Quincy)',
   'clusters/natural/google_trace/quincy/1hour/small.min': 'Small (Quincy)',
-  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse Scale (Octopus)',
+  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse scale (Octopus)',
   'clusters/natural/google_trace/octopus/1hour/large.min': 'Large (Octopus)',
   'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium (Octopus)',
   'clusters/natural/google_trace/octopus/1hour/small.min': 'Small (Octopus)',
 })
 
 OCTOPUS_FILE_FILTER = dictFilter({
-  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse Scale',
+  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse scale',
   'clusters/natural/google_trace/octopus/1hour/large.min': 'Large',
   'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium',
   'clusters/natural/google_trace/octopus/1hour/small.min': 'Small',
 })
 
 QUINCY_FILE_FILTER = dictFilter({
-  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse Scale',
+  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse scale',
   'clusters/natural/google_trace/quincy/1hour/large.min': 'Large',
   'clusters/natural/google_trace/quincy/1hour/medium.min': 'Medium',
   'clusters/natural/google_trace/quincy/1hour/small.min': 'Small',
 })
 
-FULL_DATASETS = ['Small (Octopus)', 'Medium (Octopus)', 'Large (Octopus)', 'Warehouse Scale (Octopus)',
-                 'Small (Quincy)', 'Medium (Quincy)', 'Large (Quincy)', 'Warehouse Scale (Quincy)',]
-ONESHOT_DATASETS = ['Small', 'Medium', 'Large', 'Warehouse Scale']
+FULL_DATASETS = ['Small (Octopus)', 'Medium (Octopus)', 'Large (Octopus)', 'Warehouse scale (Octopus)',
+                 'Small (Quincy)', 'Medium (Quincy)', 'Large (Quincy)', 'Warehouse scale (Quincy)',]
+ONESHOT_DATASETS = ['Small', 'Medium', 'Large', 'Warehouse scale']
 
 COMPILER_IMPLEMENTATIONS_FULL = {
   'clang_debug': 'Clang Debug',
@@ -134,7 +134,7 @@ COMPILER_FIGURES = {
   },
   'cs': {
     'data': 'f_compilers_cs',
-    'datasets': ['Large', 'Warehouse Scale']
+    'datasets': ['Large', 'Warehouse scale']
   },
   'relax': {
     'data': 'f_compilers_relax',
@@ -143,7 +143,7 @@ COMPILER_FIGURES = {
   # others implementations
   'goldberg': {
     'data': 'f_compilers_cs_goldberg',
-    'datasets': ['Large', 'Warehouse Scale']
+    'datasets': ['Large', 'Warehouse scale']
   },       
   'frangioni': {
     'data': 'f_compilers_relax_frangioni',
@@ -189,7 +189,7 @@ OPTIMISATION_FIGURES = {
     }),
          
     # XXX: See which ones it doesn't timeout on
-    'datasets': ['Small', 'Medium', 'Large', 'Warehouse scale'],
+    'datasets': ['Small', 'Medium', 'Large'],# 'Warehouse scale'],
     'implementations': ['Standard Djikstra, small heap', 
                         'Partial Djikstra, big heap', 
                         'Partial Djikstra, small heap (array)', 
@@ -199,7 +199,7 @@ OPTIMISATION_FIGURES = {
       'Standard Djikstra, small heap': 'r',
       'Partial Djikstra, big heap': 'g',
       'Partial Djikstra, small heap (array)': 'b', 
-      'Partial Djikstra, small heap (map)': 'k',
+      'Partial Djikstra, small heap (hash table)': 'k',
     }
   },
   'cs_wave_vs_fifo': {
@@ -222,18 +222,18 @@ OPTIMISATION_FIGURES = {
   # so early.
   'relax_arc_cache': {
     'data': 'f_opt_relax_cache_arcs',
-    'test_filter': dictFilter({'none': 'No caching',
-                               'cache_zerorc': 'Cache zero cost arcs',
-                               'cache_all': 'Cache all arcs'}),
+    'test_filter': dictFilter({'none': 'No set',
+                               'cache_all': 'Dual set',
+                               'cache_zerorc': 'Single set'}),
     
     # TODO: Boost timeout, get data for 'Medium' too
     'datasets': ['Small'],
-    'implementations': ['Cache zero cost arcs', 'Cache all arcs'],
-    'baseline': 'No caching',
-    'colours': {
-      'No caching': 'r', 
-      'Cache zero cost arcs': 'g',
-      'Cache all arcs': 'b',
+    'implementations': ['Dual set', 
+                        'Single set'],
+    'baseline': 'No set',
+    'colours': { 
+      'Dual set': 'g',
+      'Single set': 'b',
     }
   },
   'parser_set_vs_getarc': {
@@ -241,7 +241,7 @@ OPTIMISATION_FIGURES = {
     'test_filter': dictFilter({'getarc': 'Linked list',
                                'set': 'Set'}),
                            
-    'datasets': ['Large', 'Warehouse Scale'],
+    'datasets': ['Large', 'Warehouse scale'],
     'implementations': ['Set'],
     'baseline': 'Linked list',
     'colours': {
@@ -273,7 +273,7 @@ OPTIMISATION_FIGURES['cs_scaling_factor'] = {
   'file_filter': QUINCY_FILE_FILTER,
   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
   
-  'dataset': 'Warehouse Scale',
+  'dataset': 'Warehouse scale',
   'implementations': [str(k) for k in range(2,32)],
   'colours': ['b'],
   'baseline': '2',
@@ -285,7 +285,7 @@ OPTIMISATION_FIGURES['cs_scaling_factor'] = {
 #   'file_filter': QUINCY_FILE_FILTER,
 #   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
 #   
-#   'dataset': 'Warehouse Scale',
+#   'dataset': 'Warehouse scale',
 #   'implementations': [str(k) for k in range(2,32)],
 #   'colours': ['b'],
 #   'baseline': '12',
