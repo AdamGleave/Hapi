@@ -83,37 +83,7 @@ In practice, the algorithms developed in this project would be used as part of a
 
 TBC: Intro
 
-%* Introduction
-%* Simulating a Google Cluster - include justification of why we're simulating, explain why using Google data (it's big real world example, one of the few publicly released)
-%* Quincy Cost Model - note limitations of data set: can't just use existing Firmament cost models. Justify Quincy. But note there isn't the data. Explain proxies used. Cite appendix with exact choice of distributions.
-%* Test Methodology - attention to detail. Repeating tests round-robin, etc. Could also give higher-level discussion, introduce next chapter. 
-%* Benchmark Suite -- tempted to move this to appendix, reference it from previous section. Partly for wordcount, partly because test methodology leads nicely into the next section.
-
-%Simulator proper described in implementation section. Backward reference, and then describe the dataset we're operating on. Can skim over Google trace, since this isn't your work: cite appropriate work, though. 
-%
-%Quincy: in more detail, this is some interesting work. Can show some attention to detail in the distributions, you may want to put this in the appendix.
-%
-%Test methodology: repeating tests, doing round-robin, etc.
-%
-%Benchmark suite: gotta put it somewhere, may as well get some credit for it.
-
-% Test setup:
-% - Machines: Reference to appendix for specification. 
-% - Distributed, but all had same specs.
-% Methodology:
-% - Test machines: reference to appendix for specifications.
-% - Distributed, all had same specs. Individual
-
-%Focus on methodology. Accuracy: repeat tests multiple time. Run algorithms round-robin to avoid caching effects. Discount time spent parsing: just measure what's relevant. etc.
-%
-%Explain different categories of test.
-
-% Specify what properties we're recording? Online vs offline tests?
-
 \subsection{Simulating a Google cluster}
-
-% Why simulate? => Want to see if fast at scale, can't just run test on a WSC computer.
-% But, need to ensure test is realistic. => Use data from an actual cluster: hey, Google has given away some.
 
 This project seeks to develop algorithms which will achieve sub-second scheduling latency on warehouse-scale computers, comprising many thousands of compute nodes. Unfortunately, it is not practical to run experiments on such clusters. Performance evaluation must consequently take place using a simulated cluster\footnotemark.
 \footnotetext{This is a limitation common to most distributed systems research, not just Part II projects. Even the Quincy system, with all the resources of Microsoft Research behind it, was only ever tested on a small cluster of 243 machines.}
@@ -123,10 +93,6 @@ Firmament includes a cluster simulator, however I modified it extensively to sup
 However, the trace is not perfect. To protect commercially sensitive information, much of the data was obfuscated by Google before release. Moreover, some data was simply never recorded: for example, the input file size of tasks. 
 
 Although there is sufficient information to reconstruct the topology of the flow network, some cost models require data that is absent from the trace. The next two sections describe the cost models implemented in simulation, and how the limitations of the dataset were overcome.
-
-%The data present in the trace may be sufficient for simplistic scheduling policies. For example, the Octopus cost model treats all tasks and machines equally, seeking only to balance load between machines. may not be a problem. For example, the Octopus cost model seeks 
-
-%This posed considerable challenges for simulation. The next section describes how information was inferred from the trace to generate flow networks using the Quincy cost model.
 
 \subsection{Octopus cost model}
 
@@ -160,54 +126,72 @@ The exact performance of the algorithms will, of course, depend on the architect
 
 \subsection{Test methodology}
 
-Reference prep for details of the actual cost model. This section should include:
-* Simulated Distributed Filesystem: assumptions made, cite papers and appendix.
-* Input file size: use runtime as proxy, cite papers and appendix.
-* Should provide Quincy parameters somewhere? This could be in appendix, again.
+Care was taken to minimise experimental error throughout the test process. However, error cannot be completely eliminated: some variation in runtime is inevitable when executing on a time-sharing operating system. Confidence intervals were computed using Student's $t$-distribution to quantify the error, which in most cases is negligible.
 
-This difference was mostly harmless for traditional `full' solvers, whose runtime does not depend on the number of changes.  But for incremental solvers, the difference is significant. The longer the period between scheduling rounds, the more changes there are, increasing the solver's runtime. The simulator defaulted to a very short fixed time interval, which unfairly skewed the test in favour of incremental solvers. 
+Each test was executed multiple times, with the runtimes across test runs aggregated to increase precision. Five iterations were performed by default, with more test runs being performed if the confidence interval was too wide.
 
-To resolve this problem, the time between scheduling rounds was made proportional to the runtime of the solver, as it would be in a real cluster. The statistic reported is no longer the runtime of the algorithm, but the worst-case scheduling latency experienced by an event\footnotemark. This has the added benefit of increasing the realism of the simulation for `full' solvers as well.
-\footnotetext{To see why these are different, suppose an event arrives just after a scheduling round begins. It must wait until the solver finishes, before a new scheduling round begins. The event is only processed after the \emph{second} scheduling round finishes, so the event has had to wait for (almost) two executions of the solver.}
+Tests typically compared multiple algorithms, operating on the same dataset. Within each test run, algorithms were executed round-robin. This has the desirable property that each algorithm would tend to be equally affected if the performance of the server were to change over time.
 
-%% OLD STUFF
+However, significant effort was made to minimise variations in performance between runs. Tests took place on machines dedicated to the experiment, ensuring no interference from other workloads. All machines have the same specification (see \cref{appendix:test-machine-spec}), except where explicitly stated, allowing for absolute runtimes to be compared between experiments.
 
-The two preceding sections described the new solution methods implemented by this project. These approaches will only be adopted if a compelling performance improvement can be shown. The experimental setup used to demonstrate this is described in the next chapter, \cref{chap:eval}. This section outlines the implementation work that was necessary to run these tests.
+The algorithms were evaluated at multiple scales, ranging from small clusters that might be used within a private company to warehouse-scale computers used to support large cloud applications. \Cref{table:cluster-sizes} summarises the sizes used throughout the rest of the chapter.
 
-The Firmament flow scheduling system was used in the tests. Some experiments, such as those in \cref{sec:eval-test-integration}, were performed on a real cluster using the standard Firmament code base. However, the goal of this project is to produce algorithms which are fast at \emph{scale}. Testing this would require access to a cluster with tens of thousands of machines, which is clearly not practical.
+\begin{table}
+    \centering
+    \begin{tabular}{lcc}
+        \textbf{Name} & \textbf{Percentage of Google cluster} & \textbf{Number of machines} \tabularnewline
+        \hline
+        Small & 1\% & 120 \tabularnewline
+        Medium & 5\% & 600 \tabularnewline
+        Large & 25\% & 3000 \tabularnewline 
+        Warehouse-scale & 100\% & 12,000 \tabularnewline
+    \end{tabular}
+    \caption{Cluster sizes used in testing}
+    \label{table:cluster-sizes}
+\end{table}
 
-Instead, a cluster is \emph{simulated} for such tests. Fortunately, the Firmament system includes a simulator based on events recorded in a Google cluster~\cite{clusterdata:Wilkes2011}. The next section, \S\ref{sec:impl-benchmark-simulator}, describes modifications made to the simulator, and other areas of the Firmament code base. An outline of the test harness used to automate the benchmark process is given in the subsequent section, \S\ref{sec:impl-benchmark-harness}.
+Running the tests manually would be error-prone, as well as extremely time consuming. A test harness was developed in Python to automate the process, described further in \cref{appendix:benchmark-harness}. This ensures the above methodology is followed for all tests.
 
-In a real cluster, Firmament will start a new scheduling round as soon as the previous round has completed, provided any events are pending. By contrast, the simulator started scheduling rounds at fixed time intervals. 
+%* Ensure each algorithm runs at peak performance, before doing comparisons between algorithms. Optimisations, compilers.
+%* Say what you're measuring? Perhaps better introduced in each section.
 
-This difference was mostly harmless for traditional `full' solvers, whose runtime does not depend on the number of changes.  But for incremental solvers, the difference is significant. The longer the period between scheduling rounds, the more changes there are, increasing the solver's runtime. The simulator defaulted to a very short fixed time interval, which unfairly skewed the test in favour of incremental solvers. 
+% Specify what properties we're recording? Online vs offline tests?
 
-To resolve this problem, the time between scheduling rounds was made proportional to the runtime of the solver, as it would be in a real cluster. The statistic reported is no longer the runtime of the algorithm, but the worst-case scheduling latency experienced by an event\footnotemark. This has the added benefit of increasing the realism of the simulation for `full' solvers as well.
-\footnotetext{To see why these are different, suppose an event arrives just after a scheduling round begins. It must wait until the solver finishes, before a new scheduling round begins. The event is only processed after the \emph{second} scheduling round finishes, so the event has had to wait for (almost) two executions of the solver.}
+% OLD STUFF
 
-\subsection{Test harness} \label{sec:impl-benchmark-harness}
+%In a real cluster, Firmament will start a new scheduling round as soon as the previous round has completed, provided any events are pending. By contrast, the simulator started scheduling rounds at fixed time intervals. 
+%
+%This difference was mostly harmless for traditional `full' solvers, whose runtime does not depend on the number of changes.  But for incremental solvers, the difference is significant. The longer the period between scheduling rounds, the more changes there are, increasing the solver's runtime. The simulator defaulted to a very short fixed time interval, which unfairly skewed the test in favour of incremental solvers. 
+%
+%To resolve this problem, the time between scheduling rounds was made proportional to the runtime of the solver, as it would be in a real cluster. The statistic reported is no longer the runtime of the algorithm, but the worst-case scheduling latency experienced by an event\footnotemark. This has the added benefit of increasing the realism of the simulation for `full' solvers as well.
+%\footnotetext{To see why these are different, suppose an event arrives just after a scheduling round begins. It must wait until the solver finishes, before a new scheduling round begins. The event is only processed after the \emph{second} scheduling round finishes, so the event has had to wait for (almost) two executions of the solver.}
 
-Running the tests manually would be unwieldly and error-prone. A test harness was developed in Python to automate the process. The configuration of the harness includes a list of implementations and datasets. Individual test cases in the configuration specify which implementation to test and what datasets to use, along with other parameters.
-
-In addition to testing the final versions of the solvers, the harness was used to evaluate the impact of optimisations implemented throughout the project, as reported in \cref{sec:eval-optimisations}. To support this, the harness was integrated with the Git version control system~\cite{GitWWW}. Versions of an implementation can be specified by a Git commit ID.
-
-\todo{Add extract from configuration file / example output from the harness to illustrate this?}
-It was anticipated that this project would involve running a large number of experiments. The harness was therefore designed to make the process as simple as possible. Test cases can be specified in less than 10 lines. Starting the experiment is simple: the harness will check out appropriate versions of the code and build the implementations with no user intervention, returning once the results of the test are complete.
-
-Efficiency was also a key requirement: with many experiments, it is important that they complete as fast as possible. The harness reuses intermediate computation where possible. Implementations are only checked out and built once. A cache of generated flow networks is maintained\footnotemark, so that the overhead is only incurred on the first run.
-\footnotetext{Except where this could affect the results. For example, the test to measure scheduling latency described in the previous section requires the network be regenerated on each run, as it may vary slightly depending on the runtime of the algorithm.}
-
-% Omitted, may want to mention:
-% - Supports both offline (graph file) and hybrid/online (simulator) tests
-% - For offline: supports both incremental and full, via snapshot solver.
-% - For offline: can specify files with globs, etc.
-
+% Alternative -- evaluation of standard algorithms? Then have comparative eval section at the end? But that result will look bad... is it worth it? Perhaps ask Malte.
 \section{Optimisations} \label{sec:eval-optimisations}
 
-Comparisons between different versions of the *same* algorithm implementation. Subsection for each algorithm implemented.
+This project is primarily concerned with algorithmic improvements, however implementation decisions can have a considerable impact on the performance of flow solvers. Comparing an optimised implementation of one algorithm against an unoptimised version of another algorithm could give misleading results. Consequently, care has been taken to ensure that all algorithms considered in this project are implemented efficiently. This section evaluates the optimisations applied to each implementation, describes how parameters were set for each algorithm and how a compiler was selected.
 
-Optimisations may be algorithmic in nature, or more low-level, e.g. laying out data to make use of caches.
-
+%Structure? You probably do want to merge optimisations into a single figure, as Malte suggested. Or at least, a single figure for each algorithm. FIFO is on it's own, but that's about it.
+%
+%Scaling factor: you'll do this for both your algorithm and Goldie's.
+%
+%Compilers: everything. But it's boring so you might just want an extract.
+%
+%So you could have:
+%
+%* Optimisations: one section for each algorithm, keep it brief.
+%* Scaling factor: brief discussion, just for cost scaling.
+%* Compilers.
+%
+%Alternatively:
+%
+%* Big figure
+%* Successive shortest path - ref figure
+%* Relax - ref figure
+%* Cost scaling - ref figure, and include it's own figure for scaling factor
+%* Compilers - everything
+%
+%Think I favour second approach. You might wanna make this big master figure, though, since it's kinda dependent upon that actually working. Although guess you could break it up, so maybe no dependency... Think it works better if optimisations build on each other. So e.g. small heap + Djikstra with map? Think it wouldn't be too much work to restructure it to do this, the only one where you have interactions is AP. Datasets: only worth having multiple ones when it varies by scale, really.
 \subsection{Successive shortest path algorithm}
 
 \subsubsection{Large vs small heap}
@@ -282,7 +266,7 @@ Set actually works out slower. Conjecture: adjacency lists tend to be short, so 
 
 \todo{Bother including this section or not? It's kind of trivial. Although discussing why the optimisation *didn't* work is maybe interesting.}
 
-\section{Compilers}
+\subsection{Compilers}
 
 \begin{figure}
     \begin{widepage}
