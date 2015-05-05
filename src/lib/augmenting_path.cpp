@@ -9,97 +9,100 @@ namespace flowsolver {
 
 // min heap
 class BinaryHeap {
-	const std::vector<uint64_t> &data;
-	std::vector<uint32_t> keys, reverse;
-	uint32_t size;
+  const std::vector<uint64_t> &data;
+  std::vector<uint32_t> keys, reverse;
+  uint32_t size;
 
-	uint32_t left(uint32_t index) {
-		return 2*index + 1;
-	}
+  uint32_t left(uint32_t index) {
+    return 2*index + 1;
+  }
 
-	uint32_t right(uint32_t index) {
-		return 2*index + 2;
-	}
+  uint32_t right(uint32_t index) {
+    return 2*index + 2;
+  }
 
-	uint32_t parent(uint32_t index) {
-		return (index - 1) / 2;
-	}
+  uint32_t parent(uint32_t index) {
+    return (index - 1) / 2;
+  }
 
-	void assign(uint32_t index, uint32_t value) {
-		keys[index] = value;
-		reverse[value] = index;
-	}
+  void assign(uint32_t index, uint32_t value) {
+    keys[index] = value;
+    reverse[value] = index;
+  }
 
-	void swap(uint32_t index1, uint32_t index2) {
-		uint32_t tmp = keys[index1];
-		assign(index1, keys[index2]);
-		assign(index2, tmp);
-	}
+  void swap(uint32_t index1, uint32_t index2) {
+    uint32_t tmp = keys[index1];
+    assign(index1, keys[index2]);
+    assign(index2, tmp);
+  }
 
-	void heapify(uint32_t index) {
-		VLOG(4) << "heapify at " << index;
-		uint32_t l = left(index), r = right(index);
-		uint32_t smallest = index;
-		if (l < size && data[keys[l]] < data[keys[smallest]]) {
-			smallest = l;
-		}
-		if (r < size && data[keys[r]] < data[keys[smallest]]) {
-			smallest = r;
-		}
-		if (smallest != index) {
-			VLOG(4) << "heapify swapping " << smallest << " with " << index;
-			// we need to swap elements in order to maintain heap structure
-			swap(index, smallest);
-			heapify(smallest);
-		}
-	}
+  void heapify(uint32_t index) {
+    VLOG(4) << "heapify at " << index;
+    uint32_t l = left(index), r = right(index);
+    uint32_t smallest = index;
+    if (l < size && data[keys[l]] < data[keys[smallest]]) {
+      smallest = l;
+    }
+    if (r < size && data[keys[r]] < data[keys[smallest]]) {
+      smallest = r;
+    }
+    if (smallest != index) {
+      VLOG(4) << "heapify swapping " << smallest << " with " << index;
+      // we need to swap elements in order to maintain heap structure
+      swap(index, smallest);
+      heapify(smallest);
+    }
+  }
 public:
-	// PRECONDITION: data[start_id] == 0, data[i] == UINT64_MAX for all other i
-	BinaryHeap(std::vector<uint64_t> &data) : data(data), size(0) { }
+  // PRECONDITION: data[start_id] == 0, data[i] = UINT64_MAX for all other i
+  BinaryHeap(std::vector<uint64_t> &data) : data(data), size(0) { }
 
-	void makeHeap(uint32_t start) {
-		reverse.resize(data.size());
-		size = 1;
-		keys.resize(size);
+  void makeHeap(uint32_t start) {
+    size = data.size();
+    VLOG(1) << "Building heap of size " << size << " with start " << start;
+    keys.resize(size);
+    reverse.resize(size);
 
-		// first key in min-heap is start
-		assign(0, start);
-	}
+    // first key in min-heap is start
+    assign(0, start);
 
-	uint32_t extractMin() {
-		CHECK(size > 0);
-		uint32_t min = keys[0];
+    // all other keys have the same value, and so can appear in any order
+    uint32_t i;
+    for (i = 1; i <= start; i++) {
+      assign(i, i - 1);
+    }
+    for (; i < size; i++) {
+      assign(i, i);
+    }
+  }
 
-		keys[0] = keys[size - 1];
-		size--;
-		heapify(0);
+  uint32_t extractMin() {
+    CHECK(size > 0);
+    uint32_t min = keys[0];
 
-		return min;
-	}
+    keys[0] = keys[size - 1];
+    size--;
+    heapify(0);
 
-	// PRECONDITION: the distance for node id has decreased
-	void decreaseKey(uint32_t id) {
-		uint32_t index = reverse[id];
-		uint32_t parent_index = parent(index);
-		// bubble element up whilst it is smaller than its parents
-		while (index > 0 && data[keys[index]] < data[keys[parent_index]]) {
-			VLOG(4) << "Bubbling " << index << " up to " << parent_index;
-			swap(index, parent_index);
-			index = parent_index;
-			parent_index = parent(index);
-		}
-	}
+    return min;
+  }
 
-	void insert(uint32_t id) {
-		size++;
-		keys.resize(size);
-		assign(size - 1, id);
-		decreaseKey(id);
-	}
+  // PRECONDITION: the distance for node id has decreased
+  void decreaseKey(uint32_t id) {
+    uint32_t index = reverse[id];
+    uint32_t parent_index = parent(index);
+    // bubble element up whilst it is smaller than its parents
+    while (index > 0 && data[keys[index]] < data[keys[parent_index]]) {
+      VLOG(4) << "Bubbling " << index << " up to " << parent_index;
+      swap(index, parent_index);
+      index = parent_index;
+      parent_index = parent(index);
+    }
+  }
 
-	bool empty() {
-		return size == 0;
-	}
+  bool empty() {
+    return size == 0;
+  }
 };
 
 class Djikstra {
@@ -136,13 +139,7 @@ class Djikstra {
 		uint64_t distance_to_dst = distances[dst];
 		if (distance_via_arc < distance_to_dst) {
 			distances[dst] = distance_via_arc;
-			if (distance_to_dst == UINT64_MAX) {
-				// dst not in priority queue
-				priority_queue.insert(dst);
-			} else {
-				// dst in queue, need to tell queue distance has decreased
-				priority_queue.decreaseKey(dst);
-			}
+			priority_queue.decreaseKey(dst);
 			parents[dst] = src;
 			VLOG(2) << "Djikstra: relaxed " << src << "->" << dst
 					    << " new distance " << distance_via_arc;
@@ -161,9 +158,15 @@ public:
 	uint64_t run(uint32_t source) {
 		reset(source);
 
-		uint32_t id = 0;
+		uint32_t old_id = 0, id = 0;
 		while (!priority_queue.empty()) {
+		  old_id = id;
 			id = priority_queue.extractMin();
+			if (distances[id] == UINT64_MAX) {
+			  // all nodes left in the queue are unreachable
+			  break;
+			}
+
 			permanently_labelled.insert(id);
 			VLOG(2) << "Djikstra: permanently labelling " << id;
 
@@ -180,7 +183,7 @@ public:
 			}
 		}
 
-		return distances[id];
+		return distances[old_id];
 	}
 
 	const std::vector<uint64_t>& getShortestDistances() const {
