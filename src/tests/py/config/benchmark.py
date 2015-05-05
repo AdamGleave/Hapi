@@ -57,6 +57,14 @@ FULL_DATASET = {
   "octopus_1hour_large": prefix_list("clusters/natural/google_trace/octopus/1hour/",
                        ["large.min", "full_size.min"]),
   
+  # Graphs after 1 hour into Google Trace. Using simulated Quincy cost model.
+  # Generated with Frangioni incremental solver, 10 us scheduling interval.
+  # Have graphs with 100, 1000 & 10,000 machines.                
+  "quincy_1hour_small": prefix_list("clusters/natural/google_trace/quincy/1hour/",
+                     ["small.min", "medium.min"]),
+  "quincy_1hour_large": prefix_list("clusters/natural/google_trace/quincy/1hour/",
+                       ["large.min", "full_size.min"]),
+  
   ### General flow networks
   ### See https://lemon.cs.elte.hu/trac/lemon/wiki/MinCostFlowData
   
@@ -102,7 +110,13 @@ FULL_DATASET = {
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
                           + FULL_DATASET["synthetic_large"]
 FULL_DATASET["octopus_1hour"] = FULL_DATASET["octopus_1hour_small"] \
-                              + FULL_DATASET["octopus_1hour_large"]  
+                              + FULL_DATASET["octopus_1hour_large"]
+FULL_DATASET["quincy_1hour"] = FULL_DATASET["quincy_1hour_small"] \
+                             + FULL_DATASET["quincy_1hour_large"]                            
+FULL_DATASET["all_1hour_small"] = FULL_DATASET["quincy_1hour_small"] \
+                                + FULL_DATASET["octopus_1hour_small"]                                    
+FULL_DATASET["all_1hour"] = FULL_DATASET["quincy_1hour"] \
+                          + FULL_DATASET["octopus_1hour"]    
 
 all_files = set()
 for files in FULL_DATASET.values():
@@ -115,7 +129,31 @@ INCREMENTAL_DATASET = {
   "development_only": ["clusters/natural/google_trace/tiny_trace.imin"],
   # CS2 on the small Google trace. Only the first 7 deltas.
   "google_small_trace_truncated": ["clusters/natural/google_trace/small_trace_truncated.imin"],
+  # Graphs 1 hour into Google Trace. Using Octopus cost model.
+  # Generated with CS2 solver, 10 us scheduling interval.
+  # Have graphs with 100, 1000 & 10,000 machines.
+  "octopus_1hour_small": prefix_list("clusters/natural/google_trace/octopus/1hour/",
+                                     ["small.imin", "medium.imin"]),
+  "octopus_1hour_large": prefix_list("clusters/natural/google_trace/octopus/1hour/",
+                                     ["large.imin", "full_size.imin"]),
+  # Graphs 1 hour into Google Trace. Using simulated Quincy cost model.
+  # Generated with Frangioni incremental solver, 10 us scheduling interval.
+  # Have graphs with 100, 1000 & 10,000 machines.                
+  "quincy_1hour_small": prefix_list("clusters/natural/google_trace/quincy/1hour/",
+                                    ["small.imin", "medium.imin"]),
+  "quincy_1hour_large": prefix_list("clusters/natural/google_trace/quincy/1hour/",
+                                    ["large.imin", "full_size.imin"]),
 }
+
+INCREMENTAL_DATASET["octopus_1hour"] = INCREMENTAL_DATASET["octopus_1hour_small"] \
+                                     + INCREMENTAL_DATASET["octopus_1hour_large"]
+INCREMENTAL_DATASET["quincy_1hour"] = INCREMENTAL_DATASET["quincy_1hour_small"] \
+                                    + INCREMENTAL_DATASET["quincy_1hour_large"]
+                                    
+INCREMENTAL_DATASET["all_1hour_small"] = INCREMENTAL_DATASET["quincy_1hour_small"] \
+                                       + INCREMENTAL_DATASET["octopus_1hour_small"]                                    
+INCREMENTAL_DATASET["all_1hour"] = INCREMENTAL_DATASET["quincy_1hour"] \
+                                 + INCREMENTAL_DATASET["octopus_1hour"]                                  
 
 ### Google cluster trace(s)
 TRACE_DATASET = {
@@ -466,7 +504,7 @@ FULL_TESTS = {
   # don't care about the memory consumption, but map may actually perform 
   # better since it can be better cached.
   "opt_ap_big_vs_small_heap": {
-    "files": FULL_DATASET["octopus_1hour_small"],
+    "files": FULL_DATASET["all_1hour_small"],
     "iterations": 5,
     "tests": {
       "big": {
@@ -483,7 +521,7 @@ FULL_TESTS = {
               
   # Test early termination of Djikstra's algorithm
   "opt_ap_full_vs_partial_djikstra": {
-    "files": FULL_DATASET["octopus_1hour_small"],
+    "files": FULL_DATASET["all_1hour_small"],
     "iterations": 5,
     "tests": {
       "full": {
@@ -500,7 +538,7 @@ FULL_TESTS = {
   # zerorc case: only zero reduced cost cuts
   # all case: every arc crossing the cut (separated into positive and zero rc)
   "opt_relax_cache_arcs": {
-    "files": FULL_DATASET["octopus_1hour_small"],
+    "files": FULL_DATASET["all_1hour_small"],
     # The pathological case of RELAX seems to be triggered, ugh.
     # Bump the timeout so we can collect results for small & medium.
     "timeout": 600,
@@ -520,7 +558,7 @@ FULL_TESTS = {
               
   ## Cost scaling
   "opt_cs_wave_vs_fifo": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["all_1hour"],
     "iterations": 5,
     "tests": {
       "wave": {
@@ -532,7 +570,7 @@ FULL_TESTS = {
     },
   },
   "opt_cs_scaling_factor": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["all_1hour"],
     "iterations": 5,
     "tests": { 
       str(x): {
@@ -542,7 +580,7 @@ FULL_TESTS = {
     }
   },
   "opt_cs_goldberg_scaling_factor": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["all_1hour"],
     "iterations": 5,
     "tests": { 
       str(x): {
@@ -554,7 +592,7 @@ FULL_TESTS = {
               
  ## DIMACS parser
  "opt_parser_set_vs_getarc": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["all_1hour"],
     "iterations": 5,
     "tests": {
       "set": {
@@ -566,7 +604,7 @@ FULL_TESTS = {
     },
   },
   "opt_parser_ignore_zero_capacity": {
-   "files": FULL_DATASET["octopus_1hour"],
+   "files": FULL_DATASET["all_1hour"],
    "iterations": 5,
    "tests": {
      "all_arcs": {
@@ -581,38 +619,38 @@ FULL_TESTS = {
   ### Compiler comparisons
   ## My implementations
   "compilers_ap": {
-    "files": FULL_DATASET["octopus_1hour_small"],
+    "files": FULL_DATASET["all_1hour_small"],
     "iterations": 5,              
     "tests": compilerTests({"ap": {"implementation": "f_ap_latest"}},
                            COMPILERS.keys())
   },
   "compilers_cc": {
-    "files": FULL_DATASET["octopus_1hour_small"],
+    "files": FULL_DATASET["all_1hour_small"],
     "iterations": 5,              
     "tests": compilerTests({"cc": {"implementation": "f_cc_latest"}},
                            COMPILERS.keys())
   },
   "compilers_cs": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["all_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"cs": {"implementation": "f_cs_latest"}},
                            COMPILERS.keys())
   },
   "compilers_relax": {
-    "files": FULL_DATASET["octopus_1hour_small"],
+    "files": FULL_DATASET["all_1hour_small"],
     "iterations": 5,              
     "tests": compilerTests({"relax": {"implementation": "f_relax_latest"}},
                            COMPILERS.keys())
   },
   ## Reference implementations
   "compilers_cs_goldberg": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["all_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"goldberg": {"implementation": "f_cs_goldberg"}},
                            COMPILERS.keys())
   },
   "compilers_relax_frangioni": {
-    "files": FULL_DATASET["octopus_1hour"],
+    "files": FULL_DATASET["all_1hour"],
     "iterations": 5,              
     "tests": compilerTests({"frangioni": {"implementation": "f_relax_frangioni"}},
                            COMPILERS.keys())
@@ -847,12 +885,20 @@ APPROXIMATE_TESTS_INCREMENTAL_OFFLINE = {
   "small_trace_truncated": {
     "files": INCREMENTAL_DATASET["google_small_trace_truncated"],
     "iterations": 3,
+  },
+  "1hour_quincy": {
+    "files": INCREMENTAL_DATASET["quincy_1hour"],
+    "iterations": 5,
+  },
+  "1hour_octopus": {
+    "files": INCREMENTAL_DATASET["octopus_1hour"],
+    "iterations": 5,
   }
 }
 
 APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
   "1hour": {
-    "traces": STANDARD_TRACE_CONFIG_SHORT_AND_SMALL,
+    "traces": STANDARD_TRACE_CONFIG_SHORT,
     "iterations": 5,
     "timeout": 600,
   },
