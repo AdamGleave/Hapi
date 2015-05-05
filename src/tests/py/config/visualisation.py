@@ -178,36 +178,28 @@ COMPILER_FIGURES = updateCompilerFigures(COMPILER_FIGURES)
 OPTIMISATION_FIGURES = {
   ### Optimisations
   ## Augmenting path
-  'ap_big_vs_small': {
-    'data': 'f_opt_ap_big_vs_small_heap',
+  'ap': {
+    'data': 'f_opt_ap',
     'test_filter': dictFilter({
-      'big': 'Big heap',
-      'small_vector': 'Small heap with vector',
-      'small_map': 'Small heap with map',
+      'fulldjikstra_big': 'Standard Djikstra, big heap',
+      'fulldjikstra_small': 'Standard Djikstra, small heap',
+      'partialdjikstra_big': 'Partial Djikstra, big heap',
+      'partialdjikstra_small_vector': 'Partial Djikstra, small heap (vector)',
+      'partialdjikstra_small_map': 'Partial Djikstra, small heap (map)', 
     }),
-    
-    'datasets': ['Small', 'Medium'],
-    'implementations': ['Small heap with vector', 'Small heap with map'],
-    'baseline': 'Big heap',
+         
+    # XXX: See which ones it doesn't timeout on
+    'datasets': ['Small', 'Medium', 'Large', 'Warehouse scale'],
+    'implementations': ['Standard Djikstra, small heap', 
+                        'Partial Djikstra, big heap', 
+                        'Partial Djikstra, small heap (vector)', 
+                        'Partial Djikstra, small heap (map)'],
+    'baseline': 'Standard Djikstra, big heap',
     'colours': {
-      'Big heap': 'r',
-      'Small heap with vector': 'g',
-      'Small heap with map': 'b',
-    }
-  },
-  'ap_full_vs_partial': {
-    'data': 'f_opt_ap_full_vs_partial_djikstra',
-    'test_filter': dictFilter({
-      'full': 'Full',
-      'partial': 'Partial'
-    }),
-                         
-    'datasets': ['Small', 'Medium'],
-    'implementations': ['Partial'],
-    'baseline': 'Full',
-    'colours': {
-      'Full': 'r',
-      'Partial': 'b',
+      'Standard Djikstra, small heap': 'r',
+      'Partial Djikstra, big heap': 'g',
+      'Partial Djikstra, small heap (vector)': 'b', 
+      'Partial Djikstra, small heap (map)': 'k',
     }
   },
   'cs_wave_vs_fifo': {

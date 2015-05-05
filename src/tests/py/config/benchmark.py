@@ -520,6 +520,9 @@ FULL_TESTS = {
       "fulldjikstra_small": {
         "implementation": "f_ap_full_djikstra_smallheap",
       },
+      "partialdjikstra_big": {
+        "implementation": "f_ap_bigheap",
+      },
       "partialdjikstra_small_vector": {
         "implementation": "f_ap_smallheap_vector",
       },
