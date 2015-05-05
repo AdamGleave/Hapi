@@ -194,27 +194,30 @@ This project is primarily concerned with algorithmic improvements, however imple
 %Think I favour second approach. You might wanna make this big master figure, though, since it's kinda dependent upon that actually working. Although guess you could break it up, so maybe no dependency... Think it works better if optimisations build on each other. So e.g. small heap + Djikstra with map? Think it wouldn't be too much work to restructure it to do this, the only one where you have interactions is AP. Datasets: only worth having multiple ones when it varies by scale, really.
 \subsection{Successive shortest path algorithm}
 
-\subsubsection{Large vs small heap}
-
-\begin{figure}
-  \centering
-  \includegraphics{opt/ap_big_vs_small_relative_2col}
-  \caption{Speedup when using small heap}
-  \label{fig:opt-ap-big-vs-small}
-\end{figure}
-
-Heap used as priority queue in Djikstra's algorithm. Large heap: all nodes in the graph are in the heap. Small heap: only insert nodes into heap once they're visited.
-
-\subsubsection{Terminating Djikstra early}
-
 \begin{figure}
     \centering
-    \includegraphics{opt/ap_full_vs_partial_relative_2col}
-    \caption{Speedup when terminating Djikstra early}
-    \label{fig:opt-ap-terminate-djikstra-early}
+    %\includegraphics{opt/ap_1col}
+    \caption{Speedup relative to naive successive shortest path implementation with standard Djikstra and big heap}
+    \label{fig:opt-ap}
 \end{figure}
 
-Partial: terminate Djikstra as soon as a node permanently labelled. Full: solve entire SSSP problem.
+As explained in \cref{sec:impl-ssp-optimisations}, it is possible to terminate Djikstra's algorithm as soon as it finds a shortest path to a deficit node, without needing to compute shortest paths to all nodes in the graph. As \cref{fig:opt-ap} demonstrates, this so-called \emph{partial Djikstra} approach yields a considerable performance improvement.
+
+This inspired a related optimisation, \emph{small heap}. Djikstra's algorithm works by maintaining a priority queue of vertices, implemented using a binary heap in this project (see \cref{sec:impl-ssp-optimisations} for justification of this choice). This results in a $\Theta\left(\lg l\right)$ complexity for priority queue operations, where $l$ is the length of the queue.
+
+In the \emph{big heap} implementation, the heap is initialised to contain all vertices in the graph. \emph{Small heap}, by contrast, is initialised containing just the source vertex. Vertices are inserted into the queue as they are encountered during graph traversal.
+
+Initialising a heap with $n$ elements has cost $\Theta(n)$; by contrast, inserting the elements one at a time has a cost of $\Theta(n\lg n)$. Big heap, therefore, will pay less of an initialisation cost --- at least under standard Djikstra, where each vertex is eventually inserted into the queue. However, the number of elements $l$ in the heap will tend to be larger throughout the lifetime of big heap, making each operation more expensive.
+
+When using standard Djikstra, the performance of the two heap implementations is practically indistinguishable. However, small heap provides a considerable performance gain when used in conjunction with partial Djikstra. This is to be expected: with early termination, the typical length of the queue $l$ is much smaller than the number of vertices $n$ in the graph.
+
+Two versions of small heap were implemented. To support decreasing the key of elements in the priority queue (a common operation in Djikstra's algorithm), it is necessary to maintain a \emph{reverse index} mapping node IDs to elements in the priority queue. In the big heap, this was implemented using an \emph{array} of length $n$. For the small heap, it is possible to reduce memory consumption by using a \emph{hash table}, storing mappings only for nodes $v$ present in the priority queue.
+
+In practice, the algorithm is not memory bound, and runtime is the primary consideration. Both the array and hash table offer $O(1)$ lookup. The array might be expected to be faster: there is no need to compute a hash function, and a result will always be returned after a single memory read (whereas for the hash table, multiple reads may be required in the event of a collision.) However, the hash table may be faster for large heaps: it can be more efficiently cached, since there is less dead space than in the array.
+
+The results clearly show that the array implementation outperforms the hash table version, at all cluster sizes. It may be that the array is never large enough for capacity cache misses to become a problem. Furthermore, hash tables do not necessarily offer a space advantage. The \emph{load factor}, the number of elements divided by the number of buckets, must be kept low to avoid collisions. Consequently, many buckets will be empty, wasting space.
+
+\todo{Should I say which version of the algorithm I ended up using? It seems obvious -- the one which had the best runtime -- but perhaps it's best stated explicitly?}
 
 \subsection{Relaxation algorithm}
 

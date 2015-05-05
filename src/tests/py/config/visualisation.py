@@ -184,21 +184,21 @@ OPTIMISATION_FIGURES = {
       'fulldjikstra_big': 'Standard Djikstra, big heap',
       'fulldjikstra_small': 'Standard Djikstra, small heap',
       'partialdjikstra_big': 'Partial Djikstra, big heap',
-      'partialdjikstra_small_vector': 'Partial Djikstra, small heap (vector)',
-      'partialdjikstra_small_map': 'Partial Djikstra, small heap (map)', 
+      'partialdjikstra_small_vector': 'Partial Djikstra, small heap (array)',
+      'partialdjikstra_small_map': 'Partial Djikstra, small heap (hash table)', 
     }),
          
     # XXX: See which ones it doesn't timeout on
     'datasets': ['Small', 'Medium', 'Large', 'Warehouse scale'],
     'implementations': ['Standard Djikstra, small heap', 
                         'Partial Djikstra, big heap', 
-                        'Partial Djikstra, small heap (vector)', 
-                        'Partial Djikstra, small heap (map)'],
+                        'Partial Djikstra, small heap (array)', 
+                        'Partial Djikstra, small heap (hash table)'],
     'baseline': 'Standard Djikstra, big heap',
     'colours': {
       'Standard Djikstra, small heap': 'r',
       'Partial Djikstra, big heap': 'g',
-      'Partial Djikstra, small heap (vector)': 'b', 
+      'Partial Djikstra, small heap (array)': 'b', 
       'Partial Djikstra, small heap (map)': 'k',
     }
   },

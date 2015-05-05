@@ -130,7 +130,7 @@ Each iteration of the algorithm identifies a source node $s$ and sink node $t$. 
 
 The amount of flow $\delta$ sent over the path is limited by the minimum residual capacity of arcs along $P$. $\delta$ is further restricted so that a non-negative supply at $s$ and demand at $t$ are maintained. This guarantees the excess at supply nodes and deficit at demand nodes is monotonically decreasing, ensuring each iteration improves the feasibility of the flow.
 
-\subsection{Optimisations}
+\subsection{Optimisations} \label{sec:impl-ssp-optimisations}
 
 \subsubsection{Choice of shortest-path algorithm}
 The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure.
