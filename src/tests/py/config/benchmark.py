@@ -350,6 +350,12 @@ FULL_IMPLEMENTATIONS = {
      "path": "bin/find_min_cost",
      "arguments" : ["augmenting_path"]
   },
+  "ap_full_djikstra_smallheap": {
+     "version": "9d88262",
+     "target": "find_min_cost",
+     "path": "bin/find_min_cost",
+     "arguments" : ["augmenting_path"]
+  },
   ## RELAX
   "relax_firstworking": {
     "version": "73e0b68",
@@ -503,34 +509,24 @@ FULL_TESTS = {
   # as a vector or a map. Vector will give guaranteed O(1) lookup, and we 
   # don't care about the memory consumption, but map may actually perform 
   # better since it can be better cached.
-  "opt_ap_big_vs_small_heap": {
-    "files": FULL_DATASET["all_1hour_small"],
-    "iterations": 5,
+  "opt_ap": {
+    "files": FULL_DATASET["all_1hour"],
+    "iterations": 10,
+    "timeout": 1800,
     "tests": {
-      "big": {
-        "implementation": "f_ap_bigheap",
+      "fulldjikstra_big": {
+        "implementation": "f_ap_full_djikstra",
       },
-      "small_vector": {
+      "fulldjikstra_small": {
+        "implementation": "f_ap_full_djikstra_smallheap",
+      },
+      "partialdjikstra_small_vector": {
         "implementation": "f_ap_smallheap_vector",
       },
-      "small_map": {
+      "partialdjikstra_small_map": {
         "implementation": "f_ap_smallheap_map",
       },
     },
-  },
-              
-  # Test early termination of Djikstra's algorithm
-  "opt_ap_full_vs_partial_djikstra": {
-    "files": FULL_DATASET["all_1hour_small"],
-    "iterations": 5,
-    "tests": {
-      "full": {
-        "implementation": "f_ap_full_djikstra",
-      },
-      "partial": {
-        "implementation": "f_ap_latest",
-      },
-    }, 
   },
               
   ## Relaxation
