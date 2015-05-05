@@ -196,7 +196,7 @@ This project is primarily concerned with algorithmic improvements, however imple
 
 \begin{figure}
     \centering
-    %\includegraphics{opt/ap_1col}
+    \includegraphics{opt/ap_relative_1col}
     \caption{Speedup relative to naive successive shortest path implementation with standard Djikstra and big heap}
     \label{fig:opt-ap}
 \end{figure}
@@ -224,11 +224,16 @@ The results clearly show that the array implementation outperforms the hash tabl
 \begin{figure}
     \centering
     \includegraphics{opt/relax_arc_cache_relative_2col}
-    \caption{Speedup when caching arcs}
+    \caption{Speedup when maintaining set(s) of arcs crossing the cut}
     \label{fig:opt-relax-cache-arcs}
 \end{figure}
 
-Relaxation algorithm requires knowing the arcs crossing the cut. None: iterate over all arcs and find out which ones cross the cut. Cache zero cost: maintain a list of zero reduced cost arcs crossing the cut. Cache all: maintain two lists, one of zero reduced cost and one of positive reduced cost arcs crossing the cut.
+The relaxation algorithm repeatedly accesses the set of arcs $\left(S,\overline{S}\right)$ crossing the cut. The main relaxation procedure in \cref{algo:relaxation} and \textproc{AugmentFlow} in \cref{algo:relaxation-augment-flow} only consider arcs $(i,j) \in \left(S,\overline{S}\right)$ for which the reduced cost $c_{ij}^{\boldsymbol{\pi}}$ is zero. By contrast, \textproc{UpdatePotentials} in \cref{algo:relaxation-update-potentials} considers only those arcs with positive reduced cost.
+
+In the naive implementation of the algorithm, the entire list of arcs in the graph is searched until an arc satisfying the above conditions is found. It is possible to instead maintain the set of arcs $\left(S,\overline{S}\right)$ crossing the cut. This imposes an additional cost whenever $S$ is updated, but allows for iteration over the set to proceed more efficiently. At no additional cost, we can partition this set into arcs with zero reduced cost and those with positive reduced cost\footnotemark. This is more efficient, as the algorithm never needs to access the entire set $\left(S,\overline{S}\right)$.
+\footnotetext{Note, by the reduced cost optimality conditions, no arcs in the residual network ever have negative reduced cost.}
+
+This \emph{dual set} implementation realises considerable performance gains, more than doubling the speed of the algorithm. However, note that the only operation which iterates over the set $\set{(i,j) \in \left(S,\overline{S}\right) | c_{ij}^{\boldsymbol{\pi}} > 0}$ is \textproc{UpdatePotentials}, which occurs comparatively rarely. To investigate whether the speedup of \textproc{UpdatePotentials} justified the overhead of maintaining this second set, a \emph{single set} implementation was developed which maintains only $\set{(i,j) \in \left(S,\overline{S}\right) | c_{ij}^{\boldsymbol{\pi}} = 0}$. This implementation was found to be even faster, with runtimes around a third that of the naive implementation.
 
 \subsection{Cost scaling}
 
