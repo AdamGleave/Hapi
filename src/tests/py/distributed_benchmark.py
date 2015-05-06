@@ -84,8 +84,12 @@ if __name__ == "__main__":
   with open(MACHINE_LIST) as machine_file:
     machines = list(machine_file)
     machines = [x.strip() for x in machines]
-    
-  redo = redo.Redo(machines, USER)
+  
+  if len(sys.argv) < 3:
+    print >>sys.stderr, "usage: ", sys.argv[0], " <working directory> <pattern1> [pattern2] ..."
+    sys.exit(1)
+  working_directory = sys.argv[1]
+  redo = redo.Redo(machines, USER, workdir=working_directory)
     
   test_cases = list(findTestCases(sys.argv[1:]))
   print >>sys.stderr, "Running: ", test_cases
