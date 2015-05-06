@@ -948,6 +948,14 @@ I decided not to implement any heuristics. The focus of this project is on explo
 
 \section{Approximation algorithms} \label{sec:impl-approx}
 
+% TODO: Put this or similar figure in here somewhere
+%\begin{figure}
+%    \centering
+%    \includegraphics{app/road_over_time_2col}
+%    \caption{Successive approximations to the optimal solution}
+%    \label{fig:app-cost-over-time}
+%\end{figure}
+
 % PROOFREAD - Intro: 1 major edits, 2 minor edits
 
 Feasible flows correspond to scheduling assignments in networks produced by flow scheduling systems. The cost of the flow indicates the degree to which the resulting assignment meets the scheduler's policy goals. The algorithms considered so far find minimal cost flows, corresponding to scheduling assignments which maximise the policy objectives.
@@ -969,7 +977,7 @@ This suggests that cost scaling is more suitable. In cycle cancelling, a large d
 
 Furthermore, cost scaling is considerably faster than cycle cancelling when finding optimal solutions. Much of this performance advantage will carry over to the approximate solver. In light of the previous reasoning, the approximate solver implemented in this project was built around cost scaling.
 
-\subsection{Adapting cost scaling}
+\subsection{Adapting cost scaling} \label{sec:impl-approx-adaptions}
 
 % PROOFREAD - 1 major edits.
 Cost scaling finds successive $\epsilon$-optimal solutions, where $\epsilon$ is halved after every iteration (see \cref{algo:cost-scaling}). The algorithm terminates when $\epsilon < 1/n$, at which point the solution is optimal by \cref{thm:epsilon-optimality-optimal}. An approximate solver relaxes this terminating condition.
@@ -982,7 +990,7 @@ It is possible to derive a bound on the absolute error of the solution, in terms
 
 $\epsilon$ therefore depends on the `worst' arc in the residual network: i.e.\ the one with the most negative reduced cost. If every arc were to attain this worst case, the error could be large even for small values of $\epsilon$. But in practice, the reduced cost of most arcs will be considerably greater than $-\epsilon$. This method will therefore tend to significantly overestimate the error of a solution.
 
-Since accurate analytic bounds on the error are not available, heuristics approaches must be used. These are the focus of the rest of this section.
+Since accurate analytic bounds on the error are not available, heuristics must be used for terminating conditions. These are the focus of the rest of this section.
 
 \subsubsection{$\epsilon$ threshold}
 

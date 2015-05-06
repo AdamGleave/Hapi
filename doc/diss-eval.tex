@@ -274,25 +274,25 @@ Cost scaling computes a series of $\epsilon$-optimal solutions, where $\epsilon$
 % This test seems a little bogus without preemption support, at least when running an hour into the trace.
 \Cref{fig:opt-cs-scaling-factor} shows the runtime of the cost scaling algorithm by scaling factor, on the warehouse-scale dataset using the Quincy cost model. The experiment was conducted both for my implementation, and Goldberg's reference implementation CS2~\cite{CS2:2009}. TBC\todo{Finish when have updated results}
 
-\subsection{DIMACS Parser}
-
-\begin{figure}
-    \centering
-    \includegraphics{opt/parser_set_vs_getarc_relative_2col}
-    \caption{Speedup when maintaining cache of arcs present}
-    \label{fig:opt-dimacs-parser}
-\end{figure}
-
-Need to check for duplicate arcs when parsing. Linked list: consult underlying data structure. Set: maintain a separate set of the arcs present to speed lookup.
-
-Set actually works out slower. Conjecture: adjacency lists tend to be short, so overhead of linked list is low. Maintaining separate set harms cache performance, as increases working set?
-
-\todo{Bother including this section or not? It's kind of trivial. Although discussing why the optimisation *didn't* work is maybe interesting.}
+%\subsection{DIMACS Parser}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics{opt/parser_set_vs_getarc_relative_2col}
+%    \caption{Speedup when maintaining cache of arcs present}
+%    \label{fig:opt-dimacs-parser}
+%\end{figure}
+%
+%Need to check for duplicate arcs when parsing. Linked list: consult underlying data structure. Set: maintain a separate set of the arcs present to speed lookup.
+%
+%Set actually works out slower. Conjecture: adjacency lists tend to be short, so overhead of linked list is low. Maintaining separate set harms cache performance, as increases working set?
+%
+%\todo{Bother including this section or not? It's kind of trivial. Although discussing why the optimisation *didn't* work is maybe interesting.}
 
 \subsection{Compilers}
 
 \begin{figure}
-    \includegraphics[width=\textwidth]{com/cs_compiler_settings_all_absolute_1col}
+    \includegraphics[width=\textwidth]{com/cs_compiler_1col}
     \caption{Runtime for cost scaling by optimisation setting, for medium (500 machine) cluster}
     \label{fig:compiler-settings}
 \end{figure}
@@ -316,24 +316,26 @@ In addition to choosing a compiler, it is necessary to decide upon which optimis
 
 \Cref{fig:compiler-settings} shows the runtime of my cost scaling implementation compiled with GCC and Clang, under all supported optimisation levels. There is a dramatic improvement from applying the lowest level of optimisations, O1. GCC's O1 setting is fairly aggressive, achieving performance comparable to O2. Clang's is more relaxed, but their performance at O2 and O3 are both comparable.
 
-This test was repeated for all other implementations in the project, the results of which are given in \cref{appendix:compiler-test-results}. Other implementations showed a similar pattern. GCC O3 was always competitive, and sometimes had a slight performance edge over Clang O3, and so is used in all subsequent tests.
+This test was repeated for all other implementations in the project, the results of which are given in \cref{appendix:compiler-test-results}. Other implementations showed a similar pattern\footnotemark. GCC O3 was always competitive, and sometimes had a slight performance edge over Clang O3, and so is used in all subsequent tests.
+\footnotetext{Implementations varied considerably in how much benefit they derived from optimisation, higher optimisation levels never decreased performance. Frangioni's relaxation implementation saw no benefit from an optimising compiler, likely due to it having been extensively hand optimised.}
 
-\section{Performance evaluation}
+\section{Approximation algorithm} \label{sec:eval-approx}
 
-Tests on final version of algorithms, with all optimisations enabled.
+Unlike with other algorithms, evaluation of approximate solution methods must consider not just its speed, but also its accuracy. To complicate matters further, both the speed and accuracy of the approximation algorithm will vary depending on the terminating condition chosen.
 
-\subsection{Approximation algorithm} \label{sec:eval-approx}
+I introduce an \emph{oracle} policy to ease interpretation of the results. It is assumed that the oracle knows precisely what the cost of the optimal solution is, and will terminate the algorithm as soon as an intermediate solution is found that reaches he target accuracy. Of course, an oracle model could not actually be implemented: the entire challenge of approximation is that the minimum cost is not known \textit{a priori}. The oracle policy therefore provides an upper bound on the speedup that can be achieved by approximation.
 
-% Reference from Impl:Cost Scaling:Heuristics expects you to justify why comparing against my own cost scaling implementation is legit.
+To evaluate the heuristic policies (see \cref{sec:impl-approx-adaptions}), I compute parameter settings which achieve the target accuracy on training data. The algorithm is then run with this policy on (unseen) test data, and the resulting accuracy and speed are measured. This split of test and training data guards against overfitting the policy to the data. The speed of the oracle model is plotted on the same graph, to see how close the heuristic is to maximal performance.
 
-\begin{figure}
-    \centering
-    \includegraphics{app/road_over_time_2col}
-    \caption{Successive approximations to the optimal solution}
-    \label{fig:app-cost-over-time}
-\end{figure}
+All tests were conducted using my implementation of cost scaling, described in \cref{sec:impl-cost-scaling}. Since the experiments in this section measure runtime \emph{relative} to the same algorithm used as an optimal solver, I believe the results should generalise to other implementations of cost scaling. 
 
-\cref{fig:app-cost-over-time} perhaps best in implementation section, to illustrate how algorithm works.
+There is one notable exception to this. The oracle policy achieves a speedup even at 100\% accuracy in these experiments, since optimality is often reached when $\epsilon > 1/n$. The \emph{price refinement} heuristic (see \cref{appendix:csheuristics}), present in highly optimised implementations such as Goldberg's CS2~\cite{CS2:2009}, is able to detect such early optimality. Consequently, such implementations would achieve the same performance as the oracle model at 100\% accuracy. Further work is required to determine if any other differences exist.
+
+\todo{This section might be improved by including some example figures. But I want to split up the results into subsections for flow scheduling and other applications, and I'd like to avoid duplicating graphs.}
+
+\subsection{Performance on flow scheduling}
+
+\subsection{Performance in other applications}
 
 \begin{figure}
     \centering
@@ -382,17 +384,17 @@ The heuristic is then used with the given parameter, and \cref{fig:app-cdf} eval
 %
 %Test an approximate algorithm on cluster. How much does performance degrade?
 
-\subsection{Incremental algorithm} \label{sec:eval-incremental}
+\section{Incremental algorithm} \label{sec:eval-incremental}
 
-\subsubsection{Dataset}
+\subsection{Dataset}
 
 Google cluster trace. Justify usage: representative of actual operations encountered.
 
-\subsubsection{Comparison with non-incremental, same type}
+\subsection{Comparison with non-incremental, same type}
 
 Runtime compared to the {\it same} algorithm, running from scratch. Bit of a strawman: augmenting path is slow from scratch. But would still be interesting to see: what \% of work are we still having to do?
 
-\paragraph{Augmenting path}
+\subsubsection{Augmenting path}
 
 \begin{figure}
     \begin{widepage}
@@ -410,7 +412,7 @@ Runtime compared to the {\it same} algorithm, running from scratch. Bit of a str
     \label{fig:inc-same-ap}
 \end{figure}
 
-\paragraph{Relaxation}
+\subsubsection{Relaxation}
 
 \begin{figure}
     \begin{widepage} 
@@ -448,7 +450,7 @@ My version in \cref{fig:inc-same-relax}.
 
 Frangioni's version in \cref{fig:inc-same-relaxf}. \todo{Tempted to cut this entirely, and just consider it later in comparative evaluation.}
 
-\subsubsection{Comparison with non-incremental, different type}
+\subsection{Comparison with non-incremental, different type}
 
 \begin{figure}
     \begin{widepage}
