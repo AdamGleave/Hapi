@@ -770,6 +770,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   "how_long_can_we_go": {
     "traces": {"google": {"trace": "google_trace"}},
     "iterations": 1,
+    "timeout": 2**32,
     "tests": {
       "i_relaxf":    { "implementation": "i_relaxf_latest" },
     },
