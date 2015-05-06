@@ -169,7 +169,9 @@ Running the tests manually would be error-prone, as well as extremely time consu
 % Alternative -- evaluation of standard algorithms? Then have comparative eval section at the end? But that result will look bad... is it worth it? Perhaps ask Malte.
 \section{Optimisations} \label{sec:eval-optimisations}
 
-This project is primarily concerned with algorithmic improvements, however implementation decisions can have a considerable impact on the performance of flow solvers. Comparing an optimised implementation of one algorithm against an unoptimised version of another algorithm could give misleading results. Consequently, care has been taken to ensure that all algorithms considered in this project are implemented efficiently. This section evaluates the optimisations applied to each implementation, describes how parameters were set for each algorithm and how a compiler was selected.
+This project is primarily concerned with algorithmic improvements, however implementation decisions can have a considerable impact on the performance of flow solvers. Comparing an optimised implementation of one algorithm against an unoptimised version of another algorithm could give misleading results. 
+
+Consequently, care has been taken to ensure that all algorithms considered in this project are implemented efficiently. This section evaluates the optimisations applied to each implementation, describes how parameters were set for each algorithm and how a compiler was selected.
 
 %Structure? You probably do want to merge optimisations into a single figure, as Malte suggested. Or at least, a single figure for each algorithm. FIFO is on it's own, but that's about it.
 %
@@ -246,18 +248,31 @@ This \emph{dual set} implementation realises considerable performance gains, mor
     \label{fig:opt-cs-wave-vs-fifo}
 \end{figure}
 
+Two versions of Goldberg's cost scaling algorithm are described in \cref{sec:impl-cost-scaling-implementations}, \emph{wave} and \emph{FIFO}. The wave implementation has time complexity $O\left(n^3 \lg \left(nC\right)\right)$ compared to a $O\left(n^2m\lg\left(nC\right)\right)$ running time for FIFO. However, for flow scheduling networks the asymptotic time complexities are the same, as $m = O(n)$ by \cref{lemma:network-num-arcs}. 
+
+It is clear from \cref{fig:opt-cs-wave-vs-fifo} that FIFO outperforms wave on this problem instance. I suspect this is because the FIFO queue contains only active vertices (see \cref{algo:cost-scaling-first-active-refine}). By contrast, in wave each iteration involves a pass over every vertex in the graph (see \cref{algo:cost-scaling-wave-refine}), imposing a significant overhead.
+
 % Could also test out first-active approach: when relabel happens, add s to front of Q rather than rear
 
 \subsubsection{Scaling factor}
 
 \begin{figure}
-    \centering
-    \includegraphics{opt/cs_scaling_factor_2col}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{opt/cs_scaling_factor_2col}
+        \caption{My implementation}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{opt/cs_goldberg_scaling_factor_2col}
+        \caption{Goldberg's implementation}
+    \end{subfigure}
     \caption{Performance depending on scaling factor}
     \label{fig:opt-cs-scaling-factor}
 \end{figure}
 
-What factor to reduce $\epsilon$ by on each iteration?
+Cost scaling computes a series of $\epsilon$-optimal solutions, where $\epsilon$ is reduced by a \emph{scaling factor} $\alpha$ between calls to \textproc{Refine}. A value of $\alpha=2$ was proposed in the original paper by Goldberg and Tarjan~\cite{Goldberg:1987}, and is used in \cref{algo:cost-scaling}. However, this choice is not necessarily optimal: in fact, the best value of $\alpha$ varies depending on the problem instance~\cite[\S7]{Goldberg:1997}. Larger values of $\alpha$ will result in fewer calls to \textproc{Refine}, however each call will take longer to execute.
+
+% This test seems a little bogus without preemption support, at least when running an hour into the trace.
+\Cref{fig:opt-cs-scaling-factor} shows the runtime of the cost scaling algorithm by scaling factor, on the warehouse-scale dataset using the Quincy cost model. The experiment was conducted both for my implementation, and Goldberg's reference implementation CS2~\cite{CS2:2009}. TBC\todo{Finish when have updated results}
 
 \subsection{DIMACS Parser}
 
@@ -277,43 +292,31 @@ Set actually works out slower. Conjecture: adjacency lists tend to be short, so 
 \subsection{Compilers}
 
 \begin{figure}
-    \begin{widepage}
-    \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{com/cc_absolute_2col}
-        \caption{Cycle cancelling}
-    \end{subfigure}
-    \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{com/ap_absolute_2col}
-        \caption{Augmenting Path}
-    \end{subfigure}
-    \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{com/relax_absolute_2col}
-        \caption{Relaxation}
-    \end{subfigure}
-    \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{com/cs_absolute_2col}
-        \caption{Cost scaling}
-    \end{subfigure}
-    \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{com/goldberg_absolute_2col}
-        \caption{Goldberg's cost scaling}
-    \end{subfigure}
-    \begin{subfigure}[c]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{com/frangioni_absolute_2col}
-        \caption{Frangioni's relaxation algorithm}
-    \end{subfigure}
-    \end{widepage}
-    \caption{Performance under different compilers and optimisation levels}
-    \label{fig:compilers}
+    \includegraphics[width=\textwidth]{com/cs_compiler_settings_all_absolute_1col}
+    \caption{Runtime for cost scaling by optimisation setting, for medium (500 machine) cluster}
+    \label{fig:compiler-settings}
 \end{figure}
 
-Want to make each implementation run as fast as possible: necessary for later tests to be fair. Different compilers use different optimisation techniques, and so may work better for some applications than others. Evaluated Clang and GCC, two compilers with sophisticated optimisations.
+%\begin{figure}
+%    \begin{subfigure}[c]{0.5\textwidth}
+%        \includegraphics[width=\textwidth]{com/cs_compiler_settings_absolute_2col}
+%        \caption{GCC}
+%    \end{subfigure}
+%    \begin{subfigure}[c]{0.5\textwidth}
+%        \includegraphics[width=\textwidth]{com/cs_compiler_settings_clang_absolute_2col}
+%        \caption{Clang}
+%    \end{subfigure}
+%    \caption{Runtime for cost scaling by optimisation setting, for medium (500 machine) cluster}
+%    \label{fig:compiler-settings}
+%\end{figure}
 
-Tested at all optimisation levels. (Table showing the levels? O0 to O3, with brief explanation.) Significant performance improvement when going to O2; limited performance gains in O3, perhaps even worse.
+\emph{Optimising compilers} apply transformations which preserve the semantic meaning of the program, while (typically) improving performance. Two compilers were evaluated for this project: the GNU C Compiler (GCC) and Clang. Both are well-established, and have extensive optimisation support. In general, neither is better than the other: some programs run faster when compiled with Clang, others with GCC.
 
-Little difference between Clang and GCC. GCC O3 tended to be the fastest implementation. Given this, GCC O3 was chosen as the standard compiler for subsequent tests.
+In addition to choosing a compiler, it is necessary to decide upon which optimisation level to use: the choices for GCC and Clang are summarised in \cref{table:optimisation-flags}. Higher levels tend to produce faster code, at the cost of longer compilation times. For this project, runtime performance is the overriding concern. However, optimisation is a heuristic process: some aggressive optimisations can actually harm program performance. For example, inlining functions will increase the size of functions, increasing the risk of instruction cache misses. Consequently, the highest level is not necessarily best.
 
-Probably best not to dwell on this since results aren't that interesting, but worth mentioning it was carried out for thoroughness. Probably want to compact the results significantly. Maybe OK to just give example output from one or two implementations, and mention similar for others.
+\Cref{fig:compiler-settings} shows the runtime of my cost scaling implementation compiled with GCC and Clang, under all supported optimisation levels. There is a dramatic improvement from applying the lowest level of optimisations, O1. GCC's O1 setting is fairly aggressive, achieving performance comparable to O2. Clang's is more relaxed, but their performance at O2 and O3 are both comparable.
+
+This test was repeated for all other implementations in the project, the results of which are given in \cref{appendix:compiler-test-results}. Other implementations showed a similar pattern. GCC O3 was always competitive, and sometimes had a slight performance edge over Clang O3, and so is used in all subsequent tests.
 
 \section{Performance evaluation}
 

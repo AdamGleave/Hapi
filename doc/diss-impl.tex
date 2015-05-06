@@ -888,7 +888,11 @@ See \cite[theorem~6.2]{Goldberg:1990}.
 \end{proof}
 
 \begin{remark}
-In fact, this complexity bound holds for any refine routine which repeatedly applies \textproc{PushOrRelabel}. However, it has been conjectured by Goldberg that the FIFO ordering of vertices in this variant results in a tighter bound, of $O(n^3 \lg (nC))$. Proving or disproving this assertion is an open research problem.
+In fact, this complexity bound holds for any refine routine which repeatedly applies \textproc{PushOrRelabel}. However, it has been conjectured by Goldberg that the FIFO ordering of vertices in this variant results in a tighter bound, of $O(n^3 \lg (nC))$. Proving or disproving this assertion is an open research problem.\\
+\end{remark} 
+
+\begin{remark}
+On flow scheduling networks, $m = O(n)$ by \cref{lemma:network-num-arcs}, so the bound is trivially $O(n^3 \lg (nC))$ in any case.
 \end{remark}
 
 \subsubsection{Wave refine}
@@ -914,7 +918,7 @@ In fact, this complexity bound holds for any refine routine which repeatedly app
 \label{algo:cost-scaling-wave-refine}
 \end{algorithm}
 
-\Cref{algo:cost-scaling-wave-refine} describes an approach which can be proved to achieve this tighter bound. The method maintains a list $L$ of all nodes in the network, rather than the queue $Q$ maintained by the FIFO method. The algorithm preserves the invariant that $L$ is topologically ordered with respect to the \emph{admissible graph}: the subgraph of the residual network containing only arcs with negative reduced cost.
+\Cref{algo:cost-scaling-wave-refine} describes an approach which can be proved to achieve this tighter bound for all classes of flow networks. The method maintains a list $L$ of all nodes in the network, rather than the queue $Q$ maintained by the FIFO method. The algorithm preserves the invariant that $L$ is topologically ordered with respect to the \emph{admissible graph}: the subgraph of the residual network containing only arcs with negative reduced cost.
 
 Initially, $L$ contains vertices in arbitrary order. But the admissible graph is empty after \cref{algo:cost-scaling-wave-refine:initialisation} of \cref{algo:cost-scaling-wave-refine}, since \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} saturate any negative reduced cost arcs, making them drop out of the residual network. Thus $L$ is trivially topologically ordered.
 
