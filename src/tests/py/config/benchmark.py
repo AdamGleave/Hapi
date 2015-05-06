@@ -85,6 +85,11 @@ FULL_DATASET = {
   "road_paths_one": graph_glob("general/natural/road/road_paths_*_a.min"),
   "road_flow_one": graph_glob("general/natural/road/road_flow_*_a.min"),
   
+  # Versions intended for testing of approximate solver. These have been chosen
+  # to have a runtime of around 10s for f_cs_latest.
+  "road_paths_approx": graph_glob("general/natural/road/road_paths_02_*.min"),
+  "road_flow_approx": graph_glob("general/natural/road/road_flow_02_*.min"),
+  
   ## VISION
   # VISION-RND: The arc costs are selected uniformly at random.
   # VISION-PROP: The cost of an arc is approximately proportional to its capacity.
@@ -122,6 +127,14 @@ FULL_DATASET = {
   "netgen_lo_sr_one": graph_glob("general/synthetic/netgen/generated/netgen_lo_sr_*a.min"),
   "netgen_deg_one": graph_glob("general/synthetic/netgen/generated/netgen_deg_*a.min"),
   
+  # Versions intended for testing of approximate solver. These have been chosen
+  # to have a runtime of around 10s for f_cs_latest.
+  "approx_netgen_8_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_8_*.min"), 
+  "approx_netgen_sr_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_sr_*.min"),
+  "approx_netgen_lo_8_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_lo_8_*.min"),
+  "approx_netgen_lo_sr_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_lo_sr_*.min"),
+  "approx_netgen_deg_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_deg_*.min"),
+  
   ## GOTO (Grid On Torus)
   # GOTO-8: Equivalent parameters to NETGEN-8.
   # GOTO-SR: Equivalent parameters to NETGEN-SR.
@@ -131,6 +144,10 @@ FULL_DATASET = {
   # Single copy; see comment above for NETGEN
   "goto_8_one": graph_glob("general/synthetic/goto/generated/goto_8_*a.min"),
   "goto_sr_one": graph_glob("general/synthetic/goto/generated/goto_sr_*a.min"),
+  
+  # See comment for NETGEN
+  "goto_8_approx": graph_glob("general/synthetic/goto/generated_approx/approx_goto_8_*.min"),
+  "goto_sr_approx": graph_glob("general/synthetic/goto/generated_approx/approx_goto_sr_*.min"),
 }
 
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
@@ -950,10 +967,52 @@ APPROXIMATE_DEFAULT_TEST = {
 }
 
 APPROXIMATE_TESTS_FULL = {
-  "road": {
-    "files": FULL_DATASET["road_flow"],
+  # ROAD                          
+  "road_paths": {
+    "files": FULL_DATASET["road_paths_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "timeout": 600,
+    "iterations": 5,
+  },
+  "road_flow": {
+    "files": FULL_DATASET["road_flow_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
+  # NETGEN
+  "netgen_8": {
+    "files": FULL_DATASET["netgen_8_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
+  "netgen_sr": {
+    "files": FULL_DATASET["netgen_sr_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
+  "netgen_lo_8": {
+    "files": FULL_DATASET["netgen_lo_8_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
+  "netgen_lo_sr": {
+    "files": FULL_DATASET["netgen_lo_sr_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
+  "netgen_deg": {
+    "files": FULL_DATASET["netgen_deg_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
+  # GOTO
+  "goto_8": {
+    "files": FULL_DATASET["goto_8_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
+  "goto_sr": {
+    "files": FULL_DATASET["goto_sr_approx"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
     "iterations": 5,
   },
 }
