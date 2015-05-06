@@ -14,6 +14,7 @@ figure_generators = {
   FigureTypes.optimisation_absolute : gen_optimisation.generate_absolute,
   FigureTypes.optimisation_relative : gen_optimisation.generate_relative,
   FigureTypes.optimisation_scaling_factors : gen_optimisation.generate_scaling_factors,
+  FigureTypes.optimisation_compilers : gen_optimisation.generate_compiler,
   FigureTypes.incremental_cdf : gen_incremental.generate_cdf,
   FigureTypes.incremental_only_incremental_cdf : gen_incremental.generate_incremental_only_cdf,
   FigureTypes.incremental_hist : gen_incremental.generate_hist,
@@ -76,6 +77,8 @@ if __name__ == "__main__":
       # new figure
       fig = plt.figure()
       generate_function(data, figconfig)
+      if 'custom_cmd' in figconfig:
+        figconfig['custom_cmd']()
       
       # Export figure
       figure_fname = figname + "_" + style_name + ".pdf"

@@ -4,6 +4,7 @@ from enum import Enum
 from config.common import *
 from visualisation.test_types import FigureTypes
 from matplotlib import rc
+import matplotlib.pyplot as plt
 
 def dictFilter(d):
   return lambda k : d.get(k, None)
@@ -97,12 +98,12 @@ ONESHOT_DATASETS = ['Small', 'Medium', 'Large', 'Warehouse scale']
 
 COMPILER_IMPLEMENTATIONS_FULL = {
   'clang_debug': 'Clang Debug',
-  'clang_O0': 'Clang Unoptimised',
+  'clang_O0': 'Clang O0 (Unoptimised)',
   'clang_O1': 'Clang O1',
   'clang_O2': 'Clang O2',
   'clang_O3': 'Clang O3',
   'gcc_debug': 'GCC Debug',
-  'gcc_O0': 'GCC Unoptimised',
+  'gcc_O0': 'GCC O0 (Unoptimised)',
   'gcc_O1': 'GCC O1',
   'gcc_O2': 'GCC O2',
   'gcc_O3': 'GCC O3',
@@ -147,14 +148,79 @@ COMPILER_FIGURES = {
   },       
   'frangioni': {
     'data': 'f_compilers_relax_frangioni',
-    'datasets': ['Medium', 'Large']
+    'datasets': ['Small', 'Medium']
   },
+  'cs_compiler_settings_all': {
+    'data': 'f_compilers_cs',
+    'dataset': 'Medium',
+    'test_filter': dictFilter(compiler_implementations(
+                                       COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
+    'implementations': {
+      'GCC': ['GCC O0 (Unoptimised)', 'GCC O1', 'GCC O2', 'GCC O3'],
+      'Clang': ['Clang O0 (Unoptimised)', 'Clang O1', 'Clang O2', 'Clang O3']
+    }, 
+    'colours': {'GCC O0 (Unoptimised)': 'r', 
+                'GCC O1': 'g',
+                'GCC O2': 'b',
+                'GCC O3': 'k',
+                'Clang O0 (Unoptimised)': 'r', 
+                'Clang O1': 'g',
+                'Clang O2': 'b',
+                'Clang O3': 'k'},
+    'log': False,
+    'custom_cmd': lambda : plt.legend(loc='upper right'),
+  },
+#   'cs_compiler_settings_all': {
+#     'data': 'f_compilers_cs',
+#     'dataset': ['Medium'],
+#     'test_filter': dictFilter(compiler_implementations(
+#                                        COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
+#     'implementations': ['GCC O0 (Unoptimised)', 'GCC O1', 'GCC O2', 'GCC O3',
+#                         'Clang O0 (Unoptimised)', 'Clang O1', 'Clang O2', 'Clang O3'],
+#     'colours': {'GCC O0 (Unoptimised)': 'r', 
+#                 'GCC O1': 'g',
+#                 'GCC O2': 'b',
+#                 'GCC O3': 'k',
+#                 'Clang O0 (Unoptimised)': 'r', 
+#                 'Clang O1': 'g',
+#                 'Clang O2': 'b',
+#                 'Clang O3': 'k'},
+#     'log': False,
+#     'custom_cmd': lambda : plt.legend(loc='upper right'),
+#   },
+  'cs_compiler_settings_gcc': {
+    'data': 'f_compilers_cs',
+    'datasets': ['Medium'],
+    'test_filter': dictFilter(compiler_implementations(
+                                       COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
+    'implementations': ['GCC O0 (Unoptimised)', 'GCC O1', 'GCC O2', 'GCC O3'],
+    'colours': {'GCC O0 (Unoptimised)': 'r',
+                'GCC O1': 'g',
+                'GCC O2': 'b',
+                'GCC O3': 'k'},
+    'log': False,
+    'custom_cmd': lambda : plt.legend(loc='upper right'),
+  },
+  'cs_compiler_settings_clang': {
+    'data': 'f_compilers_cs',
+    'datasets': ['Medium'],
+    'test_filter': dictFilter(compiler_implementations(
+                                       COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
+    'implementations': ['Clang O0 (Unoptimised)', 'Clang O1', 'Clang O2', 'Clang O3'],
+    'colours': {'Clang O0 (Unoptimised)': 'r', 
+                'Clang O1': 'g',
+                'Clang O2': 'b',
+                'Clang O3': 'k'},
+    'log': False,
+    'custom_cmd': lambda : plt.legend(loc='upper right'),
+  },
+  
 }
 
 def apply_compiler_defaults(d):
   for k, v in d.items():
     if 'file_filter' not in v:
-      v['file_filter'] = FULL_FILE_FILTER
+      v['file_filter'] = QUINCY_FILE_FILTER
       if 'datasets' not in v:
         v['datasets'] = ONESHOT_DATASETS
     if 'test_filter' not in v:
@@ -168,7 +234,7 @@ def apply_compiler_defaults(d):
 apply_compiler_defaults(COMPILER_FIGURES)
 
 def updateCompilerFigures(d):
-  types = {'absolute': ([], FigureTypes.optimisation_absolute)}
+  types = {'compiler': ([], FigureTypes.optimisation_compilers)}
   return updateFiguresWithTypes(d, types)
 
 COMPILER_FIGURES = updateCompilerFigures(COMPILER_FIGURES)
