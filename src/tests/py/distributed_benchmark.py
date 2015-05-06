@@ -53,7 +53,7 @@ def startTests(redo, task_schedule, machine):
   machine_cases = task_schedule[machine]
   pids = {}
   for case in machine_cases:
-    cmdline = [REMOTE_BENCHMARK_CMD] + [case]
+    cmdline = [REMOTE_BENCHMARK_CMD, "--dont-build"] + [case]
     cmdline = " ".join(cmdline)
     pid = redo[machine].run(cmdline, block=False)
     pids[case] = pid[0]

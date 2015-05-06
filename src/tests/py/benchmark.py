@@ -988,6 +988,7 @@ if __name__ == "__main__":
   signal.signal(signal.SIGALRM, alarm_handler)
       
   build_only = False
+  dont_build = False
   test_cases = None
   if len(sys.argv) == 1:
     # no arguments
@@ -995,17 +996,25 @@ if __name__ == "__main__":
   else:
     if sys.argv[1] == "--build-only":
       build_only = True
+      flag_found = True 
+    elif sys.argv[1] == "--dont-build":
+      dont_build = True
       sys.argv[1:] = sys.argv[2:]
+      
     # arguments are list of test patterns
     test_patterns = sys.argv[1:]
     test_cases = findTestCases(test_patterns)
     
   print("Running: ", test_cases)
   tests = {k : config.TESTS[k] for k in test_cases}
-  
-  print("*** Building ***")
-  implementations = findImplementations(tests)
-  buildImplementations(implementations)
+
+  if not dont_build:
+    # Dangerous -- assumes that tests have already been built.
+    # Should only be used by distributed_benchmark.py, where it's needed to
+    # avoid race (two instances running in parallel try to build the same target)
+    print("*** Building ***")
+    implementations = findImplementations(tests)
+    buildImplementations(implementations)
   
   if not build_only:
     print("*** Running tests ***")
