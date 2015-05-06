@@ -67,7 +67,7 @@ def wait(redo, pids):
         # process has finished and non-zero return code
         print >>sys.stderr, "ERROR: command failed on ", machine, \
                             " return code ", return_code
-        print >>sys.stderr, redo.getoutput(pid)
+        print >>sys.stderr, redo[machine].getoutput(pid)
         sys.exit(1)
       if return_code == 0:
         yield machine
@@ -95,13 +95,23 @@ if __name__ == "__main__":
     pid = startTest(redo, task_schedule, machine_ready)
     benchmark_pids[machine_ready] = pid
     
-  for machine_finished in wait(redo, benchmark_pids):
-    print machine_ready, " - test finished, ", 
+  for machine in wait(redo, benchmark_pids):
+    print machine, " - test finished, ", 
     machine_cases = task_schedule[machine]
+    copy_pids = []
     for case in machine_cases:
       fname = case + ".csv"
-      redo[machine].copy_from(os.path.join(REMOTE_BENCHMARK_DIR, fname),
-                              os.path.join(LOCAL_BENCHMARK_DIR, fname))
+      src_path = os.path.join(REMOTE_BENCHMARK_DIR, fname)
+      dst_path = os.path.join(LOCAL_BENCHMARK_DIR, fname)
+      pid = redo[machine].copy_from(src_path, dst_path)
+      copy_pids.append(pid)
+      wait_res = redo[machine].wait(pid)
+      for return_code in wait_res:
+        if return_code != 0:
+          print >>sys.stderr, "ERROR: copying failed on ", machine, \
+                              " for ", src_path, "->", dst_path
+          print >>sys.stderr, redo[machine].getoutput(pid)
+          sys.exit(1)
     print "files copied"
    
   print "All done!"
