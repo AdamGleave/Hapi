@@ -71,15 +71,14 @@ def wait(redo, pids):
           continue
         if return_code != 0:
           # process has finished and non-zero return code
-          print >>sys.stderr, "ERROR: command failed on ", machine, \
+          print >>sys.stderr, "WARNING: command failed on ", machine, \
                               " return code ", return_code
           print >>sys.stderr, redo[machine].getoutput([pid])
-          sys.exit(1)
         if return_code == 0:
           yield (machine, case)
-          del pids[machine][case]
-          if not pids[machine]: # empty
-            del pids[machine]
+        del pids[machine][case]
+        if not pids[machine]: # empty
+          del pids[machine]
 
 if __name__ == "__main__":
   with open(MACHINE_LIST) as machine_file:
