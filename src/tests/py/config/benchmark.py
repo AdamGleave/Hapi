@@ -509,6 +509,7 @@ FULL_TESTS = {
         "compiler": "gcc_O3"
       },
     },
+  },
                                  
   # For selecting suitable datasets for approximation tests
   "app_sec_road_flow": {
