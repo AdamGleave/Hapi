@@ -799,27 +799,27 @@ def runApproximateFullTest(case_name, case_config, result_file):
                                    "log", case_name)
       timeout = case_config.get("timeout", config.DEFAULT_TIMEOUT)
       
-      run = runApproximateTestInstance("approximate", test_instance["cmd"], 
-                                       log_directory, fname, i, timeout)
-      test_results = list(run)
-      assert(len(test_results) == 1)
-      test_result = test_results[0]
+      test_results = runApproximateTestInstance("approximate", test_instance["cmd"], 
+                                                log_directory, fname, i, timeout)
+      test_results = list(test_results)
+      assert(len(test_results) == 1) # only a single 'delta'
+      test_results = test_results[0]
       base_output = { "file": fname,
                       "test_iteration": i }
-      if test_result == "Timeout":
+      if test_results == "Timeout":
         output = base_output.copy()
-        output.update({"delta_id": 0,
-                       "refine_iteration": 0,
+        output.update({"refine_iteration": 0,
                        "refine_time": "Timeout",
                        "overhead_time": "Timeout",
                        "epsilon": -1,
                        "cost": -1,
                        "task_assignments_changed": -1})
+        result_writer.writerow(output)
         break
       else:
+        print(test_results)
         for row in test_results:
           output = base_output.copy()
-          output.update(row)
           result_writer.writerow(output)
       result_file.flush()
         
