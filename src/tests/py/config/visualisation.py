@@ -131,7 +131,8 @@ COMPILER_FIGURES = {
   },
   'cc': {
     'data': 'f_compilers_cc',
-    'dataset': 'Small',
+    'dataset': 'Mini',
+    'file_filter': dictFilter({'clusters/natural/google_trace/quincy/1hour/small_last.min': 'Mini'})
   },
   'cs': {
     'data': 'f_compilers_cs',
@@ -156,8 +157,6 @@ def apply_compiler_defaults(d):
   for k, v in d.items():
     if 'file_filter' not in v:
       v['file_filter'] = QUINCY_FILE_FILTER
-      if 'datasets' not in v:
-        v['datasets'] = ONESHOT_DATASETS
     if 'test_filter' not in v:
       filter_dict = compiler_implementations(k)
       v['test_filter'] = dictFilter(filter_dict)

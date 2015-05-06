@@ -80,6 +80,11 @@ FULL_DATASET = {
   "road_flow_small": graph_glob("general/natural/road/road_flow_01_*.min"),
   "road": graph_glob("general/natural/road/road_*.min"),
   
+  # The above contain five versions of similarly sized flow graphs.
+  # For some tests, one version is enough.
+  "road_paths_one": graph_glob("general/natural/road/road_paths_*_a.min"),
+  "road_flow_one": graph_glob("general/natural/road/road_flow_*_a.min"),
+  
   ## VISION
   # VISION-RND: The arc costs are selected uniformly at random.
   # VISION-PROP: The cost of an arc is approximately proportional to its capacity.
@@ -88,6 +93,11 @@ FULL_DATASET = {
   "vision_prop": graph_glob("general/natural/vision/vision_prop_*.min"),
   "vision_inv": graph_glob("general/natural/vision/vision_inv_*.min"),
   "vision": graph_glob("general/natural/vision/vision_*.min"),
+  
+  # Single copy; see comment abovefor ROAD.
+  "vision_rnd_one": graph_glob("general/natural/vision/vision_rnd_*_a.min"),
+  "vision_prop_one": graph_glob("general/natural/vision/vision_prop_*_a.min"),
+  "vision_inv_one": graph_glob("general/natural/vision/vision_inv_*_a.min"),
   
   ## NETGEN
   # NETGEN-8: Sparse networks, with m = 8n. Capacities and costs uniform random.
@@ -104,11 +114,23 @@ FULL_DATASET = {
   "netgen_lo_sr": graph_glob("general/synthetic/netgen/netgen_lo_sr_*.min"),
   "netgen_deg": graph_glob("general/synthetic/netgen/netgen_deg_*.min"),
   
+  # For the above, there are five versions (with different seeds) for each
+  # set of network parameters. For some tests, one is enough. 
+  "netgen_8_one": graph_glob("general/synthetic/netgen/netgen_8_a.min"), 
+  "netgen_sr_one": graph_glob("general/synthetic/netgen/netgen_sr_a.min"),
+  "netgen_lo_8_one": graph_glob("general/synthetic/netgen/netgen_lo_8_a.min"),
+  "netgen_lo_sr_one": graph_glob("general/synthetic/netgen/netgen_lo_sr_a.min"),
+  "netgen_deg_one": graph_glob("general/synthetic/netgen/netgen_deg_a.min"),
+  
   ## GOTO (Grid On Torus)
   # GOTO-8: Equivalent parameters to NETGEN-8.
   # GOTO-SR: Equivalent parameters to NETGEN-SR.
   "goto_8": graph_glob("general/synthetic/goto/goto_8_*.min"),
   "goto_sr": graph_glob("general/synthetic/goto/goto_sr_*.min"),
+  
+  # Single copy; see comment above for NETGEN
+  "goto_8_one": graph_glob("general/synthetic/goto/goto_8_one.min"),
+  "goto_sr_one": graph_glob("general/synthetic/goto/goto_sr_one.min"),
 }
 
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
@@ -487,6 +509,67 @@ FULL_TESTS = {
         "compiler": "gcc_O3"
       },
     },
+                                 
+  # For selecting suitable datasets for approximation tests
+  "app_sec_road_flow": {
+    "files": FULL_DATASET["road_flow_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_road_paths": {
+    "files": FULL_DATASET["road_paths_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_vision_rnd": {
+    "files": FULL_DATASET["vision_rnd_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_vision_prop": {
+    "files": FULL_DATASET["vision_prop_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_vision_inv": {
+    "files": FULL_DATASET["vision_inv_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_netgen_8": {
+    "files": FULL_DATASET["netgen_8_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_netgen_sr": {
+    "files": FULL_DATASET["netgen_sr_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_netgen_lo_8": {
+    "files": FULL_DATASET["netgen_lo_8_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_netgen_lo_sr": {
+    "files": FULL_DATASET["netgen_lo_sr_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_netgen_deg": {
+    "files": FULL_DATASET["netgen_deg_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_goto_8": {
+    "files": FULL_DATASET["goto_8_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
+  },
+  "app_sec_goto_sr": {
+    "files": FULL_DATASET["goto_sr_one"],
+    "iterations": 1,
+    "tests": {"cs": {"implementation": "f_cs_latest_nonscheduling"}},
   },
               
   ### Optimisation tests
