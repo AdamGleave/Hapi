@@ -61,6 +61,8 @@ FULL_DATASET = {
   # Have graphs with 100, 1000 & 10,000 machines.
   "quincy_1hour_small": prefix_list("clusters/natural/google_trace/quincy/1hour/",
    ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
+  "quincy_1hour_large_only": prefix_list("clusters/natural/google_trace/quincy/1hour/",
+   ["large_first.min", "large_last.min"]),
   "quincy_1hour": graph_glob("clusters/natural/google_trace/quincy/1hour/*.min"),
   
   ### General flow networks
@@ -558,8 +560,10 @@ FULL_TESTS = {
     },
   },
   "opt_cs_scaling_factor": {
-    "files": FULL_DATASET["all_1hour"],
+    "files": FULL_DATASET["quincy_1hour_small"] \
+           + FULL_DATASET["quincy_1hour_large_only"],
     "iterations": 5,
+    "timeout": 120,
     "tests": { 
       str(x): {
         "implementation": "f_cs_latest",
@@ -568,7 +572,7 @@ FULL_TESTS = {
     }
   },
   "opt_cs_goldberg_scaling_factor": {
-    "files": FULL_DATASET["all_1hour"],
+    "files": FULL_DATASET["quincy_1hour"],
     "iterations": 5,
     "tests": { 
       str(x): {
