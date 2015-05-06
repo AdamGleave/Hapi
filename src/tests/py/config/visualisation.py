@@ -279,17 +279,17 @@ OPTIMISATION_FIGURES['cs_scaling_factor'] = {
   'baseline': '2',
 }
 
-# OPTIMISATION_FIGURES['cs_goldberg_scaling_factor'] = {
-#   'data': 'f_opt_cs_goldberg_scaling_factor',
-#   'type': FigureTypes.optimisation_scaling_factors,
-#   'file_filter': QUINCY_FILE_FILTER,
-#   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
-#   
-#   'dataset': 'Warehouse scale',
-#   'implementations': [str(k) for k in range(2,32)],
-#   'colours': ['b'],
-#   'baseline': '12',
-# }
+OPTIMISATION_FIGURES['cs_goldberg_scaling_factor'] = {
+  'data': 'f_opt_cs_goldberg_scaling_factor',
+  'type': FigureTypes.optimisation_scaling_factors,
+  'file_filter': QUINCY_FILE_FILTER,
+  'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
+   
+  'dataset': 'Warehouse scale',
+  'implementations': [str(k) for k in range(2,32)],
+  'colours': ['b'],
+  'baseline': '12',
+}
 
 ### Incremental test cases
 

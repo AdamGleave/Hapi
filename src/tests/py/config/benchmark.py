@@ -52,18 +52,16 @@ FULL_DATASET = {
   # Graphs after 1 hour into Google Trace. Using Octopus cost model.
   # Generated with CS2 solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
-  "octopus_1hour_small": prefix_list("clusters/natural/google_trace/octopus/1hour/",
-                                     ["small.min", "medium.min"]),
-  "octopus_1hour_large": prefix_list("clusters/natural/google_trace/octopus/1hour/",
-                       ["large.min", "full_size.min"]),
+  "octopus_1hour_small": graphGlob("clusters/natural/google_trace/octopus/1hour/"
+                                 + "{small,medium}_{first,last}.min"),
+  "octopus_1hour": graphGlob("clusters/natural/google_trace/quincy/1hour/*.min"),
   
   # Graphs after 1 hour into Google Trace. Using simulated Quincy cost model.
   # Generated with Frangioni incremental solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.                
-  "quincy_1hour_small": prefix_list("clusters/natural/google_trace/quincy/1hour/",
-                     ["small.min", "medium.min"]),
-  "quincy_1hour_large": prefix_list("clusters/natural/google_trace/quincy/1hour/",
-                       ["large.min", "full_size.min"]),
+  "quincy_1hour_small": graphGlob("clusters/natural/google_trace/quincy/1hour/" 
+                               + "{small,medium}_{first,last}.min"),
+  "quincy_1hour": graphGlob("clusters/natural/google_trace/quincy/1hour/*.min"),
   
   ### General flow networks
   ### See https://lemon.cs.elte.hu/trac/lemon/wiki/MinCostFlowData
@@ -108,11 +106,7 @@ FULL_DATASET = {
 }
 
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
-                          + FULL_DATASET["synthetic_large"]
-FULL_DATASET["octopus_1hour"] = FULL_DATASET["octopus_1hour_small"] \
-                              + FULL_DATASET["octopus_1hour_large"]
-FULL_DATASET["quincy_1hour"] = FULL_DATASET["quincy_1hour_small"] \
-                             + FULL_DATASET["quincy_1hour_large"]                            
+                          + FULL_DATASET["synthetic_large"]                            
 FULL_DATASET["all_1hour_small"] = FULL_DATASET["quincy_1hour_small"] \
                                 + FULL_DATASET["octopus_1hour_small"]                                    
 FULL_DATASET["all_1hour"] = FULL_DATASET["quincy_1hour"] \
