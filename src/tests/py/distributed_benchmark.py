@@ -45,33 +45,41 @@ def startBuilds(redo, machines, task_schedule):
       cmdline = [REMOTE_BENCHMARK_CMD, "--build-only"] + task_schedule[machine]
       cmdline = " ".join(cmdline)
       pid = redo[machine].run(cmdline, block=False)
-      print machine, " - build launched"
-      build_pids[machine] = pid    
+      print >>sys.stderr, machine, " - build launched"
+      build_pids[machine] = {"build": pid[0]}    
   return build_pids
 
-def startTest(redo, task_schedule, machine):
+def startTests(redo, task_schedule, machine):
   machine_cases = task_schedule[machine]
-  assert(machine_cases) # not empty
-  cmdline = [REMOTE_BENCHMARK_CMD] + machine_cases 
-  cmdline = " ".join(cmdline)
-  return redo[machine].run(cmdline, block=False)
+  pids = {}
+  for case in machine_cases:
+    cmdline = [REMOTE_BENCHMARK_CMD] + [case]
+    cmdline = " ".join(cmdline)
+    pid = redo[machine].run(cmdline, block=False)
+    pids[case] = pid[0]
+  return pids
   
 def wait(redo, pids):
   while pids:
-    for machine, pid in pids.items():
-      return_code = redo[machine].wait(pid, timeout=POLL)[0]
-      if return_code == None:
-        # process has not finished
-        continue
-      if return_code != 0:
-        # process has finished and non-zero return code
-        print >>sys.stderr, "ERROR: command failed on ", machine, \
-                            " return code ", return_code
-        print >>sys.stderr, redo[machine].getoutput(pid)
-        sys.exit(1)
-      if return_code == 0:
-        yield machine
-        del pids[machine]
+    for machine, machine_pids in pids.items():
+      case_pids = machine_pids.items()
+      pids_to_wait = [v for k, v in case_pids]
+      return_codes = redo[machine].wait(pids_to_wait, timeout=POLL)
+      for (return_code, (case, pid)) in zip(return_codes, case_pids):
+        if return_code == None:
+          # process has not finished
+          continue
+        if return_code != 0:
+          # process has finished and non-zero return code
+          print >>sys.stderr, "ERROR: command failed on ", machine, \
+                              " return code ", return_code
+          print >>sys.stderr, redo[machine].getoutput([pid])
+          sys.exit(1)
+        if return_code == 0:
+          yield (machine, case)
+          del pids[machine][case]
+          if not pids[machine]: # empty
+            del pids[machine]
 
 if __name__ == "__main__":
   with open(MACHINE_LIST) as machine_file:
@@ -81,37 +89,32 @@ if __name__ == "__main__":
   redo = redo.Redo(machines, USER)
     
   test_cases = list(findTestCases(sys.argv[1:]))
-  print "Running: ", test_cases
+  print >>sys.stderr, "Running: ", test_cases
   
   task_schedule = createSchedule(test_cases, machines)
-  print "Execution schedule: "
+  print >>sys.stderr, "Execution schedule: "
   for machine in machines:
-    print "\t", machine, " - ", task_schedule[machine]
+    print >>sys.stderr, "\t", machine, " - ", task_schedule[machine]
     
   build_pids = startBuilds(redo, machines, task_schedule)
   benchmark_pids = {}
-  for machine_ready in wait(redo, build_pids):
-    print machine_ready, " - build finished, starting test"
-    pid = startTest(redo, task_schedule, machine_ready)
-    benchmark_pids[machine_ready] = pid
+  for (machine_ready, _case) in wait(redo, build_pids):
+    print >>sys.stderr, machine_ready, " - build finished, starting test"
+    pids = startTests(redo, task_schedule, machine_ready)
+    benchmark_pids[machine_ready] = pids
     
-  for machine in wait(redo, benchmark_pids):
-    print machine, " - test finished, ", 
-    machine_cases = task_schedule[machine]
-    copy_pids = []
-    for case in machine_cases:
-      fname = case + ".csv"
-      src_path = os.path.join(REMOTE_BENCHMARK_DIR, fname)
-      dst_path = os.path.join(LOCAL_BENCHMARK_DIR, fname)
-      pid = redo[machine].copy_from(src_path, dst_path)
-      copy_pids.append(pid)
-      wait_res = redo[machine].wait(pid)
-      for return_code in wait_res:
-        if return_code != 0:
-          print >>sys.stderr, "ERROR: copying failed on ", machine, \
-                              " for ", src_path, "->", dst_path
-          print >>sys.stderr, redo[machine].getoutput(pid)
-          sys.exit(1)
-    print "files copied"
+  for (machine, case) in wait(redo, benchmark_pids):
+    print >>sys.stderr, machine, " - test ", case, " finished on machine ", 
+    fname = case + ".csv"
+    src_path = os.path.join(REMOTE_BENCHMARK_DIR, fname)
+    dst_path = os.path.join(LOCAL_BENCHMARK_DIR, fname)
+    pid = redo[machine].copy_from(src_path, dst_path)
+    return_code = redo[machine].wait(pid)[0]
+    if return_code != 0:
+      print >>sys.stderr, "ERROR: copying failed on ", machine, \
+                          " for ", src_path, "->", dst_path
+      print >>sys.stderr, redo[machine].getoutput(pid)
+      sys.exit(1)
+    print >>sys.stderr, "results copied"
    
-  print "All done!"
+  print >>sys.stderr, "All done!"
