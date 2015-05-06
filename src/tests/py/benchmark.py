@@ -1007,13 +1007,13 @@ if __name__ == "__main__":
     
   print("Running: ", test_cases)
   tests = {k : config.TESTS[k] for k in test_cases}
-
+  implementations = findImplementations(tests)
+  
   if not dont_build:
     # Dangerous -- assumes that tests have already been built.
     # Should only be used by distributed_benchmark.py, where it's needed to
     # avoid race (two instances running in parallel try to build the same target)
     print("*** Building ***")
-    implementations = findImplementations(tests)
     buildImplementations(implementations)
   
   if not build_only:
