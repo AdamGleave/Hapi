@@ -382,12 +382,6 @@ FULL_IMPLEMENTATIONS = {
    "path": "bin/find_min_cost",
    "arguments" : ["cost_scaling"]
   },
-  "cs_vertexqueue": {
-   "version": "1653e9e",
-   "target": "find_min_cost",
-   "path": "bin/find_min_cost",
-   "arguments" : ["cost_scaling"]
-  },
   ## Parser
   # Note some of these implementations are so old they don't report ALGOTIME.
   # (But you don't want that measure anyway, since you want to capture
@@ -558,13 +552,14 @@ FULL_TESTS = {
   ## Cost scaling
   "opt_cs_wave_vs_fifo": {
     "files": FULL_DATASET["all_1hour"],
-    "iterations": 5,
+    "iterations": 10,
+    "timeout": 600,
     "tests": {
       "wave": {
         "implementation": "f_cs_wave",
       },
       "fifo": {
-        "implementation": "f_cs_vertexqueue",
+        "implementation": "f_cs_latest",
       },
     },
   },
