@@ -67,28 +67,28 @@ FIGURE_ROOT = os.path.join(DOC_ROOT, FIGURE_PREFIX)
 ### Compiler test cases
 
 FULL_FILE_FILTER = dictFilter({
-  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse scale (Quincy)',
-  'clusters/natural/google_trace/quincy/1hour/large.min': 'Large (Quincy)',
-  'clusters/natural/google_trace/quincy/1hour/medium.min': 'Medium (Quincy)',
-  'clusters/natural/google_trace/quincy/1hour/small.min': 'Small (Quincy)',
-  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse scale (Octopus)',
-  'clusters/natural/google_trace/octopus/1hour/large.min': 'Large (Octopus)',
-  'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium (Octopus)',
-  'clusters/natural/google_trace/octopus/1hour/small.min': 'Small (Octopus)',
+  'clusters/natural/google_trace/quincy/1hour/full_size_first.min': 'Warehouse scale (Quincy)',
+  'clusters/natural/google_trace/quincy/1hour/large_first.min': 'Large (Quincy)',
+  'clusters/natural/google_trace/quincy/1hour/medium_first.min': 'Medium (Quincy)',
+  'clusters/natural/google_trace/quincy/1hour/small_first.min': 'Small (Quincy)',
+  'clusters/natural/google_trace/octopus/1hour/full_size_first.min': 'Warehouse scale (Octopus)',
+  'clusters/natural/google_trace/octopus/1hour/large_first.min': 'Large (Octopus)',
+  'clusters/natural/google_trace/octopus/1hour/medium_first.min': 'Medium (Octopus)',
+  'clusters/natural/google_trace/octopus/1hour/small_first.min': 'Small (Octopus)',
 })
 
 OCTOPUS_FILE_FILTER = dictFilter({
-  'clusters/natural/google_trace/octopus/1hour/full_size.min': 'Warehouse scale',
-  'clusters/natural/google_trace/octopus/1hour/large.min': 'Large',
-  'clusters/natural/google_trace/octopus/1hour/medium.min': 'Medium',
-  'clusters/natural/google_trace/octopus/1hour/small.min': 'Small',
+  'clusters/natural/google_trace/octopus/1hour/full_size_first.min': 'Warehouse scale',
+  'clusters/natural/google_trace/octopus/1hour/large_first.min': 'Large',
+  'clusters/natural/google_trace/octopus/1hour/medium_first.min': 'Medium',
+  'clusters/natural/google_trace/octopus/1hour/small_first.min': 'Small',
 })
 
 QUINCY_FILE_FILTER = dictFilter({
-  'clusters/natural/google_trace/quincy/1hour/full_size.min': 'Warehouse scale',
-  'clusters/natural/google_trace/quincy/1hour/large.min': 'Large',
-  'clusters/natural/google_trace/quincy/1hour/medium.min': 'Medium',
-  'clusters/natural/google_trace/quincy/1hour/small.min': 'Small',
+  'clusters/natural/google_trace/quincy/1hour/full_size_first.min': 'Warehouse scale',
+  'clusters/natural/google_trace/quincy/1hour/large_first.min': 'Large',
+  'clusters/natural/google_trace/quincy/1hour/medium_first.min': 'Medium',
+  'clusters/natural/google_trace/quincy/1hour/small_first.min': 'Small',
 })
 
 FULL_DATASETS = ['Small (Octopus)', 'Medium (Octopus)', 'Large (Octopus)', 'Warehouse scale (Octopus)',
