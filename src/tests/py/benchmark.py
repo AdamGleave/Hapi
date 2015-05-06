@@ -817,9 +817,9 @@ def runApproximateFullTest(case_name, case_config, result_file):
         result_writer.writerow(output)
         break
       else:
-        print(test_results)
         for row in test_results:
           output = base_output.copy()
+          output.update(row)
           result_writer.writerow(output)
       result_file.flush()
         
