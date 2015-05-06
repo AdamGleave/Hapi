@@ -109,112 +109,47 @@ COMPILER_IMPLEMENTATIONS_FULL = {
   'gcc_O3': 'GCC O3',
 }
 
-COMPILER_IMPLEMENTATIONS_DEFAULT = ['clang_O2', 'clang_O3', 'gcc_O2', 'gcc_O3']
-
-COMPILER_IMPLEMENTATIONS_COLORS = {
-  'Clang O2': 'r',
-  'Clang O3': 'g',
-  'GCC O2': 'b',
-  'GCC O3': 'k',
+COMPILER_LEVELS = ['O0 (Unoptimised)', 'O1', 'O2', 'O3']
+COMPILER_LEVEL_COLOURS = {
+  'O0 (Unoptimised)': 'r', 
+  'O1': 'g',
+  'O2': 'b',
+  'O3': 'k'
 }
+COMPILER_COMPILERS = ['GCC', 'Clang']
 
-def compiler_implementations(l, name):
-  return {name + '_' + k : v if k in l else None 
-          for k, v in COMPILER_IMPLEMENTATIONS_FULL.items()}
+
+def compiler_implementations(name):
+  return {name + '_' + k : v for k, v in COMPILER_IMPLEMENTATIONS_FULL.items()}
 
 # TODO: datasets, implementations, colours?
 # TODO: baseline doesn't really make sense, maybe need new class
 COMPILER_FIGURES = {
   'ap': {
     'data': 'f_compilers_ap',
-    'datasets': ['Small', 'Medium']
+    'dataset': 'Medium',
   },
   'cc': {
     'data': 'f_compilers_cc',
-    'datasets': ['Small', 'Medium']
+    'dataset': 'Small',
   },
   'cs': {
     'data': 'f_compilers_cs',
-    'datasets': ['Large', 'Warehouse scale']
+    'dataset': 'Medium',
   },
   'relax': {
     'data': 'f_compilers_relax',
-    'datasets': ['Small']
+    'dataset': 'Small',
   },
   # others implementations
   'goldberg': {
     'data': 'f_compilers_cs_goldberg',
-    'datasets': ['Large', 'Warehouse scale']
+    'dataset': 'Warehouse scale',
   },       
   'frangioni': {
     'data': 'f_compilers_relax_frangioni',
-    'datasets': ['Small', 'Medium']
-  },
-  'cs_compiler_settings_all': {
-    'data': 'f_compilers_cs',
     'dataset': 'Medium',
-    'test_filter': dictFilter(compiler_implementations(
-                                       COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
-    'implementations': {
-      'GCC': ['GCC O0 (Unoptimised)', 'GCC O1', 'GCC O2', 'GCC O3'],
-      'Clang': ['Clang O0 (Unoptimised)', 'Clang O1', 'Clang O2', 'Clang O3']
-    }, 
-    'colours': {'GCC O0 (Unoptimised)': 'r', 
-                'GCC O1': 'g',
-                'GCC O2': 'b',
-                'GCC O3': 'k',
-                'Clang O0 (Unoptimised)': 'r', 
-                'Clang O1': 'g',
-                'Clang O2': 'b',
-                'Clang O3': 'k'},
-    'log': False,
-    'custom_cmd': lambda : plt.legend(loc='upper right'),
   },
-#   'cs_compiler_settings_all': {
-#     'data': 'f_compilers_cs',
-#     'dataset': ['Medium'],
-#     'test_filter': dictFilter(compiler_implementations(
-#                                        COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
-#     'implementations': ['GCC O0 (Unoptimised)', 'GCC O1', 'GCC O2', 'GCC O3',
-#                         'Clang O0 (Unoptimised)', 'Clang O1', 'Clang O2', 'Clang O3'],
-#     'colours': {'GCC O0 (Unoptimised)': 'r', 
-#                 'GCC O1': 'g',
-#                 'GCC O2': 'b',
-#                 'GCC O3': 'k',
-#                 'Clang O0 (Unoptimised)': 'r', 
-#                 'Clang O1': 'g',
-#                 'Clang O2': 'b',
-#                 'Clang O3': 'k'},
-#     'log': False,
-#     'custom_cmd': lambda : plt.legend(loc='upper right'),
-#   },
-  'cs_compiler_settings_gcc': {
-    'data': 'f_compilers_cs',
-    'datasets': ['Medium'],
-    'test_filter': dictFilter(compiler_implementations(
-                                       COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
-    'implementations': ['GCC O0 (Unoptimised)', 'GCC O1', 'GCC O2', 'GCC O3'],
-    'colours': {'GCC O0 (Unoptimised)': 'r',
-                'GCC O1': 'g',
-                'GCC O2': 'b',
-                'GCC O3': 'k'},
-    'log': False,
-    'custom_cmd': lambda : plt.legend(loc='upper right'),
-  },
-  'cs_compiler_settings_clang': {
-    'data': 'f_compilers_cs',
-    'datasets': ['Medium'],
-    'test_filter': dictFilter(compiler_implementations(
-                                       COMPILER_IMPLEMENTATIONS_FULL, 'cs')),
-    'implementations': ['Clang O0 (Unoptimised)', 'Clang O1', 'Clang O2', 'Clang O3'],
-    'colours': {'Clang O0 (Unoptimised)': 'r', 
-                'Clang O1': 'g',
-                'Clang O2': 'b',
-                'Clang O3': 'k'},
-    'log': False,
-    'custom_cmd': lambda : plt.legend(loc='upper right'),
-  },
-  
 }
 
 def apply_compiler_defaults(d):
@@ -224,12 +159,12 @@ def apply_compiler_defaults(d):
       if 'datasets' not in v:
         v['datasets'] = ONESHOT_DATASETS
     if 'test_filter' not in v:
-      filter_dict = compiler_implementations(COMPILER_IMPLEMENTATIONS_DEFAULT, k)
+      filter_dict = compiler_implementations(k)
       v['test_filter'] = dictFilter(filter_dict)
-      assert('implementations' not in v)
-      v['implementations'] = [COMPILER_IMPLEMENTATIONS_FULL[k] 
-                              for k in COMPILER_IMPLEMENTATIONS_DEFAULT]
-      v['colours'] = COMPILER_IMPLEMENTATIONS_COLORS
+    if 'compilers' not in v:
+      v['compilers'] = COMPILER_COMPILERS
+      v['levels'] = COMPILER_LEVELS
+      v['colours'] = COMPILER_LEVEL_COLOURS
       
 apply_compiler_defaults(COMPILER_FIGURES)
 

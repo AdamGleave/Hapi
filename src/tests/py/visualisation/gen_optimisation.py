@@ -24,8 +24,6 @@ def barchart(means, errors, bar_labels, group_labels, colours,
   error_config = {'ecolor': '0.3'}
   
   for i in range(len(means)):
-    print("Means", means[i])
-    print("Errors", errors[i])
     if errorsZero(errors[i]):
       yerr = None 
     else:
@@ -164,13 +162,15 @@ def generate_compiler(data, figconfig):
   data = analysis.full_swap_file_impl(data)
   
   dataset = figconfig['dataset']
-  compilers = list(figconfig['implementations'].keys())
-  implementations = {}
+  compilers = figconfig['compilers']
+  n_compilers = len(compilers)
+  levels = figconfig['levels']
+  n_levels = len(levels)
+  
   implementation_list = []
-  for compiler, levels in figconfig['implementations'].items():
-    for name in levels:
-      implementations[name] = compiler
-    implementation_list += levels
+  for compiler in compilers:
+    for level in levels:
+      implementation_list += [" ".join([compiler, level])]
   
   means, errors = analyse_absolute(data, implementation_list, [dataset])
   n_mean_implementations, n_mean_datasets = np.shape(means)
@@ -182,62 +182,27 @@ def generate_compiler(data, figconfig):
   n_implementations = n_mean_implementations
   means = np.reshape(means, (n_implementations, ))
   errors = np.reshape(errors, (n_implementations, 2))
-  errors = np.transpose(errors)
   
 #   def stripSingletonArray(x):
 #     return list(map(lambda y : y[0], x))
 #   means = stripSingletonArray(means)
 #   errors = list(map(stripSingletonArray, errors))
   
-  def group_by_compilers(xs):
-    ys = [[] for c in compilers]
-    for (x,implementation_name) in zip(xs, implementation_list):
-      compiler = implementations[implementation_name]
-      compiler_index = compilers.index(compiler)
-      ys[compiler_index].append(x)
+  def group_by_level(xs):
+    ys = [[] for c in levels]
+    for (x, implementation_name) in zip(xs, implementation_list):
+      tokens = implementation_name.split(" ")
+      level = " ".join(tokens[1:]) # tokens[0] is compiler name, ignore
+      level_index = levels.index(level)
+      ys[level_index].append(x)
     return ys
       
-  means = group_by_compilers(means)
-  errors = list(map(group_by_compilers, errors))
+  means, errors = group_by_level(means), group_by_level(errors)
+  barchart(means, errors, 
+           levels, compilers,
+           figconfig['colours'], log=False)
   
-  log_scale = figconfig.get('log', True)
-
-  n_compilers = len(compilers)
-  
-  opacity = 0.4
-  group_width = 0.7
-  error_config = {'ecolor': '0.3'}
-  
-  for i in range(len(means)):
-    if errorsZero(errors[i]):
-      yerr = None 
-    else:
-      yerr = errors[i]
-
-    n_bars_in_group = len(means[i])
-    bar_width = group_width / n_bars_in_group
-    
-    compiler = compilers[i]
-    bar_labels = figconfig['implementations'][compiler]
-    assert(n_bars_in_group == len(bar_labels))
-    
-    for j in range(n_bars_in_group):
-      label = bar_labels[j]
-      color = figconfig['colours'][label]
-      # strip compiler name from label
-      #label = " ".join(label.split(" ")[1:]
-      bar_err = [[yerr[0][j]], [yerr[1][j]]]
-      plt.bar(i + j * bar_width, means[i][j], bar_width,
-              alpha=opacity,
-              color=color,
-              yerr=bar_err,
-              error_kw=error_config,
-              label=label)
-  
-  plt.autoscale(axis='x', tight=True)
-  index = np.arange(n_compilers)
-  plt.xticks(index + group_width / 2, compilers)
-  plt.legend(loc='upper left')
+  plt.legend(loc='upper right')
   
   plt.xlabel('Compiler')
   plt.ylabel('Runtime (\si{\second})')
