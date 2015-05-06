@@ -15,3 +15,10 @@ done
 
 # {.} drops last suffix 
 ls *.param | $PARALLEL $PARALLEL_ARGS "$GENERATOR < {} > {.}" 
+
+mkdir $OUTPUT_approx 
+cd $OUTPUT_approx
+../params_approx.sh
+
+# {.} drops last suffix 
+ls *.param | $PARALLEL $PARALLEL_ARGS "$GENERATOR < {} > {.}" 
