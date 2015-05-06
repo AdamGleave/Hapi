@@ -52,15 +52,15 @@ FULL_DATASET = {
   # Graphs after 1 hour into Google Trace. Using Octopus cost model.
   # Generated with CS2 solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
-  "octopus_1hour_small": graphGlob("clusters/natural/google_trace/octopus/1hour/"
-                                 + "{small,medium}_{first,last}.min"),
+  "octopus_1hour_small": prefixList("clusters/natural/google_trace/octopus/1hour/",
+   ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
   "octopus_1hour": graphGlob("clusters/natural/google_trace/quincy/1hour/*.min"),
   
   # Graphs after 1 hour into Google Trace. Using simulated Quincy cost model.
   # Generated with Frangioni incremental solver, 10 us scheduling interval.
-  # Have graphs with 100, 1000 & 10,000 machines.                
-  "quincy_1hour_small": graphGlob("clusters/natural/google_trace/quincy/1hour/" 
-                               + "{small,medium}_{first,last}.min"),
+  # Have graphs with 100, 1000 & 10,000 machines.
+  "quincy_1hour_small": prefixList("clusters/natural/google_trace/quincy/1hour/",
+   ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
   "quincy_1hour": graphGlob("clusters/natural/google_trace/quincy/1hour/*.min"),
   
   ### General flow networks
