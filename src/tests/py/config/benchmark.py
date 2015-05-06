@@ -52,6 +52,8 @@ FULL_DATASET = {
   # Graphs after 1 hour into Google Trace. Using Octopus cost model.
   # Generated with CS2 solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
+  "octopus_1hour_mini": prefix_list("clusters/natural/google_trace/octopus/1hour/",
+                                    ["small_first.min", "small_last.min"]),
   "octopus_1hour_small": prefix_list("clusters/natural/google_trace/octopus/1hour/",
    ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
   "octopus_1hour": graph_glob("clusters/natural/google_trace/quincy/1hour/*.min"),
@@ -59,6 +61,8 @@ FULL_DATASET = {
   # Graphs after 1 hour into Google Trace. Using simulated Quincy cost model.
   # Generated with Frangioni incremental solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
+  "quincy_1hour_mini": prefix_list("clusters/natural/google_trace/quincy/1hour/",
+                                    ["small_first.min", "small_last.min"]),
   "quincy_1hour_small": prefix_list("clusters/natural/google_trace/quincy/1hour/",
    ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
   "quincy_1hour_large_only": prefix_list("clusters/natural/google_trace/quincy/1hour/",
@@ -108,7 +112,9 @@ FULL_DATASET = {
 }
 
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
-                          + FULL_DATASET["synthetic_large"]                            
+                          + FULL_DATASET["synthetic_large"]
+FULL_DATASET["all_1hour_mini"] = FULL_DATASET["quincy_1hour_mini"] \
+                                + FULL_DATASET["octopus_1hour_mini"]                             
 FULL_DATASET["all_1hour_small"] = FULL_DATASET["quincy_1hour_small"] \
                                 + FULL_DATASET["octopus_1hour_small"]                                    
 FULL_DATASET["all_1hour"] = FULL_DATASET["quincy_1hour"] \
@@ -210,8 +216,6 @@ FIRMAMENT_DEFAULT_MACHINE = "24core"
 
 ##### Compilers
 
-STANDARD_FLAGS = "-DNDEBUG" 
-
 # Template
 # "cc": C compiler
 # "cxx": C++ compiler
@@ -230,13 +234,13 @@ COMPILER_CLANG = {
 } 
 
 COMPILERS = {
-  "gcc_debug": extend_dict(COMPILER_GCC, {"flags": "-g"}),
-  "gcc_O0": extend_dict(COMPILER_GCC, {"flags": "-O0"}),
+  #"gcc_debug": extend_dict(COMPILER_GCC, {"flags": "-g"}),
+  "gcc_O0": extend_dict(COMPILER_GCC, {"flags": "-O0 -DNDEBUG"}),
   "gcc_O1": extend_dict(COMPILER_GCC, {"flags": "-O1 -DNDEBUG"}),
   "gcc_O2": extend_dict(COMPILER_GCC, {"flags": "-O2 -DNDEBUG"}),
   "gcc_O3": extend_dict(COMPILER_GCC, {"flags": "-O3 -DNDEBUG"}),
-  "clang_debug": extend_dict(COMPILER_CLANG, {"flags": "-g"}),
-  "clang_O0": extend_dict(COMPILER_CLANG, {"flags": "-O0"}),
+  #"clang_debug": extend_dict(COMPILER_CLANG, {"flags": "-g"}),
+  "clang_O0": extend_dict(COMPILER_CLANG, {"flags": "-O0 -NDEBUG"}),
   "clang_O1": extend_dict(COMPILER_CLANG, {"flags": "-O1 -DNDEBUG"}),
   "clang_O2": extend_dict(COMPILER_CLANG, {"flags": "-O2 -DNDEBUG"}),
   "clang_O3": extend_dict(COMPILER_CLANG, {"flags": "-O3 -DNDEBUG"}),
@@ -617,7 +621,7 @@ FULL_TESTS = {
                            COMPILERS.keys())
   },
   "compilers_cc": {
-    "files": FULL_DATASET["all_1hour_small"],
+    "files": FULL_DATASET["all_1hour_mini"],
     "iterations": 5,              
     "tests": compilerTests({"cc": {"implementation": "f_cc_latest"}},
                            COMPILERS.keys())
