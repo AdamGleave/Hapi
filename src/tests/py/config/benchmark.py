@@ -129,11 +129,11 @@ FULL_DATASET = {
   
   # Versions intended for testing of approximate solver. These have been chosen
   # to have a runtime of around 10s for f_cs_latest.
-  "approx_netgen_8_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_8_*.min"), 
-  "approx_netgen_sr_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_sr_*.min"),
-  "approx_netgen_lo_8_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_lo_8_*.min"),
-  "approx_netgen_lo_sr_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_lo_sr_*.min"),
-  "approx_netgen_deg_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_deg_*.min"),
+  "netgen_8_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_8_*.min"), 
+  "netgen_sr_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_sr_*.min"),
+  "netgen_lo_8_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_lo_8_*.min"),
+  "netgen_lo_sr_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_lo_sr_*.min"),
+  "netgen_deg_approx": graph_glob("general/synthetic/netgen/generated_approx/approx_netgen_deg_*.min"),
   
   ## GOTO (Grid On Torus)
   # GOTO-8: Equivalent parameters to NETGEN-8.
