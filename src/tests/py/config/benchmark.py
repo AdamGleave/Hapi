@@ -108,29 +108,29 @@ FULL_DATASET = {
   # NETGEN-LO-SR: As NETGEN-SR, but with much lower average supply, around 10.
   # NETGEN-DEG: n=4096 fixed, average outdegree ranges from 2 to n/2. 
   #             Otherwise, as for NETGEN-8. 
-  "netgen_8": graph_glob("general/synthetic/netgen/netgen_8_*.min"), 
-  "netgen_sr": graph_glob("general/synthetic/netgen/netgen_sr_*.min"),
-  "netgen_lo_8": graph_glob("general/synthetic/netgen/netgen_lo_8_*.min"),
-  "netgen_lo_sr": graph_glob("general/synthetic/netgen/netgen_lo_sr_*.min"),
-  "netgen_deg": graph_glob("general/synthetic/netgen/netgen_deg_*.min"),
+  "netgen_8": graph_glob("general/synthetic/netgen/generated/netgen_8_*.min"), 
+  "netgen_sr": graph_glob("general/synthetic/netgen/generated/netgen_sr_*.min"),
+  "netgen_lo_8": graph_glob("general/synthetic/netgen/generated/netgen_lo_8_*.min"),
+  "netgen_lo_sr": graph_glob("general/synthetic/netgen/generated/netgen_lo_sr_*.min"),
+  "netgen_deg": graph_glob("general/synthetic/netgen/generated/netgen_deg_*.min"),
   
   # For the above, there are five versions (with different seeds) for each
   # set of network parameters. For some tests, one is enough. 
-  "netgen_8_one": graph_glob("general/synthetic/netgen/netgen_8_*a.min"), 
-  "netgen_sr_one": graph_glob("general/synthetic/netgen/netgen_sr_*a.min"),
-  "netgen_lo_8_one": graph_glob("general/synthetic/netgen/netgen_lo_8_*a.min"),
-  "netgen_lo_sr_one": graph_glob("general/synthetic/netgen/netgen_lo_sr_*a.min"),
-  "netgen_deg_one": graph_glob("general/synthetic/netgen/netgen_deg_*a.min"),
+  "netgen_8_one": graph_glob("general/synthetic/netgen/generated/netgen_8_*a.min"), 
+  "netgen_sr_one": graph_glob("general/synthetic/netgen/generated/netgen_sr_*a.min"),
+  "netgen_lo_8_one": graph_glob("general/synthetic/netgen/generated/netgen_lo_8_*a.min"),
+  "netgen_lo_sr_one": graph_glob("general/synthetic/netgen/generated/netgen_lo_sr_*a.min"),
+  "netgen_deg_one": graph_glob("general/synthetic/netgen/generated/netgen_deg_*a.min"),
   
   ## GOTO (Grid On Torus)
   # GOTO-8: Equivalent parameters to NETGEN-8.
   # GOTO-SR: Equivalent parameters to NETGEN-SR.
-  "goto_8": graph_glob("general/synthetic/goto/goto_8_*.min"),
-  "goto_sr": graph_glob("general/synthetic/goto/goto_sr_*.min"),
+  "goto_8": graph_glob("general/synthetic/goto/generated/goto_8_*.min"),
+  "goto_sr": graph_glob("general/synthetic/goto/generated/goto_sr_*.min"),
   
   # Single copy; see comment above for NETGEN
-  "goto_8_one": graph_glob("general/synthetic/goto/goto_8_*a.min"),
-  "goto_sr_one": graph_glob("general/synthetic/goto/goto_sr_*a.min"),
+  "goto_8_one": graph_glob("general/synthetic/goto/generated/goto_8_*a.min"),
+  "goto_sr_one": graph_glob("general/synthetic/goto/generated/goto_sr_*a.min"),
 }
 
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
