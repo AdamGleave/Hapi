@@ -264,6 +264,9 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 	FlowNetwork::const_iterator max_cost;
 	max_cost = std::max_element(g.begin(), g.end(), costCompare);
 	epsilon = max_cost->getCost() * COST_SCALING_FACTOR;
+  // It's possible for the maximum cost to be zero. But refine will loop forever
+  // with epsilon = 0; epsilon = 1 still guarantees optimality.
+	epsilon = std::max(epsilon, (uint64_t)1);
 
 	// TODO: presentation in paper makes a call to a max flow algorithm here
 	// This is unnecessary, as refine subroutine will work OK with any
