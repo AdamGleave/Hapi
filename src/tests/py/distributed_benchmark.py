@@ -95,8 +95,8 @@ if __name__ == "__main__":
     pid = startTest(redo, task_schedule, machine_ready)
     benchmark_pids[machine_ready] = pid
     
-  for machine_finished in wait(redo, benchmark_pids):
-    print machine_ready, " - test finished, ", 
+  for machine in wait(redo, benchmark_pids):
+    print machine, " - test finished, ", 
     machine_cases = task_schedule[machine]
     for case in machine_cases:
       fname = case + ".csv"
