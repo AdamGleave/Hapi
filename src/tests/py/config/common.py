@@ -41,12 +41,12 @@ def prefix_list(prefix, fnames):
 def prefix_dict(prefix, d):
   return {k : os.path.join(prefix, v) for (k,v) in d.items()}
 
-def graphGlob(pathname):
+def graph_glob(pathname):
   fnames = glob.glob(os.path.join(DATASET_ROOT, pathname))
   return list(map(lambda x : os.path.relpath(x, DATASET_ROOT), fnames))
 
 # For merging dictionaries, and tagging elements
-def mergeDicts(dicts, prefix, tags=None, sep='_'):
+def merge_dicts(dicts, prefix, tags=None, sep='_'):
   assert(len(dicts) == len(prefix))
   tags_enabled = bool(tags)
   if tags_enabled:
@@ -65,7 +65,7 @@ def mergeDicts(dicts, prefix, tags=None, sep='_'):
   
   return result
 
-def extendDict(d1, d2):
+def extend_dict(d1, d2):
   d = d1.copy()
   d.update(d2)
   return d

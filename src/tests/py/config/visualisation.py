@@ -427,7 +427,7 @@ APPROXIMATE_FIGURES = updateApproximateFigures(APPROXIMATE_FIGURES)
 
 ### All figures
 
-FIGURES = mergeDicts([OPTIMISATION_FIGURES,
+FIGURES = merge_dicts([OPTIMISATION_FIGURES,
                       COMPILER_FIGURES,
                       INCREMENTAL_FIGURES,
                       APPROXIMATE_FIGURES],

@@ -43,7 +43,7 @@ FULL_DATASET = {
   "development_only": ["clusters/synthetic/firmament/graph_4m_2crs_10j.in", 
                        "clusters/synthetic/handmade/small_graph.in"],
   # 100 machine networks
-  "synthetic_small": graphGlob("clusters/synthetic/firmament/graph_100m_*"),
+  "synthetic_small": graph_glob("clusters/synthetic/firmament/graph_100m_*"),
   # 1000 machine networks
   "synthetic_large": ["clusters/synthetic/firmament/graph_1000m_32j_100t_10p.in"],
   # Network from Google cluster trace
@@ -52,16 +52,16 @@ FULL_DATASET = {
   # Graphs after 1 hour into Google Trace. Using Octopus cost model.
   # Generated with CS2 solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
-  "octopus_1hour_small": prefixList("clusters/natural/google_trace/octopus/1hour/",
+  "octopus_1hour_small": prefix_list("clusters/natural/google_trace/octopus/1hour/",
    ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
-  "octopus_1hour": graphGlob("clusters/natural/google_trace/quincy/1hour/*.min"),
+  "octopus_1hour": graph_glob("clusters/natural/google_trace/quincy/1hour/*.min"),
   
   # Graphs after 1 hour into Google Trace. Using simulated Quincy cost model.
   # Generated with Frangioni incremental solver, 10 us scheduling interval.
   # Have graphs with 100, 1000 & 10,000 machines.
-  "quincy_1hour_small": prefixList("clusters/natural/google_trace/quincy/1hour/",
+  "quincy_1hour_small": prefix_list("clusters/natural/google_trace/quincy/1hour/",
    ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
-  "quincy_1hour": graphGlob("clusters/natural/google_trace/quincy/1hour/*.min"),
+  "quincy_1hour": graph_glob("clusters/natural/google_trace/quincy/1hour/*.min"),
   
   ### General flow networks
   ### See https://lemon.cs.elte.hu/trac/lemon/wiki/MinCostFlowData
@@ -69,19 +69,19 @@ FULL_DATASET = {
   ## ROAD
   # ROAD-PATHS: all arc capacities one
   # ROAD-FLOW: capacity set to 40/60/80/100 depending on road category
-  "road_paths": graphGlob("general/natural/road/road_paths_*.min"),
-  "road_flow": graphGlob("general/natural/road/road_flow_*.min"),
-  "road_flow_small": graphGlob("general/natural/road/road_flow_01_*.min"),
-  "road": graphGlob("general/natural/road/road_*.min"),
+  "road_paths": graph_glob("general/natural/road/road_paths_*.min"),
+  "road_flow": graph_glob("general/natural/road/road_flow_*.min"),
+  "road_flow_small": graph_glob("general/natural/road/road_flow_01_*.min"),
+  "road": graph_glob("general/natural/road/road_*.min"),
   
   ## VISION
   # VISION-RND: The arc costs are selected uniformly at random.
   # VISION-PROP: The cost of an arc is approximately proportional to its capacity.
   # VISION-INV: The cost of an arc is approximately inversely proportional to its capacity.
-  "vision_rnd": graphGlob("general/natural/vision/vision_rnd_*.min"),
-  "vision_prop": graphGlob("general/natural/vision/vision_prop_*.min"),
-  "vision_inv": graphGlob("general/natural/vision/vision_inv_*.min"),
-  "vision": graphGlob("general/natural/vision/vision_*.min"),
+  "vision_rnd": graph_glob("general/natural/vision/vision_rnd_*.min"),
+  "vision_prop": graph_glob("general/natural/vision/vision_prop_*.min"),
+  "vision_inv": graph_glob("general/natural/vision/vision_inv_*.min"),
+  "vision": graph_glob("general/natural/vision/vision_*.min"),
   
   ## NETGEN
   # NETGEN-8: Sparse networks, with m = 8n. Capacities and costs uniform random.
@@ -92,17 +92,17 @@ FULL_DATASET = {
   # NETGEN-LO-SR: As NETGEN-SR, but with much lower average supply, around 10.
   # NETGEN-DEG: n=4096 fixed, average outdegree ranges from 2 to n/2. 
   #             Otherwise, as for NETGEN-8. 
-  "netgen_8": graphGlob("general/synthetic/netgen/netgen_8_*.min"), 
-  "netgen_sr": graphGlob("general/synthetic/netgen/netgen_sr_*.min"),
-  "netgen_lo_8": graphGlob("general/synthetic/netgen/netgen_lo_8_*.min"),
-  "netgen_lo_sr": graphGlob("general/synthetic/netgen/netgen_lo_sr_*.min"),
-  "netgen_deg": graphGlob("general/synthetic/netgen/netgen_deg_*.min"),
+  "netgen_8": graph_glob("general/synthetic/netgen/netgen_8_*.min"), 
+  "netgen_sr": graph_glob("general/synthetic/netgen/netgen_sr_*.min"),
+  "netgen_lo_8": graph_glob("general/synthetic/netgen/netgen_lo_8_*.min"),
+  "netgen_lo_sr": graph_glob("general/synthetic/netgen/netgen_lo_sr_*.min"),
+  "netgen_deg": graph_glob("general/synthetic/netgen/netgen_deg_*.min"),
   
   ## GOTO (Grid On Torus)
   # GOTO-8: Equivalent parameters to NETGEN-8.
   # GOTO-SR: Equivalent parameters to NETGEN-SR.
-  "goto_8": graphGlob("general/synthetic/goto/goto_8_*.min"),
-  "goto_sr": graphGlob("general/synthetic/goto/goto_sr_*.min"),
+  "goto_8": graph_glob("general/synthetic/goto/goto_8_*.min"),
+  "goto_sr": graph_glob("general/synthetic/goto/goto_sr_*.min"),
 }
 
 FULL_DATASET["synthetic"] = FULL_DATASET["synthetic_small"] \
@@ -187,14 +187,14 @@ STANDARD_TRACE_CONFIG_TEMPLATE = {
 
 _STANDARD_TRACE_CONFIG_SHORT_EXTENSION = { "trace": "small_trace",
                                            "runtime": absoluteRuntime(1800) }
-STANDARD_TRACE_CONFIG_SHORT = { k : extendDict(v, _STANDARD_TRACE_CONFIG_SHORT_EXTENSION)
+STANDARD_TRACE_CONFIG_SHORT = { k : extend_dict(v, _STANDARD_TRACE_CONFIG_SHORT_EXTENSION)
                                 for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
 STANDARD_TRACE_CONFIG_SHORT_AND_SMALL = { k : STANDARD_TRACE_CONFIG_SHORT[k] 
                                           for k in ["small", "medium"]}
 
 _STANDARD_TRACE_CONFIG_1HOUR_EXTENSION = { "trace": "small_trace", 
                                            "runtime": absoluteRuntime(3600)}
-STANDARD_TRACE_CONFIG_1HOUR = { k : extendDict(v,_STANDARD_TRACE_CONFIG_1HOUR_EXTENSION) 
+STANDARD_TRACE_CONFIG_1HOUR = { k : extend_dict(v,_STANDARD_TRACE_CONFIG_1HOUR_EXTENSION) 
                                 for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
 
 ### Machine topologies
@@ -228,16 +228,16 @@ COMPILER_CLANG = {
 } 
 
 COMPILERS = {
-  "gcc_debug": extendDict(COMPILER_GCC, {"flags": "-g"}),
-  "gcc_O0": extendDict(COMPILER_GCC, {"flags": "-O0"}),
-  "gcc_O1": extendDict(COMPILER_GCC, {"flags": "-O1 -DNDEBUG"}),
-  "gcc_O2": extendDict(COMPILER_GCC, {"flags": "-O2 -DNDEBUG"}),
-  "gcc_O3": extendDict(COMPILER_GCC, {"flags": "-O3 -DNDEBUG"}),
-  "clang_debug": extendDict(COMPILER_CLANG, {"flags": "-g"}),
-  "clang_O0": extendDict(COMPILER_CLANG, {"flags": "-O0"}),
-  "clang_O1": extendDict(COMPILER_CLANG, {"flags": "-O1 -DNDEBUG"}),
-  "clang_O2": extendDict(COMPILER_CLANG, {"flags": "-O2 -DNDEBUG"}),
-  "clang_O3": extendDict(COMPILER_CLANG, {"flags": "-O3 -DNDEBUG"}),
+  "gcc_debug": extend_dict(COMPILER_GCC, {"flags": "-g"}),
+  "gcc_O0": extend_dict(COMPILER_GCC, {"flags": "-O0"}),
+  "gcc_O1": extend_dict(COMPILER_GCC, {"flags": "-O1 -DNDEBUG"}),
+  "gcc_O2": extend_dict(COMPILER_GCC, {"flags": "-O2 -DNDEBUG"}),
+  "gcc_O3": extend_dict(COMPILER_GCC, {"flags": "-O3 -DNDEBUG"}),
+  "clang_debug": extend_dict(COMPILER_CLANG, {"flags": "-g"}),
+  "clang_O0": extend_dict(COMPILER_CLANG, {"flags": "-O0"}),
+  "clang_O1": extend_dict(COMPILER_CLANG, {"flags": "-O1 -DNDEBUG"}),
+  "clang_O2": extend_dict(COMPILER_CLANG, {"flags": "-O2 -DNDEBUG"}),
+  "clang_O3": extend_dict(COMPILER_CLANG, {"flags": "-O3 -DNDEBUG"}),
 }
 
 DEFAULT_COMPILER = "gcc_O3"
@@ -446,7 +446,7 @@ INCREMENTAL_IMPLEMENTATIONS = {
   },
 }
 
-IMPLEMENTATIONS = mergeDicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS],
+IMPLEMENTATIONS = merge_dicts([FULL_IMPLEMENTATIONS, INCREMENTAL_IMPLEMENTATIONS],
                              ["f", "i"], ["full", "incremental"])
 
 ##### Test cases
@@ -734,7 +734,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
    },
   # For producing datasets used in optimisation tests
   "generate_random": { # Random currently has some unimplemented functions
-    "traces": { k : extendDict(v, {"cost_model": "random"}) 
+    "traces": { k : extend_dict(v, {"cost_model": "random"}) 
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
@@ -742,7 +742,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
   },
   "generate_sjf": { # SJF currently has some unimplemented functions
-    "traces": { k : extendDict(v, {"cost_model": "sjf"}) 
+    "traces": { k : extend_dict(v, {"cost_model": "sjf"}) 
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
@@ -750,7 +750,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
   },
   "generate_octopus": {
-    "traces": { k : extendDict(v, {"cost_model": "octopus"}) 
+    "traces": { k : extend_dict(v, {"cost_model": "octopus"}) 
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
@@ -758,7 +758,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
     },
   },
   "generate_quincy": {
-    "traces": { k : extendDict(v, {"cost_model": "simulated_quincy"}) 
+    "traces": { k : extend_dict(v, {"cost_model": "simulated_quincy"}) 
                 for k,v in STANDARD_TRACE_CONFIG_1HOUR.items() },
     "iterations": 0,
     "tests": {
@@ -895,7 +895,7 @@ APPROXIMATE_TESTS_INCREMENTAL_HYBRID = {
 
 ### All tests
 
-TESTS = mergeDicts(
+TESTS = merge_dicts(
   [FULL_TESTS,
    INCREMENTAL_TESTS_OFFLINE, 
    INCREMENTAL_TESTS_HYBRID,
