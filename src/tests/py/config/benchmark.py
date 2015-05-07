@@ -978,42 +978,44 @@ APPROXIMATE_TESTS_FULL = {
     "test": {"implementation": "f_cs_latest_nonscheduling"},
     "iterations": 5,
   },
+  # N.B. Put iterations at 1 for the below: averaging over so many files, that
+  # shouldn't need to do multiple runs.
   # NETGEN
   "netgen_8": {
     "files": FULL_DATASET["netgen_8_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "iterations": 5,
+    "iterations": 1,
   },
   "netgen_sr": {
     "files": FULL_DATASET["netgen_sr_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "iterations": 5,
+    "iterations": 1,
   },
   "netgen_lo_8": {
     "files": FULL_DATASET["netgen_lo_8_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "iterations": 5,
+    "iterations": 1,
   },
   "netgen_lo_sr": {
     "files": FULL_DATASET["netgen_lo_sr_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "iterations": 5,
+    "iterations": 1,
   },
   "netgen_deg": {
     "files": FULL_DATASET["netgen_deg_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "iterations": 5,
+    "iterations": 1,
   },
   # GOTO
   "goto_8": {
     "files": FULL_DATASET["goto_8_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "iterations": 5,
+    "iterations": 1,
   },
   "goto_sr": {
     "files": FULL_DATASET["goto_sr_approx"],
     "test": {"implementation": "f_cs_latest_nonscheduling"},
-    "iterations": 5,
+    "iterations": 1,
   },
 }
 
