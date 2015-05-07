@@ -56,7 +56,7 @@ FULL_DATASET = {
                                     ["small_first.min", "small_last.min"]),
   "octopus_1hour_small": prefix_list("clusters/natural/google_trace/octopus/1hour/",
    ["small_first.min", "small_last.min", "medium_first.min", "medium_last.min"]),
-  "octopus_1hour": graph_glob("clusters/natural/google_trace/quincy/1hour/*.min"),
+  "octopus_1hour": graph_glob("clusters/natural/google_trace/octopus/1hour/*.min"),
   
   # Graphs after 1 hour into Google Trace. Using simulated Quincy cost model.
   # Generated with Frangioni incremental solver, 10 us scheduling interval.
