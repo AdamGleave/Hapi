@@ -8,7 +8,5 @@ class FigureTypes():
   incremental_hist = 6
   incremental_over_time = 7
   approximate_oracle_policy = 8
-  approximate_policy_accuracy = 9
-  approximate_error_cdf = 10
-  approximate_speed_cdf = 11
-  approximate_cost_vs_time = 12
+  approximate_cost_vs_time = 9
+  approximate_policy_combined = 10

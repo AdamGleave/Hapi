@@ -20,10 +20,8 @@ figure_generators = {
   FigureTypes.incremental_hist : gen_incremental.generate_hist,
   FigureTypes.incremental_over_time : gen_incremental.generate_over_time,
   FigureTypes.approximate_oracle_policy : gen_approximate.generate_oracle_policy_interpolate,
-  FigureTypes.approximate_policy_accuracy : gen_approximate.generate_terminating_condition_accuracy_plot,
-  FigureTypes.approximate_error_cdf : gen_approximate.generate_terminating_condition_accuracy_distribution,
-  FigureTypes.approximate_speed_cdf : gen_approximate.generate_terminating_condition_speed_distribution,
   FigureTypes.approximate_cost_vs_time : gen_approximate.generate_cost_vs_time_plot,
+  FigureTypes.approximate_policy_combined : gen_approximate.generate_policy_combined,
 }
 
 if __name__ == "__main__":
@@ -76,18 +74,19 @@ if __name__ == "__main__":
       
       # new figure
       fig = plt.figure()
-      generate_function(data, figconfig)
-      if 'custom_cmd' in figconfig:
-        figconfig['custom_cmd']()
+      res = generate_function(data, figconfig)
+      if not res:
+        res = [("default", fig)]
       
-      # Export figure
-      figure_fname = figname + "_" + style_name + ".pdf"
-      figure_fname = os.path.join(config.FIGURE_ROOT, figure_fname)
-      with PdfPages(figure_fname) as out:
-        out.savefig(fig)
-        
-      # pgf_figure_fname = os.path.join(config.FIGURE_ROOT, figname + '.pgf')
-      # plt.savefig(pgf_figure_fname)
-      
-      # release memory for current figure 
-      plt.close()
+      for (subfigname, fig) in res:
+        if 'custom_cmd' in figconfig:
+          figconfig['custom_cmd']()
+          
+        figure_fname = figname
+        if subfigname != "default":
+          figure_fname += "_" + subfigname
+        figure_fname += "_" + style_name + ".pdf"
+        figure_fname = os.path.join(config.FIGURE_ROOT, figure_fname)
+        with PdfPages(figure_fname) as out:
+          out.savefig(fig)
+        plt.close(fig)        

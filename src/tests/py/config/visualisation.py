@@ -376,7 +376,8 @@ def updateIncrementalFigures(d):
 INCREMENTAL_FIGURES = updateIncrementalFigures(INCREMENTAL_FIGURES)
 
 ### Approximate test cases
-APPROXIMATE_ACCURACY_THRESHOLD = 90 # percent
+APPROXIMATE_ACCURACY_THRESHOLD = 98 # percent
+APPROXIMATE_TARGET_ACCURACY = 99
 APPROXIMATE_NUM_BINS = 10
 
 APPROXIMATE_MAX_COST_PARAMETER = 0.10
@@ -388,39 +389,74 @@ APPROXIMATE_DEFAULT_PERCENTILES = {
   25: '$25^{\mathrm{th}}$ percentile',
   50: 'Median',
 }
+# Which percentile is the heuristic computed at?
+APPROXIMATE_ACCURACY_AT_PERCENTILE = 1
 
 APPROXIMATE_FIGURES = {
-  'road': {
+  'road_general': {
     'data': 'af_road',
-    
-    # Used by oracle policy and policy accuracy-parameter plot
-    #'min_accuracy': can be used to override APPROXIMATE_ACCURACY_THRESHOLD
-    
-    # Used by policy accuracy-parameter plot, policy error and speed CDF generators 
-    'condition': 'cost', # or 'task_assignments'
-    'target_accuracy': 99, # in percent. Used for comparison
-    
-    # Used by policy accuracy-parameter plot
-    #'max_cost_parameter': can be used to override APPROXIMATE_MAX_COST_PARAMETER
-    #'max_task_assignments_parameter': can be used to override APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER
-    #'percentiles': can be used to override APPROXIMATE_DEFAULT_PERCENTILES
-    
-    # Used by policy error and speed CDF generators
-    'heuristic_parameter': 0.025, # threshold used by heuristic
-    
-    # Used by over_time generator only
-    'file': 'general/natural/road/road_flow_03_NH_e.min',
-  }
+    'training': 10,
+    'test': 10,
+  },
+  'road_paths': {
+    'data': 'af_road_paths',
+    'training': 2,
+    'test': 3,
+    'max_cost_parameter': 0.2,
+  },
+  'road_flow': {
+    'data': 'af_road_flow',
+    'training': 2,
+    'test': 3,
+    'max_cost_parameter': 0.2,
+  },
+  'netgen_8': {
+    'data': 'af_netgen_8',
+    'training': 10,
+    'test': 30,
+  },
+  'netgen_sr': {
+    'data': 'af_netgen_sr',
+    'training': 10,
+    'test': 30,
+  },
+  'netgen_lo_8': {
+    'data': 'af_netgen_lo_8',
+    'training': 10,
+    'test': 30,
+    'max_cost_parameter': 0.15,
+  },
+  'netgen_lo_sr': {
+    'data': 'af_netgen_lo_sr',
+    'training': 10,
+    'test': 30,
+    'max_cost_parameter': 0.15,
+  },
+  'netgen_deg': {
+    'data': 'af_netgen_deg',
+    'training': 10,
+    'test': 30,
+    'max_cost_parameter': 0.15,
+  },
+  'goto_8': {
+    'data': 'af_goto_8',
+    'training': 10,
+    'test': 30,
+    'max_cost_parameter': 0.2,
+  },
+  'goto_sr': {
+    'data': 'af_goto_sr',
+    'training': 10,
+    'test': 30,
+    'max_cost_parameter': 0.7,
+  },
 }
 
 def updateApproximateFigures(d):
   types = {'oracle_policy': ([], FigureTypes.approximate_oracle_policy),
-               'policy_parameter_accuracy': (['condition'], FigureTypes.approximate_policy_accuracy),
-               'policy_error_cdf': (['condition', 'heuristic_parameter', 'target_accuracy'],
-                                    FigureTypes.approximate_error_cdf),
-               'policy_speed_cdf': (['condition', 'heuristic_parameter', 'target_accuracy'],
-                                    FigureTypes.approximate_speed_cdf),
-               'over_time': (['file'], FigureTypes.approximate_cost_vs_time)}
+           'over_time': (['file'], FigureTypes.approximate_cost_vs_time),
+           'policy': ([], FigureTypes.approximate_policy_combined)}
+           
   return updateFiguresWithTypes(d, types)
   
 APPROXIMATE_FIGURES = updateApproximateFigures(APPROXIMATE_FIGURES)

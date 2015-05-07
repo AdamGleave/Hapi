@@ -310,15 +310,14 @@ def analyse_terminating_condition_parameter(stats, condition, extractValue, para
   values = np.array(list(map(findValue, stats)))
   return values 
 
-def analyse_terminating_condition_setup(stats, figconfig):
+def analyse_terminating_condition_setup(stats, condition):
   stats = ageneric_map_on_stats(relative_error, stats)
-  if figconfig['condition'] == 'cost':
+  if condition == 'cost':
     stats = ageneric_map_on_stats(cost_change, stats)
   reduced = reduce_everything(stats, granularity='file')
   return reduced
 
-def analyse_terminating_condition(stats, figconfig, extractValue):
-  condition = figconfig['condition']  
+def analyse_terminating_condition(stats, condition, figconfig, extractValue):  
   n_samples = 1000
   if condition == 'cost':
     max_cost_parameter = figconfig.get('max_cost_parameter', 
@@ -348,15 +347,21 @@ def extractAccuracy(refine_it):
 def extractSpeeds(refine_it):
   return refine_it['speedup']
 
-def generate_terminating_condition_accuracy_plot(data, figconfig):
+def analyse_terminating_condition_percentiles(data, condition, figconfig):
   stats = ageneric_map_on_stats(discard_iterations, data)
-  reduced = analyse_terminating_condition_setup(stats, figconfig)
+  reduced = analyse_terminating_condition_setup(stats, condition)
 
-  (parameters, accuracies) = analyse_terminating_condition(
-                                            reduced, figconfig, extractAccuracy)
+  (parameters, accuracies) = analyse_terminating_condition(reduced, condition,
+                                                     figconfig, extractAccuracy)
   percentiles_config = figconfig.get('percentiles', 
                                      config.APPROXIMATE_DEFAULT_PERCENTILES)
   percentiles = analyse_percentiles(accuracies, percentiles_config)
+  
+  return (parameters, percentiles)
+
+def generate_terminating_condition_accuracy_plot(parameters, percentiles, figconfig):
+  percentiles_config = figconfig.get('percentiles', 
+                                   config.APPROXIMATE_DEFAULT_PERCENTILES)
   
   for (percentile, percentile_label) in percentiles_config.items():
     plt.plot(parameters, percentiles[percentile], label=percentile_label)
@@ -371,7 +376,8 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
   plt.autoscale(axis='x', tight=True)
   
   xmin, xmax = plt.xlim()
-  target_accuracy = figconfig['target_accuracy']
+  target_accuracy = figconfig.get('target_accuracy',
+                                  config.APPROXIMATE_TARGET_ACCURACY)
   plt.plot((xmin, xmax), (target_accuracy, target_accuracy), 'k--')
   annotation = '{0}\% target'.format(target_accuracy)
   plt.annotate(annotation, xy=(xmin, target_accuracy), xycoords='data',
@@ -387,44 +393,50 @@ def generate_terminating_condition_accuracy_plot(data, figconfig):
 # SOMEDAY: could write a terminating condition speed plot here?
 # But this is perhaps best reserved for when trying a particular parameter.
 
-def generate_terminating_condition_accuracy_distribution(data, figconfig):
+def generate_terminating_condition_accuracy_distribution(data, parameter, 
+                                                          condition, figconfig):
   stats = ageneric_map_on_stats(discard_iterations, data)
-  reduced = analyse_terminating_condition_setup(stats, figconfig)
+  reduced = analyse_terminating_condition_setup(stats, condition)
 
-  accuracies = analyse_terminating_condition_parameter(reduced,
-      figconfig['condition'], extractAccuracy, figconfig['heuristic_parameter'])
+  accuracies = analyse_terminating_condition_parameter(reduced, condition,
+                                                     extractAccuracy, parameter)
+  
+  # draw CDF
+  plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
   
   # draw vertical line at desired accuracy
-  target_accuracy = figconfig['target_accuracy']
+  target_accuracy = figconfig.get('target_accuracy', 
+                                  config.APPROXIMATE_TARGET_ACCURACY)
   plt.plot((target_accuracy, target_accuracy), (0, 1), 'k--')
+  xmin, xmax = plt.xlim()
   width = 100 - target_accuracy
-  plt.xlim(target_accuracy - width * 0.1, 100)
+  xmin = min(xmin, target_accuracy - width * 0.1)
+  plt.xlim(xmin, 100)
   
   annotation = 'accuracy target'.format(target_accuracy)
   plt.annotate(annotation, xy=(target_accuracy, 0.5), xycoords='data',
                xytext=(3,0), textcoords='offset points',
                rotation='vertical', verticalalignment='center') 
-  
-  # draw CDF
-  plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
     
   # add labels
   plt.xlabel(r'Accuracy (\%)')
   plt.ylabel('Cumulative probability')
-  title = r'CDF for accuracy (heuristic parameter {0})'
-  title = title.format(figconfig['heuristic_parameter'])
+  title = r'CDF for accuracy (heuristic parameter {0:.3f})'.format(parameter)
   plt.title(title)
   
-def generate_terminating_condition_speed_distribution(data, figconfig):
+def generate_terminating_condition_speed_distribution(data, parameter,
+                                                          condition, figconfig):
   stats = ageneric_merge_iterations(data)
   stats = ageneric_map_on_stats(cumulative_time, stats)
   stats = ageneric_map_on_stats(speedup, stats)
-  reduced = analyse_terminating_condition_setup(stats, figconfig)
+  reduced = analyse_terminating_condition_setup(stats, condition)
 
-  heuristic_speeds = analyse_terminating_condition_parameter(reduced, 
-                  figconfig['condition'], extractSpeeds, figconfig['heuristic_parameter'])
+  heuristic_speeds = analyse_terminating_condition_parameter(reduced, condition, 
+                                                       extractSpeeds, parameter)
+  target_accuracy = figconfig.get('target_accuracy',
+                                  config.APPROXIMATE_TARGET_ACCURACY)
   oracle_speeds = analyse_terminating_condition_parameter(reduced,
-                          'oracle', extractSpeeds, figconfig['target_accuracy'])
+                          'oracle', extractSpeeds, target_accuracy)
 #   standard_speeds = analyse_terminating_condition_parameter(reduced,
 #                           'standard', extractSpeeds, None)
   
@@ -432,17 +444,103 @@ def generate_terminating_condition_speed_distribution(data, figconfig):
   oracle_speeds = np.concatenate(oracle_speeds)
 #   standard_speeds = np.concatenate(standard_speeds)
   
-  plot.cdf([heuristic_speeds, oracle_speeds],
-           labels=['Heuristic', 'Oracle'], 
+  plot.cdf([oracle_speeds, heuristic_speeds],
+           labels=['Oracle', 'Heuristic'], 
            colours={'Heuristic': 'b', 'Oracle': 'g'})
   
   plt.xlabel('Speedup (\%)')
   plt.ylabel('Cumulative probability')
-  title = r'CDF for speedup (heuristic parameter {0})'
-  title = title.format(figconfig['heuristic_parameter'])
+  title = r'CDF for speedup (heuristic parameter {0:.3f})'.format(parameter)
   plt.title(title)
   
   plt.legend(loc='lower right')
+  
+def split_training_and_test(data, figconfig):
+  # split data into training set and test set
+  type, times = data
+  n_training = figconfig['training']
+  n_test = figconfig['test']
+  if type == 'approximate_full':
+    # split on files
+    files = sorted(times.keys()) # sort so order is deterministic
+    assert(len(files) == n_training + n_test)
+    training_files = files[0:n_training]
+    test_files = files[n_training:len(files)]
+    
+    training_times = {k : times[k] for k in training_files}
+    test_times = {k : times[k] for k in test_files}
+    training_data = (type, training_times)
+    test_data = (type, test_times)
+  elif type == 'approximate_incremental_offline':
+    # split on the deltas. note we only consider a single file.
+    file = figconfig['file']
+    times = times[file]
+    
+    assert(len(times) == n_training + n_test)
+    # Now this is a bit of a hack. We want to pretend it's in full format,
+    # for consistency.
+    training_times = {k : times[k] for k in range(n_training)}
+    test_times = {k : times[k] for k in range(n_training,len(times))}
+        
+    # fake the type as 'full', since it only has one file in it
+    training_data = ('full', training_times)
+    test_data = ('full', test_times)
+  else:
+    print("ERROR: Unrecognised type ", type)
+    assert(False)
+    
+  return (training_data, test_data)
+
+def has_task_assignments(data):
+  type, times = data
+  some_key = list(times.keys())[0]
+  some_time = times[some_key][0][0]
+  # task assignments will be -1 if not computed, 
+  # should never be -1 if computed
+  # SOMEDAY(adam): They might be if timeout occurs, but then we don't want
+  # that in our dataset anyway.
+  
+  return some_time['task_assignments_changed'] != -1
+
+def generate_policy_combined_for_condition(training_data, test_data,
+                                           condition, figconfig):
+  fig = plt.figure()
+  parameters, percentiles = analyse_terminating_condition_percentiles\
+                                           (training_data, condition, figconfig)
+  accuracy_at_percentile = figconfig.get('accuracy_at_percentile', 
+                                         config.APPROXIMATE_ACCURACY_AT_PERCENTILE)
+  percentile = percentiles[accuracy_at_percentile]
+  target_accuracy = figconfig.get('target_accuracy',
+                                  config.APPROXIMATE_TARGET_ACCURACY)
+  indices_with_accuracy, = np.nonzero(percentile >= target_accuracy)
+  last_index_with_accuracy = indices_with_accuracy[-1]
+  heuristic_parameter = parameters[last_index_with_accuracy]
+  
+  generate_terminating_condition_accuracy_plot(parameters, percentiles, figconfig)
+  yield (condition + '_policy_parameters', fig)
+  
+  fig = plt.figure()
+  generate_terminating_condition_accuracy_distribution(test_data, 
+                                      heuristic_parameter, condition, figconfig)
+  yield (condition + '_policy_accuracy', fig)
+  
+  fig = plt.figure()
+  generate_terminating_condition_speed_distribution(test_data, 
+                                      heuristic_parameter, condition, figconfig)
+  yield (condition + '_policy_speed', fig)
+ 
+def generate_policy_combined(data, figconfig):
+  # TBC: Automatically detect conditions, or at least support both
+  training_data, test_data = split_training_and_test(data, figconfig)
+  
+  conditions = ['cost']
+  if has_task_assignments(training_data):
+    conditions += ['task_assignments']
+  
+  for condition in conditions:
+    for x in generate_policy_combined_for_condition(training_data, test_data,
+                                                    condition, figconfig):
+      yield x
   
 def generate_cost_vs_time_plot(data, figconfig):
   type, d = data
