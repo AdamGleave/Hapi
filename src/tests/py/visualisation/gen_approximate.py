@@ -400,29 +400,52 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
 
   accuracies = analyse_terminating_condition_parameter(reduced, condition,
                                                      extractAccuracy, parameter)
-  
-  # draw CDF
-  plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
-  
-  # draw vertical line at desired accuracy
   target_accuracy = figconfig.get('target_accuracy', 
-                                  config.APPROXIMATE_TARGET_ACCURACY)
-  plt.plot((target_accuracy, target_accuracy), (0, 1), 'k--')
+                                    config.APPROXIMATE_TARGET_ACCURACY)
+  
+  accuracies_sorted = np.sort(accuracies)
+  points_breached = np.where(accuracies_sorted < target_accuracy)
+  most_accurate_breach_index = points_breached[-1]
+  percent_breached = (float(most_accurate_breach_index) + 1) * 100.0 \
+                   / len(accuracies_sorted)
+  
+  def genericDraw():
+    # draw CDF
+    plot.cdf([accuracies], labels=['Heuristic'], colours={'Heuristic': 'b'})
+    
+    # draw vertical line at desired accuracy
+    plt.plot((target_accuracy, target_accuracy), (0, 100), 'k--')
+    
+    annotation = 'accuracy target'.format(target_accuracy)
+    plt.annotate(annotation, xy=(target_accuracy, 50), xycoords='data',
+                 xytext=(3,0), textcoords='offset points',
+                 rotation='vertical', verticalalignment='center') 
+    
+    inaccuracy_annotation = r'{0:.3}\%'.format(percent_breached)
+    plt.annotate(inaccuracy_annotation,
+                 xy=(target_accuracy, percent_breached), xycoords='data',
+                 xytext=(-1,1), textcoords='offset points',
+                 horizontalalignment='right') 
+      
+    # add labels
+    plt.xlabel(r'Accuracy (\%)')
+    title = r'CDF for accuracy (heuristic parameter {0:.3f})'.format(parameter)
+    plt.title(title)
+  
+  wide = plt.figure()
+  genericDraw()
   xmin, xmax = plt.xlim()
   width = 100 - target_accuracy
-  xmin = min(xmin, target_accuracy - width * 0.1)
+  at_least = target_accuracy - width * 0.2
+  xmin = min(xmin, at_least)
   plt.xlim(xmin, 100)
   
-  annotation = 'accuracy target'.format(target_accuracy)
-  plt.annotate(annotation, xy=(target_accuracy, 0.5), xycoords='data',
-               xytext=(3,0), textcoords='offset points',
-               rotation='vertical', verticalalignment='center') 
-    
-  # add labels
-  plt.xlabel(r'Accuracy (\%)')
-  plt.ylabel('Cumulative probability')
-  title = r'CDF for accuracy (heuristic parameter {0:.3f})'.format(parameter)
-  plt.title(title)
+  narrow = plt.figure()
+  genericDraw()
+  plt.xlim(at_least, 100)
+  
+  return (wide, narrow)
+  
   
 def generate_terminating_condition_speed_distribution(data, parameter,
                                                           condition, figconfig):
@@ -449,7 +472,6 @@ def generate_terminating_condition_speed_distribution(data, parameter,
            colours={'Heuristic': 'b', 'Oracle': 'g'})
   
   plt.xlabel('Speedup (\%)')
-  plt.ylabel('Cumulative probability')
   title = r'CDF for speedup (heuristic parameter {0:.3f})'.format(parameter)
   plt.title(title)
   
@@ -519,10 +541,10 @@ def generate_policy_combined_for_condition(training_data, test_data,
   generate_terminating_condition_accuracy_plot(parameters, percentiles, figconfig)
   yield (condition + '_policy_parameters', fig)
   
-  fig = plt.figure()
-  generate_terminating_condition_accuracy_distribution(test_data, 
+  wide, narrow = generate_terminating_condition_accuracy_distribution(test_data, 
                                       heuristic_parameter, condition, figconfig)
-  yield (condition + '_policy_accuracy', fig)
+  yield (condition + '_policy_accuracy_wide', wide)
+  yield (condition + '_policy_accuracy_narrow', narrow)
   
   fig = plt.figure()
   generate_terminating_condition_speed_distribution(test_data, 

@@ -59,7 +59,6 @@ def _generate_cdf_helper(data, figconfig, incremental_only):
   plt.legend(loc='lower right')
   
   plt.xlabel('Scheduling latency ({0})'.format(unit))
-  plt.ylabel('Cumulative probability')
   plt.title('CDF for scheduling latency')
   
 def generate_cdf(data, figconfig):

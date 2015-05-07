@@ -978,6 +978,11 @@ APPROXIMATE_TESTS_FULL = {
     "test": {"implementation": "f_cs_latest_nonscheduling"},
     "iterations": 5,
   },
+  "road_flow_all": {
+    "files": FULL_DATASET["road_flow"],
+    "test": {"implementation": "f_cs_latest_nonscheduling"},
+    "iterations": 5,
+  },
   # N.B. Put iterations at 1 for the below: averaging over so many files, that
   # shouldn't need to do multiple runs.
   # NETGEN

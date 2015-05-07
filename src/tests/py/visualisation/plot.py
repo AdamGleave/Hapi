@@ -12,9 +12,11 @@ def cdf(times, labels, colours, **kwargs):
   
   for i in range(num_groups):
     x = np.sort(times[i])
-    y = np.linspace(0, 1, len(x), endpoint=False)
+    y = np.linspace(0, 100, len(x), endpoint=False)
     label = labels[i]
     plt.plot(x, y, label=label, color=colours[label])
+    
+  plt.ylabel('Cumulative probability (\%)')
     
 def hist(times, labels, colours, sum_to_one=True, **kwargs):
   num_groups = len(times)
