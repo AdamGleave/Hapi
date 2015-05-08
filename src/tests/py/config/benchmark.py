@@ -460,7 +460,8 @@ for algo in LEMON_ALGOS:
 ### Incremental solvers
 MY_INCREMENTAL_OFFLINE_ARGS = ["--flow", "false"]
 INCREMENTAL_IMPLEMENTATIONS = {
-  ### My solvers - latest
+  ### My solvers
+  ## Latest
   "ap_latest": {
     "version": "master",
     "target": "incremental_min_cost",
@@ -475,6 +476,13 @@ INCREMENTAL_IMPLEMENTATIONS = {
     "arguments": ["relax", "--quiet"],
     "offline_arguments": MY_INCREMENTAL_OFFLINE_ARGS,
    },
+  ## Other versions
+  "relax_cache_none": {
+    "version": "relax_nocache",
+    "target": "incremental_min_cost",
+    "path": "bin/incremental_min_cost",
+    "arguments": ["relax", "--quiet"]
+  },
   ### RELAX Frangioni with incremental additions
   # Latest
   "relaxf_latest": {
@@ -912,6 +920,15 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_relax_latest" },
     },
   },
+  "same_relax_nocache": {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "timeout": 60,
+    "iterations": 5,
+    "tests": {
+      "full":           { "implementation": "f_relax_cache_none" },
+      "incremental":    { "implementation": "i_relax_cache_none" },
+    },
+  },                              
   "same_relaxf": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
     "timeout": 60,
