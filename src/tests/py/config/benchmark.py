@@ -246,6 +246,11 @@ _STANDARD_TRACE_CONFIG_1HOUR_EXTENSION = { "trace": "small_trace",
 STANDARD_TRACE_CONFIG_1HOUR = { k : extend_dict(v,_STANDARD_TRACE_CONFIG_1HOUR_EXTENSION) 
                                 for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
 
+_STANDARD_TRACE_CONFIG_24HOUR_EXTENSION = { "trace": "small_trace", 
+                                           "runtime": absoluteRuntime(24*3600)}
+STANDARD_TRACE_CONFIG_24HOUR = { k : extend_dict(v,_STANDARD_TRACE_CONFIG_24HOUR_EXTENSION) 
+                                for k, v in STANDARD_TRACE_CONFIG_TEMPLATE.items()}
+
 ### Machine topologies
 
 FIRMAMENT_MACHINES = prefix_dict(FIRMAMENT_MACHINE_DIR, 
@@ -884,6 +889,26 @@ INCREMENTAL_TESTS_ANYONLINE = {
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "i_relaxf_latest" },
+    },
+  },
+  "generate_quincy_longgap": {
+    # 600000000 = minute scheduling interval
+    "traces": { k : extend_dict(v, {"cost_model": "simulated_quincy",
+                                    "batch_step": 60000000})  
+                for k,v in STANDARD_TRACE_CONFIG_24HOUR.items() },
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
+    },
+  },
+  "generate_octopus_longgap": {
+    # 600000000 = minute scheduling interval
+    "traces": { k : extend_dict(v, {"cost_model": "octopus",
+                                    "batch_step": 60000000})  
+                for k,v in STANDARD_TRACE_CONFIG_24HOUR.items() },
+    "iterations": 0,
+    "tests": {
+      "goldberg": { "implementation": "f_cs_goldberg" },
     },
   },
   # Run optimized implementation on whole trace. Get an idea for how fast

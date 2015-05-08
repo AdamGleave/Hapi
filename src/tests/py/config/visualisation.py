@@ -318,7 +318,7 @@ INCREMENTAL_FIGURES = {
     'trace': 'small',
   },
   'same_relax_nocache': {
-    'data': 'ion_same_relax',
+    'data': 'ion_same_relax_nocache',
     'trace': 'medium',
   },
   'same_relaxf': {
