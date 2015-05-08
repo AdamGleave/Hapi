@@ -12,7 +12,7 @@ def cdf(times, labels, colours, **kwargs):
   
   for i in range(num_groups):
     x = np.sort(times[i])
-    y = np.linspace(0, 100, len(x), endpoint=False)
+    y = np.linspace(0, 100, len(x))
     label = labels[i]
     plt.plot(x, y, label=label, color=colours[label])
     

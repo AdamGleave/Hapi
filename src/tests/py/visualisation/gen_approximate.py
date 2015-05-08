@@ -359,7 +359,8 @@ def analyse_terminating_condition_percentiles(data, condition, figconfig):
   
   return (parameters, percentiles)
 
-def generate_terminating_condition_accuracy_plot(parameters, percentiles, figconfig):
+def generate_terminating_condition_accuracy_plot(parameters, percentiles,
+                                                 heuristic_parameter, figconfig):
   percentiles_config = figconfig.get('percentiles', 
                                    config.APPROXIMATE_DEFAULT_PERCENTILES)
   
@@ -371,7 +372,8 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles, figcon
   
   ymin, ymax = plt.ylim()
   ymin = max(min_accuracy, ymin)
-  plt.ylim(ymin, 100.0)
+  ymax = 100.0
+  plt.ylim(ymin, ymax)
   
   plt.autoscale(axis='x', tight=True)
   
@@ -382,7 +384,17 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles, figcon
   annotation = '{0}\% target'.format(target_accuracy)
   plt.annotate(annotation, xy=(xmin, target_accuracy), xycoords='data',
                xytext=(6,-2), textcoords='offset points',
-               verticalalignment='top') 
+               verticalalignment='top')
+  
+  # This actually doesn't look very good, since there's typically a vertical
+  # line at the same point from one of the percentiles. But can maybe fix it up?
+  # (Perhaps an arrow to the point would be better?)
+#   plt.plot((heuristic_parameter, heuristic_parameter), (ymin, ymax), 'k--')
+#   annotation = 'heuristic parameter'
+#   ymid = (ymin + ymax) / 2
+#   plt.annotate(annotation, xy=(heuristic_parameter, ymid), xycoords='data',
+#                xytext=(3,0), textcoords='offset points',
+#                rotation='vertical', verticalalignment='center')
     
   plt.xlabel('Parameter')
   plt.ylabel(r'Accuracy (\%)')
@@ -403,11 +415,8 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
   target_accuracy = figconfig.get('target_accuracy', 
                                     config.APPROXIMATE_TARGET_ACCURACY)
   
-  accuracies_sorted = np.sort(accuracies)
-  points_breached = np.where(accuracies_sorted < target_accuracy)
-  most_accurate_breach_index = points_breached[-1]
-  percent_breached = (float(most_accurate_breach_index) + 1) * 100.0 \
-                   / len(accuracies_sorted)
+  num_below_target = np.sum(accuracies < target_accuracy)
+  percent_breached = float(num_below_target) / len(accuracies) * 100.0
   
   def genericDraw():
     # draw CDF
@@ -418,14 +427,15 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
     
     annotation = 'accuracy target'.format(target_accuracy)
     plt.annotate(annotation, xy=(target_accuracy, 50), xycoords='data',
-                 xytext=(3,0), textcoords='offset points',
-                 rotation='vertical', verticalalignment='center') 
+                 xytext=(-1,0), textcoords='offset points', rotation='vertical', 
+                 horizontalalignment='right', verticalalignment='center') 
     
-    inaccuracy_annotation = r'{0:.3}\%'.format(percent_breached)
-    plt.annotate(inaccuracy_annotation,
-                 xy=(target_accuracy, percent_breached), xycoords='data',
-                 xytext=(-1,1), textcoords='offset points',
-                 horizontalalignment='right') 
+    if percent_breached:
+      inaccuracy_annotation = r'{0:.3}\%'.format(percent_breached)
+      plt.annotate(inaccuracy_annotation,
+                   xy=(target_accuracy, percent_breached), xycoords='data',
+                   xytext=(-1,1), textcoords='offset points',
+                   horizontalalignment='right') 
       
     # add labels
     plt.xlabel(r'Accuracy (\%)')
@@ -538,18 +548,19 @@ def generate_policy_combined_for_condition(training_data, test_data,
   last_index_with_accuracy = indices_with_accuracy[-1]
   heuristic_parameter = parameters[last_index_with_accuracy]
   
-  generate_terminating_condition_accuracy_plot(parameters, percentiles, figconfig)
-  yield (condition + '_policy_parameters', fig)
+  generate_terminating_condition_accuracy_plot(parameters, percentiles,
+                                               heuristic_parameter, figconfig)
+  yield (condition + '_parameters', fig)
   
   wide, narrow = generate_terminating_condition_accuracy_distribution(test_data, 
                                       heuristic_parameter, condition, figconfig)
-  yield (condition + '_policy_accuracy_wide', wide)
-  yield (condition + '_policy_accuracy_narrow', narrow)
+  yield (condition + '_accuracy_wide', wide)
+  yield (condition + '_accuracy_narrow', narrow)
   
   fig = plt.figure()
   generate_terminating_condition_speed_distribution(test_data, 
                                       heuristic_parameter, condition, figconfig)
-  yield (condition + '_policy_speed', fig)
+  yield (condition + '_speed', fig)
  
 def generate_policy_combined(data, figconfig):
   # TBC: Automatically detect conditions, or at least support both
