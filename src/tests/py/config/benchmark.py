@@ -396,8 +396,8 @@ FULL_IMPLEMENTATIONS = {
      "arguments" : ["augmenting_path"]
   },
   ## RELAX
-  "relax_firstworking": {
-    "version": "73e0b68",
+  "relax_cache_none": {
+    "version": "relax_nocache",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments": ["relax"]
@@ -632,14 +632,14 @@ FULL_TESTS = {
   # zerorc case: only zero reduced cost cuts
   # all case: every arc crossing the cut (separated into positive and zero rc)
   "opt_relax_cache_arcs": {
-    "files": FULL_DATASET["all_1hour_small"],
+    "files": FULL_DATASET["all_1hour_small"] + FULL_DATASET["synthetic_small"],
     # The pathological case of RELAX seems to be triggered, ugh.
     # Bump the timeout so we can collect results for small & medium.
     "timeout": 600,
     "iterations": 5,
     "tests": {
       "none": {
-        "implementation": "f_relax_firstworking",
+        "implementation": "f_relax_cache_none",
       },
       "cache_zerorc": {
         "implementation": "f_relax_cache_zerorc",
