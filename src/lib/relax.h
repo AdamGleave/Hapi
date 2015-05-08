@@ -4,6 +4,7 @@
 #include <climits>
 #include <vector>
 #include <queue>
+#include <unordered_map>
 
 #include "incremental_solver.h"
 #include "residual_network.h"
@@ -22,22 +23,34 @@ protected:
 		return potentials;
 	}
 private:
+  class cut_arcs_iterator
+      : public std::iterator<std::forward_iterator_tag, std::uint32_t>  {
+  public:
+    cut_arcs_iterator(const RELAX &algo);
+    cut_arcs_iterator(const RELAX &algo, bool);
+    Arc* operator*() const;
+    cut_arcs_iterator operator++();
+    cut_arcs_iterator operator++(int);
+    bool operator==(const cut_arcs_iterator &it);
+    bool operator!=(const cut_arcs_iterator &it);
+
+  private:
+    void updateArcsIt();
+    void nextValid();
+
+    const RELAX &algo;
+    std::set<uint32_t>::const_iterator node_it;
+    uint32_t cur_node;
+    std::unordered_map<uint32_t, Arc*>::const_iterator arcs_it, arcs_it_end;
+  };
+
 	void init();
-
-	ResidualNetwork::iterator beginZeroCostCut();
-	ResidualNetwork::iterator endZeroCostCut();
-	ResidualNetwork::const_iterator beginZeroCostCut() const;
-	ResidualNetwork::const_iterator endZeroCostCut() const;
-	ResidualNetwork::iterator beginPositiveCostCut();
-	ResidualNetwork::iterator endPositiveCostCut();
-	ResidualNetwork::const_iterator beginPositiveCostCut() const;
-	ResidualNetwork::const_iterator endPositiveCostCut() const;
-
-	void reset_cut();
-	void update_cut(uint32_t new_node);
 
 	int64_t compute_reduced_cost(const Arc &arc, bool allow_negative=false);
 	uint64_t compute_residual_cut();
+	void update_residual_cut(uint32_t new_node);
+	cut_arcs_iterator beginCutArcs() const;
+	cut_arcs_iterator endCutArcs() const;
 
 	void adjust_potential();
 	void adjust_flow(uint32_t src_id, uint32_t dst_id);
