@@ -374,6 +374,7 @@ def runApproximateTestInstance(test_name, test_command, log_directory, fname,
   arguments = ["--statistics", fifo_path]
   
   try:
+    signal.alarm(timeout)
     running_command = test_command(input_path, out_path, error_path=err_path,
                                    *arguments)
     
