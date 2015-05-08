@@ -652,9 +652,10 @@ FULL_TESTS = {
               
   ## Cost scaling
   "opt_cs_wave_vs_fifo": {
-    "files": FULL_DATASET["all_1hour"],
+    # small since wave takes >10 minutes even on medium_first
+    "files": FULL_DATASET["all_1hour_small"],
     "iterations": 10,
-    "timeout": 600,
+    "timeout": 7200,
     "tests": {
       "wave": {
         "implementation": "f_cs_wave",
