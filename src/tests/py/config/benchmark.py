@@ -118,6 +118,7 @@ FULL_DATASET = {
   "netgen_lo_8": graph_glob("general/synthetic/netgen/generated/netgen_lo_8_*.min"),
   "netgen_lo_sr": graph_glob("general/synthetic/netgen/generated/netgen_lo_sr_*.min"),
   "netgen_deg": graph_glob("general/synthetic/netgen/generated/netgen_deg_*.min"),
+  "netgen": graph_glob("general/synthetic/netgen/generated/netgen_*.min"),
   
   # For the above, there are five versions (with different seeds) for each
   # set of network parameters. For some tests, one is enough. 
@@ -140,6 +141,7 @@ FULL_DATASET = {
   # GOTO-SR: Equivalent parameters to NETGEN-SR.
   "goto_8": graph_glob("general/synthetic/goto/generated/goto_8_*.min"),
   "goto_sr": graph_glob("general/synthetic/goto/generated/goto_sr_*.min"),
+  "goto": graph_glob("general/synthetic/goto/generated/goto_*.min"),
   
   # Single copy; see comment above for NETGEN
   "goto_8_one": graph_glob("general/synthetic/goto/generated/goto_8_*a.min"),
@@ -157,7 +159,7 @@ FULL_DATASET["all_1hour_mini"] = FULL_DATASET["quincy_1hour_mini"] \
 FULL_DATASET["all_1hour_small"] = FULL_DATASET["quincy_1hour_small"] \
                                 + FULL_DATASET["octopus_1hour_small"]                                    
 FULL_DATASET["all_1hour"] = FULL_DATASET["quincy_1hour"] \
-                          + FULL_DATASET["octopus_1hour"]    
+                          + FULL_DATASET["octopus_1hour"]
 
 all_files = set()
 for files in FULL_DATASET.values():
@@ -632,10 +634,11 @@ FULL_TESTS = {
   # zerorc case: only zero reduced cost cuts
   # all case: every arc crossing the cut (separated into positive and zero rc)
   "opt_relax_cache_arcs": {
-    "files": FULL_DATASET["all_1hour_small"] + FULL_DATASET["synthetic_small"],
-    # The pathological case of RELAX seems to be triggered, ugh.
-    # Bump the timeout so we can collect results for small & medium.
-    "timeout": 600,
+    "files": FULL_DATASET["all_1hour_small"] + 
+             FULL_DATASET["road"] + 
+             FULL_DATASET["netgen"] + FULL_DATASET["goto"],
+    # It's quite slow even on medium-sized datasets, so need to bump the timeout
+    "timeout": 120,
     "iterations": 5,
     "tests": {
       "none": {
