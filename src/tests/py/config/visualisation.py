@@ -209,7 +209,7 @@ OPTIMISATION_FIGURES = {
       'fifo': 'FIFO',
     }),
     
-    'datasets': ['Small', 'Medium', 'Large'],
+    'datasets': ['Small', 'Medium'],
     'implementations': ['FIFO'],
     'baseline': 'Wave',
     'colours': {
@@ -349,6 +349,23 @@ INCREMENTAL_FIGURES = {
     'colours': {'Standard cost scaling': 'r',
                 'Incremental relaxation': 'b'},
   },
+  'head_to_head_merged': {
+    'data': 'ion_head_to_head_merged',
+    'trace': 'full_size',
+    'window_size': '5s',
+    'test_filter': dictFilter({'full': 'Standard cost scaling',
+                               'inc_ap': 'My incremental augmenting path',
+                               'inc_relax': 'My incremental relaxation', 
+                               'incremental': 'Incremental relaxation (Frangioni)'}),
+    'implementations': ['Standard cost scaling', 'My incremental augmenting path',
+                        'My incremental relaxation', 'Incremental relaxation (Frangioni)'],
+    'incremental_implementation': 'Incremental relaxation (Frangioni)',
+    'colours': {'Standard cost scaling': 'r',
+                'My incremental augmenting path': 'g',
+                'My incremental relaxation': 'b',
+                'Incremental relaxation (Frangioni)': 'k',
+               },
+  },
 } 
 
 def applyIncrementalDefault(d):
@@ -384,12 +401,13 @@ APPROXIMATE_NUM_BINS = 10
 APPROXIMATE_MAX_COST_PARAMETER = 0.10
 APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER = 20
 
-APPROXIMATE_DEFAULT_PERCENTILES = {
-  1: '$1^{\mathrm{st}}$ percentile', 
-  5: '$5^{\mathrm{th}}$ percentile',
-  25: '$25^{\mathrm{th}}$ percentile',
-  50: 'Median',
-}
+# N.B. List of (key,value) pairs rather than dict so order can be specified
+APPROXIMATE_DEFAULT_PERCENTILES = [
+  (1, '$1^{\mathrm{st}}$ percentile'), 
+  (5, '$5^{\mathrm{th}}$ percentile'),
+  (25, '$25^{\mathrm{th}}$ percentile'),
+  (50, 'Median'),
+]
 # Which percentile is the heuristic computed at?
 APPROXIMATE_ACCURACY_AT_PERCENTILE = 1
 
@@ -413,42 +431,42 @@ APPROXIMATE_FIGURES = {
   },
   'netgen_8': {
     'data': 'af_netgen_8',
-    'training': 10,
-    'test': 30,
+    'training': 250,
+    'test': 750,
   },
   'netgen_sr': {
     'data': 'af_netgen_sr',
-    'training': 10,
-    'test': 30,
+    'training': 250,
+    'test': 750,
   },
   'netgen_lo_8': {
     'data': 'af_netgen_lo_8',
-    'training': 10,
-    'test': 30,
+    'training': 250,
+    'test': 750,
     'max_cost_parameter': 0.15,
   },
   'netgen_lo_sr': {
     'data': 'af_netgen_lo_sr',
-    'training': 10,
-    'test': 30,
+    'training': 250,
+    'test': 750,
     'max_cost_parameter': 0.15,
   },
   'netgen_deg': {
     'data': 'af_netgen_deg',
-    'training': 10,
-    'test': 30,
+    'training': 250,
+    'test': 750,
     'max_cost_parameter': 0.15,
   },
   'goto_8': {
     'data': 'af_goto_8',
-    'training': 10,
-    'test': 30,
+    'training': 250,
+    'test': 750,
     'max_cost_parameter': 0.2,
   },
   'goto_sr': {
     'data': 'af_goto_sr',
-    'training': 10,
-    'test': 30,
+    'training': 250,
+    'test': 750,
     'max_cost_parameter': 0.7,
   },
 }

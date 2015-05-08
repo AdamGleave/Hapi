@@ -339,7 +339,7 @@ def analyse_terminating_condition(stats, condition, figconfig, extractValue):
   return (parameters, values_by_parameter)
 
 def analyse_percentiles(data, percentiles):
-  return {p : np.percentile(data, p, axis=1) for p in percentiles}
+  return {p : np.percentile(data, p, axis=1) for (p, label) in percentiles}
 
 def extractAccuracy(refine_it):
   return calculate_relative_accuracy(refine_it['relative_error'])
@@ -364,7 +364,7 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
   percentiles_config = figconfig.get('percentiles', 
                                    config.APPROXIMATE_DEFAULT_PERCENTILES)
   
-  for (percentile, percentile_label) in percentiles_config.items():
+  for (percentile, percentile_label) in percentiles_config:
     plt.plot(parameters, percentiles[percentile], label=percentile_label)
   
   min_accuracy = figconfig.get('min_accuracy', 
