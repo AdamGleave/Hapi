@@ -63,6 +63,8 @@ if __name__ == "__main__":
       data = parse.approximate_full(data_fname, file_filter)
     else:
       assert(False)
+      
+    print("Generating ", figname)
 
     appearance = figconfig.get('appearance', config.DEFAULT_APPEARANCE)
     for style_name, style_rc in appearance.items():
@@ -75,6 +77,8 @@ if __name__ == "__main__":
       # new figure
       fig = plt.figure()
       res = generate_function(data, figconfig)
+      if res:
+        plt.close(fig)
       if not res:
         res = [("default", fig)]
       
@@ -89,4 +93,4 @@ if __name__ == "__main__":
         figure_fname = os.path.join(config.FIGURE_ROOT, figure_fname)
         with PdfPages(figure_fname) as out:
           out.savefig(fig)
-        plt.close(fig)        
+        plt.close(fig)

@@ -236,19 +236,19 @@ OPTIMISATION_FIGURES = {
       'Single set': 'b',
     }
   },
-  'parser_set_vs_getarc': {
-    'data': 'f_opt_parser_set_vs_getarc',
-    'test_filter': dictFilter({'getarc': 'Linked list',
-                               'set': 'Set'}),
-                           
-    'datasets': ['Large', 'Warehouse scale'],
-    'implementations': ['Set'],
-    'baseline': 'Linked list',
-    'colours': {
-      'Linked list': 'r',
-      'Set': 'b',
-    }
-  },
+#   'parser_set_vs_getarc': {
+#     'data': 'f_opt_parser_set_vs_getarc',
+#     'test_filter': dictFilter({'getarc': 'Linked list',
+#                                'set': 'Set'}),
+#                            
+#     'datasets': ['Large', 'Warehouse scale'],
+#     'implementations': ['Set'],
+#     'baseline': 'Linked list',
+#     'colours': {
+#       'Linked list': 'r',
+#       'Set': 'b',
+#     }
+#   },
 }
 
 def apply_optimisation_defaults(d):
@@ -267,14 +267,15 @@ def updateOptimisationFigures(d):
 
 OPTIMISATION_FIGURES = updateOptimisationFigures(OPTIMISATION_FIGURES)
 
+SCALING_FACTORS = list(range(2,9)) + list(range(10,32,2))
 OPTIMISATION_FIGURES['cs_scaling_factor'] = {
   'data': 'f_opt_cs_scaling_factor',
   'type': FigureTypes.optimisation_scaling_factors,
   'file_filter': QUINCY_FILE_FILTER,
   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
   
-  'dataset': 'Warehouse scale',
-  'implementations': [str(k) for k in range(2,32)],
+  'dataset': 'Medium',
+  'implementations': [str(k) for k in SCALING_FACTORS],
   'colours': ['b'],
   'baseline': '2',
 }
@@ -285,8 +286,8 @@ OPTIMISATION_FIGURES['cs_goldberg_scaling_factor'] = {
   'file_filter': QUINCY_FILE_FILTER,
   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
    
-  'dataset': 'Warehouse scale',
-  'implementations': [str(k) for k in range(2,32)],
+  'dataset': 'Large',
+  'implementations': [str(k) for k in SCALING_FACTORS],
   'colours': ['b'],
   'baseline': '12',
 }
