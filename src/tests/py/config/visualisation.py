@@ -317,6 +317,10 @@ INCREMENTAL_FIGURES = {
     'data': 'ion_same_relax',
     'trace': 'small',
   },
+  'same_relax_nocache': {
+    'data': 'ion_same_relax',
+    'trace': 'medium',
+  },
   'same_relaxf': {
     'data': 'ion_same_relaxf',
     'trace': 'medium',
@@ -325,7 +329,7 @@ INCREMENTAL_FIGURES = {
   # TODO: inc_ap works OK on full_size, too
   'head_to_head_my': {
     'data': 'ion_head_to_head_my',
-    'trace': 'large',
+    'trace': ['medium', 'large', 'full_size'],
     'window_size': '5s',
     'test_filter': dictFilter({'full': 'Standard cost scaling', 
                                'inc_ap': 'Incremental augmenting path',
@@ -333,6 +337,7 @@ INCREMENTAL_FIGURES = {
                                'inc_relax': None}),
     'implementations': ['Standard cost scaling',
                        'Incremental augmenting path'],#, 'Incremental relaxation'],
+    'means': ['Standard cost scaling', 'Incremental augmenting path'],
     'incremental_implementation': 'Incremental augmenting path',
     'colours': {'Standard cost scaling': 'r',
                 'Incremental augmenting path': 'b',
@@ -340,14 +345,18 @@ INCREMENTAL_FIGURES = {
   },
   'head_to_head_optimised': {
     'data': 'ion_head_to_head_optimised',
-    'trace': 'full_size',
+    'trace': ['medium', 'large', 'full_size'],
     'window_size': '5s',
-    'test_filter': dictFilter({'full': 'Standard cost scaling', 
-                               'incremental': 'Incremental relaxation'}),
-    'implementations': ['Standard cost scaling', 'Incremental relaxation'],
-    'incremental_implementation': 'Incremental relaxation',
-    'colours': {'Standard cost scaling': 'r',
-                'Incremental relaxation': 'b'},
+    'test_filter': dictFilter({'full': 'CS2 (full)', 
+                               'incremental': 'Modified RelaxIV (incremental)'}),
+    'implementations': ['CS2 (full)', 'Modified RelaxIV (incremental)'],
+    'means': ['CS2 (full)', 'Modified RelaxIV (incremental)'],
+    'incremental_implementation': 'Modified RelaxIV (incremental)',
+    'target_latency': 1.0,
+    'target_latency_min_prob': 90,
+    'target_latency_max_latency': 6.0,
+    'colours': {'CS2 (full)': 'r',
+                'Modified RelaxIV (incremental)': 'b'},
   },
   'head_to_head_merged': {
     'data': 'ion_head_to_head_merged',
@@ -359,6 +368,8 @@ INCREMENTAL_FIGURES = {
                                'incremental': 'Incremental relaxation (Frangioni)'}),
     'implementations': ['Standard cost scaling', 'My incremental augmenting path',
                         'My incremental relaxation', 'Incremental relaxation (Frangioni)'],
+    'means': ['Standard cost scaling', 'My incremental augmenting path',
+               'My incremental relaxation', 'Incremental relaxation (Frangioni)'],
     'incremental_implementation': 'Incremental relaxation (Frangioni)',
     'colours': {'Standard cost scaling': 'r',
                 'My incremental augmenting path': 'g',
@@ -374,19 +385,36 @@ def applyIncrementalDefault(d):
       v['test_filter'] = INCREMENTAL_TEST_FILTER
     if 'implementations' not in v:
       v['implementations'] = ['Standard', 'Incremental']
+      if 'means' not in v:
+        v['means'] = ['Standard']
       if 'incremental_implementation' not in v:
         v['incremental_implementation'] = 'Incremental'
+        
     if 'colours' not in v:
       v['colours'] = {
         'Standard': 'r',
         'Incremental': 'b',
       }
+
+def incrementalExpandConfig(d):
+  new_d = {}
+  for k, v in d.items():
+    if type(v['trace']) == list:
+      for trace in v['trace']:
+        new_v = v.copy()
+        new_v['trace'] = trace
+        new_d[k + "_" + trace] = new_v
+    else:
+      new_d[k] = v
+  return new_d
         
 applyIncrementalDefault(INCREMENTAL_FIGURES)
+INCREMENTAL_FIGURES = incrementalExpandConfig(INCREMENTAL_FIGURES)
 
 def updateIncrementalFigures(d):
   types = {'cdf': ([], FigureTypes.incremental_cdf),
            'incremental_only_cdf': (['incremental_implementation'], FigureTypes.incremental_only_incremental_cdf),
+           'incremental_only_target_latency_cdf': (['incremental_implementation', 'target_latency', 'target_latency_min_prob'], FigureTypes.incremental_only_incremental_target_latency_cdf),
            'hist': ([], FigureTypes.incremental_hist),
            'over_time': ([], FigureTypes.incremental_over_time)}
   return updateFiguresWithTypes(d, types)

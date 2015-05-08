@@ -17,6 +17,8 @@ figure_generators = {
   FigureTypes.optimisation_compilers : gen_optimisation.generate_compiler,
   FigureTypes.incremental_cdf : gen_incremental.generate_cdf,
   FigureTypes.incremental_only_incremental_cdf : gen_incremental.generate_incremental_only_cdf,
+  FigureTypes.incremental_only_incremental_target_latency_cdf : \
+                   gen_incremental.generate_incremental_only_target_latency_cdf,
   FigureTypes.incremental_hist : gen_incremental.generate_hist,
   FigureTypes.incremental_over_time : gen_incremental.generate_over_time,
   FigureTypes.approximate_oracle_policy : gen_approximate.generate_oracle_policy_interpolate,
