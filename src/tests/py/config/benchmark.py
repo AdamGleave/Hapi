@@ -327,7 +327,7 @@ FULL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments": ["cost_scaling", "--quiet"],
+    "arguments": ["cost_scaling", "--quiet", "--scaling-factor", "3"],
     "offline_arguments": ["--flow", "false"]
   },
   # Compute task assignments. Slows it down, but collects more data.
@@ -335,14 +335,16 @@ FULL_IMPLEMENTATIONS = {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments": ["cost_scaling", "--quiet", "--scheduling-graph"],
+    "arguments": ["cost_scaling", "--quiet", "--scheduling-graph", 
+                  "--scaling-factor", "3"],
     "offline_arguments": ["--flow", "false"]
   },
   "cs_latest_nonscheduling": {
     "version": "master",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
-    "arguments": ["cost_scaling", "--quiet", "--permit-duplicate-arcs"],
+    "arguments": ["cost_scaling", "--quiet", "--permit-duplicate-arcs",
+                  "--scaling-factor", "3"],
     "offline_arguments": ["--flow", "false"]
   },
   "relax_latest": {

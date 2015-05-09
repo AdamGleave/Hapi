@@ -21,11 +21,12 @@ def wait(pids):
   return success
 
 if __name__ == "__main__":
-  if len(sys.argv) != 2:
-    print >>sys.stderr, "usage: ", sys.argv[0], "<seed file>"
+  if len(sys.argv) != 3:
+    print >>sys.stderr, "usage: ", sys.argv[0], "<seed file> <percentage of trace>"
     sys.exit(1)
     
   seed_fname = sys.argv[1]
+  percentage = sys.argv[2]
   with open(seed_fname) as seed_file:
     n_seeds = len(list(seed_file))
   
@@ -40,7 +41,7 @@ if __name__ == "__main__":
   for i in range(len(machines)):
     start = i * seeds_per_machine + 1
     end = min((i + 1) * seeds_per_machine, n_seeds - 1)
-    cmdline = ' '.join([GENERATOR_PATH, seed_fname,
+    cmdline = ' '.join([GENERATOR_PATH, percentage, seed_fname,
                         OUTPUT_DIR, str(start), str(end)])
     machine = machines[i]
     pids.append(redo[machine].run(cmdline, block=False)[0])

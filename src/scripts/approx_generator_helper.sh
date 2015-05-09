@@ -1,10 +1,10 @@
 #!/bin/bash
 
 SIMULATOR=$HOME/adam/firmament/build/sim/trace-extract/google_trace_simulator
-PERCENTAGE=25
 
 OUTPUT_DIR=$1
-ARGS=$2
+PERCENTAGE=$2
+ARGS=$3
 read -ra PARSED_ARGS <<< "$ARGS"
 INDEX=${PARSED_ARGS[0]}
 SEED=${PARSED_ARGS[1]]}

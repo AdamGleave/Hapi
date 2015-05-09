@@ -286,7 +286,7 @@ OPTIMISATION_FIGURES['cs_goldberg_scaling_factor'] = {
   'file_filter': QUINCY_FILE_FILTER,
   'test_filter': dictFilter({str(k): str(k) for k in range(2,32)}),
    
-  'dataset': 'Large',
+  'dataset': 'Medium',
   'implementations': [str(k) for k in SCALING_FACTORS],
   'colours': ['b'],
   'baseline': '12',
