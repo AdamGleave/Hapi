@@ -668,9 +668,9 @@ FULL_TESTS = {
   },
   "opt_relax_cache_arcs_octopus": {
     "files": FULL_DATASET["octopus_1hour_small"],
-    # It's quite slow even on medium-sized datasets, so need to bump the timeout
-    "timeout": 600,
-    "iterations": 30,
+    # No cache is REALLY slow. Bump the timeout so can have a better graph.
+    "timeout": 7200,
+    "iterations": 10,
     "tests": {
       "none": {
         "implementation": "f_relax_cache_none",
