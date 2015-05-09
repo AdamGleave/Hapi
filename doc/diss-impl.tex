@@ -1004,7 +1004,7 @@ The first few iterations of cost scaling tend to produce large reductions in the
 
 This heuristic exploits the above property, by measuring the difference between the cost after successive iterations. Occasionally, cost scaling hits a brief `plateau', before continuing to make significant cost reductions. For robustness, the heuristic therefore operates over multiple iterations. The algorithm terminates when the cost changed less than threshold $t$ in each of the last $k \geq 1$ iterations, where $t$ and $k$ are fixed.
 
-\subsubsection{Task assignment convergence}
+\subsubsection{Task migration convergence}
 
 Cost convergence is a general approach, applicable to any class of flow network. By contrast, this heuristic exploits the nature of flow scheduling.
 

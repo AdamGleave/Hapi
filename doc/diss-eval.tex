@@ -193,7 +193,7 @@ Consequently, care has been taken to ensure that all algorithms considered in th
     \label{fig:opt-ap}
 \end{figure}
 
-As explained in \cref{sec:impl-ssp-optimisations}, it is possible to terminate Djikstra's algorithm as soon as it finds a shortest path to a deficit node, without needing to compute shortest paths to all nodes in the graph. As \cref{fig:opt-ap} demonstrates, this so-called \emph{partial Djikstra} approach yields a considerable performance improvement.
+As explained in \cref{sec:impl-ssp-optimisations}, it is possible to terminate Djikstra's algorithm as soon as it finds a shortest path to a deficit node, without needing to compute shortest paths to all nodes in the graph. This so-called \emph{partial Djikstra} approach yields considerable performance gains. Shown in green on \cref{fig:opt-ap}, it provides a speedup of over 4x.
 
 This inspired a related optimisation, \emph{small heap}. Djikstra's algorithm works by maintaining a priority queue of vertices, implemented using a binary heap in this project (see \cref{sec:impl-ssp-optimisations} for justification of this choice). This results in a $\Theta\left(\lg l\right)$ complexity for priority queue operations, where $l$ is the length of the queue.
 
@@ -201,13 +201,13 @@ In the \emph{big heap} implementation, the heap is initialised to contain all ve
 
 Initialising a heap with $n$ elements has cost $\Theta(n)$; by contrast, inserting the elements one at a time has a cost of $\Theta(n\lg n)$. Big heap, therefore, will pay less of an initialisation cost --- at least under standard Djikstra, where each vertex is eventually inserted into the queue. However, the number of elements $l$ in the heap will tend to be larger throughout the lifetime of big heap, making each operation more expensive.
 
-When using standard Djikstra, the performance of the two heap implementations is practically indistinguishable. However, small heap provides a considerable performance gain when used in conjunction with partial Djikstra. This is to be expected: with early termination, the typical length of the queue $l$ is much smaller than the number of vertices $n$ in the graph.
+When using standard Djikstra, small heap provides a very small (but statistically significant) speedup. However, a substantial performance gain is achieved when using small heap in conjunction with partial Djikstra. This is because with early termination, the typical length $l$ of the queue is much smaller than the number of vertices $n$ in the graph. Shown in gray on \cref{fig:opt-ap}, partial Djikstra with small heap provides a speedup of around 5x over partial Djikstra with big heap, and over 20x compared with the original implementation.
 
 Two versions of small heap were implemented. To support decreasing the key of elements in the priority queue (a common operation in Djikstra's algorithm), it is necessary to maintain a \emph{reverse index} mapping node IDs to elements in the priority queue. In the big heap, this was implemented using an \emph{array} of length $n$. For the small heap, it is possible to reduce memory consumption by using a \emph{hash table}, storing mappings only for nodes $v$ present in the priority queue.
 
 In practice, the algorithm is not memory bound, and runtime is the primary consideration. Both the array and hash table offer $O(1)$ lookup. The array might be expected to be faster: there is no need to compute a hash function, and a result will always be returned after a single memory read (whereas for the hash table, multiple reads may be required in the event of a collision.) However, the hash table may be faster for large heaps: it can be more efficiently cached, since there is less dead space than in the array.
 
-The results clearly show that the array implementation outperforms the hash table version, at all cluster sizes. It may be that the array is never large enough for capacity cache misses to become a problem. Furthermore, hash tables do not necessarily offer a space advantage. The \emph{load factor}, the number of elements divided by the number of buckets, must be kept low to avoid collisions. Consequently, many buckets will be empty, wasting space.
+\Cref{fig:opt-ap} clearly show that the array implementation (in gray) outperforms the hash table version (in blue). It may be that the array is never large enough for capacity cache misses to become a problem. Furthermore, hash tables do not necessarily offer a space advantage. The \emph{load factor}, the number of elements divided by the number of buckets, must be kept low to avoid collisions. Consequently, many buckets will be empty, wasting space.
 
 \todo{Should I say which version of the algorithm I ended up using? It seems obvious -- the one which had the best runtime -- but perhaps it's best stated explicitly?}
 
@@ -215,19 +215,26 @@ The results clearly show that the array implementation outperforms the hash tabl
 
 \begin{figure}
     \centering
-    \includegraphics{opt/relax_arc_cache_relative_2col}
-    \caption{Speedup when maintaining set(s) of arcs crossing the cut}
+    \begin{widepage}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{opt/relax_arc_cache_quincy_relative_2col}
+        \caption{Quincy cost model}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{opt/relax_arc_cache_octopus_relative_2col}
+        \caption{Octopus cost model}
+    \end{subfigure}
+    \end{widepage}
+    \caption{Speedup when maintaining cache of arcs crossing the cut}
     \label{fig:opt-relax-cache-arcs}
 \end{figure}
 
-\todo{XXX: The results are positive for pretty much every flow network, but massively NEGATIVE for Quincy. Need to rewrite this section, and rerun some experiments.}
-
 The relaxation algorithm repeatedly accesses the set of arcs $\left(S,\overline{S}\right)$ crossing the cut. The main relaxation procedure in \cref{algo:relaxation} and \textproc{AugmentFlow} in \cref{algo:relaxation-augment-flow} only consider arcs $(i,j) \in \left(S,\overline{S}\right)$ for which the reduced cost $c_{ij}^{\boldsymbol{\pi}}$ is zero. By contrast, \textproc{UpdatePotentials} in \cref{algo:relaxation-update-potentials} considers only those arcs with positive reduced cost.
 
-In the naive implementation of the algorithm, the entire list of arcs in the graph is searched until an arc satisfying the above conditions is found. It is possible to instead maintain the set of arcs $\left(S,\overline{S}\right)$ crossing the cut. This imposes an additional cost whenever $S$ is updated, but allows for iteration over the set to proceed more efficiently. At no additional cost, we can partition this set into arcs with zero reduced cost and those with positive reduced cost\footnotemark. This is more efficient, as the algorithm never needs to access the entire set $\left(S,\overline{S}\right)$.
+In the naive implementation of the algorithm, the entire list of arcs in the graph is searched until an arc satisfying the above conditions is found. It is possible to instead maintain a cache of arcs $\left(S,\overline{S}\right)$ crossing the cut. This imposes an additional cost whenever $S$ is updated, but allows for iteration over the set to proceed more efficiently. At no additional cost, we can partition this cache into two sets: those arcs with zero reduced cost and those with positive reduced cost\footnotemark. This is more efficient, as the algorithm never needs to access the entire set $\left(S,\overline{S}\right)$.
 \footnotetext{Note, by the reduced cost optimality conditions, no arcs in the residual network ever have negative reduced cost.}
 
-This \emph{dual set} implementation realises considerable performance gains, more than doubling the speed of the algorithm. However, note that the only operation which iterates over the set $\set{(i,j) \in \left(S,\overline{S}\right) | c_{ij}^{\boldsymbol{\pi}} > 0}$ is \textproc{UpdatePotentials}, which occurs comparatively rarely. To investigate whether the speedup of \textproc{UpdatePotentials} justified the overhead of maintaining this second set, a \emph{single set} implementation was developed which maintains only $\set{(i,j) \in \left(S,\overline{S}\right) | c_{ij}^{\boldsymbol{\pi}} = 0}$. This implementation was found to be even faster, with runtimes around a third that of the naive implementation.
+The effect of this optimisation varies considerably between flow networks, although it yielded a positive speedup in all experiments performed. Under the Quincy cost model, there is only a modest speedup of around 20\%. By contrast, in the Octopus cost model arc caching yields an almost 40x speedup.\todo{Should have new experimental data soon. Is speedup still 40x on Octopus under >small dataset? Do error bars on Quincy come down? If not, provide explanation.}
 
 \subsection{Cost scaling}
 
@@ -240,15 +247,19 @@ This \emph{dual set} implementation realises considerable performance gains, mor
     \label{fig:opt-cs-wave-vs-fifo}
 \end{figure}
 
+
 Two versions of Goldberg's cost scaling algorithm are described in \cref{sec:impl-cost-scaling-implementations}, \emph{wave} and \emph{FIFO}. The wave implementation has time complexity $O\left(n^3 \lg \left(nC\right)\right)$ compared to a $O\left(n^2m\lg\left(nC\right)\right)$ running time for FIFO. However, for flow scheduling networks the asymptotic time complexities are the same, as $m = O(n)$ by \cref{lemma:network-num-arcs}. 
 
-It is clear from \cref{fig:opt-cs-wave-vs-fifo} that FIFO outperforms wave on this problem instance. I suspect this is because the FIFO queue contains only active vertices (see \cref{algo:cost-scaling-first-active-refine}). By contrast, in wave each iteration involves a pass over every vertex in the graph (see \cref{algo:cost-scaling-wave-refine}), imposing a significant overhead.
+\Cref{fig:opt-cs-wave-vs-fifo} shows that FIFO considerably outperforms wave on this problem instance, with a speedup of at least 20x. I suspect this is because the FIFO queue contains only active vertices (see \cref{algo:cost-scaling-first-active-refine}). By contrast, in wave each iteration involves a pass over every vertex in the graph (see \cref{algo:cost-scaling-wave-refine}), imposing a significant overhead.
+
+Moreover, the larger the size of the network, the larger the speedup enjoyed under FIFO. This suggests that, although wave may have a tighter bound in general, FIFO may have a better asymptotic bound on flow scheduling networks.
 
 % Could also test out first-active approach: when relabel happens, add s to front of Q rather than rear
 
 \subsubsection{Scaling factor}
 
 \begin{figure}
+    \begin{widepage}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{opt/cs_scaling_factor_2col}
         \caption{My implementation}
@@ -257,6 +268,7 @@ It is clear from \cref{fig:opt-cs-wave-vs-fifo} that FIFO outperforms wave on th
         \includegraphics[width=\textwidth]{opt/cs_goldberg_scaling_factor_2col}
         \caption{Goldberg's implementation}
     \end{subfigure}
+    \end{widepage}
     \caption{Performance depending on scaling factor}
     \label{fig:opt-cs-scaling-factor}
 \end{figure}
@@ -297,18 +309,20 @@ In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementat
     \label{fig:compiler-settings}
 \end{figure}
 
-%\begin{figure}
-%    \begin{subfigure}[c]{0.5\textwidth}
-%        \includegraphics[width=\textwidth]{com/cs_compiler_settings_absolute_2col}
-%        \caption{GCC}
-%    \end{subfigure}
-%    \begin{subfigure}[c]{0.5\textwidth}
-%        \includegraphics[width=\textwidth]{com/cs_compiler_settings_clang_absolute_2col}
-%        \caption{Clang}
-%    \end{subfigure}
-%    \caption{Runtime for cost scaling by optimisation setting, for medium (500 machine) cluster}
-%    \label{fig:compiler-settings}
-%\end{figure}
+\begin{table}
+    \centering
+    \begin{tabular}{c|p{0.9\textwidth}}
+        \textbf{Level} & \textbf{Description}\tabularnewline
+        \hline
+        O0 & No optimisation. \tabularnewline
+        O1 & Optimise to reduce code size and execution time. Do not perform optimisations which could greatly increase compilation time. \tabularnewline
+        O2 & Perform optimisations which do not involve a space-speed tradeoff. \tabularnewline 
+        O3 & Optimise even more, possibly at the expense of increased binary size. \tabularnewline
+        \hline
+    \end{tabular}
+    \caption{Optimisation levels for GCC and Clang}
+    \label{table:optimisation-flags}
+\end{table}
 
 \emph{Optimising compilers} apply transformations which preserve the semantic meaning of the program, while (typically) improving performance. Two compilers were evaluated for this project: the GNU C Compiler (GCC) and Clang. Both are well-established, and have extensive optimisation support. In general, neither is better than the other: some programs run faster when compiled with Clang, others with GCC.
 
@@ -321,11 +335,13 @@ This test was repeated for all other implementations in the project, the results
 
 \section{Approximation algorithm} \label{sec:eval-approx}
 
-Unlike with other algorithms, evaluation of approximate solution methods (see \cref{sec:impl-approx}) must consider not just its speed, but also its accuracy. To complicate matters further, both the speed and accuracy of the approximation algorithm will vary depending on the terminating condition chosen.
+Unlike with other algorithms, evaluation of approximate solution methods (see \cref{sec:impl-approx}) must consider not just their speed, but also their accuracy. To complicate matters further, both the speed and accuracy of the approximation algorithm will vary depending on the terminating condition chosen.
 
 I introduce an \emph{oracle} policy to ease interpretation of the results. It is assumed that the oracle knows precisely what the cost of the optimal solution is, and will terminate the algorithm as soon as an intermediate solution is found that reaches he target accuracy. Of course, an oracle model could not actually be implemented: the entire challenge of approximation is that the minimum cost is not known \textit{a priori}. The oracle policy therefore provides an upper bound on the speedup that can be achieved by approximation.
 
-To evaluate the heuristic policies (see \cref{sec:impl-approx-adaptions}), I compute parameter settings which achieve the target accuracy on training data. The algorithm is then run with this policy on (unseen) test data, and the resulting accuracy and speed are measured. This split of test and training data guards against overfitting the policy to the data. The speed of the oracle model is plotted on the same graph, to see how close the heuristic is to maximal performance.
+To evaluate the heuristic policies (see \cref{sec:impl-approx-adaptions}), I split the dataset into training and test data in a 1:3 ratio. The parameters are chosen from the training data in order to achieve a target accuracy $A$ at least a proportion $p$ of the time. In the tests below, both $A$ and $p$ were set to 99\%. Naturally, relaxing these constraints will allow for a greater speedup.
+
+The accuracy and speed of the algorithm are evaluated by running it on the (unseen) test data, with the parameters chosen in the previous step. This split of test and training data guards against overfitting.
 
 All tests were conducted using my implementation of cost scaling, described in \cref{sec:impl-cost-scaling}. Since the experiments in this section measure runtime \emph{relative} to the same algorithm used as an optimal solver, I believe the results should generalise to other implementations of cost scaling. 
 
@@ -335,7 +351,89 @@ There is one notable exception to this. The oracle policy achieves a speedup eve
 
 \subsection{Performance on flow scheduling}
 
+Evaluation took place on flow networks produced by the cluster simulator under the Quincy cost model (see \cref{sec:eval-benchmark-strategy}). A total of a thousand different networks were produced, by varying the seed used to initialise the random number generator. This had the effect of changing the generated simulated filesystem, and the input files associated with each task, with consequent changes to costs and preference arcs.
+
+The flow networks produced by the above method are snapshots of the cluster at the beginning of the trace. An alternative would be to take snapshots from multiple points in time, evaluating the algorithm on the time series. However, many tasks in the Google trace run for the entire month data was collected. Consequently, there is significant correlation between flow networks in the time series, even if days apart.
+
+As a result, the training and test data by the time series method is more similar than would be the case in practice, which would biasing the test in favour of the approximation algorithm. Networks produced by varying the seed, by contrast, are considerably more dissimilar providing a more challenging dataset.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{app/quincy_medium_oracle_policy_2col}
+    \caption{Oracle policy on flow scheduling networks: upper bound on speedup from approximation}
+    \label{fig:app-quincy-medium-oracle}
+\end{figure}
+
+\Cref{fig:app-quincy-medium-oracle} shows the maximum speedup that can be achieved by approximation, using the oracle policy. At the 99\% target accuracy, this gives an upper bound of just over 135\%.
+
+Two heuristics, \emph{cost convergence} and \emph{task assignment convergence} were implemented (see \cref{sec:impl-approx-adaptions}). The subsequent sections evaluate how close these heuristic policies come to achieving the bound set by the oracle policy.
+
+\subsubsection{Cost convergence}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{app/quincy_medium_policy_cost_parameters_2col}
+    \caption{Selecting a cost threshold $c$ for flow scheduling networks}
+    \label{fig:app-quincy-medium-cost-parameters}
+\end{figure}
+
+Under cost convergence, the algorithm terminates when the cost changes by less than a factor $c$. \Cref{fig:app-quincy-medium-cost-parameters} shows the accuracy achieved for various percentiles for different parameters. The dark blue line is the $1^{\mathrm{st}}$ percentile: this accuracy is met or exceeded 99\% of the time in the training set. 
+
+Given its precipitous drop, $c$ must be set to a small value --- $c = 0.01001\%$, to be exact --- to achieve 99\% accuracy 99\% of the time in the training data. This is not encouraging: such a low threshold will give a correspondingly low speedup. 
+
+\begin{figure}
+    \begin{widepage}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/quincy_medium_policy_cost_accuracy_narrow_2col}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/quincy_medium_policy_cost_speed_2col}
+        \end{subfigure}
+    \end{widepage}
+    \caption{Performance of cost convergence policy on flow scheduling networks}
+    \label{fig:app-quincy-medium-cost-cdf}
+\end{figure}
+
+\Cref{fig:app-quincy-medium-cdf} shows the performance of this policy. 100\% accuracy is achieved in 749 out of 750 cases in the training set. The remaining case, however, has a disappointing 25\% accuracy (off the axis of the graph). There is a significant speedup in all cases, however performance is noticeably behind that of the oracle model. This is unsurprising: since optimality is reached in most cases, the algorithm has performed more work than was necessary.
+
+\subsubsection{Task migration convergence}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{app/quincy_medium_policy_task_assignments_parameters_2col}
+    \caption{Selecting a task migration threshold $t$ for flow scheduling networks}
+    \label{fig:app-quincy-medium-task-assignment-parameters}
+\end{figure}
+
+The task migration convergence heuristic measures the number of tasks that have been reassigned (`migrated') between machines, terminating when it is less than a threshold $t$. Although it was hoped that this domain-specific heuristic might fare better than the more general cost convergence policy, \cref{fig:app-quincy-medium-task-assignment-parameters} is not encouraging. 
+
+% TODO: Graph actually showing task migrations?
+Although the number of task migrations falls somewhat as the algorithm converges, it remains high throughout execution. In fact, tasks are migrated even once optimality is reached (but while $\epsilon > 1$)! Tasks with only a single input file will have preference arcs with zero cost to each machine that has a replica of the file; these tasks may be migrated freely between machines in their preference set, without changing the cost of the overall solution.
+
+This is reflected in the fact that accuracy in \cref{fig:app-quincy-medium-task-assignment-parameters} only drops at a relatively large migration threshold, of over $6000$. When it does fall, it does so precipitously, indicating the heuristic will be highly sensitive to parameter setting.
+
+\begin{figure}
+    \begin{widepage}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/quincy_medium_policy_task_assignments_accuracy_narrow_2col}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/quincy_medium_policy_task_assignments_speed_2col}
+        \end{subfigure}
+    \end{widepage}
+    \caption{Performance of task migration policy on flow scheduling networks}
+    \label{fig:app-quincy-medium-task-assignment-cdf}
+\end{figure}
+
+The performance shown in \cref{fig:app-quincy-medium-task-assignment-parameters} is equally disappointing. A similar pattern for accuracy is shown as for cost convergence. The speedup CDF is still worse. In the vast majority of cases, \emph{no speedup} occurred: the algorithm does not terminate even once optimality is reached, since tasks continue to be migrated. There are a handful of cases which enjoyed a considerable speedup. These correspond to the 1.6\% of cases which failed to meet the 99\% accuracy target, however, so these can hardly be counted a success.
+
+\subsubsection{Conclusion}
+
+Approximation algorithms do not appear to be a viable means for improving the performance of flow schedulers. The heuristics implemented in this project perform poorly under the Quincy cost model. It is possible that more sophisticated heuristics might improve upon this. However, the oracle policy gives a 135\% upper bound on the speedup. Since order of magnitude performance gains are required to make flow scheduling a reality, approximation is not promising for this application.
+
 \subsection{Performance in other applications}
+
+% Segue: but hey, it may work on other applications!
 
 \begin{figure}
     \centering
