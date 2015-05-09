@@ -38,7 +38,7 @@ if __name__ == "__main__":
   
   pids = []
   for i in range(len(machines)):
-    start = i * seeds_per_machine
+    start = i * seeds_per_machine + 1
     end = min((i + 1) * seeds_per_machine, n_seeds - 1)
     cmdline = ' '.join([GENERATOR_PATH, seed_fname,
                         OUTPUT_DIR, str(start), str(end)])
@@ -55,14 +55,15 @@ if __name__ == "__main__":
   
   copy_pids = []
   for i in range(len(machines)):
-    start = i * seeds_per_machine
-    end = min((i + 1) * seeds_per_machine, n_seeds - 1)
-    src_paths = [os.path.join(OUTPUT_DIR, str(i) + ".min") 
-                 for j in range(start,end)]
-    dst_paths = list(src_paths)
+#     start = i * seeds_per_machine + 1
+#     end = min((i + 1) * seeds_per_machine, n_seeds - 1)
+#     src_paths = [os.path.join(OUTPUT_DIR, str(i) + ".min") 
+#                  for j in range(start,end)]
+#     dst_paths = list(src_paths)
     machine = machines[i]
     print "Copying from ", machine
-    copy_pids.append(redo[machine].copy_from(src_paths, dst_paths)[0])
+    copy_pids.append(redo[machine].copy_from(OUTPUT_DIR, 
+                                             os.path.dirname(OUTPUT_DIR))[0])
     
   success = wait(copy_pids)
   if not success:
