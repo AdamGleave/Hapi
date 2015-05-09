@@ -656,7 +656,7 @@ FULL_TESTS = {
     "files": FULL_DATASET["quincy_1hour"],
     # It's quite slow even on medium-sized datasets, so need to bump the timeout
     "timeout": 600,
-    "iterations": 5,
+    "iterations": 10,
     "tests": {
       "none": {
         "implementation": "f_relax_cache_none",
