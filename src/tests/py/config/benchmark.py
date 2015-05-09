@@ -680,20 +680,6 @@ FULL_TESTS = {
       }
     }, 
   },
-  "opt_relax_cache_arcs_general": {
-    "files": FULL_DATASET["netgen_8_one"] + FULL_DATASET["goto_8_one"],
-    # It's quite slow even on medium-sized datasets, so need to bump the timeout
-    "timeout": 60,
-    "iterations": 5,
-    "tests": {
-      "none": {
-        "implementation": "f_relax_cache_none",
-      },
-      "all": {
-        "implementation": "f_relax_latest",
-      }
-    }, 
-  },
   ## Cost scaling
   "opt_cs_wave_vs_fifo": {
     # small since wave takes >10 minutes even on medium_first
