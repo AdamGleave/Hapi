@@ -46,8 +46,6 @@ if __name__ == "__main__":
     pids.append(redo[machine].run(cmdline, block=False)[0])
     print >>sys.stderr, machine, " - generating ", start, " to ", end
   
-  # XXX: Think this won't work?
-  
   print "All tasks finished"
   success = wait(pids)
   if not success:
@@ -55,11 +53,6 @@ if __name__ == "__main__":
   
   copy_pids = []
   for i in range(len(machines)):
-#     start = i * seeds_per_machine + 1
-#     end = min((i + 1) * seeds_per_machine, n_seeds - 1)
-#     src_paths = [os.path.join(OUTPUT_DIR, str(i) + ".min") 
-#                  for j in range(start,end)]
-#     dst_paths = list(src_paths)
     machine = machines[i]
     print "Copying from ", machine
     copy_pids.append(redo[machine].copy_from(OUTPUT_DIR, 
