@@ -68,6 +68,8 @@ FULL_DATASET = {
   "quincy_1hour_large_only": prefix_list("clusters/natural/google_trace/quincy/1hour/",
    ["large_first.min", "large_last.min"]),
   "quincy_1hour": graph_glob("clusters/natural/google_trace/quincy/1hour/*.min"),
+  "quincy_approx_medium": graph_glob("clusters/natural/google_trace/quincy_approx/medium/*.min"),
+  "quincy_approx_large": graph_glob("clusters/natural/google_trace/quincy_approx/large/*.min"),
   
   ### General flow networks
   ### See https://lemon.cs.elte.hu/trac/lemon/wiki/MinCostFlowData
@@ -1015,6 +1017,18 @@ APPROXIMATE_DEFAULT_TEST = {
 }
 
 APPROXIMATE_TESTS_FULL = {
+  # Quincy
+  # N.B. 1000 files so 1 iterations is OK
+  "quincy_medium": {
+    "files": FULL_DATASET["quincy_approx_medium"],
+    "test": {"implementation": "f_cs_latest_scheduling"},
+    "iterations": 1,
+  },
+  "quincy_large": {
+    "files": FULL_DATASET["quincy_approx_large"],
+    "test": {"implementation": "f_cs_latest_scheduling"},
+    "iterations": 1,
+  },
   # ROAD                          
   "road_paths": {
     "files": FULL_DATASET["road_paths_approx"],
