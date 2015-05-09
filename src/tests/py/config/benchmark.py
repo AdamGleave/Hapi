@@ -413,13 +413,15 @@ FULL_IMPLEMENTATIONS = {
     "path": "bin/find_min_cost",
     "arguments": ["relax"]
   },
-  "relax_cache_zerorc": {
+  # implementations below were badly designed, used inefficient data structures;
+  # included only for posterity
+  "relax_cache_broken_XXX_zerorc": {
     "version": "afe3a21",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
     "arguments": ["relax"]
   },
-  "relax_cache_all": {
+  "relax_cache_broken_XXX_all": {
     "version": "86f751f",
     "target": "find_min_cost",
     "path": "bin/find_min_cost",
@@ -661,13 +663,7 @@ FULL_TESTS = {
       "none": {
         "implementation": "f_relax_cache_none",
       },
-      "cache_zerorc": {
-        "implementation": "f_relax_cache_zerorc",
-      },
-      "cache_all": {
-        "implementation": "f_relax_cache_all",
-      },
-      "cache_all_latest": {
+      "all": {
         "implementation": "f_relax_latest",
       }
     }, 
@@ -789,37 +785,6 @@ INCREMENTAL_TESTS_OFFLINE = {
       },
       "goldberg": {
         "implementation": "f_cs_goldberg",
-      },
-    },
-  },
-                            
-  # 
-  "incremental_vs_cs": {
-    "files": INCREMENTAL_DATASET["google_small_trace_truncated"],
-    "iterations": 10,
-    "tests": {
-      "my_incremental": {
-        "implementation": "i_ap_latest",
-      },
-      "my_costscaling": {
-        "implementation": "f_cs_latest",
-      },
-      "goldberg": {
-        "implementation": "f_cs_goldberg",
-      },
-    },
-  },
-  "relaxfi_vs_best": {
-    "files": INCREMENTAL_DATASET["google_small_trace_truncated"],
-    "iterations": 5,
-    "tests": {
-      "relaxfi": {
-        "implementation": "i_relaxf_latest",
-        "arguments": [] 
-      },
-      "goldberg": {
-        "implementation": "f_cs_goldberg",
-        "arguments": []
       },
     },
   },
