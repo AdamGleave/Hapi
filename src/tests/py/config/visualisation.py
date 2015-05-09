@@ -219,20 +219,17 @@ OPTIMISATION_FIGURES = {
   # TODO: This is gonna need some careful formatting
   # TODO: Octopus is a somewhat bogus model for this, since you reach optimality
   # so early.
-  'relax_arc_cache': {
-    'data': 'f_opt_relax_cache_arcs',
-    'test_filter': dictFilter({'none': 'No set',
-                               'cache_all': 'Dual set',
-                               'cache_zerorc': 'Single set'}),
+  'relax_arc_cache_quincy': {
+    'data': 'f_opt_relax_cache_arcs_quincy',
+    'test_filter': dictFilter({'none': 'No cache',
+                               'all': 'Cache arcs'}),
     
     # TODO: Boost timeout, get data for 'Medium' too
-    'datasets': ['Small'],
-    'implementations': ['Dual set', 
-                        'Single set'],
-    'baseline': 'No set',
+    'datasets': ['Medium', 'Large', 'Warehouse scale'],
+    'implementations': ['Cache arcs'],
+    'baseline': 'No cache',
     'colours': { 
-      'Dual set': 'g',
-      'Single set': 'b',
+      'Cache arcs': 'b',
     }
   },
 #   'parser_set_vs_getarc': {

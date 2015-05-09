@@ -83,7 +83,10 @@ def generate_absolute(data, figconfig):
     what_by.append('cluster size')
   if len(figconfig['implementations']) > 1:
     what_by.append('implementation')
-  plt.title('Runtimes by ' + ' and '.join(what_by))
+  if what_by:
+    plt.title('Runtimes by ' + ' and '.join(what_by))
+  else:
+    plt.title('Runtimes')
   
   plt.tight_layout()
   
@@ -156,7 +159,15 @@ def generate_relative(data, figconfig):
   
   plt.xlabel('Cluster size')
   plt.ylabel('Speedup (\%)')
-  plt.title('Speedups by cluster size and implementation')
+  what_by = []
+  if len(figconfig['datasets']) > 1:
+    what_by.append('cluster size')
+  if len(figconfig['implementations']) > 2:
+    what_by.append('implementation')
+  if what_by:
+    plt.title('Speedups by ' + ' and '.join(what_by))
+  else:
+    plt.title('Speedups')
   
   plt.tight_layout()
   
