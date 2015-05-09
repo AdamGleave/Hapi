@@ -435,7 +435,7 @@ APPROXIMATE_TARGET_ACCURACY = 99
 APPROXIMATE_NUM_BINS = 10
 
 APPROXIMATE_MAX_COST_PARAMETER = 0.10
-APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER = 20
+APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER = 15000
 
 # N.B. List of (key,value) pairs rather than dict so order can be specified
 APPROXIMATE_DEFAULT_PERCENTILES = [
@@ -506,11 +506,13 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 0.7,
   },
   'quincy_semibogus': {
-    'data': 'aio_1hour_quincy_partial',
-    'file': 'clusters/natural/google_trace/quincy/1hour/large.imin',
-    'training': 1000,
-    'test': 3469,
-  }
+    'data': 'af_quincy_medium',
+    'training': 250,
+    'test': 396,
+    'min_accuracy': 0,
+    'max_cost_parameter': 0.05,
+    'max_task_assignments_parameter': 8000,
+  },
 }
 
 def updateApproximateFigures(d):

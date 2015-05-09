@@ -144,7 +144,6 @@ def build(version, to_build):
                "-DCMAKE_CXX_COMPILER=" + compiler["cxx"],
                "-DCMAKE_C_FLAGS_CUSTOM=" + c_flags,
                "-DCMAKE_CXX_FLAGS_CUSTOM=" + cxx_flags]
-      print("Executing cmake with ", args)
       sh.cmake(*args)
     
     # run make 

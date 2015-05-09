@@ -288,7 +288,7 @@ def cost_heuristic(cost_threshold, test):
 
 def task_assignment_heuristic(threshold, test):
   for refine_it in test:
-    if refine_it['task_assignments'] < threshold:
+    if refine_it['task_assignments_changed'] < threshold:
       return refine_it
   return test[-1]
 
@@ -359,6 +359,12 @@ def analyse_terminating_condition_percentiles(data, condition, figconfig):
   
   return (parameters, percentiles)
 
+def heuristic_parameter_format(parameter):
+  if type(parameter) == int:
+    return str(parameter) # exact
+  else:
+    return '{:.3}'.format(parameter) # 3 s.f.
+
 def generate_terminating_condition_accuracy_plot(parameters, percentiles,
                                                  heuristic_parameter, figconfig):
   percentiles_config = figconfig.get('percentiles', 
@@ -400,10 +406,12 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
   plt.ylabel(r'Accuracy (\%)')
   plt.title('Accuracy against heuristic parameter')
   
-  plt.legend(loc='lower left')
-  
-# SOMEDAY: could write a terminating condition speed plot here?
-# But this is perhaps best reserved for when trying a particular parameter.
+  plt.legend(loc='best')
+
+# def nsf(num, n=3):
+#     """n-Significant Figures"""
+#     numstr = ("{0:.%ie}" % (n-1)).format(num)
+#     return float(numstr)
 
 def generate_terminating_condition_accuracy_distribution(data, parameter, 
                                                           condition, figconfig):
@@ -439,7 +447,8 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
       
     # add labels
     plt.xlabel(r'Accuracy (\%)')
-    title = r'CDF for accuracy (heuristic parameter {0:.3f})'.format(parameter)
+    title = r'CDF for accuracy (heuristic parameter {0})'.format(
+                                          heuristic_parameter_format(parameter))
     plt.title(title)
   
   wide = plt.figure()
@@ -448,11 +457,13 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
   width = 100 - target_accuracy
   at_least = target_accuracy - width * 0.2
   xmin = min(xmin, at_least)
-  plt.xlim(xmin, 100)
+  width = 100 - xmin
+  plt.xlim(xmin, 100 + width * 0.02)
   
   narrow = plt.figure()
   genericDraw()
-  plt.xlim(at_least, 100)
+  width = 100 - at_least
+  plt.xlim(at_least, 100 + width * 0.02)
   
   return (wide, narrow)
   
@@ -482,7 +493,8 @@ def generate_terminating_condition_speed_distribution(data, parameter,
            colours={'Heuristic': 'b', 'Oracle': 'g'})
   
   plt.xlabel('Speedup (\%)')
-  title = r'CDF for speedup (heuristic parameter {0:.3f})'.format(parameter)
+  title = r'CDF for speedup (heuristic parameter {0})'.format(
+                                          heuristic_parameter_format(parameter))
   plt.title(title)
   
   plt.legend(loc='lower right')
@@ -547,6 +559,8 @@ def generate_policy_combined_for_condition(training_data, test_data,
   indices_with_accuracy, = np.nonzero(percentile >= target_accuracy)
   last_index_with_accuracy = indices_with_accuracy[-1]
   heuristic_parameter = parameters[last_index_with_accuracy]
+  if condition == 'task_assignments':
+    heuristic_parameter = int(heuristic_parameter)
   
   generate_terminating_condition_accuracy_plot(parameters, percentiles,
                                                heuristic_parameter, figconfig)
