@@ -45,11 +45,11 @@ if __name__ == "__main__":
     machine = machines[i]
     pids.append(redo[machine].run(cmdline, block=False)[0])
     print >>sys.stderr, machine, " - generating ", start, " to ", end
-  
-  print "All tasks finished"
+    
   success = wait(pids)
   if not success:
     sys.exit(1)
+  print "All tasks finished"
   
   copy_pids = []
   for i in range(len(machines)):

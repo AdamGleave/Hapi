@@ -1,7 +1,7 @@
 #!/bin/bash
 
-HELPER=$HOME/adam/project/src/scripts/approx_generator_helper.sh
-PARALLEL_OPTS=-j -4
+HELPER="$HOME/adam/project/src/scripts/approx_generator_helper.sh"
+PARALLEL_OPTS="-j -4"
 
 SEED_FILE=$1
 OUTPUT_DIR=$2
