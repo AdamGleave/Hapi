@@ -652,12 +652,10 @@ FULL_TESTS = {
   # Caching arcs crossing the cut
   # zerorc case: only zero reduced cost cuts
   # all case: every arc crossing the cut (separated into positive and zero rc)
-  "opt_relax_cache_arcs": {
-    "files": FULL_DATASET["all_1hour_small"] + 
-             FULL_DATASET["road"] + 
-             FULL_DATASET["netgen"] + FULL_DATASET["goto"],
+  "opt_relax_cache_arcs_quincy": {
+    "files": FULL_DATASET["quincy_1hour"],
     # It's quite slow even on medium-sized datasets, so need to bump the timeout
-    "timeout": 120,
+    "timeout": 600,
     "iterations": 5,
     "tests": {
       "none": {
@@ -668,7 +666,34 @@ FULL_TESTS = {
       }
     }, 
   },
-              
+  "opt_relax_cache_arcs_octopus": {
+    "files": FULL_DATASET["octopus_1hour_small"],
+    # It's quite slow even on medium-sized datasets, so need to bump the timeout
+    "timeout": 600,
+    "iterations": 5,
+    "tests": {
+      "none": {
+        "implementation": "f_relax_cache_none",
+      },
+      "all": {
+        "implementation": "f_relax_latest",
+      }
+    }, 
+  },
+  "opt_relax_cache_arcs_general": {
+    "files": FULL_DATASET["netgen_8_one"] + FULL_DATASET["goto_8_one"],
+    # It's quite slow even on medium-sized datasets, so need to bump the timeout
+    "timeout": 60,
+    "iterations": 5,
+    "tests": {
+      "none": {
+        "implementation": "f_relax_cache_none",
+      },
+      "all": {
+        "implementation": "f_relax_latest",
+      }
+    }, 
+  },
   ## Cost scaling
   "opt_cs_wave_vs_fifo": {
     # small since wave takes >10 minutes even on medium_first
