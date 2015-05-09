@@ -650,13 +650,13 @@ FULL_TESTS = {
               
   ## Relaxation
   # Caching arcs crossing the cut
-  # zerorc case: only zero reduced cost cuts
-  # all case: every arc crossing the cut (separated into positive and zero rc)
+  # There's really high variance on the none case for some reason, so bump
+  # number of iterations to get reasonable error margins.
   "opt_relax_cache_arcs_quincy": {
     "files": FULL_DATASET["quincy_1hour"],
     # It's quite slow even on medium-sized datasets, so need to bump the timeout
     "timeout": 600,
-    "iterations": 10,
+    "iterations": 30,
     "tests": {
       "none": {
         "implementation": "f_relax_cache_none",
@@ -670,7 +670,7 @@ FULL_TESTS = {
     "files": FULL_DATASET["octopus_1hour_small"],
     # It's quite slow even on medium-sized datasets, so need to bump the timeout
     "timeout": 600,
-    "iterations": 5,
+    "iterations": 30,
     "tests": {
       "none": {
         "implementation": "f_relax_cache_none",

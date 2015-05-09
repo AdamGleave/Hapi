@@ -232,6 +232,18 @@ OPTIMISATION_FIGURES = {
       'Cache arcs': 'b',
     }
   },
+  'relax_arc_cache_octopus': {
+    'data': 'f_opt_relax_cache_arcs_octopus',
+    'test_filter': dictFilter({'none': 'No cache',
+                               'all': 'Cache arcs'}),
+    'file_filter': OCTOPUS_FILE_FILTER,
+    'datasets': ['Small'],
+    'implementations': ['Cache arcs'],
+    'baseline': 'No cache',
+    'colours': {
+      'Cache arcs': 'b',
+    }
+  },
 #   'parser_set_vs_getarc': {
 #     'data': 'f_opt_parser_set_vs_getarc',
 #     'test_filter': dictFilter({'getarc': 'Linked list',
