@@ -505,11 +505,11 @@ APPROXIMATE_FIGURES = {
     'test': 750,
     'max_cost_parameter': 0.7,
   },
-  'quincy_semibogus': {
+  'quincy_medium': {
     'data': 'af_quincy_medium',
     'training': 250,
-    'test': 396,
-    'min_accuracy': 0,
+    'test': 750,
+    'min_accuracy_terminating_condition': 0,
     'max_cost_parameter': 0.05,
     'max_task_assignments_parameter': 8000,
   },

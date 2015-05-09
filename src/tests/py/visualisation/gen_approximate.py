@@ -7,6 +7,11 @@ import scipy.stats
 import config.visualisation as config
 from visualisation import analysis, plot
 
+HEURISTIC_PARAMETER_NAMES = {
+  'cost': ('cost change threshold', 'c'),
+  'task_assignments': ('task migration threshold', 't'),
+}
+
 def af_map_on_stats(func, data):
   type, d = data
   assert(type == 'approximate_full')
@@ -167,7 +172,7 @@ def analyse_oracle_policy_points(data, figconfig):
   stats = ageneric_map_on_stats(filter_first_optimal, stats)
   reduced = reduce_everything(stats, granularity='refine')
   
-  accuracy_threshold = figconfig.get('min_accuracy',
+  accuracy_threshold = figconfig.get('min_accuracy_oracle_policy',
                                      config.APPROXIMATE_ACCURACY_THRESHOLD)
   
   x = np.array([])
@@ -197,7 +202,7 @@ def generate_oracle_policy_scatter(data, figconfig):
 def generate_oracle_policy_binned(data, figconfig):
   (x, y) = analyse_oracle_policy_points(data, figconfig)
   
-  accuracy_threshold = figconfig.get('min_accuracy',
+  accuracy_threshold = figconfig.get('min_accuracy_oracle_policy',
                                      config.APPROXIMATE_ACCURACY_THRESHOLD)
   num_bins = figconfig.get('num_bins',
                            config.APPROXIMATE_NUM_BINS)
@@ -242,7 +247,7 @@ def analyse_oracle_policy_interpolate(data, figconfig):
   stats = ageneric_map_on_stats(speedup, stats)
   reduced = reduce_everything(stats, granularity='file')
   
-  accuracy_threshold = figconfig.get('min_accuracy',
+  accuracy_threshold = figconfig.get('min_accuracy_oracle_policy',
                                      config.APPROXIMATE_ACCURACY_THRESHOLD)
   accuracies = np.linspace(accuracy_threshold, 100.0, 1000)
   
@@ -366,14 +371,14 @@ def heuristic_parameter_format(parameter):
     return '{:.3}'.format(parameter) # 3 s.f.
 
 def generate_terminating_condition_accuracy_plot(parameters, percentiles,
-                                                 heuristic_parameter, figconfig):
+                                     condition, heuristic_parameter, figconfig):
   percentiles_config = figconfig.get('percentiles', 
                                    config.APPROXIMATE_DEFAULT_PERCENTILES)
   
   for (percentile, percentile_label) in percentiles_config:
     plt.plot(parameters, percentiles[percentile], label=percentile_label)
   
-  min_accuracy = figconfig.get('min_accuracy', 
+  min_accuracy = figconfig.get('min_accuracy_terminating_condition', 
                                config.APPROXIMATE_ACCURACY_THRESHOLD)
   
   ymin, ymax = plt.ylim()
@@ -401,10 +406,11 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
 #   plt.annotate(annotation, xy=(heuristic_parameter, ymid), xycoords='data',
 #                xytext=(3,0), textcoords='offset points',
 #                rotation='vertical', verticalalignment='center')
-    
-  plt.xlabel('Parameter')
+
+  parameter_name, parameter_variable = HEURISTIC_PARAMETER_NAMES[condition]    
+  plt.xlabel('{0} ${1}$'.format(parameter_name.capitalize(), parameter_variable))
   plt.ylabel(r'Accuracy (\%)')
-  plt.title('Accuracy against heuristic parameter')
+  plt.title('Accuracy against ' + parameter_name)
   
   plt.legend(loc='best')
 
@@ -413,8 +419,14 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
 #     numstr = ("{0:.%ie}" % (n-1)).format(num)
 #     return float(numstr)
 
+def cdf_title(cdf_measuring, condition, parameter):
+  parameter_name, parameter_variable = HEURISTIC_PARAMETER_NAMES[condition]
+  title = r'CDF for {0} ({1} ${2}={3}$)'.format(cdf_measuring,
+      parameter_name, parameter_variable, heuristic_parameter_format(parameter))
+  return title
+
 def generate_terminating_condition_accuracy_distribution(data, parameter, 
-                                                          condition, figconfig):
+                                                         condition, figconfig):
   stats = ageneric_map_on_stats(discard_iterations, data)
   reduced = analyse_terminating_condition_setup(stats, condition)
 
@@ -447,9 +459,9 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
       
     # add labels
     plt.xlabel(r'Accuracy (\%)')
-    title = r'CDF for accuracy (heuristic parameter {0})'.format(
-                                          heuristic_parameter_format(parameter))
-    plt.title(title)
+    plt.title(cdf_title('accuracy', condition, parameter))
+    
+    plt.ylim(-5, 100)
   
   wide = plt.figure()
   genericDraw()
@@ -469,7 +481,7 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
   
   
 def generate_terminating_condition_speed_distribution(data, parameter,
-                                                          condition, figconfig):
+                                                      condition, figconfig):
   stats = ageneric_merge_iterations(data)
   stats = ageneric_map_on_stats(cumulative_time, stats)
   stats = ageneric_map_on_stats(speedup, stats)
@@ -493,9 +505,7 @@ def generate_terminating_condition_speed_distribution(data, parameter,
            colours={'Heuristic': 'b', 'Oracle': 'g'})
   
   plt.xlabel('Speedup (\%)')
-  title = r'CDF for speedup (heuristic parameter {0})'.format(
-                                          heuristic_parameter_format(parameter))
-  plt.title(title)
+  plt.title(cdf_title('speedup', condition, parameter))
   
   plt.legend(loc='lower right')
   
@@ -562,8 +572,10 @@ def generate_policy_combined_for_condition(training_data, test_data,
   if condition == 'task_assignments':
     heuristic_parameter = int(heuristic_parameter)
   
-  generate_terminating_condition_accuracy_plot(parameters, percentiles,
-                                               heuristic_parameter, figconfig)
+  print("Heuristic parameter for ", condition, " - ", heuristic_parameter)
+  
+  generate_terminating_condition_accuracy_plot(parameters, percentiles, 
+                                      condition, heuristic_parameter, figconfig)
   yield (condition + '_parameters', fig)
   
   wide, narrow = generate_terminating_condition_accuracy_distribution(test_data, 
