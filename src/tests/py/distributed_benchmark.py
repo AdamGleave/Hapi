@@ -3,17 +3,14 @@
 import sys, os, re
 
 import config.benchmark as config
+from config.distributed import *
 
 import redo
 
-REMOTE_ROOT_DIR = "/home/srguser/adam/"
 REMOTE_BENCHMARK_DIR = os.path.join(REMOTE_ROOT_DIR, "project/benchmark")
 REMOTE_BENCHMARK_CMD = os.path.join(REMOTE_ROOT_DIR, 
                                     "project/src/tests/py/benchmark.py")
 LOCAL_BENCHMARK_DIR = "/home/srguser/adam/benchmark_results"
-MACHINE_LIST = "/home/srguser/adam/deploy/machines"
-
-USER = "srguser"
 
 POLL = 1
 
@@ -81,14 +78,12 @@ def wait(redo, pids):
           del pids[machine]
 
 if __name__ == "__main__":
-  with open(MACHINE_LIST) as machine_file:
-    machines = list(machine_file)
-    machines = [x.strip() for x in machines]
-  
   if len(sys.argv) < 3:
     print >>sys.stderr, "usage: ", sys.argv[0], " <working directory> <pattern1> [pattern2] ..."
     sys.exit(1)
+  
   working_directory = sys.argv[1]
+  machines = getMachines()
   redo = redo.Redo(machines, USER, workdir=working_directory)
     
   test_cases = list(findTestCases(sys.argv[1:]))
