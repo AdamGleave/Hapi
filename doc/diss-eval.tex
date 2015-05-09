@@ -220,6 +220,8 @@ The results clearly show that the array implementation outperforms the hash tabl
     \label{fig:opt-relax-cache-arcs}
 \end{figure}
 
+\todo{XXX: The results are positive for pretty much every flow network, but massively NEGATIVE for Quincy. Need to rewrite this section, and rerun some experiments.}
+
 The relaxation algorithm repeatedly accesses the set of arcs $\left(S,\overline{S}\right)$ crossing the cut. The main relaxation procedure in \cref{algo:relaxation} and \textproc{AugmentFlow} in \cref{algo:relaxation-augment-flow} only consider arcs $(i,j) \in \left(S,\overline{S}\right)$ for which the reduced cost $c_{ij}^{\boldsymbol{\pi}}$ is zero. By contrast, \textproc{UpdatePotentials} in \cref{algo:relaxation-update-potentials} considers only those arcs with positive reduced cost.
 
 In the naive implementation of the algorithm, the entire list of arcs in the graph is searched until an arc satisfying the above conditions is found. It is possible to instead maintain the set of arcs $\left(S,\overline{S}\right)$ crossing the cut. This imposes an additional cost whenever $S$ is updated, but allows for iteration over the set to proceed more efficiently. At no additional cost, we can partition this set into arcs with zero reduced cost and those with positive reduced cost\footnotemark. This is more efficient, as the algorithm never needs to access the entire set $\left(S,\overline{S}\right)$.
@@ -259,10 +261,18 @@ It is clear from \cref{fig:opt-cs-wave-vs-fifo} that FIFO outperforms wave on th
     \label{fig:opt-cs-scaling-factor}
 \end{figure}
 
-Cost scaling computes a series of $\epsilon$-optimal solutions, where $\epsilon$ is reduced by a \emph{scaling factor} $\alpha$ between calls to \textproc{Refine}. A value of $\alpha=2$ was proposed in the original paper by Goldberg and Tarjan~\cite{Goldberg:1987}, and is used in \cref{algo:cost-scaling}. However, this choice is not necessarily optimal: in fact, the best value of $\alpha$ varies depending on the problem instance~\cite[\S7]{Goldberg:1997}. Larger values of $\alpha$ will result in fewer calls to \textproc{Refine}, however each call will take longer to execute.
+Cost scaling computes a series of $\epsilon$-optimal solutions, where $\epsilon$ is reduced by a \emph{scaling factor} $\alpha$ between calls to \textproc{Refine}. A value of $\alpha=2$ was proposed in the original paper by Goldberg and Tarjan~\cite{Goldberg:1987}, and is used in \cref{algo:cost-scaling}. However, this choice is not necessarily optimal. Larger values of $\alpha$ will result in fewer calls to \textproc{Refine}, but each call will take longer to execute. The optimal choice for $\alpha$ varies depending on the problem instance~\cite[\S7]{Goldberg:1997}.
 
-% This test seems a little bogus without preemption support, at least when running an hour into the trace.
-\Cref{fig:opt-cs-scaling-factor} shows the runtime of the cost scaling algorithm by scaling factor, on the warehouse-scale dataset using the Quincy cost model. The experiment was conducted both for my implementation, and Goldberg's reference implementation CS2~\cite{CS2:2009}. TBC\todo{Finish when have updated results}
+\Cref{fig:opt-cs-scaling-factor} shows how the runtime varies by scaling factor. % on the medium size (600 machine) dataset.
+The experiment was conducted on both my version of the algorithm, and Goldberg's reference implementation CS2~\cite{CS2:2009}.
+
+My implementation performs best with a small scaling factor, between $2$ and $6$. Runtime is very similar within this range, although $\alpha=3$ offers a small speedup. Performance significantly degrades at $\alpha = 12$ and above.
+
+Goldberg's solver exhibits the opposite behaviour, enjoying considerable performance gains with larger scaling factors. There are diminishing returns after around $\alpha = 12$, with performance starting getting worse from around $\alpha = 24$. Runtimes are statistically indistinguishable in the range $\alpha=16$ to $24$.
+
+I believe this behaviour is due to Goldberg's extensive use of heuristics (see \cref{appendix:csheuristics}) in his implementation. Although these improve the overall performance of the algorithm, they add overhead to to each execution of \textproc{Refine}. This favours larger values of $\alpha$, which cause fewer calls to \textproc{Refine}. 
+
+In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementation and $\alpha = 20$ for Goldberg's. These offer small, but statistically significant speedups, over the default cost scaling factors of $2$ (my implementation) and $12$ (Goldberg's implementation).
 
 %\subsection{DIMACS Parser}
 %
@@ -477,32 +487,28 @@ To investigate this, I extended the reference implementation of the relaxation a
 
 %Both distributions are long tailed, reflecting the added workload when there are large numbers of changes\todo{Add reference to next section when written. Adding preemption support will change this slightly, probably removing the long tail of CS2 but shifting it to the right. If you don't add preemption support, might want to explain why workload varies for standard solver}.
 
-\subsection{Determinants of incremental performance}
-
-TBC. Optional. Show correlation between \# of changes and incremental runtime.
-
-\subsection{Scalability analysis}
-TBC. Optional.
-
-\subsubsection{Growing size of network}
-
-Increase number of nodes, but keep structure.
-
-\subsubsection{Increasing complexity of network}
-
-e.g. increase number of preference arcs, or similar. Simulate some more complicated scheduling policy.
-
-\subsubsection{Large incremental changes}
-
-For incremental algorithm only. Simulate large job being added with lots of tasks, or many machines going offline.
-
-\subsubsection{Different cost models}
-
-How does performance vary on new / more complicated cost models?
-
-\section{Other applications}
-
-Hitherto have evaluated on Quincy-style flow graphs. But my algorithms are fully general, will operate on any flow network. How does it fare on other graphs? Make clear this wasn't part of the original goal of the project.
+%\subsection{Determinants of incremental performance}
+%
+%TBC. Optional. Show correlation between \# of changes and incremental runtime.
+%
+%\subsection{Scalability analysis}
+%TBC. Optional.
+%
+%\subsubsection{Growing size of network}
+%
+%Increase number of nodes, but keep structure.
+%
+%\subsubsection{Increasing complexity of network}
+%
+%e.g. increase number of preference arcs, or similar. Simulate some more complicated scheduling policy.
+%
+%\subsubsection{Large incremental changes}
+%
+%For incremental algorithm only. Simulate large job being added with lots of tasks, or many machines going offline.
+%
+%\subsubsection{Different cost models}
+%
+%How does performance vary on new / more complicated cost models?
 
 \section{Summary}
 
