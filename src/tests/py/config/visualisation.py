@@ -187,9 +187,7 @@ OPTIMISATION_FIGURES = {
       'partialdjikstra_small_vector': 'Partial Djikstra, small heap (array)',
       'partialdjikstra_small_map': 'Partial Djikstra, small heap (hash table)', 
     }),
-         
-    # XXX: See which ones it doesn't timeout on
-    'datasets': ['Small', 'Medium', 'Large'],# 'Warehouse scale'],
+    'datasets': ['Small', 'Medium'],
     'implementations': ['Standard Djikstra, small heap', 
                         'Partial Djikstra, big heap', 
                         'Partial Djikstra, small heap (array)', 
@@ -200,7 +198,8 @@ OPTIMISATION_FIGURES = {
       'Partial Djikstra, big heap': 'g',
       'Partial Djikstra, small heap (array)': 'b', 
       'Partial Djikstra, small heap (hash table)': 'k',
-    }
+    },
+    'custom_cmd': lambda : plt.legend(loc='upper right'),
   },
   'cs_wave_vs_fifo': {
     'data': 'f_opt_cs_wave_vs_fifo',

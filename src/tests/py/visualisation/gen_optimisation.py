@@ -78,7 +78,12 @@ def generate_absolute(data, figconfig):
   
   plt.xlabel('Cluster size')
   plt.ylabel('Runtime (\si{\second})')
-  plt.title('Runtimes by cluster size and implementation')
+  what_by = []
+  if len(figconfig['datasets']) > 1:
+    what_by.append('cluster size')
+  if len(figconfig['implementations']) > 1:
+    what_by.append('implementation')
+  plt.title('Runtimes by ' + ' and '.join(what_by))
   
   plt.tight_layout()
   
