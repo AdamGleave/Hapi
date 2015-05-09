@@ -497,11 +497,17 @@ APPROXIMATE_FIGURES = {
     'test': 750,
     'max_cost_parameter': 0.7,
   },
+  'quincy_semibogus': {
+    'data': 'aio_1hour_quincy_partial',
+    'file': 'clusters/natural/google_trace/quincy/1hour/large.imin',
+    'training': 1000,
+    'test': 3469,
+  }
 }
 
 def updateApproximateFigures(d):
   types = {'oracle_policy': ([], FigureTypes.approximate_oracle_policy),
-           'over_time': (['file'], FigureTypes.approximate_cost_vs_time),
+           'over_time': (['over_time_file'], FigureTypes.approximate_cost_vs_time),
            'policy': ([], FigureTypes.approximate_policy_combined)}
            
   return updateFiguresWithTypes(d, types)

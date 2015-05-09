@@ -514,9 +514,9 @@ def split_training_and_test(data, figconfig):
     training_times = {k : times[k] for k in range(n_training)}
     test_times = {k : times[k] for k in range(n_training,len(times))}
         
-    # fake the type as 'full', since it only has one file in it
-    training_data = ('full', training_times)
-    test_data = ('full', test_times)
+    # fake the type as 'approximate_full', since it only has one file in it
+    training_data = ('approximate_full', training_times)
+    test_data = ('approximate_full', test_times)
   else:
     print("ERROR: Unrecognised type ", type)
     assert(False)
@@ -580,7 +580,7 @@ def generate_cost_vs_time_plot(data, figconfig):
   # easy enough to extend to incremental_offline, but would need to add
   # 'delta_id' parameter to figconfig along with 'file' parameter
   assert(type == 'approximate_full')
-  file = figconfig['file']
+  file = figconfig['over_time_file']
   d = {file : d[file]}
   
   data = (type, d)
