@@ -297,6 +297,7 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 		epsilon = std::max(1ul, epsilon / SCALING_FACTOR);
 		refine();
 		num_iterations++;
+		carry_on = continue_running();
 	}
 	return true;
 }
