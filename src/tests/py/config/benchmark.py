@@ -667,6 +667,9 @@ FULL_TESTS = {
       "cache_all": {
         "implementation": "f_relax_cache_all",
       },
+      "cache_all_latest": {
+        "implementation": "f_relax_latest",
+      }
     }, 
   },
               
