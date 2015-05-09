@@ -62,7 +62,7 @@ if __name__ == "__main__":
     elif test_type == "af":
       data = parse.approximate_full(data_fname, file_filter)
     elif test_type == "aio" or test_type == "aih":
-      data = parse.approximate_full(data_fname, file_filter)
+      data = parse.approximate_incremental_offline(data_fname, file_filter)
     else:
       assert(False)
       

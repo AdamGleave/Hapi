@@ -161,6 +161,7 @@ def _helper_approximate_full_or_offline(type, fname, file_filter=identity):
     data = _parse(fname, APPROXIMATE_INCREMENTAL_OFFLINE_FIELDNAMES)
   
   res = {}
+  delta_id_map_of_files = {}
   for row in data:
     row = {k : APPROXIMATE_CONVERSIONS[k](v) for k,v in row.items()}
     file = file_filter(row['file'])
@@ -171,11 +172,17 @@ def _helper_approximate_full_or_offline(type, fname, file_filter=identity):
     if type == "full":
       array_of_iterations = file_res
     else:
+      delta_id_map = delta_id_map_of_files.get(file, {})
       delta_id = int(row['delta_id'])
-      assert(delta_id <= len(file_res))
-      if delta_id == len(file_res):
+      if delta_id not in delta_id_map:
+        index = len(delta_id_map)
+        delta_id_map[delta_id] = index
+      index = delta_id_map[delta_id]
+      assert(index <= len(file_res))
+      if index == len(file_res):
         file_res.append([])
-      array_of_iterations = file_res[delta_id]
+      array_of_iterations = file_res[index]
+      delta_id_map_of_files[file] = delta_id_map
     
     test_iteration = int(row['test_iteration'])
     assert(test_iteration <= len(array_of_iterations))
@@ -189,7 +196,7 @@ def _helper_approximate_full_or_offline(type, fname, file_filter=identity):
     
     array_of_iterations[test_iteration] = refine_iteration_res
     if type == "incremental_offline":
-      file_res[delta_id] = array_of_iterations
+      file_res[index] = array_of_iterations
     res[file] = file_res
   
   return ('approximate_' + type, res)
