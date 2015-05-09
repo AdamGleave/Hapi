@@ -132,14 +132,20 @@ def build(version, to_build):
       pass
     os.chdir(build_directory)
     
-    # run cmake
-    c_flags = compiler.get("flags", "") + " " + compiler.get("cflags", "")
-    cxx_flags = compiler.get("flags", "") + " " + compiler.get("cxxflags", "")
-    sh.cmake(source_directory, "-DCMAKE_BUILD_TYPE=Custom",
-             "-DCMAKE_C_COMPILER=" + compiler["cc"], 
-             "-DCMAKE_CXX_COMPILER=" + compiler["cxx"],
-             "-DCMAKE_C_FLAGS_CUSTOM=" + c_flags,
-             "-DCMAKE_CXX_FLAGS_CUSTOM=" + cxx_flags)
+    if not os.path.exists(os.path.join(build_directory, "CMakeCache.txt")):
+      # N.B. Must NOT run CMake twice. This can break things!
+      # In particular, CMake will think that the compilers are being changed
+      # (even though they're remaining the same); it will issue a warning,
+      # and hose the CMakeCache completely (e.g. compiler flags get reset)
+      c_flags = compiler.get("flags", "") + " " + compiler.get("cflags", "")
+      cxx_flags = compiler.get("flags", "") + " " + compiler.get("cxxflags", "")
+      args = [source_directory, "-DCMAKE_BUILD_TYPE=Custom",
+               "-DCMAKE_C_COMPILER=" + compiler["cc"], 
+               "-DCMAKE_CXX_COMPILER=" + compiler["cxx"],
+               "-DCMAKE_C_FLAGS_CUSTOM=" + c_flags,
+               "-DCMAKE_CXX_FLAGS_CUSTOM=" + cxx_flags]
+      print("Executing cmake with ", args)
+      sh.cmake(*args)
     
     # run make 
     sh.make(config.MAKE_FLAGS + list(targets), 
