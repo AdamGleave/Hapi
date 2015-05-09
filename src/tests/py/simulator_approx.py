@@ -40,7 +40,7 @@ if __name__ == "__main__":
   pids = []
   for i in range(len(machines)):
     start = i * seeds_per_machine + 1
-    end = min((i + 1) * seeds_per_machine, n_seeds - 1)
+    end = min((i + 1) * seeds_per_machine, n_seeds)
     cmdline = ' '.join([GENERATOR_PATH, percentage, seed_fname,
                         OUTPUT_DIR, str(start), str(end)])
     machine = machines[i]

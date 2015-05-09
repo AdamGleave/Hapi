@@ -70,7 +70,6 @@ public:
 	static bool adjacencyEquals(const std::unordered_map<uint32_t, Arc*> &adj1,
 			 	 	 	 	 	 	 	 	 	 	 	  const std::unordered_map<uint32_t, Arc*> &adj2);
 private:
-	friend class const_noconst_iterator;
 	template<bool is_const_iterator = true>
 	class const_noconst_iterator;
 

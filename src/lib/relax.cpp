@@ -35,36 +35,36 @@ void RELAX::init() {
 	}
 }
 
-ResidualNetwork::iterator RELAX::beginZeroCostCut() {
-	return ResidualNetwork::iterator(&tree_cut_arcs_zero_cost);
+RELAX::iterator RELAX::beginZeroCostCut() {
+  return iterator(&tree_cut_arcs_zero_cost, &tree_nodes);
 }
 
-ResidualNetwork::iterator RELAX::endZeroCostCut() {
-	return ResidualNetwork::iterator(&tree_cut_arcs_zero_cost, true);
+RELAX::iterator RELAX::endZeroCostCut() {
+  return iterator(&tree_nodes, true);
 }
 
-ResidualNetwork::const_iterator RELAX::beginZeroCostCut() const {
-	return ResidualNetwork::const_iterator(&tree_cut_arcs_zero_cost);
+RELAX::const_iterator RELAX::beginZeroCostCut() const {
+  return const_iterator(&tree_cut_arcs_zero_cost, &tree_nodes);
 }
 
-ResidualNetwork::const_iterator RELAX::endZeroCostCut() const {
-	return ResidualNetwork::const_iterator(&tree_cut_arcs_zero_cost, true);
+RELAX::const_iterator RELAX::endZeroCostCut() const {
+  return const_iterator(&tree_nodes, true);
 }
 
-ResidualNetwork::iterator RELAX::beginPositiveCostCut() {
-	return ResidualNetwork::iterator(&tree_cut_arcs_positive_cost);
+RELAX::iterator RELAX::beginPositiveCostCut() {
+	return iterator(&tree_cut_arcs_positive_cost, &tree_nodes);
 }
 
-ResidualNetwork::iterator RELAX::endPositiveCostCut() {
-	return ResidualNetwork::iterator(&tree_cut_arcs_positive_cost, true);
+RELAX::iterator RELAX::endPositiveCostCut() {
+	return iterator(&tree_nodes, true);
 }
 
-ResidualNetwork::const_iterator RELAX::beginPositiveCostCut() const {
-	return ResidualNetwork::const_iterator(&tree_cut_arcs_positive_cost);
+RELAX::const_iterator RELAX::beginPositiveCostCut() const {
+  return const_iterator(&tree_cut_arcs_positive_cost, &tree_nodes);
 }
 
-ResidualNetwork::const_iterator RELAX::endPositiveCostCut() const {
-	return ResidualNetwork::const_iterator(&tree_cut_arcs_positive_cost, true);
+RELAX::const_iterator RELAX::endPositiveCostCut() const {
+  return const_iterator(&tree_nodes, true);
 }
 
 int64_t RELAX::compute_reduced_cost(const Arc &arc, bool allow_negative) {
@@ -160,16 +160,18 @@ void RELAX::update_cut(uint32_t new_node) {
 
 void RELAX::reset_cut() {
 	tree_residual_cut = 0;
-	tree_cut_arcs_zero_cost.clear();
-	tree_cut_arcs_zero_cost.resize(g.getNumNodes() + 1);
-	tree_cut_arcs_positive_cost.clear();
-	tree_cut_arcs_positive_cost.resize(g.getNumNodes() + 1);
+	for (auto node : tree_nodes) {
+	  tree_cut_arcs_zero_cost[node].clear();
+	  tree_cut_arcs_positive_cost[node].clear();
+	}
 }
 
 void RELAX::reoptimize() {
 	// do this here rather than in constructor, since number of nodes may change
 	// between runs. Note DynamicMaintainOptimality will resize potentials for us
 	predecessors.resize(g.getNumNodes() + 1);
+	tree_cut_arcs_zero_cost.resize(g.getNumNodes() + 1);
+  tree_cut_arcs_positive_cost.resize(g.getNumNodes() + 1);
 
 	const std::set<uint32_t> &sources = g.getSources();
 	while (!sources.empty()) {
@@ -185,6 +187,7 @@ void RELAX::reoptimize() {
 
 		// note source satisfies (1) by definition
 		// (2) trivially satisfied since no arcs
+		reset_cut();
 		tree_nodes.clear();
 		tree_nodes.insert(source);
 
@@ -193,7 +196,6 @@ void RELAX::reoptimize() {
 
 		// sum of residual capacity of *zero reduced-cost* arcs from
 		// tree to non-tree nodes, i.e. crossing the tree cut.
-		reset_cut();
 		update_cut(source);
 
 		if (tree_excess > tree_residual_cut) {
@@ -206,8 +208,8 @@ void RELAX::reoptimize() {
 		while (tree_excess <= tree_residual_cut) {
 			// build the tree
 
-			ResidualNetwork::const_iterator it = beginZeroCostCut(),
-					                            end = endZeroCostCut();
+			RELAX::const_iterator it = beginZeroCostCut(),
+					                 end = endZeroCostCut();
 			for (;it != end; ++it) {
 				const Arc &arc = *it;
 				if (arc.getCapacity() > 0) {
