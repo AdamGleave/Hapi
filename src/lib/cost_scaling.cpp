@@ -269,7 +269,10 @@ bool CostScaling::run(std::function<bool()> continue_running) {
 		}
 	}
 
-	while (epsilon > 1 && continue_running()) {
+	// N.B. Important this is always executed: side-effects are needed for e.g.
+	// runStatistics.
+	bool carry_on = continue_running();
+	while (epsilon > 1 && carry_on) {
 		/*
 		 * The below computation will decrease epsilon by (slightly) more than
 		 * a factor of two when epsilon is odd, since integer division truncates
