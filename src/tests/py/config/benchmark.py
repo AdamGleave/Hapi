@@ -783,6 +783,17 @@ FULL_TESTS = {
     "tests": compilerTests({"frangioni": {"implementation": "f_relax_frangioni"}},
                            COMPILERS.keys())
   },
+              
+  ### Comparing algorithms
+  "vs_new_relax": {
+    'files': FULL_DATASET["all_1hour"],
+    "iterations": 1,
+    "tests": {
+      "goldberg": {"implementation": "f_cs_goldberg"},
+      "my_relax": {"implementation": "f_relax_latest"},
+      "frangioni_relax": {"implementation": "f_relax_frangioni"},
+    },
+  },
 }
 
 INCREMENTAL_TESTS_OFFLINE = {
