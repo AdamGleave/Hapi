@@ -893,9 +893,9 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   "generate_quincy_longgap": {
     # 600000000 = minute scheduling interval
-    "traces": { k : extend_dict(v, {"cost_model": "simulated_quincy",
-                                    "batch_step": 60000000})  
+    "traces": { k : extend_dict(v, {"cost_model": "simulated_quincy"})  
                 for k,v in STANDARD_TRACE_CONFIG_24HOUR.items() },
+    "batch_step": 60000000,
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },
@@ -903,9 +903,9 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   "generate_octopus_longgap": {
     # 600000000 = minute scheduling interval
-    "traces": { k : extend_dict(v, {"cost_model": "octopus",
-                                    "batch_step": 60000000})  
+    "traces": { k : extend_dict(v, {"cost_model": "octopus"})  
                 for k,v in STANDARD_TRACE_CONFIG_24HOUR.items() },
+    "batch_step": 60000000,
     "iterations": 0,
     "tests": {
       "goldberg": { "implementation": "f_cs_goldberg" },
