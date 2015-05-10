@@ -12,8 +12,8 @@ HEURISTIC_NAMES = {
   'task_assignments': 'Task migration convergence',
 }
 HEURISTIC_PARAMETER_NAMES = {
-  'cost': ('cost change threshold', 'c'),
-  'task_assignments': ('task migration threshold', 't'),
+  'cost': ('Cost change threshold', 'c', 'Cost change threshold $c$ (\%)'),
+  'task_assignments': ('Task migration threshold', 't', 'Task migration threshold $t$'),
 }
 
 def af_map_on_stats(func, data):
@@ -291,7 +291,7 @@ def generate_oracle_policy_interpolate(data, figconfig):
 
 def cost_heuristic(cost_threshold, test):
   for refine_it in test:
-    if refine_it['cost_change_as_in_policy'] < cost_threshold:
+    if refine_it['cost_change_as_in_policy'] * 100 < cost_threshold:
       return refine_it
   return test[-1]
 
@@ -373,7 +373,7 @@ def heuristic_parameter_format(parameter):
   if type(parameter) == int:
     return str(parameter) # exact
   else:
-    return '{:.3}'.format(parameter) # 3 s.f.
+    return '{:.1f}\%'.format(parameter) # 3 s.f.
 
 def generate_terminating_condition_accuracy_plot(parameters, percentiles,
                                      condition, heuristic_parameter, figconfig):
@@ -412,8 +412,8 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
 #                xytext=(3,0), textcoords='offset points',
 #                rotation='vertical', verticalalignment='center')
 
-  parameter_name, parameter_variable = HEURISTIC_PARAMETER_NAMES[condition]    
-  plt.xlabel('{0} ${1}$'.format(parameter_name.capitalize(), parameter_variable))
+  parameter_name, _, parameter_label = HEURISTIC_PARAMETER_NAMES[condition]    
+  plt.xlabel(parameter_label)
   plt.ylabel(r'Accuracy (\%)')
   plt.title('Accuracy against ' + parameter_name)
   
@@ -426,10 +426,13 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
 #     numstr = ("{0:.%ie}" % (n-1)).format(num)
 #     return float(numstr)
 
-def cdf_title(cdf_measuring, condition, parameter):
-  parameter_name, parameter_variable = HEURISTIC_PARAMETER_NAMES[condition]
-  title = r'CDF for {0} ({1} ${2}={3}$)'.format(cdf_measuring,
-      parameter_name, parameter_variable, heuristic_parameter_format(parameter))
+def cdf_title(cdf_measuring, subtitle, condition, parameter):
+  parameter_name, parameter_variable, _ = HEURISTIC_PARAMETER_NAMES[condition]
+  title = 'CDF for {0}'.format(cdf_measuring)
+  if subtitle:
+    title += '\n'
+    title += r'\smaller{{{0} ${1}={2}$}}'.format(parameter_name,
+                      parameter_variable, heuristic_parameter_format(parameter))
   return title
 
 def generate_terminating_condition_accuracy_distribution(data, parameter, 
@@ -468,7 +471,8 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
       
     # add labels
     plt.xlabel(r'Accuracy (\%)')
-    plt.title(cdf_title('accuracy', condition, parameter))
+    subtitle = figconfig.get('subtitle', True)
+    plt.title(cdf_title('accuracy', subtitle, condition, parameter))
     
     plt.ylim(-5, 100)
   
@@ -520,9 +524,10 @@ def generate_terminating_condition_speed_distribution(data, parameter,
            annotate_means_format=format)
   
   plt.xlabel('Speedup (\%)')
-  plt.title(cdf_title('speedup', condition, parameter))
+  subtitle = figconfig.get('subtitle', True)
+  plt.title(cdf_title('speedup', subtitle, condition, parameter))
   
-  legend_loc = figconfig.get('speed_legend', 'lower_right')
+  legend_loc = figconfig.get('speed_legend', 'lower right')
   if legend_loc:
     plt.legend(loc=legend_loc)
   

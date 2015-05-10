@@ -499,6 +499,7 @@ Each generator takes input parameters controlling the structure of the generated
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/netgen_lo_8_policy_cost_parameters_2col.pdf}
             \caption{NETGEN-LO-8}
+            \label{fig:app-general-cost-parameters:netgen-lo-8}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/netgen_sr_policy_cost_parameters_2col.pdf}
@@ -507,6 +508,7 @@ Each generator takes input parameters controlling the structure of the generated
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/netgen_lo_sr_policy_cost_parameters_2col.pdf}
             \caption{NETGEN-LO-SR}
+            \label{fig:app-general-cost-parameters:netgen-lo-sr}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/goto_8_policy_cost_parameters_2col.pdf}
@@ -517,11 +519,12 @@ Each generator takes input parameters controlling the structure of the generated
             \caption{GOTO-SR}
         \end{subfigure}
     \end{widepage}
-    \caption{Selecting a cost threshold $c$. Key: {\color{1st_percentile} 1\textsuperscript{st} percentile}, {\color{5th_percentile} 5\textsuperscript{th} percentile}, {\color{25th_percentile} 25\textsuperscript{th} percentile}, {\color{median} median}.}
+    \caption{Selecting a cost threshold $c$. Key: {\color{matplotlib_blue} 1\textsuperscript{st} percentile}, {\color{matplotlib_green} 5\textsuperscript{th} percentile}, {\color{matplotlib_red} 25\textsuperscript{th} percentile}, {\color{matplotlib_cyan} median}.}
     \label{fig:app-general-cost-parameters}
 \end{figure}
 
-
+% Tweak parameter so it is slightly less than when it crosses the target?
+The relationship between the threshold $c$ for the cost convergence heuristic and accuracy is shown in \cref{fig:app-general-cost-parameters}. For NETGEN-8 and NETGEN-SR, there is a gentle decline in accuracy as $c$ is increased, indicating the heuristic performance is robust to small changes in $c$. However, accuracy on the other classes of networks is very sensitive to $c$, falling rapidly after a certain point.
 
 \begin{figure}
     \begin{widepage}
@@ -532,6 +535,7 @@ Each generator takes input parameters controlling the structure of the generated
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/netgen_lo_8_policy_cost_accuracy_narrow_2col.pdf}
             \caption{NETGEN-LO-8}
+            \label{fig:app-general-cost-accuracy-cdf:netgen-lo-8}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/netgen_sr_policy_cost_accuracy_narrow_2col.pdf}
@@ -540,6 +544,7 @@ Each generator takes input parameters controlling the structure of the generated
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/netgen_lo_sr_policy_cost_accuracy_narrow_2col.pdf}
             \caption{NETGEN-LO-SR}
+            \label{fig:app-general-cost-accuracy-cdf:netgen-lo-sr}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics[width=\textwidth]{app/goto_8_policy_cost_accuracy_narrow_2col.pdf}
@@ -553,6 +558,23 @@ Each generator takes input parameters controlling the structure of the generated
     \caption{Accuracy of cost convergence policy}
     \label{fig:app-general-cost-accuracy-cdf}
 \end{figure}
+
+\begin{table}
+    \centering
+    \begin{tabular}{lp{0.3\textwidth}p{0.3\textwidth}}
+        \textbf{Dataset} & \textbf{Proportion of solutions meeting target accuracy} & \textbf{Worst-case accuracy} \tabularnewline
+        NETGEN-8 & 98.3\% & 96.9\% \tabularnewline
+        NETGEN-SR & 98.8\% & 98.3\% \tabularnewline
+        NETGEN-LO-8 & 100\% & 99.1\% \tabularnewline
+        NETGEN-LO-SR & 99.3\% & 98.0\% \tabularnewline
+        GOTO-8 & 98.53\% & 45.3\% \tabularnewline
+        GOTO-SR & 99.07\% & 27.3\% \tabularnewline
+    \end{tabular}
+    \caption{Distribution of outliers. The second column shows the proportion of networks where the 99\% target accuracy was met or exceeded. The third column shows the minimum accuracy achieved.}
+    \label{table:app-general-outliers}
+\end{table}
+
+The accuracy under cost convergence is shown in \cref{fig:app-general-cost-accuracy-cdf}, along with the value of $c$ chosen by the previous step. For each class of networks, the 99\% target accuracy is achieved in at least 98\% of cases, as shown in \cref{table:app-general-worst-case-accuracy}. The accuracy distribution on GOTO datasets has a long tail, with accuracy below 50\% in the worst case. The heuristic is considerably more reliable on NETGEN: the worst-case accuracy across any NETGEN instance is 96.9\%, which is still close to optimal.
 
 \begin{figure}
     \begin{widepage}
@@ -581,21 +603,13 @@ Each generator takes input parameters controlling the structure of the generated
             \caption{GOTO-SR}
         \end{subfigure}
     \end{widepage}
-    \caption{Speedup under cost convergence policy}
+    \caption{Speedup under {\color{matplotlib_blue}cost convergence}, compared with the {\color{matplotlib_green}oracle policy}.}
     \label{fig:app-general-cost-speed-cdf}
 \end{figure}
 
-%\subsubsection{Comparison with optimal algorithms}
-%
-%Set threshold for approximation algorithm so that it produces 'nearly' optimal results. How does performance compare? (In early tests, it was a big improvement, but need to replicate.)
-%
-%\subsubsection{Performance-accuracy tradeoff}
-%
-%How much accuracy do we have to give up to get to a certain performance level? Is there a range of parameters which is clearly best: e.g. can we get a big speedup for a small loss of accuracy, but after a point we have to make big sacrifices in accuracy for small speedups?
-%
-%\subsubsection{Impact of loss of accuracy}
-%
-%Test an approximate algorithm on cluster. How much does performance degrade?
+\Cref{fig:app-general-cost-speed-cdf} shows the speedup achieved by cost convergence, along with the upper bound provided by the oracle. For the majority of networks (NETGEN-8, NETGEN-SR, GOTO-8 and GOTO-SR), cost convergence comes very close to achieving this upper bound. Indeed, the oracle model is almost totally obscured by the cost convergence model in the graphs on the left-hand side.
+
+Cost convergence also provides a robust speedup on the ``loose`` NETGEN instances, NETGEN-LO-SR and NETGEN-LO-8, of 268\% and 469\% respectively. However, this is significantly less than the maximum achievable speedup of 343\% and 622\%. The reason for this is clearly visible from \cref{fig:app-general-cost-parameters:netgen-lo-8,fig:app-general-cost-parameters:netgen-lo-sr}. The 25\textsuperscript{th} percentile and {\color{matplotlib_cyan} median} liens remain above the target accuracy line until $c > 80\%$. However, to ensure that this target accuracy is reliably achieved, $c$ is set much more conservatively based on when the {\color{matplotlib_blue} 1\textsuperscript{st} percentile} line drops below 99\%, giving a value of $c < 10\%$. This conservative choice is also reflected in \cref{fig:app-general-cost-accuracy-cdf:netgen-lo-8,fig:app-general-cost-accuracy-cdf:netgen-lo-sr}: the accuracy CDF is shifted further to the right than for other graphs, with almost all solutions achieving an accuracy in excess of 99.8\%.
 
 \section{Incremental algorithm} \label{sec:eval-incremental}
 
