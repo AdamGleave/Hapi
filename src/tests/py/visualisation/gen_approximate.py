@@ -448,7 +448,8 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
   num_below_target = np.sum(accuracies < target_accuracy)
   percent_breached = float(num_below_target) / len(accuracies) * 100.0
   
-  print("Worst accuracy - ", np.min(accuracies))
+  print("Accuracy: mean - ", np.mean(accuracies), 
+        "; worst accuracy - ", np.min(accuracies))
   
   def genericDraw():
     # draw CDF
