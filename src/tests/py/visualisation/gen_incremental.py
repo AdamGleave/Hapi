@@ -36,7 +36,7 @@ def adjust_units(times):
   if max_time >= 1:
     return (r'\second', times)
   else:
-    times = np.multiply(times, 1000)
+    times = [np.multiply(x, 1000) for x in times]
     return (r'\milli\second', times)
 
 def _generate_cdf_helper(data, figconfig, implementations, annotate_means=[],
@@ -47,28 +47,17 @@ def _generate_cdf_helper(data, figconfig, implementations, annotate_means=[],
   
   unit, times = adjust_units(times)
   
-  plot.cdf(times, implementations, figconfig['colours'])
+  def format(mean):
+    return r"\SI{{{0:.3}}}{{{1}}}".format(mean, unit)
+  plot.cdf(times, implementations, figconfig['colours'], 
+           annotate_means=annotate_means, annotate_means_format=format, 
+           ymin=ymin)
   
   xmin, xmax = plt.xlim()
   if xmax_bound:
     xmax = min(xmax, xmax_bound)
   xmin = -xmax*0.05
   plt.xlim(xmin, xmax)
-  
-  y_width = 100 - ymin
-  plt.ylim(ymin, 100)
-  
-  for implementation in annotate_means:
-    index = implementations.index(implementation)
-    imp_times = times[index]
-    imp_mean = np.mean(imp_times)
-    
-    plt.axvline(imp_mean, color=figconfig['colours'][implementation], linestyle='dashed')
-    
-    annotation = r"$\mu = \SI{{{0:.3}}}{{{1}}}$".format(imp_mean, unit)
-    plt.annotate(annotation, xy=(imp_mean, ymin + 0.05*y_width), xycoords='data',
-                 xytext=(1, 1), textcoords='offset points', rotation='vertical',
-                 verticalalignment='bottom')
   
   plt.legend(loc='lower right')
   

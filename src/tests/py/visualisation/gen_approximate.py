@@ -7,6 +7,10 @@ import scipy.stats
 import config.visualisation as config
 from visualisation import analysis, plot
 
+HEURISTIC_NAMES = {
+  'cost': 'Cost convergence',
+  'task_assignments': 'Task migration convergence',
+}
 HEURISTIC_PARAMETER_NAMES = {
   'cost': ('cost change threshold', 'c'),
   'task_assignments': ('task migration threshold', 't'),
@@ -344,7 +348,8 @@ def analyse_terminating_condition(stats, condition, figconfig, extractValue):
   return (parameters, values_by_parameter)
 
 def analyse_percentiles(data, percentiles):
-  return {p : np.percentile(data, p, axis=1) for (p, label) in percentiles}
+  return {p : np.percentile(data, p, axis=1) 
+          for (p, _label, color_) in percentiles}
 
 def extractAccuracy(refine_it):
   return calculate_relative_accuracy(refine_it['relative_error'])
@@ -375,8 +380,8 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
   percentiles_config = figconfig.get('percentiles', 
                                    config.APPROXIMATE_DEFAULT_PERCENTILES)
   
-  for (percentile, percentile_label) in percentiles_config:
-    plt.plot(parameters, percentiles[percentile], label=percentile_label)
+  for (percentile, label, color) in percentiles_config:
+    plt.plot(parameters, percentiles[percentile], label=label, color=color)
   
   min_accuracy = figconfig.get('min_accuracy_terminating_condition', 
                                config.APPROXIMATE_ACCURACY_THRESHOLD)
@@ -412,7 +417,9 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
   plt.ylabel(r'Accuracy (\%)')
   plt.title('Accuracy against ' + parameter_name)
   
-  plt.legend(loc='best')
+  legend_loc = figconfig.get('parameters_legend', 'best')
+  if legend_loc:
+    plt.legend(loc=legend_loc)
 
 # def nsf(num, n=3):
 #     """n-Significant Figures"""
@@ -437,6 +444,8 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
   
   num_below_target = np.sum(accuracies < target_accuracy)
   percent_breached = float(num_below_target) / len(accuracies) * 100.0
+  
+  print("Worst accuracy - ", np.min(accuracies))
   
   def genericDraw():
     # draw CDF
@@ -490,7 +499,7 @@ def generate_terminating_condition_speed_distribution(data, parameter,
   heuristic_speeds = analyse_terminating_condition_parameter(reduced, condition, 
                                                        extractSpeeds, parameter)
   target_accuracy = figconfig.get('target_accuracy',
-                                  config.APPROXIMATE_TARGET_ACCURACY)
+                                  config.APPROXIMATE_TARGET_ACCURACY) 
   oracle_speeds = analyse_terminating_condition_parameter(reduced,
                           'oracle', extractSpeeds, target_accuracy)
 #   standard_speeds = analyse_terminating_condition_parameter(reduced,
@@ -500,14 +509,22 @@ def generate_terminating_condition_speed_distribution(data, parameter,
   oracle_speeds = np.concatenate(oracle_speeds)
 #   standard_speeds = np.concatenate(standard_speeds)
   
+  annotate_means = figconfig.get('speed_annotate_means', [])
+  def format(mean):
+    return r"{0:.0f}\%".format(mean)
+  heuristic_name = HEURISTIC_NAMES[condition]
   plot.cdf([oracle_speeds, heuristic_speeds],
-           labels=['Oracle', 'Heuristic'], 
-           colours={'Heuristic': 'b', 'Oracle': 'g'})
+           labels=['Oracle', heuristic_name], 
+           colours={heuristic_name: '#00008B', 'Oracle': '#004225'},
+           annotate_means=annotate_means,
+           annotate_means_format=format)
   
   plt.xlabel('Speedup (\%)')
   plt.title(cdf_title('speedup', condition, parameter))
   
-  plt.legend(loc='lower right')
+  legend_loc = figconfig.get('speed_legend', 'lower_right')
+  if legend_loc:
+    plt.legend(loc=legend_loc)
   
 def split_training_and_test(data, figconfig):
   # split data into training set and test set
