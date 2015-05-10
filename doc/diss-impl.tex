@@ -941,7 +941,7 @@ An $O(n^2)$ bound on the number of passes can be proved over the vertex list, us
 
 So far, this dissertation has only considered means by which the theoretical performance of the algorithm can be improved. There has also been considerable research effort to improve its practical performance by means of \emph{heuristics} guiding the actions of the algorithm~\cite{Goldberg:1997}. Whilst these do not alter the asymptotic worst-case time complexity, empirically they may yield considerable performance gains.
 
-I decided not to implement any heuristics. The focus of this project is on exploring new avenues for improving performance. The heuristics are already well-studied: implementing them would not have produced any new insight, and would have diverted considerable development time from other efforts. However, for sake of completeness the heuristics are summarised in \cref{appendix:csheuristics}.
+I decided not to implement any heuristics. The focus of this project is on exploring new avenues for improving performance. The heuristics are already well-studied: implementing them would not have produced any new insight, and would have diverted considerable development time from other efforts. However, for sake of completeness the heuristics are summarised in \cref{appendix:impl-csheuristics}.
 
 % Optimisations: changing scaling factor, maintaining integrality, wave vs sequential
 % Optimisations may be better left for evaluation? If you do want to include it here, should merge it into heuristics with a section e.g. Improving performance
@@ -1069,7 +1069,7 @@ During the main loop in \cref{algo:cost-scaling}, cost scaling maintains the inv
 The starting state may be neither feasible nor optimal on the new network. To satisfy the invariant, feasibility will need to first be restored, such as by running a max-flow algorithm ``incrementally''\footnotemark. This step will tend to make the flow less optimal.
 \footnotetext{In fact, it is perfectly legitimate to skip this stage and run \textproc{Refine} directly, which will also restore feasibility. However, the analysis is simpler if we consider these stages to be separate.}
 
-Next, the value of $\epsilon$ for which $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal must be calculated. This can be performed in one pass over the arcs in the residual network\footnotemark. Alternatively, the potential refinement heuristic described in \cref{appendix:csheuristics-potential-refinement} could used: this might find a smaller value of $\epsilon$, by updating the potentials $\boldsymbol{\pi}$.
+Next, the value of $\epsilon$ for which $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal must be calculated. This can be performed in one pass over the arcs in the residual network\footnotemark. Alternatively, the potential refinement heuristic described in \cref{appendix:impl-csheuristics-potential-refinement} could used: this might find a smaller value of $\epsilon$, by updating the potentials $\boldsymbol{\pi}$.
 \footnotetext{This could conceivably be made more efficient by keeping track of which arcs have changed cost in the network update, or been added to the residual network when restoring feasibility.}
 
 % I'm not sure that restoring feasibility does break $\epsilon$-optimality. We can just invoke Refine on the non-feasible flow, that's fine I think.

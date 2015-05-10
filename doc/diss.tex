@@ -76,6 +76,7 @@
 \usepackage{tikz} % language for figures
 \usepackage{tikzscale}
 \usepackage{pgfplots}
+\pgfplotsset{compat=1.10}
 
 \usepackage{booktabs}
 \usepackage{subcaption} 
@@ -392,15 +393,11 @@ TODO
 
 %TC:ignore
 \appendix
-\chapter{Heuristics for the cost scaling algorithm} \label{appendix:csheuristics}
-\input{diss-csheuristics} 
+\chapter{Details of implementations} \label{appendix:implementation}
+\input{diss-app-impl}
 
-%TODO: Restructure
-\chapter{Benchmark harness}
-\include{diss-tests}
-
-\chapter{Test specifications}
-State specifications of test machine/cluster.
+\chapter{Details of testing} \label{appendix:test}
+\input{diss-app-test}
 
 % Note project proposal must appear at very end of dissertation, so do not move this!
 \chapter{Project proposal} \label{appendix:proposal}

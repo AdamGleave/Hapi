@@ -581,8 +581,8 @@ Extensions have tended to be more risky. Although an incremental solution approa
 
 A software development life cycle or process provides structure to a project, dividing work into distinct phases to simplify management. This project has clearly defined requirements, suggesting the waterfall model. However, there is considerable uncertainty associated with the design of some deliverables: methods such as incremental development or evolutionary prototyping might be more appropriate in these cases. This project adopts the \emph{spiral model}, a risk-driven life cycle \emph{generator}, which is able to accommodate such varying requirements.
 
-The spiral model indicates that development of deliverables S1 and S3 in \cref{table:project-requirements} should follow the \emph{waterfall} model: they are low risk, with precisely known requirements. By contrast, the test suite consisting of deliverables S4 and E2 used an \emph{incremental} development approach: effectively, iteratively applying the waterfall model. At the outset of the project, it is not known what tests will be needed\footnotemark, so waterfall cannot be used. But it is appropriate to use waterfall for implementation of each test type.
-\footnotetext{For example, considerable extension to the cluster simulator was required to support incremental testing, see \cref{sec:impl-benchmark-simulator}.}
+The spiral model indicates that development of deliverables S1 and S3 in \cref{table:prep-project-requirements} should follow the \emph{waterfall} model: they are low risk, with precisely known requirements. By contrast, the test suite consisting of deliverables S4 and E2 used an \emph{incremental} development approach: effectively, iteratively applying the waterfall model. At the outset of the project, it is not known what tests will be needed\footnotemark, so waterfall cannot be used. But it is appropriate to use waterfall for implementation of each test type.
+\footnotetext{For example, considerable extension to the cluster simulator was required to support incremental testing, see \cref{sec:impl-firmament}.}
 
 Deliverables S2, E1 and E3 are all rated as medium or high risk. Their requirements are fairly well known, but there is significant uncertainty as to the appropriate design. \emph{Evolutionary prototyping} was followed in accordance with the spiral model: a robust prototype is constructed, and constantly refined\footnotemark. Building a prototype early was invaluable for risk management: for example, it allowed the viability of the incremental solver (extension E1) to be confirmed before committing significant development time.
 \footnotetext{For extension E3, this robust prototype was in fact developed as part of deliverable S1.}
@@ -593,7 +593,7 @@ Deliverables S2, E1 and E3 are all rated as medium or high risk. Their requireme
 \label{sec:prep-management-testing}
 Unit tests were written for each class. Where possible, the GTest framework was used (see \cref{sec:prep-tools-libraries}). Testing of flow algorithms requires large external datasets, which conventional unit test frameworks such as GTest do not support. A Python test harness was developed to support these cases (see \cref{sec:eval-testing-unit})\todo{N.B. Not the same as the benchmark suite; maybe mention this one somewhere too, e.g. in the appendix, although it's very simple.}. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-integration}).
 
-Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E1 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-benchmark,sec:eval-benchmark-strategy}.
+Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E2 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-firmament,sec:eval-benchmark-strategy,appendix:impl-benchmark-harness}.
 
 \section{Implementation schedule} \label{sec:prep-implsched}
 
@@ -632,9 +632,9 @@ For a project of this scope, it is essential to plan the work before commencing 
 
 All core success criteria are satisfied after the completion of the first two phases. This ensured the key goals of the project would be met before work on extensions commenced. 
 
-Optimisation was postponed to the last phase. As \emph{evolutionary prototyping} was used for development of the approximate and incremental solvers (see \cref{sec:prep-management-model}), optimisation during phases \ref{itm:phase-approximate} or \ref{itm:phase-incremental} would have been premature. Leaving it to the final phase also ensures that time will only be spent on optimisation when all other goals have been met, appropriate as it is the lowest priority deliverable in \cref{table:project-requirements}.
+Optimisation was postponed to the last phase. As \emph{evolutionary prototyping} was used for development of the approximate and incremental solvers (see \cref{sec:prep-management-model}), optimisation during phases \ref{itm:phase-approximate} or \ref{itm:phase-incremental} would have been premature. Leaving it to the final phase also ensures that time will only be spent on optimisation when all other goals have been met, appropriate as it is the lowest priority deliverable in \cref{table:prep-project-requirements}.
 
-Phase \ref{itm:phase-evaluation} is revisited upon the completion of phase \ref{itm:phase-incremental}, and after each optimisation in phase \ref{itm:phase-optimisations}. The development of the benchmark suite (see \cref{sec:impl-benchmark}) during phase \ref{itm:phase-evaluation} allows for the tests to be performed with little manual intervention, minimising the cost of revisiting this phase.
+Phase \ref{itm:phase-evaluation} is revisited upon the completion of phase \ref{itm:phase-incremental}, and after each optimisation in phase \ref{itm:phase-optimisations}. The development of the benchmark suite (see \cref{appendix:impl-benchmark-harness}) during phase \ref{itm:phase-evaluation} allows for the tests to be performed with little manual intervention, minimising the cost of revisiting this phase.
 
 \section{Choice of tools}
 
@@ -645,7 +645,7 @@ All minimum-cost flow algorithms were implemented in C++. The performance of C++
 \footnotetext{Clang and GCC were used in this project.}
 
 \subsubsection{Python and shell}
-The Python scripting language was used for the development of test harnesses (see \cref{sec:impl-benchmark-harness,sec:eval-testing-unit}), and for generation of many of the figures appearing in \cref{chap:eval}. As a high-level language, development could proceed rapidly in Python. Of course, as an interpreted language it is many times slower than C++: however, it was not used for any performance critical code.
+The Python scripting language was used for the development of test harnesses (see \cref{sec:eval-testing-unit,appendix:impl-benchmark-harness}), and for generation of many of the figures appearing in \cref{chap:eval}. As a high-level language, development could proceed rapidly in Python. Of course, as an interpreted language it is many times slower than C++: however, it was not used for any performance critical code.
 
 Shell scripting was used for particularly simple tasks, that involved plumbing together UNIX utilities. Python was favoured for anything more complicated, however, as it allows for a more structured programming style.
 
@@ -663,7 +663,7 @@ The Firmament flow scheduling system is used for testing this project. The only 
 
 \subsection{Revision control and backup strategy}
 
-The Git distributed revision control system was used to manage the project source code, along with the {\LaTeX} code for this dissertation. Each Git working directory is a clone of the repository, complete with versioning history. The benchmark suite makes extensive use of this distributed nature of Git (see \cref{sec:impl-benchmark}).
+The Git distributed revision control system was used to manage the project source code, along with the {\LaTeX} code for this dissertation. Each Git working directory is a clone of the repository, complete with versioning history. The benchmark suite makes extensive use of this distributed nature of Git (see \cref{appendix:impl-benchmark-harness}).
 
 % Backups
 % Git: push to GitHub, SRG cluster
