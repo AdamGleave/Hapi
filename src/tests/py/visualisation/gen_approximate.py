@@ -12,8 +12,8 @@ HEURISTIC_NAMES = {
   'task_assignments': 'Task migration convergence',
 }
 HEURISTIC_PARAMETER_NAMES = {
-  'cost': ('Cost change threshold', 'c', 'Cost change threshold $c$ (\%)'),
-  'task_assignments': ('Task migration threshold', 't', 'Task migration threshold $t$'),
+  'cost': ('cost change threshold', 'c', 'Cost change threshold $c$ (\%)'),
+  'task_assignments': ('task migration threshold', 't', 'Task migration threshold $t$'),
 }
 
 def af_map_on_stats(func, data):
@@ -431,7 +431,7 @@ def cdf_title(cdf_measuring, subtitle, condition, parameter):
   title = 'CDF for {0}'.format(cdf_measuring)
   if subtitle:
     title += '\n'
-    title += r'\smaller{{{0} ${1}={2}$}}'.format(parameter_name,
+    title += r'\smaller{{{0} ${1}={2}$}}'.format(parameter_name.capitalize(),
                       parameter_variable, heuristic_parameter_format(parameter))
   return title
 

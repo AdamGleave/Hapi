@@ -1,4 +1,15 @@
-\section{Test specifications} \label{appendix:test-machine-spec}
+\section{Machine specifications} \label{appendix:test-machine-spec}
+
+All test machines had the same specification, with:
+\begin{itemize}
+    \item Intel Xeon E5-2430L CPU.
+    \begin{itemize}
+        \item 6 physical cores, each. running at 2.4 GHz.
+        \item In addition, hyperthreading (Intel's term for simultaneous multithreading) is supported, so each physical core presents as two logical cores. For benchmarking, this is undesirable, as two test tasks running on the same physical core could interfere with each other. Accordingly, the number of test instances per machine was limited to the number of physical cores.
+    \end{itemize}
+    \item 64 GB of system memory.
+    \item Ubuntu 14.04 \textit{Trusty} operating system.
+\end{itemize}
 
 \section{Evaluation of compilers} \label{appendix:test-compilers}
 
@@ -7,28 +18,59 @@
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/cc_compiler_2col}
         \caption{Cycle cancelling}
+        \label{fig:compilers:cc}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/ap_compiler_2col}
         \caption{Augmenting Path}
+        \label{fig:compilers:ap}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/relax_compiler_2col}
         \caption{Relaxation}
+        \label{fig:compilers:relax}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/cs_compiler_2col}
         \caption{Cost scaling}
+        \label{fig:compilers:cs}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/goldberg_compiler_2col}
         \caption{Goldberg's cost scaling}
+        \label{fig:compilers:goldberg}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/frangioni_compiler_2col}
         \caption{Frangioni's relaxation algorithm}
+        \label{fig:compilers:frangioni}
     \end{subfigure}
     \end{widepage}
     \caption{Performance under different compilers and optimisation levels}
     \label{fig:compilers}
 \end{figure}
+
+\Cref{fig:compilers} shows the complete set of results from the compiler optimisation experiment described in \cref{sec:eval-optimisations-compilers}. In all cases, GCC O3 was either the fastest compiler, or highly competitive (within a few percent) of the fastest. 
+
+Interestingly, optimisations yield the biggest performance improvement on implementations where little development time has been spent on hand-optimising the code. The naive implementation of cycle cancelling in \cref{fig:compilers:cc} enjoys a very considerable speedup from optimisation, although it remains one of the slowest algorithms overall\footnotemark. My other implementations enjoy moderate speedups. By contrast, Goldberg's cost scaling implementation experiences only a slight speedup of around 25\%. Frangioni's relaxation implementation has statistically indistinguishable performance at O3 and at O0.
+\footnotetext{Note different algorithms were evaluated on different sized datasets in this test.} 
+
+\section{Probability distributions in cluster simulator} \label{appendix:test-distributions}
+
+\subsection{Task runtime}
+
+Figure 2 in Reiss, \textit{et al.}~\cite{Reiss:2012} shows an inverted CDF of task runtimes in the Google trace. On the log-log scale, the inverted CDF is approximately a straight line, justifying an inverted power law $F(x) = 1 - ax^k$. Parameters $a = 0.298$ and $k=-0.263$ were computed from points on the figures, $\left(x_0,y_0\right) = \left(10^-2,1.8\times 10^4\right)$ and $\left(x_1,y_1\right)=\left(6\times 10^2, 10^3\right)$.
+
+\subsection{Task input size and file size}
+
+Figures 1 and 3 in Chen, \textit{et al.}~\cite{Chen:2012} provide CDFs for file size and task input size from a contemporary Facebook cluster. At very small and very large sizes, the empirical CDF does not follow any standard distribution. However, at intermediate sizes the CDF is approximately a straight line with the a log-scale $x$ axis, suggesting a distribution proportional to $\lg(x)$.
+
+The task input size CDF shows that a small proportion (less than 1\%) of files are extremely large, being a terabyte or more. This long tail I believe is an artefact of MapReduce. These ``files'' will likely never be read in their entirety, with individual tasks processing only small segments. As there is no way to infer the true number of bytes read from the data, it seems prudent to instead truncate the distribution at the upper end. I chose an upper bound of 10 GB for file sizes, and 20 GB for input sizes of tasks.
+
+The Google File System has a block size of 64 MB, imposing a lower bound on the distribution. Whereas only a negligible proportion of points were above the upper bound, around 50\% of files and task inputs are less than or equal to 64 MB. 
+
+To model this, a mixed discrete continuous distribution was used. Letting $X$ denote the number of blocks in a file, or in a task's input:
+\[P\left(X=1\right)=a\]
+\[P\left(X>B_{\mathrm{max}}\right)=0\]
+\[P(1<X\leq x)=a+\frac{1-a}{\log{B_{\mathrm{max}}}}\lg x,\text{ for }x\in\left(B_{\mathrm{min}},B_{\mathrm{max}}\right)\]
+where $B_{\mathrm{max}} = 160$ blocks (10 GB) for file size $B_{\mathrm{max}} = 320$ blocks (20 GB) for input size, and $a = 50\%$ in both cases.

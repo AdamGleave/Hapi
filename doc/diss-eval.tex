@@ -17,7 +17,7 @@
         S1 & Implement standard flow algorithms & \cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} \tabularnewline
         S2 & Design an approximate solver & \cref{sec:impl-approx} \tabularnewline
         S3 & Integrate system with Firmament & \cref{sec:eval-test-integration} \tabularnewline
-        S4 & Develop a benchmark suite & \cref{sec:eval-benchmark-strategy} \tabularnewline
+        S4 & Develop a benchmark suite & \cref{appendix:impl-benchmark-harness} \tabularnewline
         \hline
         & \textit{Optional extensions} \tabularnewline
         E1 & Design an incremental solver & \cref{sec:impl-incremental} \tabularnewline
@@ -120,7 +120,7 @@ When a task is submitted, an estimate of its input size $S$ is made. A set of in
 
 However, it is possible to do better than simply randomly sampling from this distribution. The Google cluster trace contains information about the runtime of individual tasks, and there is a correlation between runtime and input size. Consequently, I have taken the approach of computing the cumulative probability of the runtime for each submitted task, assigning an input size of the same cumulative probability. So, for example, a task of median runtime will be assigned a median input file size.\todo{Does this explanation make sense to you?}
 
-Given the paucity of the trace data, the simulation cannot be expected to exactly reproduce the behaviour of the original Google cluster. However, I believe that the simulation represents a realistic workload, which could plausibly occur in a production cluster today. 
+Given the paucity of the trace data, the simulation cannot be expected to exactly reproduce the behaviour of the original Google cluster. However, I believe that the simulation represents a realistic workload, which could plausibly occur in a production cluster today. The exact distributions used, along with justification for the parameters, is provided in \cref{appendix:test-distributions}.
 
 The exact performance of the algorithms will, of course, depend on the architecture and workload of individual clusters. Most metrics used in this chapter therefore measure \emph{relative} performance, which should be robust to such differences. Absolute runtimes are occasionally reported: while indicative of real-world performance, care should be taken not to generalise beyond the experiments conducted.
 
@@ -301,7 +301,7 @@ In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementat
 %
 %\todo{Bother including this section or not? It's kind of trivial. Although discussing why the optimisation *didn't* work is maybe interesting.}
 
-\subsection{Compilers}
+\subsection{Compilers} \label{sec:eval-optimisations-compilers}
 
 \begin{figure}
     \includegraphics[width=\textwidth]{com/cs_compiler_1col}
