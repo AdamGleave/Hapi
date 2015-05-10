@@ -8,6 +8,6 @@ OPTIONS="$OPTIONS $EXCLUDES"
 SRC_DIR=/home/srguser/adam/project/doc/figures/
 DEST_DIR=$DIR/../figures/
 
-if [[ `hostname` -ne "ADAM-PETREL" ]]; then
+if [[ `hostname` != "ADAM-PETREL" ]]; then
   rsync $OPTIONS srguser@caelum-401.cl.cam.ac.uk:$SRC_DIR $DEST_DIR
 fi
