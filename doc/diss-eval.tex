@@ -351,7 +351,7 @@ There is one notable exception to this. The oracle policy achieves a speedup eve
 
 \subsection{Performance on flow scheduling}
 
-Evaluation took place on flow networks produced by the cluster simulator under the Quincy cost model (see \cref{sec:eval-benchmark-strategy}). A total of a thousand different networks were produced, by varying the seed used to initialise the random number generator. This had the effect of changing the generated simulated filesystem, and the input files associated with each task, with consequent changes to costs and preference arcs.
+Evaluation took place on flow networks produced by the cluster simulator under the Quincy cost model (see \cref{sec:eval-benchmark-strategy}). A total of 1000 different networks were produced, by varying the seed used to initialise the random number generator. This had the effect of changing the generated simulated filesystem, and the input files associated with each task, with consequent changes to costs and preference arcs.
 
 The flow networks produced by the above method are snapshots of the cluster at the beginning of the trace. An alternative would be to take snapshots from multiple points in time, evaluating the algorithm on the time series. However, many tasks in the Google trace run for the entire month data was collected. Consequently, there is significant correlation between flow networks in the time series, even if days apart.
 
@@ -433,42 +433,157 @@ Approximation algorithms do not appear to be a viable means for improving the pe
 
 \subsection{Performance in other applications}
 
-% Segue: but hey, it may work on other applications!
+The method of approximation I developed in this project can be applied to any flow network. Although its performance was disappointing in its intended application, on flow scheduling networks produced by Firmament, it provides a considerable performance gain on other types of network. I employ two network generators, NETGEN and GOTO. These have a long history of use in computational benchmarks, having been employed in the first DIMACS Implementation Challenge~\cite{DIMACSChallenge}.
 
-\begin{figure}
+\begin{table}
     \centering
-    \includegraphics{app/road_general_oracle_policy_2col}
-    \caption{Upper bound on speedup of approximation algorithm for a given accuracy}
-    \label{fig:app-oracle-policy}
-\end{figure}
+    \begin{tabular}{p{0.25\textwidth}p{0.75\textwidth}}
+        \textbf{Dataset} & \textbf{Description} \tabularnewline
+        \hline
+        NETGEN-8 & Sparse networks, with an average outdegree of $8$. Arc capacities and costs are selected uniformly at random from $\left[1,1000\right]$ and $\left[1,10000\right]$ respectively. Number of supply and demand nodes is set to $\sqrt{n}$, with an average supply of 1000 per node. \tabularnewline
+        \hline
+        NETGEN-SR & Dense networks, with an average outdegree of $\sqrt{n}$. Other parameters are the same as NETGEN-8. \tabularnewline
+        \hline
+        NETGEN-LO-8 \& NETGEN-LO-SR & Like NETGEN-8 and NETGEN-LO-SR, except the average supply per node is 10 instead of 1000. The arc capacities therefore provide only ``loose'' bounds for the feasible solutions. \tabularnewline
+        \hline
+        GOTO-8 & Sparse networks, with an average outdegree of $8$. Maximum arc capacity is 1000, maximum arc cost is 10,000. \tabularnewline
+        \hline
+        GOTO-SR & Dense networks, with an average outdegree of $sqrt{n}$. Other parameters are the same as GOTO-8. \tabularnewline
+        \hline
+    \end{tabular}
+    \caption{Cluster sizes used in testing}
+    \label{table:general-datasets}
+\end{table}
 
-\cref{fig:app-oracle-policy} oracle policy: gives an upper bound on performance that can be achieved with an approximation algorithm.
-
-\begin{figure}
-    \centering
-    \includegraphics{app/road_general_policy_cost_parameters_1col}
-    \caption{Accuracy at percentiles for given parameter choices}
-    \label{fig:app-policy-parameter-accuracy}
-\end{figure}
-
-\cref{fig:app-policy-parameter-accuracy} is computed on training data, to determine a suitable parameter for the heuristic.
+Each generator takes input parameters controlling the structure of the generated network. I use the same set of parameters used in the benchmark from Kiraly and Kovacs~\cite{KiralyKovacs:2012}, summarised in \cref{table:general-datasets}. A 1000 networks were generated of each instance by varying the random seed, with 250 of these networks used for training and the remaining 750 for test data.
 
 \begin{figure}
     \begin{widepage}
     \begin{subfigure}[c]{0.5\textwidth}
-      \includegraphics[width=\textwidth]{app/road_general_policy_cost_accuracy_narrow_2col}
-      \caption{CDF of heuristic error}
+        \includegraphics[width=\textwidth]{app/netgen_8_oracle_policy_2col.pdf}
+        \caption{NETGEN-8}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-      \includegraphics[width=\textwidth]{app/road_general_policy_cost_speed_2col}
-      \caption{CDF of speed under heuristic (compared to optimal performance under oracle)}
+        \includegraphics[width=\textwidth]{app/netgen_lo_8_oracle_policy_2col.pdf}
+        \caption{NETGEN-LO-8}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{app/netgen_sr_oracle_policy_2col.pdf}
+        \caption{NETGEN-SR}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{app/netgen_lo_sr_oracle_policy_2col.pdf}
+        \caption{NETGEN-LO-SR}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{app/goto_8_oracle_policy_2col.pdf}
+        \caption{GOTO-8}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \includegraphics[width=\textwidth]{app/goto_sr_oracle_policy_2col.pdf}
+        \caption{GOTO-SR}
     \end{subfigure}
     \end{widepage}
-    \caption{Performance of heuristic}
-    \label{fig:app-cdf}
+    \caption{Oracle policy on various flow networks: upper bound on speedup from approximation}
+    \label{fig:app-general-oracle-policy}
 \end{figure}
 
-The heuristic is then used with the given parameter, and \cref{fig:app-cdf} evaluates its performance on (unseen) test data.\todo{XXX: In this example they're actually the same data set, but that'll be fixed in real tests}
+\Cref{fig:app-general-oracle-policy} shows the maximum speedup that can be achieved on each class of networks. Note that a considerably greater speedup is possible on networks produced by NETGEN, in the first two rows, than those of GOTO, on the last row. This highlights that performance is highly dependent on the class of flow networks. The tightly constrained networks, in the top row, enjoy more of a speedup than the loosely constrained ones, in the second row. The speedup on the dense network NETGEN-SR is greater than for the sparse network NETGEN-8, however this pattern is reversed for GOTO-SR and GOTO-8.
+
+\begin{figure}
+    \begin{widepage}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_8_policy_cost_parameters_2col.pdf}
+            \caption{NETGEN-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_lo_8_policy_cost_parameters_2col.pdf}
+            \caption{NETGEN-LO-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_sr_policy_cost_parameters_2col.pdf}
+            \caption{NETGEN-SR}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_lo_sr_policy_cost_parameters_2col.pdf}
+            \caption{NETGEN-LO-SR}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/goto_8_policy_cost_parameters_2col.pdf}
+            \caption{GOTO-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/goto_sr_policy_cost_parameters_2col.pdf}
+            \caption{GOTO-SR}
+        \end{subfigure}
+    \end{widepage}
+    \caption{Selecting a cost threshold $c$. Key: {\color{1st_percentile} 1\textsuperscript{st} percentile}, {\color{5th_percentile} 5\textsuperscript{th} percentile}, {\color{25th_percentile} 25\textsuperscript{th} percentile}, {\color{median} median}.}
+    \label{fig:app-general-cost-parameters}
+\end{figure}
+
+
+
+\begin{figure}
+    \begin{widepage}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_8_policy_cost_accuracy_narrow_2col.pdf}
+            \caption{NETGEN-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_lo_8_policy_cost_accuracy_narrow_2col.pdf}
+            \caption{NETGEN-LO-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_sr_policy_cost_accuracy_narrow_2col.pdf}
+            \caption{NETGEN-SR}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_lo_sr_policy_cost_accuracy_narrow_2col.pdf}
+            \caption{NETGEN-LO-SR}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/goto_8_policy_cost_accuracy_narrow_2col.pdf}
+            \caption{GOTO-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/goto_sr_policy_cost_accuracy_narrow_2col.pdf}
+            \caption{GOTO-SR}
+        \end{subfigure}
+    \end{widepage}
+    \caption{Accuracy of cost convergence policy}
+    \label{fig:app-general-cost-accuracy-cdf}
+\end{figure}
+
+\begin{figure}
+    \begin{widepage}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_8_policy_cost_speed_2col.pdf}
+            \caption{NETGEN-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_lo_8_policy_cost_speed_2col.pdf}
+            \caption{NETGEN-LO-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_sr_policy_cost_speed_2col.pdf}
+            \caption{NETGEN-SR}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/netgen_lo_sr_policy_cost_speed_2col.pdf}
+            \caption{NETGEN-LO-SR}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/goto_8_policy_cost_speed_2col.pdf}
+            \caption{GOTO-8}
+        \end{subfigure}
+        \begin{subfigure}[c]{0.5\textwidth}
+            \includegraphics[width=\textwidth]{app/goto_sr_policy_cost_speed_2col.pdf}
+            \caption{GOTO-SR}
+        \end{subfigure}
+    \end{widepage}
+    \caption{Speedup under cost convergence policy}
+    \label{fig:app-general-cost-speed-cdf}
+\end{figure}
 
 %\subsubsection{Comparison with optimal algorithms}
 %
