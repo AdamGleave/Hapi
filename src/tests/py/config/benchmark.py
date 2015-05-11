@@ -951,7 +951,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },                              
   "same_relaxf": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "timeout": 60,
+    "timeout": 36000,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_frangioni" },
