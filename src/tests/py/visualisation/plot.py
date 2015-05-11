@@ -3,7 +3,7 @@ import numpy as np
 
 from visualisation import analysis
 
-def cdf(times, labels, colours, annotate_means=set(), annotate_means_format=str,
+def cdf(times, labels, colours, annotate_means={}, annotate_means_format=str,
         ymin=0, **kwargs):
   # currently am doing it the inefficient way
   # can compute empirical CDF using sampling with scipy
@@ -21,13 +21,23 @@ def cdf(times, labels, colours, annotate_means=set(), annotate_means_format=str,
     
     # optional: add line indicating mean of this distribution
     if label in annotate_means:
+      config = annotate_means[label]
       mean = np.mean(x)
       plt.axvline(mean, color=colour, linestyle='dashed')
       
+      if not config:
+        config = {}
+      if 'y_loc' in config:
+        config = config.copy()
+        y_loc = config['y_loc']
+        del config['y_loc']
+      else:
+        y_loc = 0.05
+      config['xytext'] = config.get('xytext', (1.5,0))
       annotation = r"$\mu = {0}$".format(annotate_means_format(mean))
-      plt.annotate(annotation, xy=(mean, ymin + 0.05*y_width), xycoords='data',
-                   xytext=(1, 1), textcoords='offset points', rotation='vertical',
-                   verticalalignment='bottom')
+      plt.annotate(annotation, xy=(mean, ymin + y_loc * y_width), xycoords='data',
+                   textcoords='offset points', rotation='vertical',
+                   verticalalignment='bottom', **config)
 
   plt.ylim(ymin, 100)
   plt.ylabel('Cumulative probability (\%)')

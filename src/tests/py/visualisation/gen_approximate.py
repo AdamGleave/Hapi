@@ -168,69 +168,6 @@ def reduce_everything(data, granularity):
         assert(False)
   return res
 
-def analyse_oracle_policy_points(data, figconfig):  
-  stats = ageneric_merge_iterations(data)
-  stats = ageneric_map_on_stats(relative_error, stats)
-  stats = ageneric_map_on_stats(cumulative_time, stats)
-  stats = ageneric_map_on_stats(speedup, stats)
-  stats = ageneric_map_on_stats(filter_first_optimal, stats)
-  reduced = reduce_everything(stats, granularity='refine')
-  
-  accuracy_threshold = figconfig.get('min_accuracy_oracle_policy',
-                                     config.APPROXIMATE_ACCURACY_THRESHOLD)
-  
-  x = np.array([])
-  y = np.array([])
-  for pt in reduced:
-    accuracy = calculate_relative_accuracy(pt['relative_error'])
-    if accuracy >= accuracy_threshold:
-      y = np.concatenate((y, pt['speedup']))
-      x_pts = np.ones_like(pt['speedup']) * accuracy 
-      x = np.concatenate((x, x_pts))
-      
-  return (x,y)
-
-def generate_oracle_policy_scatter(data, figconfig):
-  (x, y) = analyse_oracle_policy_scatter(data, figconfig)
-  
-  plt.scatter(x, y)
-  
-  plt.autoscale(tight=True)
-  ymin, ymax = plt.ylim()
-  plt.ylim ( (0, ymax) )
-  
-  plt.xlabel(r'Accuracy (\%)')
-  plt.ylabel('Speedup (\%)')
-  plt.title('Speedup against accuracy under oracle policy')  
-
-def generate_oracle_policy_binned(data, figconfig):
-  (x, y) = analyse_oracle_policy_points(data, figconfig)
-  
-  accuracy_threshold = figconfig.get('min_accuracy_oracle_policy',
-                                     config.APPROXIMATE_ACCURACY_THRESHOLD)
-  num_bins = figconfig.get('num_bins',
-                           config.APPROXIMATE_NUM_BINS)
-  
-  # there's also a similar logspace function
-  bins = np.linspace(accuracy_threshold, 100, num_bins + 1)
-  confidence_interval = functools.partial(analysis.t_error, config.CONFIDENCE_LEVEL)
-  lower_err, _, _ = scipy.stats.binned_statistic(x, y, bins=bins, 
-                                 statistic=lambda x : confidence_interval(x)[0])
-  upper_err, _, _ = scipy.stats.binned_statistic(x, y, bins=bins, 
-                                 statistic=lambda x : confidence_interval(x)[1])
-  mean, _, _ = scipy.stats.binned_statistic(x, y, bins=bins, statistic='mean')
-
-  # fix last bin to always be zero
-  # TODO: or just replace bins above with (..., num_bins, endpoint=False)?
-  #mean[-1] = lower_err[-1] = upper_err[-1] = 0
-  #plt.plot([x, x, x], [lower_bound, mean, upper_bound])
-  print(len(bins),len(mean))
-  
-  bar_width = bins[1] - bins[0]
-  opacity = 0.4
-  
-  plt.bar(bins[0:-1], mean, yerr=[-lower_err, upper_err], alpha=opacity)
-
 def oracle_condition(accuracy_threshold, test):
   for refine_iteration in test:
     accuracy = calculate_relative_accuracy(refine_iteration['relative_error'])
@@ -283,9 +220,8 @@ def generate_oracle_policy_interpolate(data, figconfig):
            label=r'Upper bound ({0}\% confidence)'.format(confidence_level))
   plt.plot(accuracies, means, 'g', label='Mean')
   
-  plt.xlabel(r'Accuracy (\%)')
+  plt.xlabel(r'Solution accuracy (\%)')
   plt.ylabel('Speedup (\%)')
-  plt.title('Speedup under oracle policy against accuracy')
   
   plt.legend(loc='lower left')
 
@@ -378,7 +314,7 @@ def heuristic_parameter_format(parameter):
 def generate_terminating_condition_accuracy_plot(parameters, percentiles,
                                      condition, heuristic_parameter, figconfig):
   percentiles_config = figconfig.get('percentiles', 
-                                   config.APPROXIMATE_DEFAULT_PERCENTILES)
+                                     config.APPROXIMATE_DEFAULT_PERCENTILES)
   
   for (percentile, label, color) in percentiles_config:
     plt.plot(parameters, percentiles[percentile], label=label, color=color)
@@ -414,25 +350,22 @@ def generate_terminating_condition_accuracy_plot(parameters, percentiles,
 
   parameter_name, _, parameter_label = HEURISTIC_PARAMETER_NAMES[condition]    
   plt.xlabel(parameter_label)
-  plt.ylabel(r'Accuracy (\%)')
-  plt.title('Accuracy against ' + parameter_name)
+  plt.ylabel(r'Solution accuracy (\%)')
   
-  legend_loc = figconfig.get('parameters_legend', 'best')
-  if legend_loc:
-    plt.legend(loc=legend_loc)
+  legend_loc = figconfig.get('parameters_legend', 
+                             {'cost': 'best', 'task_assignments': 'best'})
+  if legend_loc and legend_loc[condition]:
+    plt.legend(loc=legend_loc[condition])
 
 # def nsf(num, n=3):
 #     """n-Significant Figures"""
 #     numstr = ("{0:.%ie}" % (n-1)).format(num)
 #     return float(numstr)
 
-def cdf_title(cdf_measuring, subtitle, condition, parameter):
+def cdf_title(condition, parameter):
   parameter_name, parameter_variable, _ = HEURISTIC_PARAMETER_NAMES[condition]
-  title = 'CDF for {0}'.format(cdf_measuring)
-  if subtitle:
-    title += '\n'
-    title += r'\smaller{{{0} ${1}={2}$}}'.format(parameter_name.capitalize(),
-                      parameter_variable, heuristic_parameter_format(parameter))
+  title = r'\smaller{{{0} ${1}={2}$}}'.format(parameter_name.capitalize(),
+                    parameter_variable, heuristic_parameter_format(parameter))
   return title
 
 def generate_terminating_condition_accuracy_distribution(data, parameter, 
@@ -471,9 +404,10 @@ def generate_terminating_condition_accuracy_distribution(data, parameter,
                    horizontalalignment='right') 
       
     # add labels
-    plt.xlabel(r'Accuracy (\%)')
-    subtitle = figconfig.get('subtitle', True)
-    plt.title(cdf_title('accuracy', subtitle, condition, parameter))
+    plt.xlabel(r'Solution accuracy (\%)')
+    title = figconfig.get('title', True)
+    if title:
+      plt.title(cdf_title(condition, parameter))
     
     plt.ylim(-5, 100)
   
@@ -525,8 +459,9 @@ def generate_terminating_condition_speed_distribution(data, parameter,
            annotate_means_format=format)
   
   plt.xlabel('Speedup (\%)')
-  subtitle = figconfig.get('subtitle', True)
-  plt.title(cdf_title('speedup', subtitle, condition, parameter))
+  title = figconfig.get('title', True)
+  if title:
+    plt.title(cdf_title(condition, parameter))
   
   legend_loc = figconfig.get('speed_legend', 'lower right')
   if legend_loc:
@@ -648,4 +583,3 @@ def generate_cost_vs_time_plot(data, figconfig):
   
   plt.xlabel('Runtime (\si{\second})')
   plt.ylabel('Solution cost')
-  plt.title('Solution cost against algorithm runtime')

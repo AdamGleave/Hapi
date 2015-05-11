@@ -45,7 +45,8 @@ def set_width(width, aspect_ratio=4/3.0):
 
 def set_rcs_full():
   set_rcs_common()
-  set_width(6.25)
+  # make it slightly less than 4:3 so can fit two figures top-bottom
+  rc('figure', figsize=(6.25, 4))
   
 def set_rcs_twocol():
   set_rcs_common()  
@@ -326,7 +327,7 @@ DEFAULT_INCREMENTAL_START = 600
 DEFAULT_WINDOW_SIZE = '5p'
 
 INCREMENTAL_TEST_FILTER = dictFilter({
-  'full': 'Standard',
+  'full': 'From scratch',
   'incremental': 'Incremental',
 })
 
@@ -335,10 +336,18 @@ INCREMENTAL_FIGURES = {
   'same_ap': {
     'data': 'ion_same_ap',
     'trace': 'medium',
+    'annotate_means': {
+      'From scratch': {'horizontalalignment': 'right', 'xytext': (-1, 0)},
+      'Incremental': None,
+    },
   },
   'same_relax': {
     'data': 'ion_same_relax',
     'trace': 'medium',
+    'annotate_means': {
+      'From scratch': {'horizontalalignment': 'right', 'xytext': (-1, 0)},
+      'Incremental': None,
+    },
   },
   'same_relax_nocache': {
     'data': 'ion_same_relax_nocache',
@@ -354,32 +363,41 @@ INCREMENTAL_FIGURES = {
     'data': 'ion_head_to_head_my',
     'trace': ['medium', 'large', 'full_size'],
     'window_size': '5s',
-    'test_filter': dictFilter({'full': 'Standard cost scaling', 
-                               'inc_ap': 'Incremental augmenting path',
-                               #'inc_relax': 'Incremental relaxation'
-                               'inc_relax': None}),
-    'implementations': ['Standard cost scaling',
-                       'Incremental augmenting path'],#, 'Incremental relaxation'],
-    'means': ['Standard cost scaling', 'Incremental augmenting path'],
-    'incremental_implementation': 'Incremental augmenting path',
-    'colours': {'Standard cost scaling': 'r',
-                'Incremental augmenting path': 'b',
-                'Incremental relaxation': 'g'},
+    'test_filter': dictFilter({'full': 'Cost scaling (from scratch)', 
+                               'inc_ap': 'SSP (incremental)',
+                               'inc_relax': 'Relaxation (incremental)'}),
+    'implementations': ['Cost scaling (from scratch)',
+                       'SSP (incremental)'],#, 'Relaxation (incremental)'],
+    'means': ['Cost scaling (from scratch)', 'SSP (incremental)'],
+    'incremental_implementation': 'SSP (incremental)',
+    'colours': {'Cost scaling (from scratch)': 'r',
+                'SSP (incremental)': 'b',
+                'Relaxation (incremental)': 'g'},
+    'annotate_means': {
+      'Cost scaling (from scratch)': {'y_loc': 0.5, 
+                                      'xytext': (-1, 0),
+                                      'horizontalalignment': 'right'},
+      'SSP (incremental)': {'y_loc': 0.5 }
+    }
   },
   'head_to_head_optimised': {
     'data': 'ion_head_to_head_optimised',
     'trace': ['medium', 'large', 'full_size'],
     'window_size': '5s',
-    'test_filter': dictFilter({'full': 'CS2 (full)', 
-                               'incremental': 'Modified RelaxIV (incremental)'}),
-    'implementations': ['CS2 (full)', 'Modified RelaxIV (incremental)'],
-    'means': ['CS2 (full)', 'Modified RelaxIV (incremental)'],
-    'incremental_implementation': 'Modified RelaxIV (incremental)',
+    'test_filter': dictFilter({'full': 'CS2 (from scratch)', 
+                               'incremental': 'RelaxIV (incremental)'}),
+    'implementations': ['CS2 (from scratch)', 'RelaxIV (incremental)'],
+    'means': ['CS2 (from scratch)', 'RelaxIV (incremental)'],
+    'incremental_implementation': 'RelaxIV (incremental)',
     'target_latency': 1.0,
     'target_latency_min_prob': 90,
     'target_latency_max_latency': 6.0,
-    'colours': {'CS2 (full)': 'r',
-                'Modified RelaxIV (incremental)': 'b'},
+    'colours': {'CS2 (from scratch)': 'r',
+                'RelaxIV (incremental)': 'b'},
+    'annotate_means': {
+      'CS2 (from scratch)': None,
+      'RelaxIV (incremental)': {'y_loc': 0.3, 'xytext': (3, 0)},
+    }
   },
 #   'head_to_head_merged': {
 #     'data': 'ion_head_to_head_merged',
@@ -407,15 +425,15 @@ def applyIncrementalDefault(d):
     if 'test_filter' not in v:
       v['test_filter'] = INCREMENTAL_TEST_FILTER
     if 'implementations' not in v:
-      v['implementations'] = ['Standard', 'Incremental']
+      v['implementations'] = ['From scratch', 'Incremental']
       if 'means' not in v:
-        v['means'] = ['Standard']
+        v['means'] = ['From scratch']
       if 'incremental_implementation' not in v:
         v['incremental_implementation'] = 'Incremental'
         
     if 'colours' not in v:
       v['colours'] = {
-        'Standard': 'r',
+        'From scratch': 'r',
         'Incremental': 'b',
       }
 
@@ -488,7 +506,7 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 30,
     'parameters_legend': None,
     'speed_legend': None,
-    'speed_annotate_means': ['Cost convergence'],
+    'speed_annotate_means': {'Cost convergence': None},
   },
   'netgen_sr': {
     'data': 'af_netgen_sr',
@@ -498,7 +516,7 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 25,
     'parameters_legend': None,
     'speed_legend': None,
-    'speed_annotate_means': ['Cost convergence'],
+    'speed_annotate_means': {'Cost convergence': None},
   },
   'netgen_lo_8': {
     'data': 'af_netgen_lo_8',
@@ -507,7 +525,10 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 100,
     'parameters_legend': None,
     'speed_legend': None,
-    'speed_annotate_means': ['Oracle', 'Cost convergence'],
+    'speed_annotate_means': {'Oracle': None, 
+                             'Cost convergence': {'y_loc': 0.6,
+                                                  'horizontalalignment': 'right',
+                                                  'xytext': (-3, 0)}},
   },
   'netgen_lo_sr': {
     'data': 'af_netgen_lo_sr',
@@ -516,15 +537,11 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 90,
     'parameters_legend': None,
     'speed_legend': None,
-    'speed_annotate_means': ['Oracle', 'Cost convergence'],
+    'speed_annotate_means': {'Oracle': None, 
+                             'Cost convergence': {'y_loc': 0.6,
+                                                  'horizontalalignment': 'right',
+                                                  'xytext': (-3, 0)}},
   },
-#   'netgen_deg': {
-#     'data': 'af_netgen_deg',
-#     'training': 250,
-#     'test': 750,
-#     'max_cost_parameter': 0.15,
-#     'parameters_legend': None,
-#   },
   'goto_8': {
     'data': 'af_goto_8',
     'training': 250,
@@ -532,7 +549,7 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 60,
     'parameters_legend': None,
     'speed_legend': None,
-    'speed_annotate_means': ['Cost convergence'],
+    'speed_annotate_means': {'Cost convergence': {'xytext': (3,0)}},
   },
   'goto_sr': {
     'data': 'af_goto_sr',
@@ -541,7 +558,7 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 80,
     'parameters_legend': None,
     'speed_legend': None,
-    'speed_annotate_means': ['Cost convergence'],
+    'speed_annotate_means': {'Cost convergence': {'xytext': (3,0)}},
   },
   'quincy_medium': {
     'data': 'af_quincy_medium',
@@ -550,7 +567,9 @@ APPROXIMATE_FIGURES = {
     'min_accuracy_terminating_condition': 0,
     'max_cost_parameter': 5,
     'max_task_assignments_parameter': 8000,
-    'subtitle': False,
+    'title': False,
+    'parameters_legend': {'cost': 'upper right', 
+                          'task_assignments': 'lower left'}
   },
 }
 

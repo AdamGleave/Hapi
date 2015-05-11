@@ -85,10 +85,6 @@ def generate_absolute(data, figconfig):
     what_by.append('cluster size')
   if len(figconfig['implementations']) > 1:
     what_by.append('implementation')
-  if what_by:
-    plt.title('Runtimes by ' + ' and '.join(what_by))
-  else:
-    plt.title('Runtimes')
   
   plt.tight_layout()
   
@@ -167,10 +163,6 @@ def generate_relative(data, figconfig):
     what_by.append('cluster size')
   if len(figconfig['implementations']) > 2:
     what_by.append('implementation')
-  if what_by:
-    plt.title('Speedups by ' + ' and '.join(what_by))
-  else:
-    plt.title('Speedups')
   
   plt.tight_layout()
   
@@ -217,13 +209,11 @@ def generate_compiler(data, figconfig):
     return ys
       
   means, errors = group_by_level(means), group_by_level(errors)
-  barchart(means, errors, 
-           levels, compilers, legend_loc='upper right',
-           figconfig['colours'], log=False)
+  barchart(means, errors, levels, compilers, figconfig['colours'],
+           legend_loc='upper right', log=False)
   
   plt.xlabel('Compiler')
   plt.ylabel('Runtime (\si{\second})')
-  plt.title('Runtimes by compiler and optimisation level')
   
   plt.tight_layout()
 
@@ -259,6 +249,5 @@ def generate_scaling_factors(data, figconfig):
   
   plt.xlabel('Scaling factor')
   plt.ylabel('Runtime (\si{\second})')
-  plt.title('Runtimes by scaling factor')
   
   plt.tight_layout()

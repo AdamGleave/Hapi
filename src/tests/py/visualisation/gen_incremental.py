@@ -39,8 +39,16 @@ def adjust_units(times):
     times = [np.multiply(x, 1000) for x in times]
     return (r'\milli\second', times)
 
-def _generate_cdf_helper(data, figconfig, implementations, annotate_means=[],
-                          ymin=0, xmax_bound=None, target_latency=None):
+def _generate_cdf_helper(data, figconfig, implementations, restrict_means=None,
+                         annotate_means=None, target_latency=None,
+                         ymin=0, xmax_bound=None):
+  if not annotate_means: 
+    if 'annotate_means' in figconfig:
+      annotate_means = figconfig['annotate_means']
+    else:
+      annotate_means = {k : None for k in figconfig['implementations']}
+  if restrict_means:
+    annotate_means = {k : annotate_means[k] for k in restrict_means}
   data = analyse_distribution(data, get_start_time(figconfig),
                               figconfig['trace'], implementations)
   type, times = data
@@ -62,24 +70,22 @@ def _generate_cdf_helper(data, figconfig, implementations, annotate_means=[],
   plt.legend(loc='lower right')
   
   plt.xlabel('Scheduling latency (\si{{{0}}})'.format(unit))
-  plt.title('CDF for scheduling latency')
   
   return unit, times
   
-def generate_cdf(data, figconfig):
-  _generate_cdf_helper(data, figconfig, 
-                       figconfig['implementations'], figconfig['means'])
+def generate_cdf(data, figconfig): 
+  _generate_cdf_helper(data, figconfig, figconfig['implementations'], 
+                       restrict_means=figconfig['means'])
   
 def generate_incremental_only_cdf(data, figconfig):
   _generate_cdf_helper(data, figconfig, 
-                       [figconfig['incremental_implementation']],
                        [figconfig['incremental_implementation']])
   
 def generate_incremental_only_target_latency_cdf(data, figconfig):
   ymin = figconfig['target_latency_min_prob']
   y_width = 100 - ymin
   unit, times = _generate_cdf_helper(data, figconfig,
-                  [figconfig['incremental_implementation']], [],
+                  [figconfig['incremental_implementation']], {},
                   xmax_bound=figconfig['target_latency_max_latency'], ymin=ymin)
     
   target_latency = figconfig['target_latency']
@@ -110,7 +116,6 @@ def generate_hist(data, figconfig):
   
   plt.xlabel('Scheduling latency (\si{\second})')
   plt.ylabel('Probability')
-  plt.title('Distribution of scheduling latency')
   
 # SOMEDAY: Would be nice to include some indication of variance
 def generate_over_time(data, figconfig):
@@ -169,4 +174,3 @@ def generate_over_time(data, figconfig):
 #   elif window_type == 's':
 #     window_desc ='\SI{{ {0} }}{{\second}}'.format(window_size)
 #     plt.title('Moving average ($\mathrm{{window}} = {0}$)\nof scheduling latency against time'.format(window_desc))
-  plt.title('Scheduling latency against time')
