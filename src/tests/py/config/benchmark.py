@@ -962,7 +962,7 @@ INCREMENTAL_TESTS_ANYONLINE = {
   ### benchmark results
   'only_irelax': {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "timeout": 60,
+    "timeout": 3600,
     "iterations": 5,
     "tests": {
       "incremental":    { "implementation": "i_relax_latest" },
