@@ -958,7 +958,16 @@ INCREMENTAL_TESTS_ANYONLINE = {
       "incremental":    { "implementation": "i_relaxf_latest" },
     },
   },
-  
+  ### Incremental version ONLY. Used to collect data to supplement existing
+  ### benchmark results
+  'only_irelax': {
+    "traces": STANDARD_TRACE_CONFIG_1HOUR,
+    "timeout": 60,
+    "iterations": 5,
+    "tests": {
+      "incremental":    { "implementation": "i_relax_latest" },
+    },
+  },
   ### Comparisons between types
   # Evaluation against the best of my (unoptimized) implementations.
   "head_to_head_my": {
