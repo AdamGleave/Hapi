@@ -11,7 +11,7 @@ def errorsZero(e):
   lower, upper = e
   return arrayZero(lower) and arrayZero(upper)
 
-def barchart(means, errors, bar_labels, group_labels, colours, 
+def barchart(means, errors, bar_labels, group_labels, colours, legend_loc,
              group_width=0.7, **kwargs):
   n_groups = len(group_labels)
   n_bars_in_group = len(bar_labels)
@@ -41,7 +41,8 @@ def barchart(means, errors, bar_labels, group_labels, colours,
   
   plt.autoscale(axis='x', tight=True)
   plt.xticks(index + group_width / 2, group_labels)
-  plt.legend(loc='upper left')
+  if legend_loc:
+    plt.legend(loc=legend_loc)
 
 def analyse_generic_start(data):
   # get means and standard deviation of each implementation on each dataset
@@ -72,9 +73,10 @@ def generate_absolute(data, figconfig):
                                    figconfig['datasets'])
   
   log_scale = figconfig.get('log', True)
+  legend_loc = figconfig.get('legend', 'upper left')
   fig = barchart(means, errors, 
                  figconfig['implementations'], figconfig['datasets'],
-                 figconfig['colours'], log=log_scale)
+                 figconfig['colours'], legend_loc=legend_loc, log=log_scale)
   
   plt.xlabel('Cluster size')
   plt.ylabel('Runtime (\si{\second})')
@@ -153,9 +155,10 @@ def generate_relative(data, figconfig):
   means = np.multiply(means, 100.0)
   errors = np.multiply(errors, 100.0) 
   
+  legend_loc = figconfig.get('legend', 'upper left')
   barchart(means, errors, 
            figconfig['implementations'], figconfig['datasets'],
-           figconfig['colours'])
+           figconfig['colours'], legend_loc=legend_loc)
   
   plt.xlabel('Cluster size')
   plt.ylabel('Speedup (\%)')
@@ -215,10 +218,8 @@ def generate_compiler(data, figconfig):
       
   means, errors = group_by_level(means), group_by_level(errors)
   barchart(means, errors, 
-           levels, compilers,
+           levels, compilers, legend_loc='upper right',
            figconfig['colours'], log=False)
-  
-  plt.legend(loc='upper right')
   
   plt.xlabel('Compiler')
   plt.ylabel('Runtime (\si{\second})')

@@ -90,10 +90,10 @@
 % wide page for side by side figures, tables, etc
 \newlength{\offsetpage}
 \setlength{\offsetpage}{2.0cm}
-\newenvironment{widepage}{\begin{adjustwidth}{-\offsetpage}{-\offsetpage}%
-        \addtolength{\textwidth}{2\offsetpage}}%
-    {\end{adjustwidth}}
-%\newenvironment{widepage}{}{}
+%\newenvironment{widepage}{\begin{adjustwidth}{-\offsetpage}{-\offsetpage}%
+%        \addtolength{\textwidth}{2\offsetpage}}%
+%    {\end{adjustwidth}}
+\newenvironment{widepage}{}{}
 
 \graphicspath{ {./figures/} }
 \DeclareGraphicsExtensions{.pdf}
@@ -251,7 +251,11 @@
 }
 \makeatother
 
+\usepackage{layout}
+
 \begin{document}
+
+\layout
 
 \nocite{*}                      % detect unused references
 %\bibliographystyle{acm}		% used ieeetr in the proposal

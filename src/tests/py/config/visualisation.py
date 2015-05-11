@@ -33,20 +33,31 @@ def set_rcs_common():
   #rc('figure.subplot', left=0.10, top=0.90, bottom=0.12, right=0.95)
   #rc('figure.subplot', left=0.10, top=0.90, bottom=0.2, right=0.95)
   rc('figure', autolayout=True)
-  
-def set_rcs_full():
-  set_rcs_common()
-  
-  rc('font', size=12)
-  rc('legend', fontsize=7)
-  rc('figure', figsize=(6,4))
-  
-def set_rcs_twocol():
-  set_rcs_common()
+  rc('legend', frameon=False) # disable border around legend
   
   rc('font', size=8)
-  rc('legend', fontsize=7)
-  rc('figure', figsize=(3.33, 2.22))
+  rc('legend', fontsize=8)
+  
+# LaTeX text width with default margins is 452 pt, or 158.85 cm for TeX
+# Rounding down slightly, this gives us 6.25 in 
+def set_width(width, aspect_ratio=4/3.0):
+  rc('figure', figsize=(width, width/aspect_ratio))
+
+def set_rcs_full():
+  set_rcs_common()
+  set_width(6.25)
+  
+def set_rcs_twocol():
+  set_rcs_common()  
+  # Slightly less than half of onecol so there's some whitespace between
+  set_width(3.1)
+
+def set_rcs_narrow():
+  '''used for e.g. single-bar bar charts'''
+  set_rcs_common()
+  width = 2 
+  height = 3.1 * 3/4.0 # same as for twocol
+  rc('figure', figsize=(width, height))
   
 DEFAULT_APPEARANCE = {
   '1col': set_rcs_full,
@@ -199,7 +210,7 @@ OPTIMISATION_FIGURES = {
       'Partial Djikstra, small heap (hash table)': 'b',
       'Partial Djikstra, small heap (array)': 'k',
     },
-    'custom_cmd': lambda : plt.legend(loc='upper right'),
+    'legend': 'upper right',
   },
   'cs_wave_vs_fifo': {
     'data': 'f_opt_cs_wave_vs_fifo',
@@ -214,7 +225,8 @@ OPTIMISATION_FIGURES = {
     'colours': {
       'Wave': 'r',
       'FIFO': 'b', 
-    }
+    },
+    'legend': None,
   },
   # TODO: This is gonna need some careful formatting
   # TODO: Octopus is a somewhat bogus model for this, since you reach optimality
@@ -230,7 +242,8 @@ OPTIMISATION_FIGURES = {
     'baseline': 'No cache',
     'colours': { 
       'Cache arcs': 'b',
-    }
+    },
+    'legend': None,
   },
   'relax_arc_cache_octopus': {
     'data': 'f_opt_relax_cache_arcs_octopus',
@@ -242,7 +255,9 @@ OPTIMISATION_FIGURES = {
     'baseline': 'No cache',
     'colours': {
       'Cache arcs': 'b',
-    }
+    },
+    'legend': None,
+    'appearance': extend_dict(DEFAULT_APPEARANCE, {'narrow': set_rcs_narrow}),
   },
 #   'parser_set_vs_getarc': {
 #     'data': 'f_opt_parser_set_vs_getarc',
@@ -269,7 +284,7 @@ def apply_optimisation_defaults(d):
 apply_optimisation_defaults(OPTIMISATION_FIGURES)
 
 def updateOptimisationFigures(d):
-  types = {'absolute': ([], FigureTypes.optimisation_absolute),
+  types = {#'absolute': ([], FigureTypes.optimisation_absolute),
            'relative': ([], FigureTypes.optimisation_relative)}
   return updateFiguresWithTypes(d, types)
 
@@ -323,7 +338,7 @@ INCREMENTAL_FIGURES = {
   },
   'same_relax': {
     'data': 'ion_same_relax',
-    'trace': 'small',
+    'trace': 'medium',
   },
   'same_relax_nocache': {
     'data': 'ion_same_relax_nocache',
@@ -366,25 +381,25 @@ INCREMENTAL_FIGURES = {
     'colours': {'CS2 (full)': 'r',
                 'Modified RelaxIV (incremental)': 'b'},
   },
-  'head_to_head_merged': {
-    'data': 'ion_head_to_head_merged',
-    'trace': 'full_size',
-    'window_size': '5s',
-    'test_filter': dictFilter({'full': 'Standard cost scaling',
-                               'inc_ap': 'My incremental augmenting path',
-                               'inc_relax': 'My incremental relaxation', 
-                               'incremental': 'Incremental relaxation (Frangioni)'}),
-    'implementations': ['Standard cost scaling', 'My incremental augmenting path',
-                        'My incremental relaxation', 'Incremental relaxation (Frangioni)'],
-    'means': ['Standard cost scaling', 'My incremental augmenting path',
-               'My incremental relaxation', 'Incremental relaxation (Frangioni)'],
-    'incremental_implementation': 'Incremental relaxation (Frangioni)',
-    'colours': {'Standard cost scaling': 'r',
-                'My incremental augmenting path': 'g',
-                'My incremental relaxation': 'b',
-                'Incremental relaxation (Frangioni)': 'k',
-               },
-  },
+#   'head_to_head_merged': {
+#     'data': 'ion_head_to_head_merged',
+#     'trace': 'full_size',
+#     'window_size': '5s',
+#     'test_filter': dictFilter({'full': 'Standard cost scaling',
+#                                'inc_ap': 'My incremental augmenting path',
+#                                'inc_relax': 'My incremental relaxation', 
+#                                'incremental': 'Incremental relaxation (Frangioni)'}),
+#     'implementations': ['Standard cost scaling', 'My incremental augmenting path',
+#                         'My incremental relaxation', 'Incremental relaxation (Frangioni)'],
+#     'means': ['Standard cost scaling', 'My incremental augmenting path',
+#                'My incremental relaxation', 'Incremental relaxation (Frangioni)'],
+#     'incremental_implementation': 'Incremental relaxation (Frangioni)',
+#     'colours': {'Standard cost scaling': 'r',
+#                 'My incremental augmenting path': 'g',
+#                 'My incremental relaxation': 'b',
+#                 'Incremental relaxation (Frangioni)': 'k',
+#                },
+#   },
 } 
 
 def applyIncrementalDefault(d):
@@ -423,7 +438,7 @@ def updateIncrementalFigures(d):
   types = {'cdf': ([], FigureTypes.incremental_cdf),
            'incremental_only_cdf': (['incremental_implementation'], FigureTypes.incremental_only_incremental_cdf),
            'incremental_only_target_latency_cdf': (['incremental_implementation', 'target_latency', 'target_latency_min_prob'], FigureTypes.incremental_only_incremental_target_latency_cdf),
-           'hist': ([], FigureTypes.incremental_hist),
+           #'hist': ([], FigureTypes.incremental_hist),
            'over_time': ([], FigureTypes.incremental_over_time)}
   return updateFiguresWithTypes(d, types)
 

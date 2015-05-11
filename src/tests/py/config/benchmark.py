@@ -932,7 +932,8 @@ INCREMENTAL_TESTS_ANYONLINE = {
   },
   "same_relax": {
     "traces": STANDARD_TRACE_CONFIG_1HOUR,
-    "timeout": 60,
+    # most the time it's really fast, but incremental hits some bumps occassionally. capture this.
+    "timeout": 3600,
     "iterations": 5,
     "tests": {
       "full":           { "implementation": "f_relax_latest" },
