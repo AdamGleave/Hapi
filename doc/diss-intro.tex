@@ -2,8 +2,7 @@
 
 % Proofread: Once
 
-% Summarize project, make novelty of project clear, sneak peak of results
-TBC: Brief intro
+This dissertation describes the development of novel algorithms for solving optimisation problems over flow networks. My interest in this area was sparked by \emph{cluster scheduling}, which can be formulated as a flow problem. I show that the \emph{incremental} solution technique I developed achieves a 14.5x speedup in this application, compared to state-of-the-art implementations used in prior research. Approximate solution methods were also explored: although I found these were of limited use for cluster scheduling, this technique achieved speedups between 2--11x in other applications.
 
 \section{Motivation} \label{sec:intro-motivation}
 % PROOFREAD: 1, significant edits. 2, minor edits.
@@ -20,10 +19,9 @@ This ``flow scheduling'' approach was pioneered by the Quincy system, developed 
 
 The key benefit to flow scheduling, however, is its flexibility. Firmament supports a variety of policies, with goals ranging from energy efficiency to minimising co-location interference. Adding a policy is as simple as defining a new cost model.
 
-% TODO: Update these figures
 However, solving the minimum-cost flow problem is extremely computationally expensive at scale, but must be done for every schedule update. This can be a problem: many applications are sensitive to scheduling latency.
 
-Quincy was originally tested on a cluster of 243 machines, where the scheduling latency was less than \SI{10}{\milli\second}. On a simulated cluster of 2,500 machines, latency had already risen to of over a second. Today's warehouse-scale computers may consist of tens or hundreds of thousands of servers, and continue to grow. Simulations show that on a 10,000 machine cluster, the scheduling latency could easily exceed \SI{90}{\second}.
+Quincy was originally tested on a cluster of 243 machines, where the scheduling latency was less than \SI{10}{\milli\second}. On a simulated cluster of 2,500 machines, latency had already risen to of over a second. Today's warehouse-scale computers may consist of tens or hundreds of thousands of servers, and continue to grow.
 
 Throwing more hardware at the problem does not help: flow algorithms have limited parallelism, and the scalar performance of processors has mostly peaked. The only way to get faster is by algorithmic improvements: this is the focus of my project.
 
