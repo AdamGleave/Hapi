@@ -3,8 +3,6 @@
 % Proofread: None
 The project was highly successful. All success criteria set forth in the project proposal (see \cref{appendix:proposal}) have been met, and many optional extensions implemented, as shown by \cref{table:eval-project-requirements}. The incremental solver achieves sub-second scheduling latency on a 12,000 machine cluster, with a 14.5x speedup over state-of-the-art reference implementations. Approximation yielded a small performance gain on flow scheduling, but significantly underperformed the incremental solver. However, it achieved an over 10x speedup on other classes of flow networks, suggesting it may be profitably employed in other domains.
 
-\section{Project requirements} 
-
 \begin{table}
     \centering
     % eliminate section prefix
@@ -31,8 +29,6 @@ The project was highly successful. All success criteria set forth in the project
     \caption{Deliverables for the project and the section describing their implementation.}
     \label{table:eval-project-requirements}
 \end{table}
-
-\todo{Too short?}
 
 \section{Correctness testing}
 
@@ -110,6 +106,8 @@ However, it is possible to do better than simply randomly sampling from this dis
 Given the paucity of the trace data, the simulation cannot be expected to exactly reproduce the behaviour of the original Google cluster. However, I believe that the simulation represents a realistic workload, which could plausibly occur in a production cluster today. The exact distributions used, along with justification for the parameters, is provided in \cref{appendix:test-distributions}.
 
 The exact performance of the algorithms will, of course, depend on the architecture and workload of individual clusters. Most metrics used in this chapter therefore measure \emph{relative} performance, which should be robust to such differences. Absolute runtimes are occasionally reported: while indicative of real-world performance, care should be taken not to generalise beyond the experiments conducted.
+
+%XXX: Flag up that preemption is not supported?
 
 \subsection{Test methodology} \label{sec:eval-benchmark-strategy-methodology}
 
@@ -219,7 +217,8 @@ The relaxation algorithm repeatedly accesses the set of arcs $\left(S,\overline{
 In the naive implementation of the algorithm, the entire list of arcs in the graph is searched until an arc satisfying the above conditions is found. It is possible to instead maintain a cache of arcs $\left(S,\overline{S}\right)$ crossing the cut. This imposes an additional cost whenever $S$ is updated, but allows for iteration over the set to proceed more efficiently. At no additional cost, we can partition this cache into two sets: those arcs with zero reduced cost and those with positive reduced cost\footnotemark. This is more efficient, as the algorithm never needs to access the entire set $\left(S,\overline{S}\right)$.
 \footnotetext{Note, by the reduced cost optimality conditions, no arcs in the residual network ever have negative reduced cost.}
 
-The effect of this optimisation varies considerably between flow networks, although it yielded a positive speedup in all experiments performed. Under the Quincy cost model, there is only a modest speedup of around 20\%. By contrast, in the Octopus cost model arc caching yields an almost 40x speedup.\todo{Should have new experimental data soon. Is speedup still 40x on Octopus under >small dataset? Do error bars on Quincy come down? If not, provide explanation.}
+The effect of this optimisation varies considerably between flow networks, although it yielded a positive speedup in all experiments performed. Under the Quincy cost model, there is only a modest speedup of just over 20\%. By contrast, in the Octopus cost model arc caching yields a more than 40x speedup\footnotemark.
+\footnotetext{Results are given only for the small dataset, as the tests timed out on larger network.}
 
 \subsection{Cost scaling}
 
@@ -270,21 +269,6 @@ Goldberg's solver exhibits the opposite behaviour, enjoying considerable perform
 I believe this behaviour is due to Goldberg's extensive use of heuristics (see \cref{appendix:impl-csheuristics}) in his implementation. Although these improve the overall performance of the algorithm, they add overhead to to each execution of \textproc{Refine}. This favours larger values of $\alpha$, which cause fewer calls to \textproc{Refine}. 
 
 In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementation and $\alpha = 20$ for Goldberg's. These offer small, but statistically significant speedups, over the default cost scaling factors of $2$ (my implementation) and $12$ (Goldberg's implementation).
-
-%\subsection{DIMACS Parser}
-%
-%\begin{figure}
-%    \centering
-%    \includegraphics{opt/parser_set_vs_getarc_relative_2col}
-%    \caption{Speedup when maintaining cache of arcs present}
-%    \label{fig:opt-dimacs-parser}
-%\end{figure}
-%
-%Need to check for duplicate arcs when parsing. Linked list: consult underlying data structure. Set: maintain a separate set of the arcs present to speed lookup.
-%
-%Set actually works out slower. Conjecture: adjacency lists tend to be short, so overhead of linked list is low. Maintaining separate set harms cache performance, as increases working set?
-%
-%\todo{Bother including this section or not? It's kind of trivial. Although discussing why the optimisation *didn't* work is maybe interesting.}
 
 \subsection{Compilers} \label{sec:eval-optimisations-compilers}
 
@@ -597,7 +581,7 @@ Incremental solution methods (see \cref{sec:impl-incremental}) operate on sequen
 % TODO: Specify the cost model? Should you run tests on both Quincy and Octopus?
 % TODO: Maybe you should evaluate the fixed interval one as well? Could put it in the appendix.
 
-\todo{Figure here illustrating possible timeline of events?}
+%FIGURE: Illustrate timeline of events
 
 This approach is necessary since, unlike `full' algorithms, the runtime of incremental algorithms depends on the number of changes in the previous scheduling round. Decreasing the runtime of an incremental algorithm will therefore tend to produce an even greater decrease in the scheduling latency, since the number of pending events in the queue will tend to be small. Conversely, small increases in the runtime of incremental solvers will also be amplified when measuring scheduling latency. 
 
@@ -608,28 +592,32 @@ The next section compares the performance of the successive shortest path (see \
 
 \subsection{Relative performance}
 
+\todo{XXX: Bump this up to full size for relaxation; augmenting path you'll need to keep at medium. Flag up difference in full performance in text.}
 \begin{figure}
     \begin{widepage}
         \begin{subfigure}[c]{\textwidth}
             \includegraphics{inc/same_ap_cdf_2col}
             \includegraphics{inc/same_ap_incremental_only_cdf_2col}
             \caption{Successive shortest path}
+            \label{fig:inc-same:ssp}
         \end{subfigure}
         \begin{subfigure}[c]{\textwidth}
-            \includegraphics{inc/same_relax_cdf_2col}                        \includegraphics{inc/same_relax_incremental_only_cdf_2col}
+            \includegraphics{inc/same_relax_medium_cdf_2col}                        \includegraphics{inc/same_relax_medium_incremental_only_cdf_2col}
             \caption{Relaxation (my version)}
+            \label{fig:inc-same:relax-my}
         \end{subfigure}
         \begin{subfigure}[c]{\textwidth}
             \includegraphics{inc/same_relaxf_cdf_2col}
             \includegraphics{inc/same_relaxf_incremental_only_cdf_2col}
             \caption{Relaxation (my adaptation of RelaxIV)}
+            \label{fig:inc-same:relax-iv}
         \end{subfigure}
     \end{widepage}
     \caption{Performance in incremental vs full mode, on medium (600 machine) dataset}
     \label{fig:inc-same}
 \end{figure}
 
-\Cref{fig:inc-same} shows a dramatic speedup from using the augmenting path class of algorithms (successive shortest path and relaxation) in an incremental mode of operation. For augmenting path, scheduling takes just over \SI{50}{\milli\second} in the incremental case, compared to a best case of just under \SI{2}{\second} in the full case: an improvement of 40x. The difference is even more pronounced when considering the \emph{mean} scheduling latency, which is \SI{3.38}{\second} in the full case but a mere \SI{6.95}{\milli\second} for the incremental solver: a speedup of over 450x. Similar results hold for both versions of relaxation.\todo{Write more once you have results from your new version of relax.}
+\Cref{fig:inc-same} shows a dramatic speedup from using the augmenting path class of algorithms (successive shortest path and relaxation) in an incremental mode of operation. For successive shortest path, scheduling takes just over \SI{50}{\milli\second} in the incremental case, compared to a best case of just under \SI{2}{\second} in the full case: an improvement of 40x. The difference is even more pronounced when considering the \emph{mean} scheduling latency, which is \SI{3.38}{\second} in the full case but a mere \SI{6.95}{\milli\second} for the incremental solver: a speedup of over 450x. Similar results hold for both versions of relaxation.\todo{Write more once you have results from your new version of relax.}
 
 % SOMEDAY: Could mention performance on other sized datasets?
 
@@ -654,7 +642,8 @@ The next section compares the performance of the successive shortest path (see \
 The previous section showed that the incremental mode of operation considerably reduces the work performed by augmenting path algorithms. However, augmenting path algorithms are very slow on the full problem\footnotemark: is the speedup of incremental operation enough to overcome this?
 \footnotetext{Relaxation is extremely fast on some networks, but unfortunately not flow scheduling networks.}
 
-Cost scaling is the fastest full algorithm on flow scheduling networks. \todo{Which of my incremental algorithms should I use? Update based on results from new version of relax.} \Cref{fig:inc-head-to-head-my} pits my incremental algorithm against my implementation of cost scaling. The incremental algorithm considerably outperforms cost scaling, with a speedup of 19x on the full (12,000 machine) Google cluster. Note this is, however, significantly less than the 450x speedup observed in the previous section. This is to be expected, as cost scaling is considerably faster on the full problem.
+%XXX: Update based on new results from relax.
+Cost scaling is the fastest full algorithm on flow scheduling networks. \Cref{fig:inc-head-to-head-my} pits my incremental algorithm against my implementation of cost scaling. The incremental algorithm considerably outperforms cost scaling, with a speedup of 19x on the full (12,000 machine) Google cluster. Note this is, however, significantly less than the 450x speedup observed in the previous section. This is to be expected, as cost scaling is considerably faster on the full problem.
 
 \subsection{Comparative evaluation}
 
@@ -692,14 +681,14 @@ To investigate this, I extended the reference implementation of the relaxation a
 \Cref{fig:inc-head-to-head-optimised} shows the incremental solver significantly outperforms the full solver. The incremental solver is faster than the full solver at every percentile: note that the incremental solver is always to the left of the full solver. There is a 14.5x mean speedup on the full (12,000 machine) Google cluster, similar to the 19x speedup observed with the unoptimised implementations\footnotemark. With a mean scheduling latency of \SI{197}{\milli\second} for the incremental solver, most tasks will be scheduled without any perceptible delay. Moreover, \cref{fig:inc-head-to-head-optimised-inconly} shows the incremental solver achieves sub-second scheduling latency in $98.4\%$ of cases.
 \footnotetext{This is to be expected: implementation optimisations do not change the asymptotic complexity of the algorithm, only its constant factors. However, it is encouraging this is confirmed empirically, and it provides support for the use of relative performance figures elsewhere in this evaluation.} 
 
-%Both distributions are long tailed, reflecting the added workload when there are large numbers of changes\todo{Add reference to next section when written. Adding preemption support will change this slightly, probably removing the long tail of CS2 but shifting it to the right. If you don't add preemption support, might want to explain why workload varies for standard solver}.
+%Both distributions are long tailed, reflecting the added workload when there are large numbers of changes %WONTFIX: Add reference to next section when written. Adding preemption support will change this slightly, probably removing the long tail of CS2 but shifting it to the right. If you don't add preemption support, might want to explain why workload varies for standard solver}.
 
 %\subsection{Determinants of incremental performance}
 %
-%TBC. Optional. Show correlation between \# of changes and incremental runtime.
+%WONTFIX. Optional. Show correlation between \# of changes and incremental runtime.
 %
 %\subsection{Scalability analysis}
-%TBC. Optional.
+%WONTFIX. Optional.
 %
 %\subsubsection{Growing size of network}
 %

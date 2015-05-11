@@ -343,15 +343,11 @@ INCREMENTAL_FIGURES = {
   },
   'same_relax': {
     'data': 'ion_same_relax',
-    'trace': 'medium',
+    'trace': ['medium', 'large'],
     'annotate_means': {
       'From scratch': {'horizontalalignment': 'right', 'xytext': (-1, 0)},
       'Incremental': None,
     },
-  },
-  'same_relax_nocache': {
-    'data': 'ion_same_relax_nocache',
-    'trace': 'medium',
   },
   'same_relaxf': {
     'data': 'ion_same_relaxf',

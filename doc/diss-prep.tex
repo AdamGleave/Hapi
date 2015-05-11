@@ -87,7 +87,6 @@ However, the information which is public suggests that the basic approach is the
     \caption[Scheduler feature matrix]{Scheduler feature matrix showing {\cmarkcolor full \cmark}, {\mmarkcolor partial \mmark} or {\xmarkcolor no \xmark} support.}
     \label{table:cluster-scheduler-feature-matrix}
 \end{table}
-\todo{Graphical representation of the numerical ratings} % TODO
 
 Schedulers have traditionally relied on \textit{ad hoc} heuristics to provide a hard-coded policy. This approach is easy to implement, but is inflexible.
 
@@ -160,7 +159,8 @@ For all $(i,j) \in E$, $c_{ij} \geq 0$. \\
 This assumption is without loss of generality\footnote{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}}. \\
 \end{remark}
 
-\begin{cor}All quantities defining arcs take on only values from the natural numbers.\footnotemark \todo{\quad\quad\quad Cut?}
+%WORDCOUNT: Could move to appendix
+\begin{cor}All quantities defining arcs take on only values from the natural numbers.\footnotemark 
 \footnotetext{To avoid confusion, I will follow the convention $0\in\mathbb{N}$ throughout this document.}
 \end{cor}
 \begin{proof}
@@ -196,8 +196,8 @@ Arc capacities are used to \emph{restrict} the possible scheduling assignments. 
 
 % PROOFREAD: 1 major edits, need to reread.
 
-\todo{Table summarising nodes}
-\todo{Flow graphs}
+%FIGURE: Table summarising nodes
+%FIGURE: Flow graphs
 
 Each task $i$ in job $j$ is represented by a node $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by nodes $\mathbf{M}_l$, with arcs to a sink node $\mathbf{S}$. Task nodes have arcs to machine nodes, with the arc cost specifying the task's preference for being scheduled on that machine.
 
@@ -287,7 +287,6 @@ Given such a variety of possible policies, the solver developed in this project 
     \label{table:quincy-parameters}
 \end{table}
 
-\todo{Should I shift the Quincy stuff to appendix, maybe? It's important to understanding flow scheduling, but it's true that I don't assume any model.}
 The arc costs specified by the Quincy model are given in \cref{table:quincy-costs}. All arcs not mentioned in this table have a cost of zero\footnotemark.
 \footnotetext{In particular, arcs leaving aggregator nodes and arcs entering the sink have zero cost.}
 
@@ -325,7 +324,7 @@ The only remaining cost is $v_i^j$, the penalty associated with leaving a task $
 
 Although the costs assigned to arcs vary between policies, the structure of the network remains the same. Some simple properties are proved below, which will be useful when analysing the asymptotic complexity of algorithms.
 
-\todo{Shift the first two proofs to appendix (but still state the claims here)?}
+% WORDCOUNT: Could shift the proofs to appendix, although keep the claims here.
 \begin{lemma} \label{lemma:network-num-nodes}
 Let $n$ denote the number of nodes in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.
 \end{lemma}
@@ -587,11 +586,11 @@ The spiral model indicates that development of deliverables S1 and S3 in \cref{t
 Deliverables S2, E1 and E3 are all rated as medium or high risk. Their requirements are fairly well known, but there is significant uncertainty as to the appropriate design. \emph{Evolutionary prototyping} was followed in accordance with the spiral model: a robust prototype is constructed, and constantly refined\footnotemark. Building a prototype early was invaluable for risk management: for example, it allowed the viability of the incremental solver (extension E1) to be confirmed before committing significant development time.
 \footnotetext{For extension E3, this robust prototype was in fact developed as part of deliverable S1.}
 
-\todo{DEFINITELY needs a figure! Customise it if you can, not too difficult.}
+%TODO: Figure for Spiral model
 
 \subsection{Testing strategy}
 \label{sec:prep-management-testing}
-Unit tests were written for each class. Where possible, the GTest framework was used (see \cref{sec:prep-tools-libraries}). Testing of flow algorithms requires large external datasets, which conventional unit test frameworks such as GTest do not support. A Python test harness was developed to support these cases (see \cref{sec:eval-testing-unit})\todo{N.B. Not the same as the benchmark suite; maybe mention this one somewhere too, e.g. in the appendix, although it's very simple.}. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-integration}).
+Unit tests were written for each class. Where possible, the GTest framework was used (see \cref{sec:prep-tools-libraries}). Testing of flow algorithms requires large external datasets, which conventional unit test frameworks such as GTest do not support. A Python test harness was developed to support these cases (see \cref{sec:eval-testing-unit}). Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-integration}).
 
 Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E2 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-firmament,sec:eval-benchmark-strategy,appendix:impl-benchmark-harness}.
 
@@ -674,7 +673,7 @@ To protect against these threats, nightly backups were taken using a cron job. T
 
 Copies of the resulting snapshots were stored on the university MCS and the Student Run Computing Facility (SRCF) in Cambridge. Additional off-site backups were made to Copy, a cloud storage service based in the US.
 
-\todo{Diagram illustrating architecture}
+%FIGURE: Backup strategy
 
 \section{Summary}
 

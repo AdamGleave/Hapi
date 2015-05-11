@@ -109,16 +109,16 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
     \label{algo:successive-shortest-path}
     \begin{algorithmic}[1]
         \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
-        \While{mass balance constraints not satisfied}
-          \State choose node $s$ with $e(s) > 0$ and node $t$ with $e(t) < 0$\footnotemark
+        \While{mass balance constraints not satisfied} \label{algo:successive-shortest-path:start-loop}
+          \State choose node $s$ with $e(s) > 0$ and node $t$ with $e(t) < 0$\footnotemark \label{algo:successive-shortest-path:select-active}
           % SOMEDAY: These statements are multi-line, shorten?
-          \State solve SSSP problem from $s$ to all nodes, in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$
+          \State solve SSSP problem from $s$ to all nodes, in the residual network $G_{\mathbf{x}}$ with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$ \label{algo:successive-shortest-path:solve-sssp}
           \State let $\mathbf{d}$ denote the vector of shortest path distances, such that $d_i$ is the shortest path from $s$ to $i\in V$
-          \Let{$\boldsymbol{\pi}$}{$\boldsymbol{\pi} - \mathbf{d}$}
+          \Let{$\boldsymbol{\pi}$}{$\boldsymbol{\pi} - \mathbf{d}$} \label{algo:successive-shortest-path:update-potentials}
           \State let $P$ denote a shortest path from $s$ to $t$
-          \Let{$\delta$}{$\min\left(e(s), -e(t), \min\left\{ r_{ij} \::\: (i,j) \in P\right\}\right)$}
-          \State augment $\delta$ units of flow along path $P$
-        \EndWhile
+          \Let{$\delta$}{$\min\left(e(s), -e(t), \min\left\{ r_{ij} \::\: (i,j) \in P\right\}\right)$} \label{algo:successive-shortest-path:compute-delta}
+          \State augment $\delta$ units of flow along path $P$ \label{algo:successive-shortest-path:augment-flow}
+        \EndWhile \label{algo:successive-shortest-path:end-loop}
     \end{algorithmic}
 \end{algorithm}
 
@@ -139,7 +139,7 @@ Fibonacci heaps have considerable implementation complexity: whilst asymptotical
 
 \subsubsection{Terminating Djikstra's algorithm early}
 
-% TBC: Test this using benchmark suite and include in evaluation section? Doesn't seem like it'd be too difficult.
+%WORDCOUNT: Can move the proof, etc. to appendix.
 It is possible to modify the successive shortest path algorithm to terminate Djikstra as soon as it permanently labels a deficit node $l$. Although this does not affect asymptotic complexity, it may considerably improve performance in practice.\\
 
 \todo{Move to appendix, restructure so that it's after correctness analysis.}
@@ -190,7 +190,7 @@ It is possible to modify the successive shortest path algorithm to terminate Dji
     \footnotetext{Note that this is all that is needed for the correctness of the algorithm, as this is the only path along which we augment flow.}
 \end{lemma}
 \begin{proof}
-    The original proof for the lemma (given in~\cite[p.~320]{Ahuja:1993}) uses the triangle inequality stated in \cref{eq:djikstra-triangle-assumption}. 
+    The original proof for the lemma (given in~\cite[lemma~9.11]{Ahuja:1993}) uses the triangle inequality stated in \cref{eq:djikstra-triangle-assumption}. 
     
     By \cref{lemma:ssp-preserve-triangle}, we know $\mathbf{d}'$ also satisfies the triangle equality. The original proof for (a) thus still holds, as it makes no further assumptions on $\mathbf{d}'$.
     
@@ -221,13 +221,14 @@ Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions of 
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-See~\cite[p.~320]{Ahuja:1993}.
+See~\cite[lemma~9.11]{Ahuja:1993}.
 \end{proof}
 
 \begin{cor} \label{cor:ssp-reduced-costs}
 Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $\mathbf{x}$ by sending flow along a shortest path from node $s$ to some other node $k \in V$. Then $\mathbf{x}'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
 \end{cor}
-\begin{proof}
+\begin{proof} (Adapted from \cite[lemma~9.12]{Ahuja:1993})
+    
 By \cref{lemma:ssp-reduced-costs}(a), $\left(\mathbf{x},\boldsymbol{\pi'}\right)$ satisfies the reduced cost optimality conditions.
 
 Pushing flow along an arc $(i,j) \in G_{\mathbf{x}}$ might add its reversal $(j,i)$ to the residual network. Let $P$ be a shortest path from $s$ to $k$. By \cref{lemma:ssp-reduced-costs}(b), it follows that any arc $(i,j) \in P$ has $c^{\boldsymbol{\pi}'}_{ij} = 0$. So $c^{\boldsymbol{\pi}'}_{ji} = 0$. Thus any arcs are added to the residual network by augmenting flow along $P$ have a zero reduced cost, and so still satisfy the reduced cost optimality conditions of \cref{eq:optimality-reduced-cost}.
@@ -260,12 +261,12 @@ It follows that $\mathbf{x}$ is both optimal and a feasible flow upon terminatio
 Let $S(n,m,C)$ denote the time complexity of solving a single-source shortest path problem (SSSP) with non-negative arc costs, bounded above by $C$, over a network with $n$ nodes and $m$ arcs. Then the time complexity of successive shortest path is $O(nUS(n,m,C))$.
 \end{thm}
 \begin{proof}
-Each iteration of the loop body (lines 3-9) decreases the excess of node $s$ by $\delta$ and the deficit of node $t$ by $\delta$, while leaving the excess/deficit of other nodes unchanged. Prior to the iteration, $e_s \geq 0$ and $e_t \leq 0$, so the total excess and total deficit in the network are both decreased by $\delta$. By \cref{assumption:integrality}, $\delta \geq 1$. Thus the number of iterations is bounded by the initial total excess. This in turn is bounded by $nU/2 = O(nU)$. So there are $O(nU)$ iterations in total.
+Each iteration of the loop body (\crefrange{algo:successive-shortest-path:start-loop}{algo:successive-shortest-path:end-loop} of \cref{algo:successive-shortest-path}) decreases the excess of node $s$ by $\delta$ and the deficit of node $t$ by $\delta$, while leaving the excess/deficit of other nodes unchanged. Prior to the iteration, $e_s \geq 0$ and $e_t \leq 0$, so the total excess and total deficit in the network are both decreased by $\delta$. By \cref{assumption:integrality}, $\delta \geq 1$. Thus the number of iterations is bounded by the initial total excess. This in turn is bounded by $nU/2 = O(nU)$. So there are $O(nU)$ iterations in total.
 
-Within each iteration, the algorithm solves an SSSP problem on line 4. Since reduced cost optimality is maintained throughout the algorithm, the arc costs in the shortest-path problem are non-negative\footnotemark. Thus the cost of solving this problem is $S(n,m,C)$.
+Within each iteration, the algorithm solves an SSSP problem on \cref{algo:successive-shortest-path:solve-sssp}. Since reduced cost optimality is maintained throughout the algorithm, the arc costs in the shortest-path problem are non-negative\footnotemark. Thus the cost of solving this problem is $S(n,m,C)$.
 \footnotetext{Algorithms such as Djikstra which assume non-negative arc lengths are asymptotically faster than more general algorithms such as Bellman-Ford.}
 
-The cost of lines 3 and 6 are clearly $O(n)$. Lines 8--9 are also $O(n)$, since the length of $P$ is bounded by $n-1$ (shortest paths are acyclic). Certainly $S(n,m,C) = \Omega(n)$, so the cost of each iteration is $O(S(n,m,C))$.
+The cost of \cref{algo:successive-shortest-path:select-active,algo:successive-shortest-path:update-potentials} are clearly $O(n)$. \Cref{algo:successive-shortest-path:compute-delta,algo:successive-shortest-path:augment-flow} are also $O(n)$, since the length of $P$ is bounded by $n-1$ (shortest paths are acyclic). Certainly $S(n,m,C) = \Omega(n)$, so the cost of each iteration is $O(S(n,m,C))$.
 
 It follows that the overall time complexity of the algorithm is $O(nUS(n,m,C))$.
 \end{proof}
@@ -291,7 +292,6 @@ Relaxation performs much better empirically than the successive shortest path al
 \footnotetext{The generic version of cycle cancelling is also exponential time, however there are variants which are strongly polynomial. By contrast, there are no variants of relaxation achieving polynomial time, although in practice exponential runtime is not observed on realistic flow networks.}
 
 \subsection{The relaxed integer programming problem}
-%TODO: Attribution for Ahuja, et al?
 Before describing how the relaxation algorithm works, it is necessary to understand the problem it seeks to optimise. The primal (see \cref{sec:prep-flow-mcf}) and dual (see \cref{sec:prep-flow-rc-and-dual}) versions of the minimum-cost flow problem have been previously been discussed. The relaxed version of the problem may be derived by applying Lagrangian relaxation to the primal problem, and has characteristics of both the primal and dual formulations. It is denoted by $\mathrm{LR}(\boldsymbol{\pi})$, and is defined by:
 
 \begin{equation} \label{eq:relax-obj-fun-excess}
@@ -320,7 +320,7 @@ w\left(\pi\right)= & \min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}x_{ij}+\sum
 \end{align*}
 \end{proof}
 
-We may use either form for $w(\boldsymbol{\pi})$ in the remainder of this section, depending on which is most convenient. Note \cref{eq:relax-obj-fun-excess} is expressed in terms of the arc costs and excesses ($\mathbf{x}$-dependent), whereas \cref{eq:relax-obj-fun-balance} is expressed in terms of the reduced costs ($\boldsymbol{\pi}$-dependent) and balances.\\
+We may use either form for $w(\boldsymbol{\pi})$ in the remainder of this section, depending on which is most convenient. Note \cref{eq:relax-obj-fun-excess} is expressed in terms of the excesses ($\mathbf{x}$-dependent) and arc costs, whereas \cref{eq:relax-obj-fun-balance} is expressed in terms of the reduced costs ($\boldsymbol{\pi}$-dependent) and balances.\\
 
 \begin{lemma} \label{lemma:relax-rc-lr-equivalence}
 Let $\mathbf{x}$ be a pseudoflow and $\boldsymbol{\pi}$ node potentials. Then $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfies reduced cost optimality conditions if and only if $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$.
@@ -344,9 +344,9 @@ Thus complementary slackness optimality is equivalent to $\mathbf{x}$ being an o
 \end{proof}
 
 \begin{defn}
-Let $z^*$ denote the optimal objective function value of the minimum-cost flow problem, that is the cost of an optimal flow.
+Let $z^*$ denote the optimal objective function value of the minimum-cost flow problem, that is the cost of an optimal flow. \\
 \end{defn}
-~ % force line break
+
 \begin{lemma} \label{lemma:relax-dual-optimality}
 ~ % force line break
 \begin{enumerate}[label=(\alph*)]
@@ -354,7 +354,8 @@ Let $z^*$ denote the optimal objective function value of the minimum-cost flow p
     \item There exists node potentials $\boldsymbol{\pi}^*$ for which $w(\boldsymbol{\pi}^*) = z^*$.
 \end{enumerate}
 \end{lemma}
-\begin{proof}
+\begin{proof} (Adapted from \cite[lemma.~9.16]{Ahuja:1993})
+    
 For the first part, let $\mathbf{x}^*$ be a feasible flow with objective function value $s(\mathbf{x}^*) = z^*$: that is, $\mathbf{x}^*$ is a solution to the minimum-cost flow problem given in \cref{eq:mcf-primal-problem}.
 
 Using the form of $w(\boldsymbol{\pi})$ stated in \cref{eq:relax-obj-fun-excess}, it follows that:
@@ -494,7 +495,8 @@ First, \textproc{UpdatePotentials} and \textproc{AugmentFlow} are shown to prese
 \begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
 Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, the new pseudoflow and node potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
 \end{lemma}
-\begin{proof}
+\begin{proof} (Adapted from \cite[p.~334]{Ahuja:1993})
+    
 Zero reduced cost arcs are saturated by \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd}, and drop out of the residual network as a result. This preserves reduced cost optimality: the flow on arcs with zero reduced cost is arbitrary. Moreover, it leaves $w(\boldsymbol{\pi})$ unchanged. Recall the formulation of $w(\boldsymbol{\pi})$ given in \cref{eq:relax-obj-fun-balance}:
 \[w(\boldsymbol{\pi})=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}\right]\]
 The second sum is unchanged, as potentials are unchanged. The first sum is also unchanged, as $x'_{ij}$ differs from $x_{ij}$ only when the reduced costs are $c_{ij}^{\boldsymbol{\pi}}=0$.
@@ -528,7 +530,8 @@ Prior to updating potentials, all arcs in the residual network had (strictly) po
 Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e(t) < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, there is a new pseudoflow $\mathbf{x}'$ and $\left(\mathbf{x}',\boldsymbol{\pi}\right)$ still satisfy reduced cost optimality conditions. Moreover, under $\mathbf{x}'$ the excess at node $s$ and deficit at node $t$ decreases, without changing the excess/deficit at any other node\footnotemark.
 \footnotetext{The \emph{feasibility} of the solution has increased}
 \end{lemma}
-\begin{proof}
+\begin{proof} (Adapted from \cite[p.~336]{Ahuja:1993})
+    
 \Cref{algo:relaxation-augment-flow:find-P} finds a shortest path $P$ from the source node $s$ to a deficit node $t$. \Crefrange{algo:relaxation-augment-flow:compute-delta}{algo:relaxation-augment-flow:augment-path} then send as much flow as possible along path $P$, subject to:
 \begin{enumerate}
     \item satisfying the capacity constraints at each arc on $P$, and
@@ -580,7 +583,7 @@ The following properties hold:
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-By \cref{lemma:relax-dual-optimality}, $w\left(\boldsymbol{\pi}\right) \leq z^*$. A feasible flow has a cost of at most $mCU$. By \cref{lemma:relax-correctness-updatepotentials} and \cref{assumption:integrality}, $w\left(\boldsymbol{\pi}\right)$ increases by at least one for each call of $\textproc{UpdatePotentials}$. Moreover, $w\left(\boldsymbol{\pi}\right)$ never decreases: $\boldsymbol{\pi}$ is only modified by $\textproc{UpdatePotentials}$. Thus $\textproc{UpdatePotentials}$ is called at most $mCU$ times.
+A feasible flow has a cost of at most $mCU$. By \cref{lemma:relax-dual-optimality}, $w\left(\boldsymbol{\pi}\right) \leq z^*$. By \cref{lemma:relax-correctness-updatepotentials} and \cref{assumption:integrality}, $w\left(\boldsymbol{\pi}\right)$ increases by at least one for each call of $\textproc{UpdatePotentials}$. Moreover, $w\left(\boldsymbol{\pi}\right)$ never decreases: $\boldsymbol{\pi}$ is only modified by $\textproc{UpdatePotentials}$. Thus $\textproc{UpdatePotentials}$ is called at most $mCU$ times.
 
 As for $\textproc{AugmentFlow}$, each call to $\textproc{AugmentFlow}$ decreases the total excess by at least one unit by \cref{lemma:relax-correctness-augmentflow} and \cref{assumption:integrality}. The total excess in a network is at most $nU$. The only part of the algorithm which may \emph{increase} the excess at nodes is \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd} of $\textproc{UpdatePotentials}$. Thus, in between calls to $\textproc{UpdatePotentials}$, at most $nU$ calls to $\textproc{AugmentFlow}$ may be made.
 
@@ -631,7 +634,8 @@ Note this is a relaxation of the reduced cost optimality conditions given in \cr
 \begin{thm} \label{thm:epsilon-optimality-optimal}
 Let $0 \leq \epsilon < 1/n$, and let $\mathbf{x}$ be an $\epsilon$-optimal feasible flow. Then $\mathbf{x}$ is optimal.
 \end{thm}
-\begin{proof}
+\begin{proof} (From \cite[theorem~3.4]{Goldberg:1987})
+    
 Let $C$ be a simple cycle in $G_\mathbf{x}$. $C$ has at most $n$ arcs. By \cref{defn:epsilon-optimality}, $c^{\boldsymbol{\pi}}_{ij} \geq -\epsilon$ for each arc $(i,j) \in C$. It follows the cost of $C$ is $\geq -n\epsilon$.
 
 The condition $\epsilon < 1/n$ implies $n\epsilon > -1$. By \cref{assumption:integrality}, cost of $C$ must then be $\geq 0$. The result follows from the negative cycle optimality conditions given in \cref{thm:optimality-neg-cycle}.
@@ -741,7 +745,8 @@ Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ be $\epsilon$-optimal, and the pr
 
 Let $\boldsymbol{\pi}'$ denote the potentials after \textproc{Relabel}. Then $\pi'_i\ \geq \pi_i + \epsilon$ and $\pi'_j = \pi_j$ for $j \neq i$. Moreover, $\left(\mathbf{x},\boldsymbol{\pi}'\right)$ continues to be $\epsilon$-optimal.
 \end{lemma}
-\begin{proof}
+\begin{proof} (Adapted from \cite[lemma~5.2]{Goldberg:1987})
+    
 By the precondition, $\forall(i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} \geq 0$. Substituting for the definition of reduced costs in \cref{eq:reduced-costs} gives $\forall(i,j) \in E_{\mathbf{x}} \cdot c_{ij} + \pi_j \geq \pi_i$. Thus:
 \[\pi'_i = \min \set{\pi_j + c_{ij} + \epsilon | (i,j) \in E_{\mathbf{x}}} \geq \pi_i + \epsilon\]
 \textproc{Relabel} does not modify any other components of $\boldsymbol{\pi}$, so $\pi'_j = \pi_j$ for $j \neq i$.
@@ -756,7 +761,8 @@ And so $c_{vw}^{\boldsymbol{\pi}'} \geq -\epsilon$, as required for $\epsilon$-o
 \begin{thm}[Correctness of \textproc{Refine}] \label{thm:cost-scaling-refine-correctness}
 Let the precondition for $\textproc{Refine}$ hold: $\mathbf{x}$ is a pseudoflow. Then upon termination of \textproc{Refine}, the postcondition holds: $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal.
 \end{thm}
-\begin{proof}
+\begin{proof} (Adapted from \cite[theorem~5.4]{Goldberg:1987})
+    
 The initial flow after \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} is $0$-optimal (and so certainly $\epsilon$-optimal). $\epsilon$-optimality is preserved by subsequent \textproc{Push} and \textproc{Relabel} operations by \cref{lemma:cost-scaling-push-correctness,lemma:cost-scaling-relabel-correctness}. Hence $\epsilon$-optimality is maintained as an invariant.
  
 Given that \textproc{Refine} has terminated, the mass balance constraints must be satisfied by the loop condition on \cref{algo:cost-scaling-generic-refine:start-loop}. Thus $\mathbf{x}$ must also be a flow upon termination.
@@ -783,7 +789,7 @@ Trivial.
 \end{proof}
 
 \begin{defn}
-An invocation of $\textproc{Push}(i,j)$ is said to be \emph{saturating} if $r_{ij} = 0$ after the operation; otherwise, it is nonsaturating.\\
+An invocation of $\textproc{Push}(i,j)$ is said to be \emph{saturating} if $r_{ij} = 0$ after the operation; otherwise, it is nonsaturating.
 \end{defn}
 
 \begin{remark}
@@ -810,13 +816,14 @@ The result follows by \cref{lemma:cost-scaling-operations-complexity,lemma:cost-
 \end{proof}
 
 \begin{remark}
-It is unfortunately not possible to prove a bound on the complexity of the generic refine routine given in \cref{algo:cost-scaling-generic-refine}, as it depends on how excess vertices are selected on line \cref{algo:cost-scaling-generic-refine:select-vertex} and arcs are chosen on line \cref{algo:cost-scaling-generic-refine:call-push}. Bounds on specific implementations of refine are given in \cref{sec:impl-cost-scaling-implementations}.\\
+It is unfortunately not possible to prove a bound on the complexity of the generic refine routine given in \cref{algo:cost-scaling-generic-refine}, as it depends on how excess vertices are selected on \cref{algo:cost-scaling-generic-refine:select-vertex} and arcs are chosen on \cref{algo:cost-scaling-generic-refine:call-push}. Bounds on specific implementations of refine are given in \cref{sec:impl-cost-scaling-implementations}.\\
 \end{remark}
 
-\begin{thm} [{Adapted from~\cite[theorem~4.1]{Goldberg:1987}}] \label{lemma:cost-scaling-overall-algorithm}
+\begin{thm} \label{lemma:cost-scaling-overall-algorithm}
 Let $R(n,m)$ be the running time of the \textproc{Refine} routine. Then the minimum-cost flow algorithm described in \cref{algo:cost-scaling} runs in $O\left(R(n,m)\lg(nC)\right)$ time.
 \end{thm}
-\begin{proof}
+\begin{proof} (Adapted from~\cite[theorem~4.1]{Goldberg:1987})
+    
 The algorithm terminates once $\epsilon < 1/n$, which takes place after $\log_2\left(\frac{C}{1/n}\right) = \log_2 (nC)$ iterations of \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}. The loop condition on \cref{algo:cost-scaling:start-loop} and the assignment on \cref{algo:cost-scaling:update-epsilon} are both $O(1)$, so the dominant cost of each iteration is the execution of \textproc{Refine}. \Crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop} thus contribute a cost of $O\left(R(n,m)\lg(nC)\right)$. This dominates the initialisation on \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}, and thus is the overall cost of the algorithm.
 \end{proof}
 
@@ -931,12 +938,6 @@ The algorithm with wave refine has a running time of $O(n^3 \lg (nC))$.
 An $O(n^2)$ bound on the number of passes can be proved over the vertex list, using the invariant that $L$ is topologically ordered~\cite[lemma~7.3]{Goldberg:1987}. An $O(n^3)$ bound on the running time of the wave \textproc{Refine} routine can be shown as a corollary of this~\cite[theorem~7.4]{Goldberg:1987}. The result follows by \cref{lemma:cost-scaling-overall-algorithm}.
 \end{proof}
 
-\todo{Mention alternatives, e.g. dynamic trees, and why I didn't choose to implement them?}
-% \paragraph{Alternative implementations}
-% Mention dynamic trees, blocking flows, why I didn't choose to implement these.
-% Reason: they're complicated, and reason to believe a large constant factor makes them slower in practice.
-% But quite difficult to justify succintly. Perhaps best not mention at all? Reader will not know about them, and mentioning them may just confuse things.
-
 \subsection{Heuristics}
 
 So far, this dissertation has only considered means by which the theoretical performance of the algorithm can be improved. There has also been considerable research effort to improve its practical performance by means of \emph{heuristics} guiding the actions of the algorithm~\cite{Goldberg:1997}. Whilst these do not alter the asymptotic worst-case time complexity, empirically they may yield considerable performance gains.
@@ -948,7 +949,7 @@ I decided not to implement any heuristics. The focus of this project is on explo
 
 \section{Approximation algorithms} \label{sec:impl-approx}
 
-% TODO: Put this or similar figure in here somewhere
+% FIGURE: Approximate over time (you already have one!)
 %\begin{figure}
 %    \centering
 %    \includegraphics{app/road_over_time_2col}
@@ -1018,10 +1019,10 @@ Nodes are labelled as representing either a task, machine or other entity. The t
 
 Flow scheduling systems produce a sequence of closely related flow networks. New networks in the sequence are generated in response to cluster events, such as task submission or completion. Most changes in the sequence are small, with the optimal flow remaining mostly the same.
 
-My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach has proved extremely successful, producing a factor of 100 speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.\todo{finalize speedup}
+My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach has proved extremely successful, producing a factor of 14.5x speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.
 
 Flow scheduling is ideally suited to an incremental solution method. This may go some way to explaining the lack of prior work: the approach is much less compelling for traditional applications of flow networks. As previously mentioned, most changes to the network in flow scheduling are small. This alone does not make the problem easy: reoptimising after even a single change may, in general, be as hard as solving the problem from scratch\footnotemark. Informally, the problem is that since the optimisation problem is global, an update in one region of the network may trigger a cascading sequence of changes in the optimal flow for distant regions.
-\footnotetext{TODO: Idea is get two networks $A$ and $B$. WLOG assume they have source and sink node. Remove supply/demand at those nodes. Introduce new supply and sink node. Add uncapacitated arcs with zero cost from old supply nodes to new supply. Add uncapaciated arcs one with medium cost, one with high cost. Then dropping high cost to zero cost is as hard as solving for one of the networks.}
+\footnotetext{To see this, consider two networks $A$ and $B$. WLOG, assume they have a single source and sink node $s_x$ and $t_x$ for $x \in {A,B}$ respectively. Remove the supply and demand at those nodes, and introduce new supply and sink nodes $s$ and $t$ with arcs $s\to s_x$ with capacity $b_x$ and $t_x \to t$ with capacity $-b_{t_x}$ for $x \in {A,B}$. Let $C$ be a cost larger than the minimum cost of networks $A$ and $B$; set the cost of $s \to s_A$ to $A$ and $s \to s_B$ to $2A$. The resulting network is effectively equivalent to just network $A$. Dropping the cost on $s \to S_B$ from $2A$ to $0$ makes the resulting network effectively equivalent to $B$. Solving this incremental change is thus as hard as solving the entire network $B$.}
 
 Crucially, however, scheduling policies are designed to produce stable assignments of tasks to machines. Preempting a task or migrating it to a different machine are expensive operations: sometimes they must be performed, but only sparingly. Consequently, cost models will naturally be designed to avoid frequent changes in scheduling assignments. This is precisely the property required for incremental solvers to perform well.
 
@@ -1065,7 +1066,6 @@ Goldberg's cost scaling algorithm offers excellent performance on the full probl
 
 During the main loop in \cref{algo:cost-scaling}, cost scaling maintains the invariant that $\mathbf{x}$ is a feasible flow and $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal. This invariant is not required for correctness -- \textproc{Refine}'s precondition is just that $\mathbf{x}$ satisfies flow conservation -- but is needed to prove the asymptotic complexity bounds.
 
-% SOMEDAY: I think my comments about restoring feasibility are right, but think about it some more?
 The starting state may be neither feasible nor optimal on the new network. To satisfy the invariant, feasibility will need to first be restored, such as by running a max-flow algorithm ``incrementally''\footnotemark. This step will tend to make the flow less optimal.
 \footnotetext{In fact, it is perfectly legitimate to skip this stage and run \textproc{Refine} directly, which will also restore feasibility. However, the analysis is simpler if we consider these stages to be separate.}
 
@@ -1077,7 +1077,7 @@ The key problem with incremental cost scaling is that $\epsilon$ may be very lar
 
 Since $\epsilon$ will often end up close (in logarithmic terms) to the initial starting value $C$, the algorithm will tend to perform almost as many iterations of \textproc{Refine} as it would in the full case. Furthermore, there is no reason to hope the iterations will complete any faster than usual. Although \textproc{Refine} maintains $\epsilon$-optimality, it can make previously optimised segments of the network \emph{less} optimal (up to the bound of $\epsilon$), effectively creating more work for future iterations.
 
-%SOMEDAY: Would be interesting to try and model the performance of CS2. Simple approach which could work: assume new epsilon is ~U[0,C], what is the mean and variance of log_2 (C/epsilon)?
+%WONTFIX: Would be interesting to try and model the performance of CS2. Simple approach which could work: assume new epsilon is ~U[0,C], what is the mean and variance of log_2 (C/epsilon)?
 The computational study by Frangioni and Manca~\cite{Frangioni:2006} provides empirical support for this assertion. A modest speedup of around a factor of two was observed when cost scaling was used for cost reoptimisation. This result is disappointing compared to other algorithms surveyed, where speedups of a factor of 20 or more were observed. Moreover, the performance of cost scaling was unpredictable, varying considerably even within networks of the same class.
 
 Given the theoretical and empirical evidence against cost scaling, I decided to focus my attention on more promising algorithms.
@@ -1090,7 +1090,7 @@ Both algorithms work by sending flow along \emph{augmenting paths} with zero or 
 Although changes to the network can violate reduced cost optimality, it is relatively simple to update the pseudoflow to maintain optimality, as described in \cref{sec:impl-incremental-maintaining-rc}. Provided this invariant is maintained, the algorithm can simply be run as usual to reoptimise, restoring feasibility. The time this takes will tend to be proportional to the reduction in flow feasibility after the updates.\footnotemark. This is a very desirable property for flow scheduling: most of the changes are small, and so only impact the feasibility of a small region of the network.
 \footnotetext{Note the feasibility may be reduced directly and indirectly. Direct decreases in feasibility occur as an immediate  consequence of a network update: for example, adding a new source and sink node. The feasibility may also be compromised indirectly: the operations needed to maintain reduced cost optimality might require pushing flows along arcs, resulting in excesses or deficits at nodes.}
 
-The relaxation algorithm was evaluated empirically in the study by Frangioni and Manca. As previously discussed in \cref{sec:impl-relax}, the practical performance characteristics of the algorithm are heavily dependent on the class of problem. This was apparent in the study: relaxation was competitive on the NETGEN, GRIDGEN and GOTO instances but had disappointing performance on PDS instances~\cite[tables~1~to~4]{Frangioni:2006}. Since relaxation has been found to perform well on flow scheduling networks in the full problem\S(TODO: reference to evaluation), there are reasons to be optimistic about its performance as an incremental solver.
+The relaxation algorithm was evaluated empirically in the study by Frangioni and Manca. As previously discussed in \cref{sec:impl-relax}, the practical performance characteristics of the algorithm are heavily dependent on the class of problem. This was apparent in the study: relaxation was competitive on the NETGEN, GRIDGEN and GOTO instances but had disappointing performance on PDS instances~\cite[tables~1~to~4]{Frangioni:2006}. Since relaxation has been found to perform well on flow scheduling networks in the full problem (see \cref{fig:inc-same:relax-my,fig:inc-same:relax-iv}), there are reasons to be optimistic about its performance as an incremental solver
 
 The literature does not contain any benchmarks for reoptimisation using successive shortest path. However, since it belongs to the same class of algorithms as relaxation, it is likely to enjoy a similar relative speedup. Its performance is likely to be more robust across different problem types than relaxation, but will not reach the peak performance achieved by relaxation.
 
@@ -1228,10 +1228,6 @@ Other extensions were implemented to assist performance evaluation. Firmament in
 The only cost model supported by the simulator was Octopus, a simplistic policy which seeks to balance load between the machines. This produces flow networks much simpler than generated by most cost models, making the performance results overly optimistic. To provide a more realistic basis for comparison, I implemented the Quincy cost model, described in \cref{sec:prep-flow-scheduling}. This required building entirely new simulated components, such as a distributed filesystem, described further in \cref{sec:eval-benchmark-strategy}.
 
 Various other minor extensions were made. For example, a statistics module was implemented to record scheduling latency and properties of the cluster, such as the number of running tasks. Moreover, many new configuration options were added: for example, an option to specify the number of machines in the simulated cluster.
-
-In addition to the extensions described above, significant development time was spent on fixing bugs in Firmament, which is still in alpha testing.\todo{Worth including? I'd kinda like to get credit for the time spent on this, but it's hard to make it sound impressive.}
-
-%As Firmament is still in alpha testing, a number of bugs were uncovered during integration testing with my project. In addition to the extensions described above, significant development time was spent fixing these bugs.
 
 % Not mentioned:
 %  - New termination conditions: number of events, number of rounds
