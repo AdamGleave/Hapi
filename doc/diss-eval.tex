@@ -55,7 +55,14 @@ Each flow algorithm was tested by comparing the solutions to those produced by a
 In practice, the algorithms developed in this project would be used as part of a larger cluster scheduling system. To demonstrate this capability, the solvers implemented in this project were integrated into the Firmament system. \Cref{fig:firmament-ui} shows the system in action, on a cluster of 14 machines.
 
 \begin{figure}
-    TBC
+    \begin{subfigure}{\textwidth}
+        \includegraphics[width=\textwidth]{screenshots/Firmament_overview}
+        \caption{An overview from the web user interface for Firmament.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \includegraphics[width=\textwidth]{screenshots/Firmament_flow_graph}
+        \caption{An extract of a flow graph, showing the scheduling of a small number of tasks (left hand side). Arcs are {\color{red} red} if they carry flow, {\color{gray} grey} otherwise.}
+    \end{subfigure}
     \caption{Firmament scheduling tasks using this project's solver}
     \label{fig:firmament-ui}
 \end{figure}
