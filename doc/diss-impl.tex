@@ -1241,4 +1241,8 @@ In addition to the extensions described above, significant development time was 
 
 \section{Summary}
 
-TBC: Summarize chapter
+This chapter began by summarising several standard flow algorithms which were implemented in this project. Next, I turned my attention to how these algorithms may be extended to improve performance on the flow scheduling problem. In \cref{sec:impl-approx}, I described how I modified the cost scaling algorithm to build an approximate solver, allowing accuracy to be traded off for speed. I developed an incremental method of solution, described in \cref{sec:impl-incremental}, based upon augmenting path and the relaxation algorithm. As far as I am aware, both implementations are the first of their kind.
+
+When describing the standard algorithms, particular emphasis was placed on their performance characteristics and theoretical properties. I made reference to this analysis in \cref{sec:impl-approx,sec:impl-incremental} when justifying the choice of algorithms used in the approximate and incremental solver.
+
+The chapter concluded with a summary of the extensions I made to the Firmament flow scheduling system, including adding support for the Quincy cost model. In the next chapter, I demonstrate the considerable speedup that results from using the solvers developed in this project.

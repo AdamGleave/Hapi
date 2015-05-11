@@ -665,10 +665,6 @@ The Firmament flow scheduling system is used for testing this project. The only 
 
 The Git distributed revision control system was used to manage the project source code, along with the {\LaTeX} code for this dissertation. Each Git working directory is a clone of the repository, complete with versioning history. The benchmark suite makes extensive use of this distributed nature of Git (see \cref{appendix:impl-benchmark-harness}).
 
-% Backups
-% Git: push to GitHub, SRG cluster
-% Bundles and notes: UCS, Copy, external hard disk?
-
 To simplify testing, commits were automatically pushed to test machines in the SRG cluster, via a Git hook. Furthermore, changes were regularly pushed to GitHub --- a repository hosting service --- to aid collaboration with my supervisors. 
 
 Given the distributed nature of Git, having multiple working copies as described above automatically provides data replication. However, it would be possible for all copies of the repository to become corrupted due to user error, so this cannot be relied upon as a backup strategy. Moreover, some files were not stored in Git\footnotemark.
@@ -680,10 +676,8 @@ Copies of the resulting snapshots were stored on the university MCS and the Stud
 
 \todo{Diagram illustrating architecture}
 
-%\subsection{Development machines}
-%
-%Laptop, SRG cluster. Unclear if this is even necessary?
-
 \section{Summary}
 
-TBC: Summarize chapter
+In this chapter, I have outlined the work undertaken prior to starting implementation for this project. I summarised the current state of the art cluster schedulers in \cref{sec:prep-scheduling}, and showed how flow scheduling can improve upon it. Next, I provided some elementary background on flow networks, and outlined how scheduling can be expressed in terms of a flow problem.
+
+After having surveyed the research area, I turned to more practical considerations. I started by conducting a requirements analysis, identifying an appropriate software development life cycle taking into account the risk profile of the requirements. Next, I developed a concrete plan of implementation using the aforementioned techniques. Finally, I identified the tools I would use during implementation. In the next chapter, I describe the algorithms developed in this project.
