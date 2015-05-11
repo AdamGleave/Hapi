@@ -301,13 +301,13 @@ TBC: Back of cover sheet
 \vspace*{-2em}
 {
 	\begin{tabular}{ll}
-		Name:			& \textbf{Adam Gleave}					\\
-		College:		& \textbf{St John's College}\\
-    Project Title:	& \textbf{Cluster scheduling using flow networks}\\
-		Examination:	& \textbf{Computer Science Tripos, Part II (June 2015)}\\
-    Word Count:		& \textbf{\input{diss-auto-wordcount} \unskip}\\
+		Name:			        & \textbf{Adam Gleave}					\\
+		College:		        & \textbf{St John's College}\\
+        Project Title:	        & \textbf{Cluster scheduling using flow networks}\\
+		Examination:	        & \textbf{Computer Science Tripos, Part II (June 2015)}\\
+        Word Count:		        & \textbf{\input{diss-auto-wordcount} \unskip}\\
 		Project Originators:	& \textbf{Ionel Gog}\\
-    Supervisors:	& \textbf{Ionel Gog \& Malte Schwarzkopf}\\
+        Supervisors:	        & \textbf{Ionel Gog \& Malte Schwarzkopf}\\
 	\end{tabular}
 }
 
@@ -316,17 +316,17 @@ TBC: Back of cover sheet
 \vspace*{-1em}
 \section*{Original aims of the project}
 
-TBC
+Recent research into cluster scheduling --- assigning tasks to machines --- has suggested that scheduling can fruitfully be expressed in terms of an optimisation problem over flow networks. The <TBC:PNAME> project seeks to develop high-performance algorithms to solve these problems, enabling so-called flow scheduling systems to scale to the largest clusters built today. Implementation and performance analysis of an approximation algorithm forms the core success criteria for <TBC:PNAME>. Extensions include development of an incremental solver, which would reuse previous optimal solutions to exploit similarities between successive flow networks.
 
 \vspace*{-1em}
 \section*{Work completed}
 
-TBC
+<TBC:PNAME> was highly successful, achieving a 14.5x speedup over state of the art implementations and sub-second scheduling latency on a 12,000 machine cluster. I surpassed the success criteria by developing both an approximate and incremental solver. As far as I am aware, both implementations are the first of their kind. The performance of these solvers was thoroughly evaluated under the Firmament flow scheduling system, including simulation of a cluster based on pubicly available trace data. In addition, approximation yielded a speedup of between 2-10x on networks arising in other applications, suggesting its use beyond flow scheduling.
 
 \vspace*{-1em}
 \section*{Special difficulties}
 
-TBC
+None.
 
 \newpage
 
@@ -355,7 +355,7 @@ any substantial extent for a comparable purpose.
 \newpage
 \section*{Acknowledgements}
 
-TODO
+I would like to thank my supervisors, Ionel Gog and Malte Schwarzkopf, for their invaluable advice and encouragement throughout the project.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapters
@@ -382,6 +382,7 @@ TODO
 
 \cleardoublepage
 
+% TODO: Edit bibliography file to make sure names, etc. consistent.
 % Bib and Appendices etc
 \printbibliography[heading=bibintoc,category=cited]
 
