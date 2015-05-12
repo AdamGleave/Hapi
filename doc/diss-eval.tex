@@ -413,19 +413,19 @@ The method of approximation I developed in this project can be applied to any fl
     \centering
      % Increase space between columns slightly. N.B. Only applies to this table.
     \setlength{\tabcolsep}{1.5em}
-    \begin{tabular}{p{0.25\textwidth}p{0.75\textwidth}}
+    \begin{tabular}{p{0.24\textwidth}p{0.6\textwidth}}
         \textbf{Dataset} & \textbf{Description} \tabularnewline
-        NETGEN-8 & Sparse networks, with an average outdegree of $8$. Arc capacities and costs are selected uniformly at random from $\left[1,1000\right]$ and $\left[1,10000\right]$ respectively. Number of supply and demand vertices is set to $\sqrt{n}$, with an average supply of 1000 per vertex. \tabularnewline
+        NETGEN-8 & Sparse networks, with an average outdegree of $8$. Arc capacities and costs are selected uniformly at random from $\left[1,1000\right]$ and $\left[1,10000\right]$ respectively. Number of supply and demand vertices is set to $\sqrt{n}$, with an average supply of 1,000 per vertex. \tabularnewline
         NETGEN-SR & Dense networks, with an average outdegree of $\sqrt{n}$. Other parameters are the same as NETGEN-8. \tabularnewline
-        NETGEN-LO-8 and NETGEN-LO-SR & Like NETGEN-8 and NETGEN-LO-SR, except the average supply per vertex is 10 instead of 1000. The arc capacities therefore provide only ``loose'' bounds for the feasible solutions. \tabularnewline
-        GOTO-8 & Sparse networks, with an average outdegree of $8$. Maximum arc capacity is 1000, maximum arc cost is 10,000. \tabularnewline
+        NETGEN-LO-8 and NETGEN-LO-SR & Like NETGEN-8 and NETGEN-LO-SR, except the average supply per vertex is 10 instead of 1,000. The arc capacities therefore provide only ``loose'' bounds for the feasible solutions. \tabularnewline
+        GOTO-8 & Sparse networks, with an average outdegree of $8$. Maximum arc capacity of 1,000, and cost of 10,000. \tabularnewline
         GOTO-SR & Dense networks, with an average outdegree of $\sqrt{n}$. Other parameters are the same as GOTO-8. \tabularnewline
     \end{tabular}
-    \caption{Datasets used for benchmarking the approximation algorithm}
+    \caption[Datasets used for benchmarking the approximation algorithm.]{Datasets used for benchmarking the approximation algorithm. These parameter choices for NETGEN and GOTO are due to Kir{\'{a}}ly and Kov{\'{a}}cs~\cite{KiralyKovacs:2012}.}
     \label{table:general-datasets}
 \end{table}
 
-Each generator takes input parameters controlling the structure of the generated network. I use the same set of parameters used in the benchmark from Kir{\'{a}}ly and Kov{\'{a}}cs~\cite{KiralyKovacs:2012}, summarised in \cref{table:general-datasets}. A 1000 networks were generated of each instance by varying the random seed, with 250 of these networks used for training and the remaining 750 for test data.
+\Cref{table:general-datasets} summarises the datasets used in this test. A 1000 networks were generated of each type, by varying the random seed. 250 of these networks were used for training, with the remaining 750 being test data.
 
 \begin{figure}
     \begin{widepage}
