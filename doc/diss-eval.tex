@@ -43,6 +43,7 @@ Unit tests were developed for each component. In accordance with the spiral mode
 
 \subsection{Unit tests} \label{sec:eval-testing-unit}
 
+%WORDCOUNT: Don't really need subsections here
 Each flow algorithm was tested by comparing the solutions to those produced by a reference implementation. Standard unit test frameworks are not designed to work with the large, external datasets such as flow networks. Consequently, I developed my own test harness in Python to automate verification of flow algorithms. Tests of smaller components, such as data structures, were written using the GTest framework (see \cref{sec:prep-tools-libraries}).
 
 \subsection{Integration tests} \label{sec:eval-test-integration}
@@ -81,7 +82,7 @@ Although there is sufficient information to reconstruct the topology of the flow
 
 The Octopus model implements a simple load balancing policy. Tasks and machines are assumed to be homogeneous. The cost of arcs into a machine are proportional to the load on that machine, resulting in tasks being preferentially scheduled on idle machines. 
 
-This policy is too simplistic to be used in production. However, it serves as a useful baseline for comparison. Producing flow networks that are easy to solve compared to more realistic cost models, it provides an upper bound on the real-world scheduling latency that can be achieved.
+This policy is too simplistic to be used in production. However, it serves as a useful baseline for comparison. Producing flow networks that are easy to solve compared to more realistic cost models, it provides a lower bound on the real-world scheduling latency that can be achieved.
 
 \subsection{Quincy cost model} \label{sec:eval-benchmark-strategy-quincy}
 
@@ -582,18 +583,19 @@ Cost convergence also provides a robust speedup on the ``loose`` NETGEN instance
 
 \section{Incremental algorithm} \label{sec:eval-incremental}
 
-Incremental solution methods (see \cref{sec:impl-incremental}) operate on sequences of related flow networks. Their performance is evaluated in this section by measuring the \emph{scheduling latency} on the Google cluster trace (see \cref{sec:eval-benchmark-strategy}) under the Quincy cost model. The simulator performs multiple \emph{scheduling rounds}. When an event (such as task submission) is received during an ongoing scheduling round, the event is added to a queue. A new scheduling round is started as soon as the old round completes, with the pending events. If the queue is empty, the simulator waits until a new event is received before starting a scheduling round. The scheduling latency for round $n$ is defined to be the \emph{longest} time any event has spent waiting in the queue while scheduling round $n-1$ runs, plus the runtime of the flow algorithm on scheduling round $n$. This represents the performance that would be observed by users in a real application.
-% TODO: Specify the cost model? Should you run tests on both Quincy and Octopus?
+Incremental solution methods (see \cref{sec:impl-incremental}) operate on sequences of related flow networks. Their performance is evaluated in this section by measuring the \emph{scheduling latency} on the Google cluster trace (see \cref{sec:eval-benchmark-strategy}) under the Quincy cost model. 
+
+The simulator performs multiple \emph{scheduling rounds}. When an event (such as task submission) is received during an ongoing scheduling round, the event is added to a queue. A new scheduling round, containing all pending events, is started as soon as the old round completes. If the queue is empty, the simulator waits until a new event is received before starting a scheduling round. The scheduling latency for round $n$ is defined to be the \emph{longest} time any event spent waiting in the queue during scheduling round $n-1$, plus the runtime of the flow algorithm on scheduling round $n$. This represents the performance that would be observed by users in a real application.
 % TODO: Maybe you should evaluate the fixed interval one as well? Could put it in the appendix.
 
 %FIGURE: Illustrate timeline of events
 
-This approach is necessary since, unlike `full' algorithms, the runtime of incremental algorithms depends on the number of changes in the previous scheduling round. Decreasing the runtime of an incremental algorithm will therefore tend to produce an even greater decrease in the scheduling latency, since the number of pending events in the queue will tend to be small. Conversely, small increases in the runtime of incremental solvers will also be amplified when measuring scheduling latency. 
+This approach is necessary since, unlike from scratch algorithms, the runtime of incremental algorithms depends on the number of changes in the previous scheduling round. Decreasing the runtime of an incremental algorithm will therefore tend to produce an even greater decrease in the scheduling latency, since the number of pending events in the queue will tend to be small. Conversely, small increases in the runtime of incremental solvers will also be amplified when measuring scheduling latency. 
 
-This feedback effect is \emph{not} observed in `full` solvers. Consequently, evaluation earlier in the chapter has used a simpler approach: scheduling rounds were started at fixed time intervals, and raw runtime rather than scheduling latency was reported. Although that method may underestimate the true scheduling latency slightly\footnotemark, it does so equally for all \emph{full} solvers, and has the benefit that the experiments are much less computationally intensive.
+This feedback effect is \emph{not} observed in from scratch solvers. Consequently, evaluation earlier in the chapter has used a simpler approach: scheduling rounds were started at fixed time intervals, and raw runtime rather than scheduling latency was reported. Although that method may underestimate the true scheduling latency slightly\footnotemark, it does so equally for all from scratch solvers, and has the benefit that the experiments are much less computationally intensive.
 \footnotetext{The scheduling latency is very often identical to algorithm runtime, although in the worst case the scheduling latency could be twice as great as the runtime.}
 
-The next section compares the performance of the successive shortest path (see \cref{sec:impl-ssp}) and relaxation (\cref{sec:impl-relax}) algorithms operating incrementally and as a full solver. This overstates the true performance gains somewhat, however, as cost scaling (see \cref{sec:impl-cost-scaling}) outperforms both algorithms on the full problem. The second section therefore compares my implementation of cost scaling to the incremental algorithms. Finally, I compare the performance of my incremental solution methods with those of highly optimised reference implementations of traditional full solvers.
+The next section compares the performance of the successive shortest path (see \cref{sec:impl-ssp}) and relaxation (\cref{sec:impl-relax}) algorithms operating incrementally and as a from scratch solver. This overstates the true performance gains somewhat, however, as cost scaling (see \cref{sec:impl-cost-scaling}) outperforms both algorithms when operating from scratch. The second section therefore compares my implementation of cost scaling to the incremental algorithms. Finally, I compare the performance of my incremental solution methods with those of highly optimised reference implementations of from scratch solvers.
 
 \subsection{Relative performance}
 
@@ -622,7 +624,7 @@ The next section compares the performance of the successive shortest path (see \
     \label{fig:inc-same}
 \end{figure}
 
-\Cref{fig:inc-same} shows a dramatic speedup from using the augmenting path class of algorithms (successive shortest path and relaxation) in an incremental mode of operation. For successive shortest path, scheduling takes just over \SI{50}{\milli\second} in the incremental case, compared to a best case of just under \SI{2}{\second} in the full case: an improvement of $40\times$. The difference is even more pronounced when considering the \emph{mean} scheduling latency, which is \SI{3.38}{\second} in the full case but a mere \SI{6.95}{\milli\second} for the incremental solver: a speedup of over $450\times$. Similar results hold for both versions of relaxation.\todo{Write more once you have results from your new version of relax.}
+\Cref{fig:inc-same} shows a dramatic speedup from using the augmenting path class of algorithms (successive shortest path and relaxation) in an incremental mode of operation. For successive shortest path, scheduling takes just over \SI{50}{\milli\second} in the incremental case, compared to a best case of just under \SI{2}{\second} in the from scratch case: an improvement of $40\times$. The difference is even more pronounced when considering the \emph{mean} scheduling latency, which is \SI{3.38}{\second} in the from scratch case but a mere \SI{6.95}{\milli\second} for the incremental solver: a speedup of over $450\times$. Similar results hold for both versions of relaxation.\todo{Write more once you have results from your new version of relax.}
 
 % SOMEDAY: Could mention performance on other sized datasets?
 
@@ -644,11 +646,11 @@ The next section compares the performance of the successive shortest path (see \
     \label{fig:inc-head-to-head-my}
 \end{figure}
 
-The previous section showed that the incremental mode of operation considerably reduces the work performed by augmenting path algorithms. However, augmenting path algorithms are very slow on the full problem\footnotemark: is the speedup of incremental operation enough to overcome this?
+The previous section showed that the incremental mode of operation considerably reduces the work performed by augmenting path algorithms. However, augmenting path algorithms are very slow on the from scratch problem\footnotemark: is the speedup of incremental operation enough to overcome this?
 \footnotetext{Relaxation is extremely fast on some networks, but unfortunately not flow scheduling networks.}
 
 %XXX: Update based on new results from relax.
-Cost scaling is the fastest full algorithm on flow scheduling networks. \Cref{fig:inc-head-to-head-my} pits my incremental algorithm against my implementation of cost scaling. The incremental algorithm considerably outperforms cost scaling, with a speedup of $18\times$ on the full (12,000 machine) Google cluster. Note this is, however, significantly less than the $450\times$ speedup observed in the previous section. This is to be expected, as cost scaling is considerably faster on the full problem.
+Cost scaling is the fastest from scratch algorithm on flow scheduling networks. \Cref{fig:inc-head-to-head-my} pits my incremental algorithm against my implementation of cost scaling. The incremental algorithm considerably outperforms cost scaling, with a speedup of $18\times$ on the full (12,000 machine) Google cluster. Note this is, however, significantly less than the $450\times$ speedup observed in the previous section. This is to be expected, as cost scaling is considerably faster on the from scratch problem.
 
 \subsection{Comparative evaluation}
 
@@ -671,9 +673,9 @@ Cost scaling is the fastest full algorithm on flow scheduling networks. \Cref{fi
 
 Researchers have spent considerable time developing optimised implementations of flow algorithms. Since the focus of this project is on developing improved algorithmic techniques, I have spent little time optimising my implementations. Although I have attempted to ensure that all implementations in this project are optimised to an equal degree, there is a risk that the results in the previous section do not generalise to state-of-the-art reference implementations. 
 
-To investigate this, I extended the reference implementation of the relaxation algorithm, RelaxIV~\cite{RelaxIV:2011}, to support operating incrementally (see \cref{sec:impl-incremental-impl}). For the full solver, I selected Goldberg's heavily optimised implementation of his cost scaling algorithm, CS2~\cite{CS2:2009}. This has been found to be one of the fastest flow solvers in independent benchmarks~\cite{KiralyKovacs:2012}, corroborated by my own benchmarks. The developers of the Quincy system also opted to use CS2~\cite{Isard:2009}, although my choice was made independently of this.
+To investigate this, I extended the reference implementation of the relaxation algorithm, RelaxIV~\cite{RelaxIV:2011}, to support operating incrementally (see \cref{sec:impl-incremental-impl}). For the from scratch solver, I selected Goldberg's heavily optimised implementation of his cost scaling algorithm, CS2~\cite{CS2:2009}. This has been found to be one of the fastest flow solvers in independent benchmarks~\cite{KiralyKovacs:2012}, corroborated by my own benchmarks. The developers of the Quincy system also opted to use CS2~\cite{Isard:2009}, although my choice was made independently of this.
 
-%\Cref{fig:inc-head-to-head-optimised} shows the incremental solver significantly outperforms the full solver, with a $14.5\times$ speedup. Note that although the absolute performance differs considerably between these solvers and the implementations in the previous section, the relative performance is similar: the corresponding speedup was $19\times$ in the previous section. This is to be expected: implementation optimisations do not change the asymptotic complexity of the algorithm, only its constant factors. However, it is encouraging this is confirmed empirically, and it provides support for the use of relative performance figures elsewhere in this evaluation.
+%\Cref{fig:inc-head-to-head-optimised} shows the incremental solver significantly outperforms the from scratch solver, with a $14.5\times$ speedup. Note that although the absolute performance differs considerably between these solvers and the implementations in the previous section, the relative performance is similar: the corresponding speedup was $19\times$ in the previous section. This is to be expected: implementation optimisations do not change the asymptotic complexity of the algorithm, only its constant factors. However, it is encouraging this is confirmed empirically, and it provides support for the use of relative performance figures elsewhere in this evaluation.
 %
 %The order of magnitude performance gain shown in \cref{fig:inc-head-to-head-optimised} has considerable practical implications for flow schedulers. With a mean scheduling latency of \SI{197}{\milli\second} for the incremental solver, most tasks will be scheduled without any perceptible delay, even on extremely large clusters such as those operated by Google. The distribution for scheduling latency is observed to have a long tail: the next section will Sub-second scheduling is a key target
 
@@ -683,7 +685,7 @@ To investigate this, I extended the reference implementation of the relaxation a
     \label{fig:inc-head-to-head-optimised-inconly}
 \end{figure}
 
-\Cref{fig:inc-head-to-head-optimised} shows the incremental solver significantly outperforms the full solver. The incremental solver is faster than the full solver at every percentile: note that the incremental solver is always to the left of the full solver. There is a $14.5\times$ mean speedup on the full (12,000 machine) Google cluster, similar to the $19\times$ speedup observed with the unoptimised implementations\footnotemark. With a mean scheduling latency of \SI{197}{\milli\second} for the incremental solver, most tasks will be scheduled without any perceptible delay. Moreover, \cref{fig:inc-head-to-head-optimised-inconly} shows the incremental solver achieves sub-second scheduling latency in $97.4\%$ of cases.
+\Cref{fig:inc-head-to-head-optimised} shows the incremental solver significantly outperforms the from scratch solver. The incremental solver is faster than the from scratch solver at every percentile: note that the incremental solver is always to the left of the from scratch solver. There is a $14.5\times$ mean speedup on the full (12,000 machine) Google cluster, similar to the $19\times$ speedup observed with the unoptimised implementations\footnotemark. With a mean scheduling latency of \SI{197}{\milli\second} for the incremental solver, most tasks will be scheduled without any perceptible delay. Moreover, \cref{fig:inc-head-to-head-optimised-inconly} shows the incremental solver achieves sub-second scheduling latency in $97.4\%$ of cases.
 \footnotetext{This is to be expected: implementation optimisations do not change the asymptotic complexity of the algorithm, only its constant factors. However, it is encouraging this is confirmed empirically, and it provides support for the use of relative performance figures elsewhere in this evaluation.} 
 
 %Both distributions are long tailed, reflecting the added workload when there are large numbers of changes %WONTFIX: Add reference to next section when written. Adding preemption support will change this slightly, probably removing the long tail of CS2 but shifting it to the right. If you don't add preemption support, might want to explain why workload varies for standard solver}.
