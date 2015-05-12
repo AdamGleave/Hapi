@@ -79,7 +79,7 @@ The most modern class of minimum-cost flow algorithms, cost scaling, was first p
 
 The algorithm by Goldberg and Tarjan offers some of the best theoretical and practical performance. Moreover, Goldberg \textit{et al.}\ spent considerable time in the late 1990s developing efficient implementations of this algorithm, including devising heuristics to guide the solver~\cite{Goldberg:1997,Bunnagel:1998}.
 
-Work has continued up until the present day. In 2008, Goldberg published an improved version of his push-relabel algorithm for the maximum flow problem~\cite{Goldberg:2008}. Kiraly and Kovacs demonstrated in 2012 that this approach can also be incorporated into the minimum-cost flow algorithm, with similar performance gains~\cite{KiralyKovacs:2012}.
+Work has continued up until the present day. In 2008, Goldberg published an improved version of his push-relabel algorithm for the maximum flow problem~\cite{Goldberg:2008}. Kir{\'{a}}ly and Kov{\'{a}}cs demonstrated in 2012 that this approach can also be incorporated into the minimum-cost flow algorithm, with similar performance gains~\cite{KiralyKovacs:2012}.
 
 \subsection{Comparative evaluation}
 
@@ -89,6 +89,6 @@ The goal of my project is to develop a solution method that outperforms state-of
 
 Asymptotic complexity can be a useful basis for evaluation, but is sometimes misleading. Flow algorithms usually considerably outperform their worst-case time complexity. The relaxation algorithm described in \cref{sec:intro-related-work-ssp} is perhaps the most extreme example of this: in the worst case it is exponential, but in practice it outperforms many strongly polynomial algorithms.
 
-Consequently, comparison of flow algorithms is most often done by empirical benchmarks. The most up to date study in this area is due to Kiraly and Kovacs, who tested all the algorithms described above on a variety of different classes of flow networks~\cite{KiralyKovacs:2012,Kovacs:2015}.
+Consequently, comparison of flow algorithms is most often done by empirical benchmarks. The most up to date study in this area is due to Kir{\'{a}}ly and Kov{\'{a}}cs, who tested all the algorithms described above on a variety of different classes of flow networks~\cite{KiralyKovacs:2012,Kovacs:2015}.
 
 In addition, many implementations of these algorithms are available. These include CS2 for the cost-scaling algorithm~\cite{CS2:2009}, RelaxIV for the relaxation algorithm~\cite{RelaxIV:2011} and the LEMON optimisation library which provides most of the algorithms described above~\cite{LEMON:2011,LEMON:Software}. I draw on these implementations during my evaluation to compare my solver against the state of the art.

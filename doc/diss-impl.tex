@@ -621,11 +621,11 @@ The overall time complexity can now be proved using the above results and the bo
 
 % SOMEDAY: If you run a benchmark of reference implementations, cite it here.
 The cost scaling method is due to Goldberg and Tarjan~\cite{Goldberg:1987}. The generic version runs in weakly polynomial time, with variants offering strongly polynomial bounds. It is one of the most efficient solution methods, in both theory and practice\footnotemark. Cost scaling works by successive approximation, so is readily adapted to create an approximate solver (see \cref{sec:impl-approx}). It is not suitable to being used incrementally, however.
-\footnotetext{In computational benchmarks such as~\cite{KiralyKovacs:2012}, cost scaling is the fastest algorithm for many classes of network. It is occasionally beaten by other algorithms, however its performance is still competitive in these cases. This makes it more robust than some alternative solution methods, such as relaxation (see \cref{sec:impl-relax}), which sometimes outperform it but are in other cases orders of magnitude slower.}
+\footnotetext{In computational benchmarks such as the one by Kir{\'{a}}ly and Kov{\'{a}}cs~\cite{KiralyKovacs:2012}, cost scaling is the fastest algorithm for many classes of network. It is occasionally beaten by other algorithms, although its performance is still competitive in these cases. This makes it more robust than some alternative solution methods, such as relaxation (see \cref{sec:impl-relax}), which sometimes outperform it, but are in other cases orders of magnitude slower.}
 
-A feasible flow is maintained by the algorithm. The flow need not be optimal, but the error is bounded using the notion of $\epsilon$-optimality. Each iteration of the algorithm refines the solution, halving the error bound, until optimality is achieved. 
+A feasible flow is maintained by the algorithm. The flow need not be optimal, but the error is bounded using the notion of $\epsilon$-optimality. Each iteration of the algorithm refines the solution, halving the error bound, until optimality is achieved.
 
-The next section formally defines the notion of $\epsilon$-optimality. Following this, the general solution method is described. Afterwards, specific variants of the algorithm are considered. Finally, techniques to improve the practical performance of implementations are considered.
+The next section formally defines $\epsilon$-optimality. Following this, the general solution method is described. Afterwards, specific variants of the algorithm are considered. Finally, techniques to improve the practical performance of implementations are considered.
 
 \subsection{\texorpdfstring{$\epsilon$}{epsilon}-optimality}
 
@@ -651,12 +651,10 @@ Let $C$ be a simple cycle in $G_\mathbf{x}$. $C$ has at most $n$ arcs. By \cref{
 The condition $\epsilon < 1/n$ implies $n\epsilon > -1$. By \cref{assumption:integrality}, cost of $C$ must then be $\geq 0$. The result follows from the negative cycle optimality conditions given in \cref{thm:optimality-neg-cycle}.
 \end{proof}
 
-\subsection{Generic algorithm}
+\subsection{High-level description of the algorithm}
 
 % Active vertex = excess
 % Admissible arc = negative reduced cost
-
-\subsubsection{Description}
 
 % Difference in presentation: they consider undirected arcs, specify data structure.
 % I'd like to keep presentation the same as in rest of chapter, not have to deal with
@@ -674,7 +672,7 @@ The condition $\epsilon < 1/n$ implies $n\epsilon > -1$. By \cref{assumption:int
     \label{algo:cost-scaling:init-end}
     \While{$\epsilon \geq 1/n$} \Comment{loop until $\mathbf{x}$ is optimal}
     \label{algo:cost-scaling:start-loop}
-        \Let{$\epsilon$}{$\epsilon/2$} \label{algo:cost-scaling:update-epsilon}
+        \Let{$\epsilon$}{$\epsilon/\alpha$} \Comment{$\alpha$ is a constant \emph{scaling factor}, commonly set to 2}\label{algo:cost-scaling:update-epsilon}
         \State \Call{Refine}{$\mathbf{x}$,$\boldsymbol{\pi}$,$\epsilon$}
     \EndWhile \label{algo:cost-scaling:end-loop}
 \end{algorithmic}
@@ -708,10 +706,10 @@ The procedure described in \cref{algo:cost-scaling} is inspired by \cref{thm:eps
 
 This routine is described in \cref{algo:cost-scaling-generic-refine}. \Crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} ensures the reduced cost optimality conditions given in \cref{eq:optimality-reduced-cost} are satisfied. The resulting pseudoflow is $0$-optimal, but will in general not be feasible. \Crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} bring the flow back to feasibility by applying sequences of basic operations --- \textproc{Push} and \textproc{Relabel} --- both of which preserve $\epsilon$-optimality.
 
-One might wonder why $\epsilon$ is not immediately set to a value $< 1/n$ during \crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop}. Only one iteration of \textproc{Refine} would then be needed. This approach is taken in an algorithm due to Bertsekas~\cite{Bertsekas:1985}, however it results in exponential time complexity. In general, the greater the rate $\epsilon$ is decreased at, then fewer iterations of \textproc{Refine} are needed. But each iteration will take longer to run\footnotemark.
-\footnotetext{Halving $\epsilon$ tends to work well, but the optimal rate varies for different classes of flow networks.}
+One might wonder why $\epsilon$ is not immediately set to a value $< 1/n$ in \crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop}: only one iteration of \textproc{Refine} would then be needed. This approach is taken in an algorithm due to Bertsekas~\cite{Bertsekas:1985}, but it results in exponential time complexity. In general, there is a trade-off when choosing the scaling factor $\alpha$ (which controls the rate at which $\epsilon$ is decreased). Increasing $\alpha$ decreases the number of calls needed to \textproc{Refine}, but increases the time each call takes\footnotemark.
+\footnotetext{This trade-off is discussed further in \cref{sec:eval-optimisations-cs-scaling-factor}.}
 
-\Crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} of \textproc{Refine} are non-deterministic: there may be multiple excess vertices $s$, and multiple arcs $(s,j) \in E_\mathbf{x}$ satisfying the conditions given. The correct final solution is obtained whatever choices are made, as shown in the next section. Moreover, some complexity bounds can be proved for this generic version of the algorithm. However, both the theoretical and practical performance of the algorithm may be improved by rules for selecting operations, discussed further in \cref{sec:impl-cost-scaling-implementations}.
+\Crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} of \textproc{Refine} are non-deterministic: there may be multiple excess vertices $s$, and multiple arcs $(s,j) \in E_\mathbf{x}$ satisfying the conditions given. The correct final solution is obtained whatever choices are made, as shown in the next section. Moreover, some complexity bounds can be proved for this generic version of the algorithm. However, both the theoretical and practical performance of the algorithm may be improved by rules for selecting operations (see \cref{sec:impl-cost-scaling-implementations}).
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -740,10 +738,10 @@ The basic operations \textproc{Push} and \textproc{Relabel} are described in \cr
 \textproc{Push} and \textproc{Relabel} will be shown to preserve $\epsilon$-optimality. Correctness of \textproc{Refine} can then be proved using these results, with correctness of the cost scaling algorithm following as a corollary.\\
 
 \begin{lemma}[Correctness of \textproc{Push}] \label{lemma:cost-scaling-push-correctness}
-Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ be $\epsilon$-optimal, and the precondition for $\textproc{PUSH}(i,j)$ hold: $e_i > 0$, $(i,j) \in E_{\mathbf{x}}$ and $c^{\boldsymbol{\pi}}_{ij} < 0$. Then $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continues to be $\epsilon$-optimal after $\textproc{PUSH}$.
+Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ be $\epsilon$-optimal, and the precondition for $\textproc{Push}(i,j)$ hold: $e_i > 0$, $(i,j) \in E_{\mathbf{x}}$ and $c^{\boldsymbol{\pi}}_{ij} < 0$. Then $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continues to be $\epsilon$-optimal after $\textproc{Push}$.
 \end{lemma}
 \begin{proof}
-$\textproc{PUSH}(i,j)$ increases the flow on arc $(i,j)$. By assumption, $(i,j)$ satisfied $\epsilon$-optimality prior to \textproc{PUSH}. $(i,j)$ may drop out of the residual network after increasing the flow, but this cannot violate optimality. If $(i,j)$ remains in the residual network, $(i,j)$ continues to satisfy $\epsilon$-optimality, since the reduced cost is unchanged.
+$\textproc{Push}(i,j)$ increases the flow on arc $(i,j)$. By assumption, $(i,j)$ satisfied $\epsilon$-optimality prior to \textproc{Push}. $(i,j)$ may drop out of the residual network after increasing the flow, but this cannot violate optimality. If $(i,j)$ remains in the residual network, $(i,j)$ continues to satisfy $\epsilon$-optimality, since the reduced cost is unchanged.
 
 However, sending flow along $(i,j)$ could add arc $(j,i)$ to the residual network. By the precondition $c^{\boldsymbol{\pi}}_{ij} < 0$, it follows $c^{\boldsymbol{\pi}}_{ji} > 0 \geq -\epsilon$. Thus $(j,i)$ satisfies $\epsilon$-optimality.
 
@@ -795,7 +793,7 @@ The basic operations given in \cref{algo:cost-scaling-operations} have the follo
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-Trivial.
+Immediate from inspection of \cref{algo:cost-scaling-operations}.
 \end{proof}
 
 \begin{defn}
@@ -837,9 +835,9 @@ Let $R(n,m)$ be the running time of the \textproc{Refine} routine. Then the mini
 The algorithm terminates once $\epsilon < 1/n$, which takes place after $\log_2\left(\frac{C}{1/n}\right) = \log_2 (nC)$ iterations of \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}. The loop condition on \cref{algo:cost-scaling:start-loop} and the assignment on \cref{algo:cost-scaling:update-epsilon} are both $O(1)$, so the dominant cost of each iteration is the execution of \textproc{Refine}. \Crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop} thus contribute a cost of $O\left(R(n,m)\lg(nC)\right)$. This dominates the initialisation on \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}, and thus is the overall cost of the algorithm.
 \end{proof}
 
-\subsection{Algorithm implementations} \label{sec:impl-cost-scaling-implementations}
+\subsection{Implementations of the algorithm} \label{sec:impl-cost-scaling-implementations}
 
-The previous section described the generic version of the algorithm.  \Crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} of \textproc{Refine} (see \cref{algo:cost-scaling-generic-refine}) are non-deterministic, in the sense that the order in which basic operations is applied is not defined. Actual implementations of \textproc{Refine} must specify a rule to choose the order. This rule affects the performance of the algorithm, both in theory and in practice. Two versions are implemented in this project, \textit{FIFO} and \textit{wave}, both described by Goldberg~\cite{Goldberg:1990}.
+The preceding section presented a generic version of the \textproc{Refine} routine, \cref{algo:cost-scaling-generic-refine}. The order in which the basic operations are to be applied is intentionally left unspecified in \crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} of the algorithm. Both the practical and theoretical performance of cost scaling is affected by this order. I implemented two variants, \textit{FIFO} and \textit{wave}, which differ in the rule used to select basic operations. Both versions were first proposed by Goldberg~\cite{Goldberg:1990}.
 
 \subsubsection{FIFO refine}
 
@@ -905,7 +903,7 @@ See \cite[theorem~6.2]{Goldberg:1990}.
 \end{proof}
 
 \begin{remark}
-In fact, this complexity bound holds for any refine routine which repeatedly applies \textproc{PushOrRelabel}. However, it has been conjectured by Goldberg that the FIFO ordering of vertices in this variant results in a tighter bound, of $O(n^3 \lg (nC))$. Proving or disproving this assertion is an open research problem.\\
+In fact, this complexity bound holds for any refine routine which repeatedly applies \textproc{PushOrRelabel}. However, it has been conjectured by Goldberg that the FIFO ordering of vertices in this variant results in a tighter bound of $O(n^3 \lg (nC))$. Proving or disproving this assertion is an open research problem.\\
 \end{remark} 
 
 \begin{remark}
@@ -935,24 +933,24 @@ On flow scheduling networks, $m = O(n)$ by \cref{lemma:network-num-arcs}, so the
 \label{algo:cost-scaling-wave-refine}
 \end{algorithm}
 
-\Cref{algo:cost-scaling-wave-refine} describes an approach which can be proved to achieve this tighter bound for all classes of flow networks. The method maintains a list $L$ of all vertices in the network, rather than the queue $Q$ maintained by the FIFO method. The algorithm preserves the invariant that $L$ is topologically ordered with respect to the \emph{admissible graph}: the subgraph of the residual network containing only arcs with negative reduced cost.
+\Cref{algo:cost-scaling-wave-refine} describes an approach which can be proved to achieve the $O(n^3 \lg (nC))$ on any flow network. The method maintains a list $L$ of all vertices in the network, rather than the queue $Q$ maintained by the FIFO method. The algorithm preserves the invariant that $L$ is topologically ordered with respect to the \emph{admissible graph}: the subgraph of the residual network containing only arcs with negative reduced cost.
 
-Initially, $L$ contains vertices in arbitrary order. But the admissible graph is empty after \cref{algo:cost-scaling-wave-refine:initialisation} of \cref{algo:cost-scaling-wave-refine}, since \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} saturate any negative reduced cost arcs, making them drop out of the residual network. Thus $L$ is trivially topologically ordered.
+Initially, $L$ contains vertices in arbitrary order. But the admissible graph is empty after \cref{algo:cost-scaling-wave-refine:initialisation} of \cref{algo:cost-scaling-wave-refine}, since \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} saturate any negative reduced cost arcs, making them drop out of the residual network. Thus, $L$ is trivially topologically ordered.
 
-\textproc{Push} operations cannot create admissible arcs, and so preserve the topological ordering. \textproc{Relabel} operations can. However, there are no admissible arcs entering $s$ immediately after $\textproc{Relabel}(s)$~\cite[lemma~6.5]{Goldberg:1987}. Thus moving $s$ to the beginning of $L$ maintains topological ordering.\\
+\textproc{Push} operations cannot create admissible arcs, and so preserve the topological ordering. An operation $\textproc{Relabel}(s)$ can create admissible arcs. However, there are guaranteed to be no admissible arcs entering $s$ immediately after the operation~\cite[lemma~6.5]{Goldberg:1987}. Moving $s$ to the beginning of $L$ therefore ensures a topological ordering is maintained.\\
 
 \begin{thm} \label{thm:cost-scaling-wave-complexity}
 The algorithm with wave refine has a running time of $O(n^3 \lg (nC))$.
 \end{thm}
 \begin{proof}
-An $O(n^2)$ bound on the number of passes can be proved over the vertex list, using the invariant that $L$ is topologically ordered~\cite[lemma~7.3]{Goldberg:1987}. An $O(n^3)$ bound on the running time of the wave \textproc{Refine} routine can be shown as a corollary of this~\cite[theorem~7.4]{Goldberg:1987}. The result follows by \cref{lemma:cost-scaling-overall-algorithm}.
+Using the invariant that $L$ is topologically ordered, it is possible to prove an $O(n^2)$ bound on the number of passes over the vertex list~\cite[lemma~7.3]{Goldberg:1987}. An $O(n^3)$ bound on the running time of the wave \textproc{Refine} routine can be shown as a corollary of this~\cite[theorem~7.4]{Goldberg:1987}. The result follows by \cref{lemma:cost-scaling-overall-algorithm}.
 \end{proof}
 
 \subsection{Heuristics}
 
-So far, this dissertation has only considered means by which the theoretical performance of the algorithm can be improved. There has also been considerable research effort to improve its practical performance by means of \emph{heuristics} guiding the actions of the algorithm~\cite{Goldberg:1997}. Whilst these do not alter the asymptotic worst-case time complexity, empirically they may yield considerable performance gains.
+So far, this dissertation has only considered means to improve the theoretical performance of cost scaling. Considerable research effort has gone into improving its practical performance by means of \emph{heuristics} that guide the actions of the algorithm~\cite{Goldberg:1997}. Although these do not alter the asymptotic worst-case time complexity, they may yield considerable performance gains in practice.
 
-I decided not to implement any heuristics. The focus of this project is on exploring new avenues for improving performance. The heuristics are already well-studied: implementing them would not have produced any new insight, and would have diverted considerable development time from other efforts. However, for sake of completeness the heuristics are summarised in \cref{appendix:impl-csheuristics}.
+I decided not to implement any heuristics. The heuristics are already well-studied: implementing them would not have produced any new insight, and would have diverted considerable development time from other efforts. I judged that it was better to keep my implementation simple, allowing me to rapidly explore fundamentally different approaches. However, for the sake of completeness I have summarised the heuristics in \cref{appendix:impl-csheuristics}.
 
 % Optimisations: changing scaling factor, maintaining integrality, wave vs sequential
 % Optimisations may be better left for evaluation? If you do want to include it here, should merge it into heuristics with a section e.g. Improving performance
