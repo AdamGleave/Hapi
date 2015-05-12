@@ -121,7 +121,7 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
           \State let $\mathbf{d}$ denote the vector of shortest path distances, such that $d_i$ is the shortest path from $s$ to $i\in V$
           \Let{$\boldsymbol{\pi}$}{$\boldsymbol{\pi} - \mathbf{d}$} \label{algo:successive-shortest-path:update-potentials}
           \State let $P$ denote a shortest path from $s$ to $t$
-          \Let{$\delta$}{$\min\left(e(s), -e(t), \min\left\{ r_{ij} \::\: (i,j) \in P\right\}\right)$} \label{algo:successive-shortest-path:compute-delta}
+          \Let{$\delta$}{$\min\left(e_s, -e_t, \min\left\{ r_{ij} \::\: (i,j) \in P\right\}\right)$} \label{algo:successive-shortest-path:compute-delta}
           \State augment $\delta$ units of flow along path $P$ \label{algo:successive-shortest-path:augment-flow}
         \EndWhile \label{algo:successive-shortest-path:end-loop}
     \end{algorithmic}
@@ -479,11 +479,11 @@ Since only arcs with zero reduced cost are eligible to be in the tree, $r(\bolds
     \caption{Relaxation: flow augmentation procedure}
     \label{algo:relaxation-augment-flow}
     \begin{algorithmic}[1]
-        \Require $e(S) \leq r(\boldsymbol{\pi},S)$ and $e(t) < 0$
+        \Require $e(S) \leq r(\boldsymbol{\pi},S)$ and $e_t < 0$
         \Statex
         \Function{AugmentFlow}{t}
         \State chase predecessors in $\mathrm{Pred}$ starting from $t$ to find a shortest path $P$ from $s$ to $t$ \label{algo:relaxation-augment-flow:find-P}
-        \Let{$\delta$}{$\min\left(e(s), -e(t), \min\Set{ r_{ij} | (i,j) \in P}\right)$} \label{algo:relaxation-augment-flow:compute-delta}
+        \Let{$\delta$}{$\min\left(e_s, -e_t, \min\Set{ r_{ij} | (i,j) \in P}\right)$} \label{algo:relaxation-augment-flow:compute-delta}
         \State augment $\delta$ units of flow along path $P$ \label{algo:relaxation-augment-flow:augment-path}
         \EndFunction
     \end{algorithmic}
@@ -536,16 +536,16 @@ Prior to updating potentials, all arcs in the residual network had (strictly) po
 \end{proof}
 
 \begin{lemma}[Correctness of \textproc{AugmentFlow}] \label{lemma:relax-correctness-augmentflow}
-Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e(t) < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, there is a new pseudoflow $\mathbf{x}'$ and $\left(\mathbf{x}',\boldsymbol{\pi}\right)$ still satisfy reduced cost optimality conditions. Moreover, under $\mathbf{x}'$ the excess at vertex $s$ and deficit at vertex $t$ decreases, without changing the excess/deficit at any other vertex.
+Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e_t < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, there is a new pseudoflow $\mathbf{x}'$ and $\left(\mathbf{x}',\boldsymbol{\pi}\right)$ still satisfy reduced cost optimality conditions. Moreover, under $\mathbf{x}'$ the excess at vertex $s$ and deficit at vertex $t$ decreases, without changing the excess/deficit at any other vertex.
 \end{lemma}
 \begin{proof} (Adapted from \cite[p.~336]{Ahuja:1993})
     
 \Cref{algo:relaxation-augment-flow:find-P} finds a shortest path $P$ from the excess vertex $s$ to a deficit vertex $t$. \Crefrange{algo:relaxation-augment-flow:compute-delta}{algo:relaxation-augment-flow:augment-path} then send as much flow as possible along path $P$, subject to:
 \begin{enumerate}
     \item satisfying the capacity constraints at each arc on $P$, and
-    \item ensuring $e(s) \geq 0$ and $e(t) \leq 0$.
+    \item ensuring $e_s \geq 0$ and $e_t \leq 0$.
 \end{enumerate}
-The restriction on $e(s)$ and $e(t)$ ensures that the feasibility of the solution is improved, by ensuring the unmet supply/demmand $|e_i|$ monotonically decreases for all $i \in V$\footnotemark.
+The restriction on $e_s$ and $e_t$ ensures that the feasibility of the solution is improved, by ensuring the unmet supply/demmand $|e_i|$ monotonically decreases for all $i \in V$\footnotemark.
 \footnotetext{If the algorithm were allowed to `overshoot' and turn $s$ into a deficit vertex or $t$ into an excess, this property might not hold.}
 
 Since an equal amount of flow is sent on each arc in $P$, the excess at vertices other than the start $s$ and end $t$ of path $P$ are unchanged.
