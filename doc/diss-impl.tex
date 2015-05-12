@@ -237,7 +237,7 @@ See Ahuja, \textit{et al.}~\cite[lemma~9.11]{Ahuja:1993}.
 \begin{cor} \label{cor:ssp-reduced-costs}
 Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $\mathbf{x}$ by sending flow along a shortest path from vertex $s$ to some other vertex $k \in V$. Then $\mathbf{x}'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
 \end{cor}
-\begin{proof} (Adapted from Ahuja, \textit{et al.}\cite[lemma~9.12]{Ahuja:1993})
+\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[lemma~9.12]{Ahuja:1993})
     
 By \cref{lemma:ssp-reduced-costs}(a), $\left(\mathbf{x},\boldsymbol{\pi'}\right)$ satisfies the reduced cost optimality conditions.
 
@@ -364,7 +364,7 @@ Let $z^*$ denote the optimal objective function value of the minimum-cost flow p
     \item There exists vertex potentials $\boldsymbol{\pi}^*$ for which $w(\boldsymbol{\pi}^*) = z^*$.
 \end{enumerate}
 \end{lemma}
-\begin{proof} (Adapted from \cite[lemma.~9.16]{Ahuja:1993})
+\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[lemma.~9.16]{Ahuja:1993})
     
 For the first part, let $\mathbf{x}^*$ be a feasible flow with objective function value $s(\mathbf{x}^*) = z^*$: that is, $\mathbf{x}^*$ is a solution to the minimum-cost flow problem given in \cref{eq:mcf-primal-problem}.
 
@@ -504,7 +504,7 @@ First, \textproc{UpdatePotentials} and \textproc{AugmentFlow} are shown to prese
 \begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
 Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, the new pseudoflow and vertex potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
 \end{lemma}
-\begin{proof} (Adapted from \cite[p.~334]{Ahuja:1993})
+\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[p.~334]{Ahuja:1993})
     
 Arcs with a reduced cost of zero are saturated by \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd}, and drop out of the residual network as a result. This preserves reduced cost optimality: the flow on arcs with a reduced cost of zero is arbitrary. Moreover, it leaves $w(\boldsymbol{\pi})$ unchanged. Recall the formulation of $w(\boldsymbol{\pi})$ given in \cref{eq:relax-obj-fun-balance}:
 \[w(\boldsymbol{\pi})=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}\right]\]
@@ -538,7 +538,7 @@ Prior to updating potentials, all arcs in the residual network had (strictly) po
 \begin{lemma}[Correctness of \textproc{AugmentFlow}] \label{lemma:relax-correctness-augmentflow}
 Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e_t < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, there is a new pseudoflow $\mathbf{x}'$ and $\left(\mathbf{x}',\boldsymbol{\pi}\right)$ still satisfy reduced cost optimality conditions. Moreover, under $\mathbf{x}'$ the excess at vertex $s$ and deficit at vertex $t$ decreases, without changing the excess/deficit at any other vertex.
 \end{lemma}
-\begin{proof} (Adapted from \cite[p.~336]{Ahuja:1993})
+\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[p.~336]{Ahuja:1993})
     
 \Cref{algo:relaxation-augment-flow:find-P} finds a shortest path $P$ from the excess vertex $s$ to a deficit vertex $t$. \Crefrange{algo:relaxation-augment-flow:compute-delta}{algo:relaxation-augment-flow:augment-path} then send as much flow as possible along path $P$, subject to:
 \begin{enumerate}
@@ -644,7 +644,7 @@ Note this is a relaxation of the reduced cost optimality conditions given in \cr
 \begin{thm} \label{thm:epsilon-optimality-optimal}
 Let $0 \leq \epsilon < 1/n$, and let $\mathbf{x}$ be an $\epsilon$-optimal feasible flow. Then $\mathbf{x}$ is optimal.
 \end{thm}
-\begin{proof} (From \cite[theorem~3.4]{Goldberg:1987})
+\begin{proof} (From Goldberg and Tarjan~\cite[theorem~3.4]{Goldberg:1987})
     
 Let $C$ be a simple cycle in $G_\mathbf{x}$. $C$ has at most $n$ arcs. By \cref{defn:epsilon-optimality}, $c^{\boldsymbol{\pi}}_{ij} \geq -\epsilon$ for each arc $(i,j) \in C$. It follows the cost of $C$ is $\geq -n\epsilon$.
 
@@ -753,7 +753,7 @@ Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ be $\epsilon$-optimal, and the pr
 
 Let $\boldsymbol{\pi}'$ denote the potentials after \textproc{Relabel}. Then $\pi'_i\ \geq \pi_i + \epsilon$ and $\pi'_j = \pi_j$ for $j \neq i$. Moreover, $\left(\mathbf{x},\boldsymbol{\pi}'\right)$ continues to be $\epsilon$-optimal.
 \end{lemma}
-\begin{proof} (Adapted from \cite[lemma~5.2]{Goldberg:1987})
+\begin{proof} (Adapted from Goldberg and Tarjan~\cite[lemma~5.2]{Goldberg:1987})
     
 By the precondition, $\forall(i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} \geq 0$. Substituting for the definition of reduced costs in \cref{eq:reduced-costs} gives $\forall(i,j) \in E_{\mathbf{x}} \cdot c_{ij} + \pi_j \geq \pi_i$. Thus:
 \[\pi'_i = \min \set{\pi_j + c_{ij} + \epsilon | (i,j) \in E_{\mathbf{x}}} \geq \pi_i + \epsilon\]
@@ -769,7 +769,7 @@ And so $c_{vw}^{\boldsymbol{\pi}'} \geq -\epsilon$, as required for $\epsilon$-o
 \begin{thm}[Correctness of \textproc{Refine}] \label{thm:cost-scaling-refine-correctness}
 Let the precondition for $\textproc{Refine}$ hold: $\mathbf{x}$ is a pseudoflow. Then upon termination of \textproc{Refine}, the postcondition holds: $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal.
 \end{thm}
-\begin{proof} (Adapted from \cite[theorem~5.4]{Goldberg:1987})
+\begin{proof} (Adapted from Goldberg and Tarjan~\cite[theorem~5.4]{Goldberg:1987})
     
 The initial flow after \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} is $0$-optimal (and so certainly $\epsilon$-optimal). $\epsilon$-optimality is preserved by subsequent \textproc{Push} and \textproc{Relabel} operations by \cref{lemma:cost-scaling-push-correctness,lemma:cost-scaling-relabel-correctness}. Hence $\epsilon$-optimality is maintained as an invariant.
  
@@ -813,7 +813,7 @@ Within an invocation of \textproc{Refine}, the following upper bounds apply to t
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-See~\cite[lemma~6.3, lemma~6.4, lemma~6.7]{Goldberg:1987}.
+See Goldberg and Tarjan~\cite[lemma~6.3, lemma~6.4, lemma~6.7]{Goldberg:1987}.
 \end{proof}
 
 \begin{thm} \label{thm:cost-scaling-refine-complexity}
@@ -830,14 +830,14 @@ It is unfortunately not possible to prove a bound on the complexity of the gener
 \begin{thm} \label{lemma:cost-scaling-overall-algorithm}
 Let $R(n,m)$ be the running time of the \textproc{Refine} routine. Then the minimum-cost flow algorithm described in \cref{algo:cost-scaling} runs in $O\left(R(n,m)\lg(nC)\right)$ time.
 \end{thm}
-\begin{proof} (Adapted from~\cite[theorem~4.1]{Goldberg:1987})
+\begin{proof} (Adapted from Goldberg and Tarjan~\cite[theorem~4.1]{Goldberg:1987})
     
 The algorithm terminates once $\epsilon < 1/n$, which takes place after $\log_2\left(\frac{C}{1/n}\right) = \log_2 (nC)$ iterations of \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}. The loop condition on \cref{algo:cost-scaling:start-loop} and the assignment on \cref{algo:cost-scaling:update-epsilon} are both $O(1)$, so the dominant cost of each iteration is the execution of \textproc{Refine}. \Crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop} thus contribute a cost of $O\left(R(n,m)\lg(nC)\right)$. This dominates the initialisation on \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}, and thus is the overall cost of the algorithm.
 \end{proof}
 
 \subsection{Implementations of the algorithm} \label{sec:impl-cost-scaling-implementations}
 
-The preceding section presented a generic version of the \textproc{Refine} routine, \cref{algo:cost-scaling-generic-refine}. The order in which the basic operations are to be applied is intentionally left unspecified in \crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} of the algorithm. Both the practical and theoretical performance of cost scaling is affected by this order. I implemented two variants, \textit{FIFO} and \textit{wave}, which differ in the rule used to select basic operations. Both versions were first proposed by Goldberg~\cite{Goldberg:1990}.
+The preceding section presented a generic version of the \textproc{Refine} routine, \cref{algo:cost-scaling-generic-refine}. The order in which the basic operations are to be applied is intentionally left unspecified in \crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} of the algorithm. Both the practical and theoretical performance of cost scaling is affected by this order. I implemented two variants, \textit{FIFO} and \textit{wave}, which differ in the rule used to select basic operations. Both versions were first proposed by Goldberg and Tarjan~\cite{Goldberg:1990}.
 
 \subsubsection{FIFO refine}
 
@@ -899,7 +899,7 @@ Note any new excess vertices generated during execution of the algorithm must be
 The algorithm with FIFO refine has a running time of $O(n^2m \lg (nC))$.
 \end{thm}
 \begin{proof}
-See \cite[theorem~6.2]{Goldberg:1990}.
+See Goldberg and Tarjan~\cite[theorem~6.2]{Goldberg:1990}.
 \end{proof}
 
 \begin{remark}
