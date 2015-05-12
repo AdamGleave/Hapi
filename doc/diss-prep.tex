@@ -40,7 +40,7 @@ Getting the objectives right is hard, but implementing a scheduler which effecti
 Finally, the system should remain responsive at scale. Today's warehouse scale computers contain tens of thousands of machines, running hundreds of thousands of tasks. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform, requiring sub-second scheduling latency~\cite{Ousterhout:2013}.
 
 \subsection{Prevailing approaches}
-% XXX: This needs serious editing/rewriting to talk about other schedulers
+%TODO: Would be good to rewrite to talk about other schedulers, but you may not have time. Can ask Malte.
 
 % PROOFREAD: 1. Minor edits.
 
@@ -67,6 +67,7 @@ However, the information which is public suggests that the basic approach is the
 
 % PROOFREAD: 1. Major edits. Need to reread.
 
+% SOMEDAY: Add citations
 \begin{table}
     \centering
     \begin{tabular}{lccc}
@@ -92,24 +93,21 @@ Schedulers have traditionally relied on \textit{ad hoc} heuristics to provide a 
 
 \Cref{table:cluster-scheduler-feature-matrix} summarises the results of the previous section, and previews this section. It is apparent that the key drawback of the heuristic approach is an inability to \emph{target} the scheduling policy. This has led to a proliferation of different schedulers, but it will never be possible to meet all application needs in this way.
 
-There has been some attempt to make heuristic schedulers more general: both the Hadoop Fair Scheduler and Capacity Scheduler are considerably more configurable than their predecessors. Only a small degree of flexibility is afforded by this, however. 
+There has been some attempt to make heuristic schedulers more general. For example, the Fair Scheduler allows the trade-off between data locality and fairness to be specified. But it is rare that these are the only two objectives of importance. Low scheduling latency is important to many applications, which conflicts with the other two objectives. For example, data locality is boosted by keeping a task unscheduled until a compute vertex close to the data becomes free. There is no way to adjust this trade-off using the Fair Scheduler.
 
-For example, the Fair Scheduler allows the trade-off between data locality and fairness to be specified. But it is rare that these are the only two objectives of importance. Low scheduling latency is important to many applications. This conflicts with the other two objectives: for example, data locality is boosted by keeping a task unscheduled until a compute node close to the data becomes free. There is no way to adjust this trade-off using the Fair Scheduler.
+The Firmament cluster scheduler, by contrast, is specifically designed to be flexible. Rather than using a heuristic approach, Firmament models scheduling as an optimisation problem over \emph{flow networks}. The details of this are described in \cref{sec:prep-flow-scheduling}, but the key point is that the scheduling policy is encoded in terms of a \emph{cost model} which assigns costs to arcs in the network. Defining a new cost model is straightforward, making it easy to implement a wide variety of policies.
 
-The Firmament\footnotemark cluster scheduler, by contrast, is specifically designed to be flexible. Rather than using a heuristic approach, Firmament models scheduling as an optimisation problem over \emph{flow networks}. The details of this are described in \cref{sec:prep-flow-scheduling}, but the key point is that the scheduling policy is encoded in terms of a \emph{cost model} which assigns costs to arcs in the network. Defining a new cost model is relatively straightforward, making it easy to implement a wide variety of policies.
-\footnotetext{Firmament has been developed by the supervisors for this project, Malte Schwarzkopf and Ionel Gog, as part of the Cambridge Systems at Scale initiative.}
+It would be an overstatement to say that all policies can be expressed in this way: flow networks are not Turing complete. For example, in gang scheduling pairs of tasks must be run simultaneously, or not at all. This policy is difficult to express, as flows in a network are inherently independent. However, in practice the model is very powerful, allowing a range of scheduling policies to be specified.
 
-It would be an overstatement to say that all policies can be expressed in this way: flow networks are not Turing complete. Indeed, there is a concrete counterexample of this. In gang scheduling, a constraint is added that pairs of tasks must be scheduled to run simultaneously. This is difficult or impossible to express in this model: flows in a network are inherently independent. However, cases such as these are the exception that proves the rule. In practice, the model is very powerful, allowing a range of scheduling policies to encoded in terms of cost models. 
+This flow scheduling approach may also be more \emph{effective} than heuristic designs, since the optimisation considers \emph{all} possible assignments. The Quincy system, which pioneered flow scheduling, sought to achieve \emph{data locality}. Throughput under Quincy is 40\% greater than traditional designs; moreover, data transfer is reduced by up to $3.9\times$.
 
-This flow scheduling approach may also be more \emph{effective} than heuristic designs. The Quincy system, which pioneered flow scheduling, sought to achieve \emph{data locality}. Throughput under Quincy was 40\% greater than traditional designs; moreover, data transfer was reduced by up to a factor of 3.9, potentially allowing for cost savings when building cluster networks~\cite{Isard:2009}. This was possible due to the flow network representation, allowing for fine-grained resource usage to be easily encoded. 
+Another contemporary problem is that of scheduling in heterogeneous environments. There have been attempts to solve this problem using heuristic approaches. LATE, for example, identifies tasks which are under-performing and speculatively executes them on a faster vertex~\cite{Zaharia:2008}. This, however, is inefficient: the task has already spent time executing on a node, only to be preempted. Firmament encodes the resources available in the cluster explicitly in the flow network, to avoid placing resource-intensive tasks on machines which are already overloaded.
 
-A more contemporary problem is that of scheduling in heterogeneous environments. There have been attempts to solve this problem using heuristic approaches. LATE, for example, identifies tasks which are under-performing and speculatively executes them on a faster node~\cite{Zaharia:2008}. This, however, is inefficient: the task has already spent time executing on a node, only to be preempted. Firmament encodes the resources available in the cluster explicitly in the flow network, to avoid placing resource-intensive tasks on machines which are already overloaded.
-
-The key advantage of heuristic designs is that they tend to be computationally inexpensive. This allows them to scale to very large clusters. Moreover, for applications which require very low scheduling latencies, it is possible to speed up the scheduler by adopting simpler heuristics, or distributing the scheduling as in Sparrow~\cite{Ousterhout:2013}. The goal of this project is to improve the scheduling latency and scalability of flow based systems, to allow them to compete with heuristic schedulers. The next section provides background on the problem which must be solved.
+A key advantage of heuristic designs is that they are computationally inexpensive, which allows them to scale to very large clusters. Moreover, for applications which require very low scheduling latencies, it is possible to speed up the scheduler by adopting simpler heuristics, or distributing the scheduling (as in Sparrow~\cite{Ousterhout:2013}). The goal of this project is to improve the scheduling latency and scalability of flow based systems, allowing them to compete with the fastest heuristic schedulers. The next section provides background on the problem which must be solved.
 
 \section{Flow networks} \label{sec:prep-flow}
 
-We must first formalise the notion of a flow network and its associated optimisation problems, before discussing the details of scheduling using flow networks. Following this, properties of flow networks useful for the analysis and design of flow algorithms will be summarised.
+I first define flow networks and their associated optimisation problems, before discussing the details of scheduling using flow networks. Following this, I summarise properties of flow networks useful for the analysis and design of flow algorithms.
 
 \subsection{Introduction}
 
@@ -118,104 +116,90 @@ We must first formalise the notion of a flow network and its associated optimisa
 \subsubsection{Definitions and notation}
 
 A \emph{flow network} is a weakly connected\footnotemark directed graph $G=(V,E)$.
-\footnotetext{A directed graph is weakly connected if the undirected graph formed by replacing all directed edges with undirected edges is itself connected.}
+\footnotetext{A directed graph is weakly connected if the undirected graph formed by replacing all directed arcs with undirected edges is itself connected.}
 
 Each arc $(i,j)\in E$ has an associated \emph{capacity} (or \emph{upper	bound}\footnotemark) $u_{ij}$, and a \emph{cost} $c_{ij}$.
 \footnotetext{Some authors include a lower bound $l_{ij}$, but this does not feature in flow scheduling. Moreover, any network featuring lower bounds can be transformed into an equivalent one without~\cite[p.~39]{Ahuja:1993}.}
 
-Each node $i\in V$ has an associated supply/demand $b_{i}$. Node $i$ is said to be a \emph{supply node} if $b_{i}>0$, a \emph{demand	node} if $b_{i}<0$ and a \emph{transshipment node} if $b(i)=0$.
+Each vertex $i\in V$ has an associated supply/demand $b_{i}$. Vertex $i$ is said to be a \emph{supply vertex} if $b_{i}>0$, a \emph{demand vertex} if $b_{i}<0$ and a \emph{transshipment vertex} if $b(i)=0$.
 
 The problems we will consider involve finding a solution vector $\mathbf{x}$,
 specifying the flow $x_{ij}$ at each arc $(i,j)\in E$. A solution
 $\mathbf{x}$ is \emph{feasible}, and we say it is a \emph{flow}, if it satisfies capacity constraints at every arc $(i,j) \in E$:
 
 \begin{equation} \label{eq:capacity-constraints}
-0\leq x_{ij}\leq u_{ij}
+0\leq x_{ij}\leq u_{ij},
 \end{equation}
 
-and mass balance constraints at each node $i \in V$:
+and mass balance constraints at each vertex $i \in V$:
 
 \begin{equation} \label{eq:mass-balance-constraints}
-\sum_{j\::\:(i,j)\in E}x_{ij}-\sum_{j\::\:(j,i)\in E}x_{ji}=b_i
+\sum_{j\::\:(i,j)\in E}x_{ij}-\sum_{j\::\:(j,i)\in E}x_{ji}=b_i.
 \end{equation}
 
-That is, the net flow out of the node is exactly equal to the supply
-at that node (which may be negative, in the case of demand nodes).
+That is, the net flow out of the vertex is exactly equal to the supply
+at that vertex (which may be negative, in the case of demand vertices).
 
 \subsubsection{Assumptions}
+
+The following two assumptions hold for all flow scheduling networks, and will be used in the design and analysis of algorithms in the next chapter.
 
 \begin{assumption}[Integrality] \label{assumption:integrality}
 All quantities defining the flow network take on only integer values.\\
 \end{assumption}
-    
-\begin{remark} Note any network with rational quantities can be transformed into an equivalent integral network, by multiplying throughout by the greatest common denominator. Meanwhile, flow algorithms may not terminate on irrational data, so there is little point considering this case. Fortunately, the networks produced by systems such as Quincy are naturally integral, since quantities such as resource consumption in a data centre are inherently discrete. \\
-\end{remark}
 
 \begin{assumption}[Non-negative arc costs] \label{assumption:non-negative-arc-costs}
 For all $(i,j) \in E$, $c_{ij} \geq 0$. \\
 \end{assumption}
-
-\begin{remark} 
-This assumption is without loss of generality\footnote{Any network with negative arc costs can be transformed into an equivalent one with non-negative arc costs. For each arc $(i,j) \in E$ with a negative cost, replace the flow variable $x_{ij}$ with the variable $u_{ij} - x_{ji}$. Arc $(j,i)$ then replaces arc $(i,j)$, and $c_{ji} = -c_ij \geq 0$. \cite[p.~48]{Ahuja:1993}}. \\
-\end{remark}
-
-%WORDCOUNT: Could move to appendix
-\begin{cor}All quantities defining arcs take on only values from the natural numbers.\footnotemark 
-\footnotetext{To avoid confusion, I will follow the convention $0\in\mathbb{N}$ throughout this document.}
-\end{cor}
-\begin{proof}
-An arc is defined by its capacity and its cost. Capacities are non-negative by definition, and arc costs are non-negative by \cref{assumption:non-negative-arc-costs}. This together with \cref{assumption:integrality} guarantees that capacities and costs are natural numbers.
-\end{proof}
-
-\begin{remark}  
-We can therefore exclusively use unsigned integer data types when representing arcs in computer code.
-\end{remark}
 
 \subsubsection{The minimum-cost flow problem} \label{sec:prep-flow-mcf}
 
 The well-known maximum flow problem involves finding a solution vector
 $\mathbf{x}$ subject to constraints \cref{eq:capacity-constraints} and \cref{eq:mass-balance-constraints}, i.e.\ finding a feasible flow.
 
-Our focus will be on a generalization of this, known as the minimum-cost flow problem. Formally, it is:
+Flow scheduling requires solving a generalization of this, known as the minimum-cost flow (MCF) problem. Formally, it is:
 
 \begin{equation} \label{eq:mcf-primal-problem}
 \mbox{minimise}\ s(\mathbf{x})=\sum_{(i,j)\in E}c_{ij}x_{ij}
 \end{equation}
 subject to the constraint that $\mathbf{x}$ must be a feasible flow.
 
-Note, in general, this and the maximum flow problem may be infeasible. For example, the network may be imbalanced: $\sum_{i\in V}b_{i}\neq0$. All networks produced by Firmament are guaranteed to be solvable, however, so I will tend not to discuss this case\footnotemark.
+Note, in general, that the MCF and maximum flow problem may be infeasible. For example, the network might be imbalanced: $\sum_{i\in V}b_{i}\neq0$. All networks produced by Firmament are guaranteed to be solvable, however, so I will tend not to discuss this case\footnotemark.
 \footnotetext{For robustness, all algorithms implemented as part of this project detect if a network is infeasible.}
 
 \subsection{Scheduling using flows} \label{sec:prep-flow-scheduling}
 
-Firmament and Quincy frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, each consisting of a number of \emph{tasks}. Flow drains from task nodes to a sink node. Along the way, it passes either through a machine node (indicating the task is to be placed there) or a special job unscheduled aggregator node (indicating the task is to be left unscheduled).
+Firmament and Quincy frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, each consisting of a number of \emph{tasks}. Flow drains from task vertices to a sink vertex. Along the way, it passes either through a machine vertex (indicating the task is to be placed there) or a special job unscheduled aggregator vertex (indicating the task is to be left unscheduled).
 
-Arc capacities are used to \emph{restrict} the possible scheduling assignments. The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Scheduling policies are therefore encoded in terms of a cost model.
+Arc capacities are used to \emph{restrict} the possible scheduling assignments. The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Scheduling policies are therefore encoded in terms of a \emph{cost model}.
 
+% TODO: Flow scheduling is somewhat confused between Quincy and general cost models.
+% N.B. Skipped applying diffs here since may rewrite substantially.
+% N.B. Ionel had comments here as well
 \subsubsection{Network structure}
 
 % PROOFREAD: 1 major edits, need to reread.
 
-%FIGURE: Table summarising nodes
+%FIGURE: Table summarising vertices
 %FIGURE: Flow graphs
 
-Each task $i$ in job $j$ is represented by a node $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by nodes $\mathbf{M}_l$, with arcs to a sink node $\mathbf{S}$. Task nodes have arcs to machine nodes, with the arc cost specifying the task's preference for being scheduled on that machine.
+Each task $i$ in job $j$ is represented by a vertex $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by vertices $\mathbf{M}_l$, with arcs to a sink vertex $\mathbf{S}$. Task vertices have arcs to machine vertices, the arc cost specifying the task's preference for being scheduled on that machine.
 
-There is a problem with this scheme: if there are more tasks submitted than can be scheduled, the flow problem becomes infeasible. To fix this, we introduce \emph{unscheduled aggregators} $\mathbf{U}^j$ for each job $j$, with an arc to $\mathbf{S}$. Each task node $\mathbf{T}_i^j$ has an arc to its unscheduled aggregator $\mathbf{U}_j$, with the cost specifying the penalty for being unscheduled.
+There is a problem with this scheme: if there are more tasks submitted than can be scheduled, the flow problem becomes infeasible. To fix this, we introduce \emph{unscheduled aggregators} $\mathbf{U}^j$ for each job $j$, with an arc to $\mathbf{S}$. Each task vertex $\mathbf{T}_i^j$ has an arc to its unscheduled aggregator $\mathbf{U}_j$, with the cost specifying the penalty for being unscheduled.
 
 In the model above, every task has an arc to each machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark.
 \footnotetext{The number of arcs will scale linearly with the number of machines. But, of course, as the size of a cluster grows the number of tasks being scheduled will also tend to grow proportionally. So the number of arcs actually will tend to grow \emph{quadratically} with increases in the number of machines. Scalability is a key concern, making this is highly undesirable.}
-Firmament adds support for \emph{equivalence classes}, which may be over tasks or machines\footnotemark. Each equivalence class has an aggregator node, with arcs to all nodes in the class. In this way, multiple arcs connecting to nodes in the same class can be combined into a single arc.
-\footnotetext{In fact, Firmament supports representing resources at a finer grain than machines: for example, an individual core. So machines may themselves be aggregator nodes.}
+Firmament adds support for \emph{equivalence classes}, which may be over tasks or machines\footnotemark. Each equivalence class has an aggregator vertex, with arcs to all vertices in the class. In this way, multiple arcs connecting to vertices in the same class can be combined into a single arc.
+\footnotetext{In fact, Firmament supports representing resources at a finer grain than machines: for example, an individual core. So machines may themselves be aggregator vertices.}
 
-The Quincy system provides a concrete example of an equivalence class. Each rack has an associated \emph{rack aggregator} node $\mathbf{R}_k$, with arcs to every machine in the rack. Moreover, a single \emph{cluster aggregator} $\mathbf{X}$ is introduced, with arcs to each rack aggregator. This scheme is appropriate for Quincy as its costs depend on inter-rack bandwidth usage, so will tend to be similar within a rack\footnote{Costs also depend on intra-rack bandwidth usage, but less weight is given to this factor as it is rarely a bottleneck.}. Rather than arcs from every task $\mathbf{T}_i^j$ to each machine, there is a single arc to $\mathbf{X}$ and a fixed number of arcs to preferred machines and racks.
+The Quincy system provides a concrete example of an equivalence class. Each rack has an associated \emph{rack aggregator} vertex $\mathbf{R}_k$, with arcs to every machine in the rack. Moreover, a single \emph{cluster aggregator} $\mathbf{X}$ is introduced, with arcs to each rack aggregator. This scheme is appropriate for Quincy as its costs depend on inter-rack bandwidth usage, so will tend to be similar within a rack\footnote{Costs also depend on intra-rack bandwidth usage, but less weight is given to this factor as it is rarely a bottleneck.}. Rather than arcs from every task $\mathbf{T}_i^j$ to each machine, there is a single arc to $\mathbf{X}$ and a fixed number of arcs to preferred machines and racks.
 
 \subsubsection{Capacities}
 
 % PROOFREAD: 1 minor edits.
-Every arc leaving a task node $\mathbf{T}_i^j$ has unit capacity. Note $\mathbf{T}_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
+Every arc leaving a task vertex $\mathbf{T}_i^j$ has unit capacity. Note $\mathbf{T}_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
 
-The arcs $\mathbf{M}_l \to \mathbf{S}$ from machine nodes to the sink node have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
+The arcs $\mathbf{M}_l \to \mathbf{S}$ from machine vertices to the sink vertex have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
 \footnotetext{In the original Quincy system, $K=1$. However, this is clearly a poor utilisation of modern multi-core machines. In fact, performance may often be improved by setting $K > \text{\# of cores}$, on simultaneous multi-threading (SMT) machines.}
 
 The arcs $\mathbf{R}_k \to \mathbf{M}_l$ also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $\mathbf{X} \to \mathbf{R}_k$ have capacity $mK$, where $m$ is the number of machines in each rack\footnotemark.
@@ -241,7 +225,7 @@ Given such a variety of possible policies, the solver developed in this project 
 \begin{table}
     \centering
     \begin{tabular}{ccl}
-        \textbf{Cost} & \textbf{Edge} & \textbf{Meaning}\tabularnewline
+        \textbf{Cost} & \textbf{Arc} & \textbf{Meaning}\tabularnewline
         \hline 
         $\gamma_{i,m}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{M}_{m}$ & Cost of scheduling on machine $\mathbf{M}_{m}$.\tabularnewline
         $\rho_{i,l}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{R}_{l}$ & Cost of scheduling on worst machine in rack $\mathbf{R}_{l}$.\tabularnewline
@@ -280,13 +264,13 @@ Given such a variety of possible policies, the solver developed in this project 
 \end{table}
 
 The arc costs specified by the Quincy model are given in \cref{table:quincy-costs}. All arcs not mentioned in this table have a cost of zero\footnotemark.
-\footnotetext{In particular, arcs leaving aggregator nodes and arcs entering the sink have zero cost.}
+\footnotetext{In particular, arcs leaving aggregator vertices and arcs entering the sink have zero cost.}
 
 The model assumes tasks process data residing in a distributed file system. Files may be accessed from any machine, with the file being fetched from a remote machines if there is no local copy. Retrieving a file from a machine in another rack is more expensive -- both in terms of request latency and network resources consumed -- than from a neighbouring machine. Reading the data from a directly connected disk is cheaper still. The Quincy scheduler quantifies the data transfer costs for each scheduling assignment. Solving the resulting minimum-cost flow problem yields an assignment which minimises the total data transfer cost, achieving data locality.
 
 \Cref{table:quincy-variables} gives the variables maintained by the Quincy scheduler. All arc costs are functions of these variables. The system breaks down the data transfer of a task $\mathbf{T}_{i}^{j}$ into two components: transfer across the core switch, $\chi\left(\mathbf{T}_{i}^{j}\right)$, and top of rack switches, $\mathcal{R}\left(\mathbf{T}_{i}^{j}\right)$.
 
-For a particular machine $\mathbf{M}_m$, the data transfer $\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ and $\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ can be computed exactly. However, when it comes to determining the cost of arcs to aggregator nodes $\mathbf{R}_l$ or $\mathbf{X}$, an exact figure is not possible. Instead, Quincy takes a conservative upper bound: the \emph{greatest} data transfer that results from scheduling $\mathbf{T}_{i}^{j}$ on the \emph{worst} machine in rack $\mathbf{R}_l$ or the cluster as a whole, respectively.
+For a particular machine $\mathbf{M}_m$, the data transfer $\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ and $\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ can be computed exactly. However, when it comes to determining the cost of arcs to aggregator vertices $\mathbf{R}_l$ or $\mathbf{X}$, an exact figure is not possible. Instead, Quincy takes a conservative upper bound: the \emph{greatest} data transfer that results from scheduling $\mathbf{T}_{i}^{j}$ on the \emph{worst} machine in rack $\mathbf{R}_l$ or the cluster as a whole, respectively.
 
 The system also keeps track of the time $\theta_i^j$ and $\nu_i^j$ a task spends scheduled and unscheduled, respectively. If the task is stopped and then restarted, these times continue to accumulate. This property is needed to guarantee the scheduler makes progress.
 
@@ -317,17 +301,17 @@ The only remaining cost is $v_i^j$, the penalty associated with leaving a task $
 Although the costs assigned to arcs vary between policies, the structure of the network remains the same. Some simple properties are proved below, which will be useful when analysing the asymptotic complexity of algorithms.
 
 % WORDCOUNT: Could shift the proofs to appendix, although keep the claims here.
-\begin{lemma} \label{lemma:network-num-nodes}
-Let $n$ denote the number of nodes in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.
+\begin{lemma} \label{lemma:network-num-vertices}
+Let $n$ denote the number of vertices in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.
 \end{lemma}
 \begin{proof}
-There is one node $\mathbf{T}_i^j$ for every task and one node $\mathbf{M}_m$ for every machine, so trivially $n = \Omega\left(\text{\# machines} + \text{\# tasks}\right)$.
+There is one vertex $\mathbf{T}_i^j$ for every task and one vertex $\mathbf{M}_m$ for every machine, so trivially $n = \Omega\left(\text{\# machines} + \text{\# tasks}\right)$.
 
-It remains to show $n = O\left(\text{\# machines} + \text{\# tasks}\right)$. Consider each class of node in turn.
+It remains to show $n = O\left(\text{\# machines} + \text{\# tasks}\right)$. Consider each class of vertex in turn.
 
-As stated above $\text{\# task nodes} = \text{\# tasks}$ and $\text{\# machine nodes} = \text{\# machines}$. There is an unscheduled aggregator $\mathbf{U}^j$ for each job $j$, and $\text{\# jobs} = O\left(\text{\# tasks}\right)$. There is at least one machine in every rack, so $\text{\# rack aggregator nodes} = O\left(\text{\# machines}\right)$. 
+As stated above $\text{\# task vertices} = \text{\# tasks}$ and $\text{\# machine vertices} = \text{\# machines}$. There is an unscheduled aggregator $\mathbf{U}^j$ for each job $j$, and $\text{\# jobs} = O\left(\text{\# tasks}\right)$. There is at least one machine in every rack, so $\text{\# rack aggregator vertices} = O\left(\text{\# machines}\right)$. 
 
-In addition, there is also a cluster aggregator node $\mathbf{X}$ and sink node $\mathbf{S}$ which are independent of the number of tasks and machines, contributing $O(1)$ nodes.
+In addition, there is also a cluster aggregator vertex $\mathbf{X}$ and sink vertex $\mathbf{S}$ which are independent of the number of tasks and machines, contributing $O(1)$ vertices.
 
 Thus:
 \[n = O\left(\text{\# tasks} + \text{\# machines} + 1\right) = O\left(\text{\# tasks} + \text{\# machines}\right)\]
@@ -340,17 +324,17 @@ Hence:
 Let $m$ denote the number of arcs in the network. Then $m = O(n)$. That is, the network is \emph{sparse}.
 \end{lemma}
 \begin{proof}
-Consider the outgoing arcs from each class of node. Since every arc is outgoing from exactly one node, this will count every node exactly once.
+Consider the outgoing arcs from each class of vertex. Since every arc is outgoing from exactly one vertex, this will count every vertex exactly once.
 
-Each machine $\mathbf{M}_l$ and unscheduled aggregator $\mathbf{U}^j$ has a single outgoing arc, to sink node $\mathbf{S}$. This contributes $O\left(\text{\# machines}\right)$ arcs. The sink node $\mathbf{S}$ has no outgoing arcs.
+Each machine $\mathbf{M}_l$ and unscheduled aggregator $\mathbf{U}^j$ has a single outgoing arc, to sink vertex $\mathbf{S}$. This contributes $O\left(\text{\# machines}\right)$ arcs. The sink vertex $\mathbf{S}$ has no outgoing arcs.
 
 Rack aggregators $\mathbf{R}_l$ have outgoing arcs to each machine in their rack. Each machine is present in exactly one rack, so these contribute collectively $O\left(\text{\# machines}\right)$ arcs. The cluster aggregator $\mathbf{X}$ has outgoing arcs to each rack; since $O\left(\text{\# racks}\right) = O\left(\text{\# machines}\right)$, this contributes $O\left(\text{\# machines}\right)$ arcs.
 
-It remains to consider task nodes $\mathbf{T}_i^j$. The number of arcs leaving the task node has a constant upper bound. The system computes a \emph{preference list} of machines and racks, and includes arcs only to those nodes (and the cluster aggregator $\mathbf{X}$). Thus this contributes $O\left(\text{\# tasks}\right)$ arcs.
+It remains to consider task vertices $\mathbf{T}_i^j$. The number of arcs leaving the task vertex has a constant upper bound. The system computes a \emph{preference list} of machines and racks, and includes arcs only to those vertices (and the cluster aggregator $\mathbf{X}$). Thus this contributes $O\left(\text{\# tasks}\right)$ arcs.
 
 Hence:
 \[m = \left(\text{\# machines} + \text{\# tasks}\right)\]
-By \cref{lemma:network-num-nodes}, it follows:
+By \cref{lemma:network-num-vertices}, it follows:
 \[m = O(n)\]
 \end{proof}
 
@@ -362,16 +346,18 @@ In fact we have $m = \Theta(n)$: the network is connected so certainly $m = \Ome
 The largest supply in the network is a unit supply.
 \end{lemma}
 \begin{proof}
-The only nodes in the network with any supply are the task nodes, $\mathbf{T}_i^j$. These by definition have unit supply.
+The only vertices in the network with any supply are the task vertices, $\mathbf{T}_i^j$. These by definition have unit supply.
 \end{proof}
 
 \begin{remark}
-Most nodes in the network are transshipment nodes, with no demand nor supply. The demand nodes in the network are the sink node $\mathbf{S}$ and (optionally) unscheduled aggregators, $\mathbf{U}^j$. These may have a greater than unit demand.
+Most vertices in the network are transshipment vertices, with no demand nor supply. The demand verticesthe network are the sink vertex $\mathbf{S}$ and (optionally) unscheduled aggregators, $\mathbf{U}^j$. These may have a greater than unit demand.
 \end{remark}
 
-\subsection{Further definitions and properties}
+\subsection{Key concepts in flow algorithms}
 
 % PROOFREAD: 1 minor edits except for Residual Networks which was major
+
+In the preceding sections, I have formalised the notion of a flow network and outlined how cluster scheduling can be formulated in terms of the MCF problem. This section introduces some further definitions and properties of flow networks, necessary for the implementation and analysis of algorithms in the next chapter.
 
 \subsubsection{Pseudoflows} \label{sec:prep-flow-pseudo}
 
@@ -380,23 +366,23 @@ Most nodes in the network are transshipment nodes, with no demand nor supply. Th
 A \emph{pseudoflow} is a vector $\mathbf{x}$ which satisfies the capacity constraints
 \cref{eq:capacity-constraints}, but which need not satisfy the mass balance constraints \cref{eq:mass-balance-constraints}. While all flow algorithms must return a feasible solution, many operate on pseudoflows in intermediate stages. 
 
-The \emph{excess} at a node $i\in V$ is defined to be:
+The \emph{excess} at a vertex $i\in V$ is defined to be:
 
 \begin{equation}
-e_i=b_i+\sum_{\set{j | (j,i)\in E}}x_{ji}-\sum_{\set{j | (i,j)\in E}}x_{ij}
+e_i=b_i+\sum_{\set{j | (j,i)\in E}}x_{ji}-\sum_{\set{j | (i,j)\in E}}x_{ij}.
 \end{equation}
 
-Node i is said to be an \emph{excess node} if $e_{i}>0$, and a \emph{deficit node} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$ is said to be \emph{balanced}. Note the mass balance constraints \cref{eq:mass-balance-constraints} hold if and only if all nodes are balanced.
+Vertex $i$ is said to be an \emph{excess vertex} if $e_{i}>0$, and a \emph{deficit vertex} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$ is said to be \emph{balanced}. Note the mass balance constraints \cref{eq:mass-balance-constraints} hold if and only if all vertices are balanced.
 
 \subsubsection{Residual networks}
 
 % PROOFREAD: 1 major edits.
 
-The notion of \emph{residual networks} is used by many flow algorithms. The residual network of $G$ is defined with respect to a (pseudo)flow $\mathbf{x}$, and is denoted by $G_{\mathbf{x}}$. Informally, it represents the actions an algorithm can take to modify the (pseudo)flow $\mathbf{x}$. In the case where $\mathbf{x=0},$ we have $G_{\mathbf{0}}=G$.
+The notion of \emph{residual networks} is used in many flow algorithms. The residual network of $G$ is defined with respect to a (pseudo)flow $\mathbf{x}$, and is denoted by $G_{\mathbf{x}}$. Informally, it represents the actions an algorithm can take to modify the (pseudo)flow $\mathbf{x}$. In the case where $\mathbf{x=0},$ we have $G_{\mathbf{0}}=G$.
 
 Formally, we define $G_{\mathbf{x}}=\left(V,E_{\mathbf{x}}\right)$ to be a directed graph where:
 \begin{equation}
-E_{\mathbf{x}}=\set{(i,j)\in V^{2} | (i,j)\in E\land x_{ij}<u_{ij}} \cup \set{(j,i)\in V^{2} | (i,j)\in E\land x_{ij}>0} 
+E_{\mathbf{x}}=\set{(i,j)\in V^{2} | (i,j)\in E\land x_{ij}<u_{ij}} \cup \set{(j,i)\in V^{2} | (i,j)\in E\land x_{ij}>0}. 
 \end{equation}
 
 The former set contains \emph{forward arcs}, present in the original flow network. Arcs $(i,j)$ which are \emph{saturated}, i.e.\ $x_{ij}=u_{ij}$, are omitted from the residual network: they do not allow for any additional flow to be pushed. The second set consists of \emph{backward arcs}, the reverse of arcs in the original network. Only arcs with positive flow in the original network have a corresponding backwards arc. Pushing flow along the backward arc corresponds to cancelling flow on the forward arc.
@@ -405,63 +391,59 @@ The \emph{residual capacity} of an arc $(i,j)\in E_{\mathbf{x}}$ is defined to b
 
 \begin{equation}
 r_{ij}=\begin{cases}
-u_{ij}-x_{ij} & ,\:(i,j)\:\mbox{is a forward arc}\\
-x_{ij} & ,\:(i,j)\:\mbox{is a reverse arc}
+u_{ij}-x_{ij} & ,\:(i,j)\:\mbox{is a forward arc;}\\
+x_{ij} & ,\:(i,j)\:\mbox{is a reverse arc.}
 \end{cases}
 \end{equation}
 
 The cost of forward arcs is the same as in the original network, whereas the cost of a reverse arc $(j,i)$ is defined as $-c_{ij}$.
 
-\subsubsection{Reduced cost and duality} \label{sec:prep-flow-rc-and-dual}
+\subsubsection{Duality and reduced cost} \label{sec:prep-flow-rc-and-dual}
 
 % PROOFREAD: 1 minor edits.
 
-Each node $i\in V$ is associated with a \emph{potential}, $\pi_{i}$.\\
+Every linear programming problem may be viewed from two perspectives, as either a \emph{primal} or \emph{dual} problem. Solutions to the dual problem provide a lower bound on the objective value of the primal problem. The primal version of the MCF problem was stated previously in \cref{sec:prep-flow-mcf}. 
 
-The \emph{reduced cost} of an arc $(i,j)\in E$ with respect to potential vector $\boldsymbol{\pi}$ is defined as:
+To formulate the dual problem, it is necessary to associate with each vertex $i \in V$ a \emph{dual variable} $\pi_i$, called the \emph{vertex potential}. The \emph{reduced cost} of an arc $(i,j)\in E$ with respect to a potential vector $\boldsymbol{\pi}$ is defined as:
 \begin{equation} \label{eq:reduced-costs}
-c_{ij}^{\boldsymbol{\pi}}=c_{ij}-\pi_{i}+\pi_{j}
+c_{ij}^{\boldsymbol{\pi}}=c_{ij}-\pi_{i}+\pi_{j}.
 \end{equation}
 
-Every linear programming problem, referred to as a \emph{primal} problem, may be converted to a \emph{dual} problem. Solutions to the dual problem give an upper bound on the objective value of the primal problem.
-
-The primal version of the minimum-cost flow problem is stated in \cref{sec:prep-flow-mcf}. Its corresponding dual problem is:
-
+The dual problem can now be stated as:
 \begin{equation}
 \mathrm{maximise}\; w(\boldsymbol{\pi})=\sum_{i\in V}b_{i}\pi_{i}-\sum_{(i,j)\in E}\max\left(0,-c_{ij}^{\pi}\right)u_{ij}
 \end{equation}
-
 with no constraints on $\boldsymbol{\pi}$.
 
-Many flow algorithms seek to solve the dual problem, as this may be computationally more efficient. Others try and get the best of both worlds, operating on both the primal and dual version of the problem.
+Many flow algorithms seek to solve the dual problem, as this may be computationally more efficient. Others try to enjoy the best of both worlds, operating on both the primal and dual versions of the problem.
 
 \subsubsection{Optimality conditions} \label{sec:prep-flow-optimality}
 
 % PROOFREAD: 1 minor edits.
 
-Below, I give conditions on a solution vector $\mathbf{x}$ being optimal. These may suggest algorithms for solving the problem. Moreover, they can be used in testing, to verify that a solution is indeed optimal.\\
+Below, I give conditions for a solution vector $\mathbf{x}$ to be optimal. These may suggest algorithms for solving the problem, and are needed for correctness proofs in the subsequent chapter. \\
 
 \begin{restatable}[Negative cycle optimality conditions]{thm}{optimalitynegcycle}
 \label{thm:optimality-neg-cycle}
 Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
 \end{restatable}
 \begin{proof}
-See~\cite[p.~307]{Ahuja:1993}.
+See Ahuja, \textit{et al.}~\cite[p.~307]{Ahuja:1993}.
 \end{proof}
 
 \begin{thm}[Reduced cost optimality conditions] \label{thm:optimality-reduced-cost}
-Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if there exists a node potential vector $\boldsymbol{\pi}$ such that that the reduced cost of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
+Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if there exists a vertex potential vector $\boldsymbol{\pi}$ such that that the reduced cost of each arc in the residual network $G_{\mathbf{x}}$ is non-negative:
 
 \begin{equation} \label{eq:optimality-reduced-cost}
 \forall(i,j)\in E_{\mathbf{x}}\cdot c_{ij}^{\boldsymbol{\pi}}\geq 0
 \end{equation}
 \end{thm}
 \begin{proof}
-See~\cite[p.~309]{Ahuja:1993}.
+See Ahuja, \textit{et al.}~\cite[p.~309]{Ahuja:1993}.
 \end{proof}
 
 \begin{thm}[Complementary slackness optimality conditions] \label{thm:optimality-complementary-slackness}
-Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if there exists a node potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
+Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if there exists a vertex potential vector $\boldsymbol{\pi}$ such that for every arc $(i,j)\in E$:
 
 \normalfont % don't want text in maths italic
 \begin{subequations} \label{eq:optimality-complementary-slackness}
@@ -473,20 +455,16 @@ Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-
 \end{subequations}
 \end{thm}
 \begin{proof}
-The result follows immediately from expanding out \cref{eq:optimality-reduced-cost}, applying the definition of a residual network and performing a case analysis. A detailed proof is given in~\cite[p.~310]{Ahuja:1993}.
+The result follows immediately from expanding out \cref{eq:optimality-reduced-cost}, applying the definition of a residual network and performing a case analysis. A detailed proof is given by Ahuja, \textit{et al.}~\cite[p.~310]{Ahuja:1993}.
 \end{proof}
 
 \subsubsection{Notation for complexity analysis} \label{sec:prep-flow-complexity}
 
 % PROOFREAD: 1 minor edits.
 
-Some notation will be useful for stating the asymptotic complexity of algorithms. 
+Here, I introduce notation that will be useful for stating the asymptotic complexity of algorithms. Let $n=|V|$ and $m=|E|$ denote the number of vertices and arcs respectively.
 
-Let $n=|V|$ and $m=|E|$ denote the number of nodes and arcs respectively.
-
-The running time of algorithms depends not just on the size of the
-network, but also on the magnitudes of input data. Let $U$ denote
-the largest node supply/demand, or arc capacity:
+The running time of algorithms may depend not just on the size of the network, but also on the magnitudes of input data. Let $U$ denote the largest vertex supply/demand, or arc capacity:
 \begin{equation}
 U=\max\left(\max\left\{ |b_{i}|\::\: i\in V\right\} ,\max\left\{ u_{ij}\::\:\left(i,j\right)\in E\right\} \right)
 \end{equation}
@@ -499,9 +477,9 @@ C=\max\left\{ c_{ij}\::\:(i,j)\in E\right\}
 
 \section{Project management}
 
-Before any attempt could be made to develop improved flow algorithms, it was necessary to understand the considerable body of prior work  summarised in \cref{sec:intro-related-work,sec:prep-flow}. Consequently, reviewing the existing literature formed a key part of the preparatory stage of this project. 
+Before I could start to develop improved flow algorithms, it was necessary to understand the considerable body of prior work  summarised in \cref{sec:intro-related-work} and \cref{sec:prep-flow}. Consequently, reviewing the existing literature formed a key part of the preparatory stage of this project. 
 
-With the background material mastered, it was time to start refining the initial project proposal (see \cref{appendix:proposal}) into a concrete plan. The project's requirements were carefully reviewed, described in the next section. An appropriate development model and testing strategy are identified in light of these results, described in the final two sections.
+Having mastered the background material, I began to refine the initial project proposal (see \cref{appendix:proposal}) into a concrete plan. To start with, I carefully reviewed the project's requirements, described in the next section. In the final two sections, I describe how I selected a development model and devised a testing strategy appropriate for the project's requirements.
 
 \subsection{Requirements analysis} \label{sec:prep-management-requirements}
 
@@ -518,6 +496,7 @@ With the background material mastered, it was time to start refining the initial
 
 The main goals for the project are listed in \cref{table:prep-project-requirements}, broadly following the success criteria and extensions suggested in the original project proposal.
 
+% FIGURE: Make this prettier, not happy with "mid". Circles don't really work though.
 \begin{table}
     \centering
     \begin{tabular}{clccc}
@@ -526,23 +505,23 @@ The main goals for the project are listed in \cref{table:prep-project-requiremen
         \hline
         & \textit{Success criteria} \tabularnewline
         S1 & Implement standard flow algorithms & High & Low & High \tabularnewline
-        S2 & Design an approximate solver & High & Medium & Low \tabularnewline
+        S2 & Design an approximate solver & High & Mid. & Low \tabularnewline
         S3 & Integrate system with Firmament & High & Low & Low \tabularnewline
-        S4 & Develop a benchmark suite  & High & Low & Medium \tabularnewline
+        S4 & Develop a benchmark suite  & High & Low & Mid. \tabularnewline
         \hline
         & \textit{Optional extensions} \tabularnewline
-        E1 & Design an incremental solver & Medium & High & High \tabularnewline
-        E2 & Build cluster simulator & Medium & Medium & Medium \tabularnewline
-        E3 & Optimise algorithm implementations & Low & Medium & High \tabularnewline
+        E1 & Design an incremental solver & Mid. & High & High \tabularnewline
+        E2 & Build cluster simulator & Mid. & Mid. & Mid. \tabularnewline
+        E3 & Optimise algorithm implementations & Low & Mid. & High \tabularnewline
         \hline
     \end{tabular}
     \caption{Project deliverables}
     \label{table:prep-project-requirements}
 \end{table}
 
-Core success criteria are assigned a high priority: work on extensions will only begin once all success criteria are developed and tested (see \cref{sec:prep-implsched}). These deliverables are generally low risk, so I am confident that the core criteria can be met. Most of the risk is concentrated in the approximate solver. This approach has not previously been attempted, so it is difficult to predict how it will perform.
+Core success criteria were assigned a high priority: work on extensions only began once all success criteria had been met (see \cref{sec:prep-implsched}). Most of the risk was concentrated in the approximate solver. This approach had not previously been attempted, so it was difficult to predict how it would perform.
 
-Extensions have tended to be more risky. Although an incremental solution approach turned out to be highly successful (see \cref{sec:eval-incremental}), at the outset of the project it was unclear whether it was even possible to build such a solver. All extensions require considerable implementation work, and so have been rated medium or high difficulty.
+I deemed extensions to be more risky. Although the incremental solution approach turned out to be highly successful (see \cref{sec:eval-incremental}), at the outset of the project it was unclear whether it was even possible to build such a solver. All extensions were rated medium or high difficulty, because of the considerable implementation work required.
 
 \subsection{Development life cycle}
 \label{sec:prep-management-model}
@@ -570,21 +549,19 @@ Extensions have tended to be more risky. Although an incremental solution approa
 % Test harness: incremental development, effectively sequences of waterfall
 % New approaches: evolutionary prototyping
 
-A software development life cycle or process provides structure to a project, dividing work into distinct phases to simplify management. This project has clearly defined requirements, suggesting the waterfall model. However, there is considerable uncertainty associated with the design of some deliverables: methods such as incremental development or evolutionary prototyping might be more appropriate in these cases. This project adopts the \emph{spiral model}, a risk-driven life cycle \emph{generator}, which is able to accommodate such varying requirements.
+A software development life cycle or process provides structure to a project, dividing work into distinct phases to simplify management. This project has clearly defined requirements, suggesting a waterfall model. However, there was considerable uncertainty associated with the design of some deliverables: methods such as incremental development or evolutionary prototyping might be more appropriate in these cases. I adopted the \emph{spiral model}, a risk-driven life cycle \emph{generator}, which is able to accommodate such varying requirements.
 
-The spiral model indicates that development of deliverables S1 and S3 in \cref{table:prep-project-requirements} should follow the \emph{waterfall} model: they are low risk, with precisely known requirements. By contrast, the test suite consisting of deliverables S4 and E2 used an \emph{incremental} development approach: effectively, iteratively applying the waterfall model. At the outset of the project, it is not known what tests will be needed\footnotemark, so waterfall cannot be used. But it is appropriate to use waterfall for implementation of each test type.
-\footnotetext{For example, considerable extension to the cluster simulator was required to support incremental testing, see \cref{sec:impl-firmament}.}
+The spiral model indicates that development of deliverables S1 and S3 in \cref{table:prep-project-requirements} should follow the \emph{waterfall} model: they are low risk, with precisely known requirements. By contrast, the test suite --- consisting of deliverables S4 and E2 --- used an \emph{incremental} development approach, with new tests added after other deliverables were completed.
 
-Deliverables S2, E1 and E3 are all rated as medium or high risk. Their requirements are fairly well known, but there is significant uncertainty as to the appropriate design. \emph{Evolutionary prototyping} was followed in accordance with the spiral model: a robust prototype is constructed, and constantly refined\footnotemark. Building a prototype early was invaluable for risk management: for example, it allowed the viability of the incremental solver (extension E1) to be confirmed before committing significant development time.
-\footnotetext{For extension E3, this robust prototype was in fact developed as part of deliverable S1.}
+Deliverables S2, E1 and E3 were all rated as medium or high risk. Their requirements were fairly well known, but there was significant uncertainty as to the appropriate design. \emph{Evolutionary prototyping} was followed in accordance with the spiral model, first constructing a robust prototype which is then repeatedly refined. Building a prototype early was invaluable for risk management: for example, it allowed the viability of the incremental solver (extension E1) to be confirmed before committing significant development time.
 
-%TODO: Figure for Spiral model
+%FIGURE: Spiral model
 
 \subsection{Testing strategy}
 \label{sec:prep-management-testing}
-Unit tests were written for each class. Where possible, the GTest framework was used (see \cref{sec:prep-tools-libraries}). Testing of flow algorithms requires large external datasets, which conventional unit test frameworks such as GTest do not support. A Python test harness was developed to support these cases (see \cref{sec:eval-testing-unit}). Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-integration}).
+I developed unit tests for each class. Where possible, I used the GTest framework (see \cref{sec:prep-tools-libraries}). However, testing of flow algorithms requires large external datasets: a Python test harness was developed to automate these tests. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-integration}).
 
-Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E2 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-firmament,sec:eval-benchmark-strategy,appendix:impl-benchmark-harness}.
+Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E2 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-firmament}, \cref{sec:eval-benchmark-strategy} and \cref{appendix:impl-benchmark-harness}.
 
 \section{Implementation schedule} \label{sec:prep-implsched}
 
@@ -612,56 +589,56 @@ For a project of this scope, it is essential to plan the work before commencing 
 
 \begin{enumerate}
     \item \label{itm:phase-approximate}
-        \textbf{Approximate solver} -- develop an algorithm to find approximate solutions to the minimum-cost flow problem. Provides deliverables S1, S2 and S3; see \cref{sec:impl-approx}.
+        \textbf{Approximate solver} -- develop an algorithm to find approximate solutions to the MCF problem. Provided success criteria S1, S2 and S3; see \cref{sec:impl-approx}.
     \item \label{itm:phase-evaluation} 
-        \textbf{Performance evaluation} -- run experiments to determine the speed-up offered by the system. Will require development of a benchmark suite to facilitate testing. Provides deliverables S4 and E2; see \cref{chap:eval}.
+        \textbf{Performance evaluation} -- run experiments to determine the speed-up offered by the system. This required development of a benchmark suite to facilitate testing, and provided deliverables S4 and E2; see \cref{chap:eval}.
     \item \label{itm:phase-incremental} 
-        \textbf{Incremental solver} -- develop an algorithm solving the minimum-cost flow problem on sequences of related flow networks, as occurs in flow scheduling. The method reuses solutions to previous networks in the sequence, to speedup finding a solution to successive networks. Provides deliverable E1; see \cref{sec:impl-incremental}.
+        \textbf{Incremental solver} -- develop an algorithm solving the minimum-cost flow problem on sequences of related flow networks. The method reuses solutions to previous networks in the sequence to improve performance. Provided deliverable E1; see \cref{sec:impl-incremental}.
     \item \label{itm:phase-optimisations}
-        \textbf{Optimisations} -- previous phases have focused on improvements in \emph{algorithmic} techniques. In practice, performance is heavily dependent on the \emph{implementation} of the algorithm. Optimisation will be needed for the project to be competitive with existing solvers. Provides deliverable E3; see \cref{sec:eval-optimisations}.
+        \textbf{Optimisations} -- previous phases focused on improvements in \emph{algorithmic} techniques. In practice, performance is heavily dependent on the \emph{implementation} of the algorithm. Consequently, optimisations were necessary for the project to be competitive with existing solvers. Delivers extension E3; see \cref{sec:eval-optimisations}.
 \end{enumerate}
 
-All core success criteria are satisfied after the completion of the first two phases. This ensured the key goals of the project would be met before work on extensions commenced. 
+All core success criteria were satisfied after the completion of the first two phases. This ensured the key goals of the project were met before work on extensions commenced. 
 
-Optimisation was postponed to the last phase. As \emph{evolutionary prototyping} was used for development of the approximate and incremental solvers (see \cref{sec:prep-management-model}), optimisation during phases \ref{itm:phase-approximate} or \ref{itm:phase-incremental} would have been premature. Leaving it to the final phase also ensures that time will only be spent on optimisation when all other goals have been met, appropriate as it is the lowest priority deliverable in \cref{table:prep-project-requirements}.
-
-Phase \ref{itm:phase-evaluation} is revisited upon the completion of phase \ref{itm:phase-incremental}, and after each optimisation in phase \ref{itm:phase-optimisations}. The development of the benchmark suite (see \cref{appendix:impl-benchmark-harness}) during phase \ref{itm:phase-evaluation} allows for the tests to be performed with little manual intervention, minimising the cost of revisiting this phase.
+%Optimisation was postponed to the last phase. As \emph{evolutionary prototyping} was used for development of the approximate and incremental solvers (see \cref{sec:prep-management-model}), optimisation during phases \ref{itm:phase-approximate} or \ref{itm:phase-incremental} would have been premature. Leaving it to the final phase also ensures that time will only be spent on optimisation when all other goals have been met, appropriate as it is the lowest priority deliverable in \cref{table:prep-project-requirements}.
+%
+%Phase \ref{itm:phase-evaluation} is revisited upon the completion of phase \ref{itm:phase-incremental}, and after each optimisation in phase \ref{itm:phase-optimisations}. The development of the benchmark suite (see \cref{appendix:impl-benchmark-harness}) during phase \ref{itm:phase-evaluation} allows for the tests to be performed with little manual intervention, minimising the cost of revisiting this phase.
 
 \section{Choice of tools}
 
 \subsection{Languages} 
 
 \subsubsection{C++}
-All minimum-cost flow algorithms were implemented in C++. The performance of C++ is on par with low-level languages like C, with a number of excellent optimising compilers\footnotemark. At the same time, it adds support for object oriented programming and other features typical of high-level languages.
+I implemented the minimum-cost flow algorithms in C++. The performance of C++ is on par with low-level languages like C, with a number of excellent optimising compilers\footnotemark. At the same time, it adds support for object oriented programming and other features typical of high-level languages.
 \footnotetext{Clang and GCC were used in this project.}
 
 \subsubsection{Python and shell}
-The Python scripting language was used for the development of test harnesses (see \cref{sec:eval-testing-unit,appendix:impl-benchmark-harness}), and for generation of many of the figures appearing in \cref{chap:eval}. As a high-level language, development could proceed rapidly in Python. Of course, as an interpreted language it is many times slower than C++: however, it was not used for any performance critical code.
-
-Shell scripting was used for particularly simple tasks, that involved plumbing together UNIX utilities. Python was favoured for anything more complicated, however, as it allows for a more structured programming style.
+I used the Python scripting language for the development of test harnesses (see \cref{sec:eval-testing-unit} and \cref{appendix:impl-benchmark-harness}), and for generation of many of the figures appearing in \cref{chap:eval}. As a high-level language, Python aided productivity, although it was not used for any performance critical code. Shell scripting was used for particularly simple tasks, that involved plumbing together UNIX utilities. Python was favoured for anything more complicated, however, as it allows for a more structured programming style.
 
 \subsection{Libraries} \label{sec:prep-tools-libraries}
 
-This project made extensive use of the Boost family of libraries. Boost has been extensively peer-reviewed and tested, and is designed to integrate well with the C++ standard library. Command-line argument parsing was performed using Boost's Program Options library. Algorithm runtime was measured using Boost's Timer library. Other features of Boost were used for a variety of purposes, such as string manipulation during parsing.
+% FIGURE: Not sure what, but Malte suggested it in annotation?
+% SOMEDAY: Format program names in different font?
+This project made extensive use of the Boost family of libraries. Boost has been extensively peer-reviewed and tested, and is designed to integrate well with the C++ standard library. I used Boost's Program Options library for command-line argument parsing. To measure algorithm runtime, I employed Boost's Timer library. I also used Boost for a variety of smaller tasks, such as string manipulation during parsing.
 
-Logging was performed using the glog library, developed by Google. For this project, logging is used primarily for debugging. glog has extensive support for this use case, with logging levels configurable on a per-file and per-function basis. glog also supports checking a variety of assertions: these were used extensively during development to verify invariants of algorithms and data structures.
+For logging, I used the glog library which was developed by Google. glog is highly configurable, allowing logging levels to be specified on a per-file or even per-function basis. glog also supports checking a variety of assertions: these were used extensively during development to verify invariants of algorithms and data structures.
 
-Unit tests were written with the aid of the gtest library, also due to Google. It follows the popular xUnit architecture, which I was already familiar with from JUnit. Furthermore, I felt it was one of the best designed unit testing libraries: test failure produces informative error messages, and it has support for a wide range of assertions.
+I developed unit tests with the aid of the gtest library, also due to Google. It follows the popular xUnit architecture, which I was already familiar with from JUnit. Further, I felt it was one of the best designed unit testing libraries: it has support for a wide range of assertions, and test failure produces informative error messages.
 
 \subsection{Flow scheduling}
 
-The Firmament flow scheduling system is used for testing this project. The only other flow scheduling system in existence is Quincy, which pioneered the approach; however, Quincy is not publicly available. Firmament in any case has considerably extended the original work of Quincy, and so allows for a wider variety of experiments to be conducted.
+The Firmament cluster scheduling platform is used for testing this project. The only other flow scheduling system in existence is Quincy, which pioneered the approach; however, Quincy is not publicly available.
 
 \subsection{Revision control and backup strategy}
 
 The Git distributed revision control system was used to manage the project source code, along with the {\LaTeX} code for this dissertation. Each Git working directory is a clone of the repository, complete with versioning history. The benchmark suite makes extensive use of this distributed nature of Git (see \cref{appendix:impl-benchmark-harness}).
 
-To simplify testing, commits were automatically pushed to test machines in the SRG cluster, via a Git hook. Furthermore, changes were regularly pushed to GitHub --- a repository hosting service --- to aid collaboration with my supervisors. 
+To simplify testing, commits were automatically pushed to test machines in the SRG cluster, via a Git hook. Furthermore, changes were regularly pushed to GitHub, a popular repository hosting service.
 
-Given the distributed nature of Git, having multiple working copies as described above automatically provides data replication. However, it would be possible for all copies of the repository to become corrupted due to user error, so this cannot be relied upon as a backup strategy. Moreover, some files were not stored in Git\footnotemark.
-\footnotetext{For example, files containing test data were often large, so had to be stored outside of Git.}
+Given the distributed nature of Git, having multiple working copies as described above automatically provides data replication. However, it would be possible for all copies of the repository to become corrupted due to user error, so this could not be relied upon as a backup strategy. Moreover, some files were not stored in Git\footnotemark.
+\footnotetext{For example, test data files were often large, so had to be stored outside of Git.}
 
-To protect against these threats, nightly backups were taken using a cron job. This took snapshots of the Git repository using git-bundle. Copies of other project files were made using rdiff-backup, which maintains a history of changes without the overhead of a full version control system like Git.
+To protect against these threats, nightly backups were taken using a cron job. This took snapshots of the Git repository using \code{git-bundle}. Copies of other project files were made using \code{rdiff-backup}, which maintains a history of changes without the overhead of a full version control system like Git.
 
 Copies of the resulting snapshots were stored on the university MCS and the Student Run Computing Facility (SRCF) in Cambridge. Additional off-site backups were made to Copy, a cloud storage service based in the US.
 

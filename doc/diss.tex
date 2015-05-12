@@ -114,6 +114,12 @@
 \newcommand{\xmark}{{\xmarkcolor \ding{55}}}
 \newcommand{\mmark}{{\mmarkcolor \tikz \node[draw,circle]{};}}
 
+%\newcommand{\tikzcircle}[2][black,fill=black]{\tikz[baseline=-0.5ex]\draw[#1,radius=#2] (0,0) circle ;}%
+%% N.B. Need to add extra {} to make this work, weird
+%\newcommand{\circlebad}{\tikzcircle[red,fill=red]{2pt}}
+%\newcommand{\circleok}{\tikzcircle[orange,fill=orange]{2pt}}
+%\newcommand{\circlegood}{\tikzcircle[green,fill=green]{2pt}}
+
 % colors for percentile figures
 \definecolor{matplotlib_blue}{HTML}{00008B}
 \definecolor{matplotlib_green}{HTML}{004225}
@@ -166,6 +172,8 @@
     morecomment=[l][\color{magenta}]{\#},
     captionpos=b,
 }
+
+\newcommand{\code}[1]{\texttt{#1}}
 
 
 %%% Cleverref: must load after hyperref, so orphaned

@@ -10,8 +10,8 @@ Clusters of commodity servers have become the dominant platform for high-through
 
 A \emph{cluster scheduler} chooses which tasks to run on each machine. The choice of scheduler has considerable ramifications on cluster performance and efficiency. Despite this, most approaches rely on \emph{ad hoc} heuristics, which makes it difficult for the scheduler to adapt itself to different cluster designs and application requirements.
 
-The Firmament cluster scheduling platform has been developed to overcome this limitation\footnotemark~\cite[ch.~5]{Schwarzkopf:2015}. In a striking departure from traditional designs, Firmament represents scheduling as an optimisation problem over a flow network. Machines and tasks are represented as nodes. Flow drains from each task node into either a machine node (to schedule the task there), or a special node (leaving the task unscheduled).
-\footnotetext{Firmament has been developed by the supervisors for this project, Malte Schwarzkopf and Ionel Gog, as part of the Cambridge Systems at Scale initiative (\url{http://camsas.org}).}
+The Firmament cluster scheduling platform has been developed to overcome this limitation\footnotemark~\cite[ch.~5]{Schwarzkopf:2015}. In a striking departure from traditional designs, Firmament represents scheduling as an optimisation problem over a flow network. Machines and tasks are represented as vertices. Flow drains from each task vertex into either a machine vertex (to schedule the task there), or a special vertex (leaving the task unscheduled).
+\footnotetext{Firmament was developed by Malte Schwarzkopf and Ionel Gog, as part of the Cambridge Systems at Scale initiative (\url{http://camsas.org}).}
 
 The capacity values on arcs within the flow network restrict the possible schedules, e.g.\ limiting the number of tasks which can run on each machine. Cost values specify preferences between possible scheduling assignments. Solving the minimum-cost flow problem on this network yields a schedule that is optimal for the given costs.
 

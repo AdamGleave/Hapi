@@ -13,7 +13,7 @@ The project was highly successful. All success criteria set forth in the project
         \tabularnewline
         \hline
         & \textit{Success criteria} \tabularnewline
-        S1 & Implement standard flow algorithms & \cref{sec:impl-cycle-cancelling,sec:impl-ssp,sec:impl-relax,sec:impl-cost-scaling} \tabularnewline
+        S1 & Implement standard flow algorithms & \cref{sec:impl-cycle-cancelling} to \cref{sec:impl-cost-scaling} \tabularnewline
         S2 & Design an approximate solver & \cref{sec:impl-approx} \tabularnewline
         S3 & Integrate system with Firmament & \cref{sec:eval-test-integration} \tabularnewline
         S4 & Develop a benchmark suite & \cref{appendix:impl-benchmark-harness} \tabularnewline
@@ -64,7 +64,7 @@ In practice, the algorithms developed in this project would be used as part of a
 
 \section{Performance testing strategy} \label{sec:eval-benchmark-strategy}
 
-The goal of this project is to improve the performance of flow schedulers: consequently, benchmarking forms the majority of this evaluation. The dataset used in tests is described in \cref{sec:eval-benchmark-strategy-simulation,sec:eval-benchmark-strategy-octopus,sec:eval-benchmark-strategy-quincy}. Finally, \cref{sec:eval-benchmark-strategy-quincy} outlines the methodology used for the experiments.
+The goal of this project is to improve the performance of flow schedulers: consequently, benchmarking forms the majority of this evaluation. The dataset used in tests is described in \cref{sec:eval-benchmark-strategy-simulation} to \cref{sec:eval-benchmark-strategy-quincy}. Finally, \cref{sec:eval-benchmark-strategy-quincy} outlines the methodology used for the experiments.
 
 \subsection{Simulating a Google cluster} \label{sec:eval-benchmark-strategy-simulation}
 
@@ -85,7 +85,7 @@ This policy is too simplistic to be used in production. However, it serves as a 
 
 \subsection{Quincy cost model} \label{sec:eval-benchmark-strategy-quincy}
 
-Flow scheduling was pioneered by the Quincy system, developed at Microsoft Research~\cite{Isard:2009}. To enable a direct comparison between the two systems, I implemented the Quincy cost model in Firmament (see \cref{sec:prep-flow-scheduling,sec:impl-firmament}). Firmament does not currently support preemption, which required a slight modification to the cost model\footnotemark. Otherwise, the model is as described in the original paper.
+Flow scheduling was pioneered by the Quincy system, developed at Microsoft Research~\cite{Isard:2009}. To enable a direct comparison between the two systems, I implemented the Quincy cost model in Firmament (see \cref{sec:prep-flow-scheduling} and \cref{sec:impl-firmament}). Firmament does not currently support preemption, which required a slight modification to the cost model\footnotemark. Otherwise, the model is as described in the original paper.
 \footnotetext{I would expect the runtime of all solvers to be larger with preemption enabled, as there would be more arcs in the network. However, I would not anticipate changes in the relative performance of algorithms.}
 
 In contrast to the Octopus model, Quincy has direct real-world applicability: throughput increased by 40\% and data transfer was reduced by a factor of 3.9~\cite{Isard:2009}. The flow networks produced are considerably more complex, being representative of realistic cost models. Moreover, this complexity can be controlled by specifying the length of the preference lists, supporting scalability testing of the algorithms.
@@ -177,7 +177,7 @@ Consequently, care has been taken to ensure that all algorithms considered in th
     \label{fig:opt-ap}
 \end{figure}
 
-As explained in \cref{sec:impl-ssp-optimisations}, it is possible to terminate Djikstra's algorithm as soon as it finds a shortest path to a deficit node, without needing to compute shortest paths to all nodes in the graph. This so-called \emph{partial Djikstra} approach yields considerable performance gains. Shown in green on \cref{fig:opt-ap}, it provides a speedup of over $4\times$.
+As explained in \cref{sec:impl-ssp-optimisations}, it is possible to terminate Djikstra's algorithm as soon as it finds a shortest path to a deficit vertex, without needing to compute shortest paths to all vertices in the graph. This so-called \emph{partial Djikstra} approach yields considerable performance gains. Shown in green on \cref{fig:opt-ap}, it provides a speedup of over $4\times$.
 
 This inspired a related optimisation, \emph{small heap}. Djikstra's algorithm works by maintaining a priority queue of vertices, implemented using a binary heap in this project (see \cref{sec:impl-ssp-optimisations} for justification of this choice). This results in a $\Theta\left(\lg l\right)$ complexity for priority queue operations, where $l$ is the length of the queue.
 
@@ -187,7 +187,7 @@ Initialising a heap with $n$ elements has cost $\Theta(n)$; by contrast, inserti
 
 When using standard Djikstra, small heap provides a very small (but statistically significant) speedup. However, a substantial performance gain is achieved when using small heap in conjunction with partial Djikstra. This is because with early termination, the typical length $l$ of the queue is much smaller than the number of vertices $n$ in the graph. Shown in gray on \cref{fig:opt-ap}, partial Djikstra with small heap provides a speedup of around $5\times$ over partial Djikstra with big heap, and over $20\times$ compared with the original implementation.
 
-Two versions of small heap were implemented. To support decreasing the key of elements in the priority queue (a common operation in Djikstra's algorithm), it is necessary to maintain a \emph{reverse index} mapping node IDs to elements in the priority queue. In the big heap, this was implemented using an \emph{array} of length $n$. For the small heap, it is possible to reduce memory consumption by using a \emph{hash table}, storing mappings only for nodes $v$ present in the priority queue.
+Two versions of small heap were implemented. To support decreasing the key of elements in the priority queue (a common operation in Djikstra's algorithm), it is necessary to maintain a \emph{reverse index} mapping vertex IDs to elements in the priority queue. In the big heap, this was implemented using an \emph{array} of length $n$. For the small heap, it is possible to reduce memory consumption by using a \emph{hash table}, storing mappings only for vertices $v$ present in the priority queue.
 
 In practice, the algorithm is not memory bound, and runtime is the primary consideration. Both the array and hash table offer $O(1)$ lookup. The array might be expected to be faster: there is no need to compute a hash function, and a result will always be returned after a single memory read (whereas for the hash table, multiple reads may be required in the event of a collision.) However, the hash table may be faster for large heaps: it can be more efficiently cached, since there is less dead space than in the array.
 
@@ -414,9 +414,9 @@ The method of approximation I developed in this project can be applied to any fl
     \setlength{\tabcolsep}{1.5em}
     \begin{tabular}{p{0.25\textwidth}p{0.75\textwidth}}
         \textbf{Dataset} & \textbf{Description} \tabularnewline
-        NETGEN-8 & Sparse networks, with an average outdegree of $8$. Arc capacities and costs are selected uniformly at random from $\left[1,1000\right]$ and $\left[1,10000\right]$ respectively. Number of supply and demand nodes is set to $\sqrt{n}$, with an average supply of 1000 per node. \tabularnewline
+        NETGEN-8 & Sparse networks, with an average outdegree of $8$. Arc capacities and costs are selected uniformly at random from $\left[1,1000\right]$ and $\left[1,10000\right]$ respectively. Number of supply and demand vertices is set to $\sqrt{n}$, with an average supply of 1000 per vertex. \tabularnewline
         NETGEN-SR & Dense networks, with an average outdegree of $\sqrt{n}$. Other parameters are the same as NETGEN-8. \tabularnewline
-        NETGEN-LO-8 and NETGEN-LO-SR & Like NETGEN-8 and NETGEN-LO-SR, except the average supply per node is 10 instead of 1000. The arc capacities therefore provide only ``loose'' bounds for the feasible solutions. \tabularnewline
+        NETGEN-LO-8 and NETGEN-LO-SR & Like NETGEN-8 and NETGEN-LO-SR, except the average supply per vertex is 10 instead of 1000. The arc capacities therefore provide only ``loose'' bounds for the feasible solutions. \tabularnewline
         GOTO-8 & Sparse networks, with an average outdegree of $8$. Maximum arc capacity is 1000, maximum arc cost is 10,000. \tabularnewline
         GOTO-SR & Dense networks, with an average outdegree of $\sqrt{n}$. Other parameters are the same as GOTO-8. \tabularnewline
     \end{tabular}
@@ -697,7 +697,7 @@ To investigate this, I extended the reference implementation of the relaxation a
 %
 %\subsubsection{Growing size of network}
 %
-%Increase number of nodes, but keep structure.
+%Increase number of vertices, but keep structure.
 %
 %\subsubsection{Increasing complexity of network}
 %
