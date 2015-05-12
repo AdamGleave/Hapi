@@ -26,7 +26,7 @@ The project was highly successful. All success criteria set forth in the project
     \end{tabular}
     % restore section values
     \crefsections
-    \caption{Deliverables for the project and the section describing their implementation.}
+    \caption[Summary of work completed]{Summary of work completed: deliverables for the project, with the section describing their implementation.}
     \label{table:eval-project-requirements}
 \end{table}
 
@@ -58,7 +58,7 @@ In practice, the algorithms developed in this project would be used as part of a
         \includegraphics[width=\textwidth]{screenshots/Firmament_flow_graph}
         \caption{An extract of a flow graph, showing the scheduling of a small number of tasks (left hand side). Arcs are {\color{red} red} if they carry flow, {\color{gray} grey} otherwise.}
     \end{subfigure}
-    \caption{Firmament scheduling tasks using this project's solver}
+    \caption[Firmament scheduling tasks]{Firmament scheduling tasks using <TBC:PNAME>}
     \label{fig:firmament-ui}
 \end{figure}
 
@@ -131,7 +131,7 @@ The algorithms were evaluated at multiple scales, ranging from small clusters th
         Large & 25\% & 3000 \tabularnewline 
         Warehouse-scale & 100\% & 12,000 \tabularnewline
     \end{tabular}
-    \caption{Cluster sizes used in testing}
+    \caption{Cluster sizes used in benchmarks}
     \label{table:cluster-sizes}
 \end{table}
 
@@ -174,7 +174,7 @@ Consequently, care has been taken to ensure that all algorithms considered in th
 \begin{figure}
     \centering
     \includegraphics{opt/ap_relative_1col}
-    \caption{Speedup relative to naive successive shortest path implementation with standard Djikstra and big heap}
+    \caption[Optimisations for successive shortest path]{Optimisations for successive shortest path: speedup relative to the naive implementation with standard Djikstra and big heap. The bars represent the mean speedup over 10 replications, with error bars indicating the 95\% confidence interval.}
     \label{fig:opt-ap}
 \end{figure}
 
@@ -208,7 +208,7 @@ In practice, the algorithm is not memory bound, and runtime is the primary consi
         \includegraphics{opt/relax_arc_cache_octopus_relative_narrow}
         \caption{Octopus cost model}
     \end{subfigure}
-    \caption{Speedup when maintaining cache of arcs crossing the cut}
+    \caption[Optimisations for relaxation]{Optimisations for relaxation: speedup from maintaining cache of arcs crossing the cut. The bars represent the mean speedup over 30 replications, with error bars indicating the 95\% confidence interval.}
     \label{fig:opt-relax-cache-arcs}
 \end{figure}
 
@@ -227,10 +227,9 @@ The effect of this optimisation varies considerably between flow networks, altho
 \begin{figure}
     \centering
     \includegraphics{opt/cs_wave_vs_fifo_relative_2col}
-    \caption{Speedup when using FIFO rather than wave}
+    \caption[Optimisations for cost scaling]{Optimisations for cost scaling: speedup from using a FIFO vertex queue, rather than the wave topological ordering of vertices. The bars represent the mean speedup over 10 replications, with error bars indicating the 95\% confidence interval.}
     \label{fig:opt-cs-wave-vs-fifo}
 \end{figure}
-
 
 Two versions of Goldberg's cost scaling algorithm are described in \cref{sec:impl-cost-scaling-implementations}, \emph{wave} and \emph{FIFO}. The wave implementation has time complexity $O\left(n^3 \lg \left(nC\right)\right)$ compared to a $O\left(n^2m\lg\left(nC\right)\right)$ running time for FIFO. However, for flow scheduling networks the asymptotic time complexities are the same, as $m = O(n)$ by \cref{lemma:network-num-arcs}. 
 
@@ -253,7 +252,7 @@ Moreover, the larger the size of the network, the larger the speedup enjoyed und
         \caption{Goldberg's implementation}
     \end{subfigure}
     \end{widepage}
-    \caption{Performance depending on scaling factor}
+    \caption[Parameter selection for cost scaling]{Parameter selection for cost scaling: choosing a scaling factor $\alpha$. The bars represent the mean runtime over 5 replications, with error bars indicating the 95\% confidence interval.}
     \label{fig:opt-cs-scaling-factor}
 \end{figure}
 
@@ -274,7 +273,7 @@ In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementat
 
 \begin{figure}
     \includegraphics{com/cs_compiler_1col}
-    \caption{Runtime for cost scaling by optimisation setting, for medium (500 machine) cluster}
+    \caption[Choosing a compiler for cost scaling]{Choosing a compiler for cost scaling: runtime on GCC and Clang at varying optimisation levels. Experiment conducted on medium (600 machine) cluster. The bars represent the mean runtime over 5 replications, with error bars indicating the 95\% confidence interval.}
     \label{fig:compiler-settings}
 \end{figure}
 
@@ -288,7 +287,7 @@ In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementat
         O2 & Perform optimisations which do not involve a space-speed tradeoff. \tabularnewline 
         O3 & Optimise even more, possibly at the expense of increased binary size. \tabularnewline
     \end{tabular}
-    \caption{Optimisation levels for GCC and Clang}
+    \caption{Optimisation levels supported by GCC and Clang}
     \label{table:optimisation-flags}
 \end{table}
 
@@ -303,7 +302,8 @@ This test was repeated for all other implementations in the project, the results
 
 \section{Approximation algorithm} \label{sec:eval-approx}
 
-Unlike with other algorithms, evaluation of approximate solution methods (see \cref{sec:impl-approx}) must consider not just their speed, but also their accuracy. To complicate matters further, both the speed and accuracy of the approximation algorithm will vary depending on the terminating condition chosen.
+Unlike with other algorithms, evaluation of approximate solution methods (see \cref{sec:impl-approx}) must consider not just their speed, but also their accuracy\footnotemark. To complicate matters further, both the speed and accuracy of the approximation algorithm will vary depending on the terminating condition chosen.
+\footnotetext{Defined to be the ratio of the cost of an optimal solution, to the cost of the solution returned.}
 
 I introduce an \emph{oracle} policy to ease interpretation of the results. It is assumed that the oracle knows precisely what the cost of the optimal solution is, and will terminate the algorithm as soon as an intermediate solution is found that reaches he target accuracy. Of course, an oracle model could not actually be implemented: the entire challenge of approximation is that the minimum cost is not known \textit{a priori}. The oracle policy therefore provides an upper bound on the speedup that can be achieved by approximation.
 
@@ -328,11 +328,11 @@ As a result, the training and test data by the time series method is more simila
 \begin{figure}
     \centering
     \includegraphics{app/quincy_medium_oracle_policy_1col}
-    \caption{Oracle policy on flow scheduling networks: upper bound on speedup from approximation}
+    \caption[Upper bound on speedup from approximation with flow scheduling]{Upper bound on speedup from approximation on flow scheduling networks, computed using the oracle policy. The experiment was conducted over 1,000 independently generated networks.}
     \label{fig:app-quincy-medium-oracle}
 \end{figure}
 
-\Cref{fig:app-quincy-medium-oracle} shows the maximum speedup that can be achieved by approximation, using the oracle policy. At the 99\% target accuracy, this gives an upper bound of just over 135\%.
+\Cref{fig:app-quincy-medium-oracle} shows the maximum speedup that can be achieved by approximation, using the oracle policy. At the 99\% target accuracy, this gives an upper bound of just over 135\%. The confidence intervals are tight, never exceeding 2\%, showing remarkable consistency across the dataset.
 
 Two heuristics, \emph{cost convergence} and \emph{task assignment convergence} were implemented (see \cref{sec:impl-approx-adaptions}). The subsequent sections evaluate how close these heuristic policies come to achieving the bound set by the oracle policy.
 
@@ -341,35 +341,37 @@ Two heuristics, \emph{cost convergence} and \emph{task assignment convergence} w
 \begin{figure}
     \centering
     \includegraphics{app/quincy_medium_policy_cost_parameters_1col}
-    \caption{Selecting a cost threshold $c$ for flow scheduling networks}
+    \caption[Parameter choice for cost convergence with flow scheduling]{Parameter choice for cost convergence on flow scheduling networks: selecting a cost threshold $c$. Cost convergence was applied, for various parameters $c$, to each of the 250 networks in the training set. The solution accuracy measures how close the resulting solutions were to optimality. $c$ was selected to be $0.01\%$, where the {\color{matplotlib_blue} 1st percentile} cuts the 99\% target accuracy line.}
     \label{fig:app-quincy-medium-cost-parameters}
 \end{figure}
 
-Under cost convergence, the algorithm terminates when the cost changes by less than a factor $c$. \Cref{fig:app-quincy-medium-cost-parameters} shows the accuracy achieved for various percentiles for different parameters. The dark blue line is the $1^{\mathrm{st}}$ percentile: this accuracy is met or exceeded 99\% of the time in the training set. 
-
-Given its precipitous drop, $c$ must be set to a small value --- $c = 0.01001\%$, to be exact --- to achieve 99\% accuracy 99\% of the time in the training data. This is not encouraging: such a low threshold will give a correspondingly low speedup. 
+Under cost convergence, the algorithm terminates when the cost changes by less than a factor $c$. \Cref{fig:app-quincy-medium-cost-parameters} shows the accuracy achieved at various percentiles for different parameters. The {\color{matplotlib_blue} 1st percentile} line, representing the accuracy which is met or exceeded 99\% of the time in the training set, drops precipitously at the left of the graph. Consequently, $c$ is set to a very low value of $0.01\%$. This is not encouraging: such a low threshold will tend to give a correspondingly low speedup.
 
 \begin{figure}
     \begin{widepage}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/quincy_medium_policy_cost_accuracy_narrow_2col}
+            \caption{Accuracy CDF}
+            \label{fig:app-quincy-medium-cost-cdf:accuracy}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/quincy_medium_policy_cost_speed_2col}
+            \caption{Speedup CDF}
+            \label{fig:app-quincy-medium-cost-cdf:speedup}
         \end{subfigure}
     \end{widepage}
-    \caption{Performance of cost convergence policy on flow scheduling networks}
+    \caption[Performance of cost convergence on flow scheduling networks]{Performance of cost convergence policy on flow scheduling networks. Results computed over the 750 networks in the test set.}
     \label{fig:app-quincy-medium-cost-cdf}
 \end{figure}
 
-\Cref{fig:app-quincy-medium-cost-cdf} shows the performance of this policy. 100\% accuracy is achieved in 749 out of 750 cases in the training set. The remaining case, however, has a disappointing 25\% accuracy (off the axis of the graph). There is a significant speedup in all cases, however performance is noticeably behind that of the oracle model. This is unsurprising: since optimality is reached in most cases, the algorithm has performed more work than was necessary.
+\Cref{fig:app-quincy-medium-cost-cdf} shows the performance of this policy. 100\% accuracy is achieved in 749 out of 750 cases in the test set. The remaining case, however, has a disappointing 25\% accuracy (off the axis of the graph). There is a significant speedup in all cases, although performance is noticeably behind that of the oracle model. This is unsurprising: since optimality is reached in most cases, the algorithm has performed more work than was necessary.
 
 \subsubsection{Task migration convergence}
 
 \begin{figure}
     \centering
     \includegraphics{app/quincy_medium_policy_task_assignments_parameters_1col}
-    \caption{Selecting a task migration threshold $t$ for flow scheduling networks}
+    \caption[Parameter choice for task migration convergence with flow scheduling]{Parameter choice for task migration convergence on flow scheduling networks: selecting a task migration threshold $t$. As with \cref{fig:app-quincy-medium-cost-parameters}, the policy was applied to the 250 networks in the training set. A threshold $t=6206$ is chosen, where the {\color{matplotlib_blue} 1st percentile} cuts the 99\% target accuracy line.}
     \label{fig:app-quincy-medium-task-assignment-parameters}
 \end{figure}
 
@@ -384,16 +386,20 @@ This is reflected in the fact that accuracy in \cref{fig:app-quincy-medium-task-
     \begin{widepage}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/quincy_medium_policy_task_assignments_accuracy_narrow_2col}
+            \caption{Accuracy CDF}
+            \label{fig:app-quincy-medium-task-assignment-cdf:accuracy}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/quincy_medium_policy_task_assignments_speed_2col}
+            \caption{Speedup CDF}
+            \label{fig:app-quincy-medium-task-assignment-cdf:speedup}
         \end{subfigure}
     \end{widepage}
-    \caption{Performance of task migration policy on flow scheduling networks}
+    \caption[Performance of task migration policy on flow scheduling networks]{Performance of task migration policy on flow scheduling networks. Results computed over the 250 networks in the test set.}
     \label{fig:app-quincy-medium-task-assignment-cdf}
 \end{figure}
 
-The performance shown in \cref{fig:app-quincy-medium-task-assignment-parameters} is equally disappointing. A similar pattern for accuracy is shown as for cost convergence. The speedup CDF is still worse. In the vast majority of cases, \emph{no speedup} occurred: the algorithm does not terminate even once optimality is reached, since tasks continue to be migrated. There are a handful of cases which enjoyed a considerable speedup. These correspond to the 1.6\% of cases which failed to meet the 99\% accuracy target, however, so these can hardly be counted a success.
+The performance shown in \cref{fig:app-quincy-medium-task-assignment-parameters} is equally disappointing. The accuracy CDF \cref{fig:app-quincy-medium-task-assignment-cdf:accuracy} exhibits a similar pattern to cost convergence in \cref{fig:app-quincy-medium-cost-cdf:accuracy}. The speedup CDF in \cref{fig:app-quincy-medium-task-assignment-cdf:speedup} is still worse. In the vast majority of cases, \emph{no} speedup occurred: the algorithm does not terminate even once optimality is reached, since tasks continue to be migrated. There are a handful of cases which enjoyed a considerable speedup. These correspond to the 1.6\% of cases which failed to meet the 99\% accuracy target, however, and so can hardly be counted a success.
 
 \subsubsection{Conclusion}
 
@@ -415,7 +421,7 @@ The method of approximation I developed in this project can be applied to any fl
         GOTO-8 & Sparse networks, with an average outdegree of $8$. Maximum arc capacity is 1000, maximum arc cost is 10,000. \tabularnewline
         GOTO-SR & Dense networks, with an average outdegree of $\sqrt{n}$. Other parameters are the same as GOTO-8. \tabularnewline
     \end{tabular}
-    \caption{Datasets used for approximate test}
+    \caption{Datasets used for benchmarking the approximation algorithm}
     \label{table:general-datasets}
 \end{table}
 
@@ -448,7 +454,7 @@ Each generator takes input parameters controlling the structure of the generated
         \caption{GOTO-SR}
     \end{subfigure}
     \end{widepage}
-    \caption{Oracle policy on various flow networks: upper bound on speedup from approximation}
+    \caption[Upper bound on speedup from approximation on general flow networks]{Upper bound on speedup from approximation on general flow networks, computed using the oracle policy. The experiment was conducted over 1,000 independently generated networks.}
     \label{fig:app-general-oracle-policy}
 \end{figure}
 
@@ -483,7 +489,7 @@ Each generator takes input parameters controlling the structure of the generated
             \caption{GOTO-SR}
         \end{subfigure}
     \end{widepage}
-    \caption{Selecting a cost threshold $c$. Key: {\color{matplotlib_blue} 1\textsuperscript{st} percentile}, {\color{matplotlib_green} 5\textsuperscript{th} percentile}, {\color{matplotlib_red} 25\textsuperscript{th} percentile}, {\color{matplotlib_cyan} median}.}
+    \caption[Parameter choice for cost convergence on general flow networks]{Parameter choice for cost convergence on general flow networks: selecting a cost threshold $c$. Cost convergence was applied, for various parameters $c$, to each of the 250 networks in the training set. The solution accuracy measures how close the resulting solutions were to optimality. Key: {\color{matplotlib_blue} 1\textsuperscript{st} percentile}, {\color{matplotlib_green} 5\textsuperscript{th} percentile}, {\color{matplotlib_red} 25\textsuperscript{th} percentile}, {\color{matplotlib_cyan} median}.}
     \label{fig:app-general-cost-parameters}
 \end{figure}
 
@@ -519,7 +525,7 @@ The relationship between the threshold $c$ for the cost convergence heuristic an
             \caption{GOTO-SR}
         \end{subfigure}
     \end{widepage}
-    \caption{Accuracy of cost convergence policy}
+    \caption[Accuracy of cost convergence policy on general flow networks]{Accuracy of cost convergence policy on general flow networks. CDFs computed over the 750 networks in the test set.}
     \label{fig:app-general-cost-accuracy-cdf}
 \end{figure}
 
@@ -534,11 +540,11 @@ The relationship between the threshold $c$ for the cost convergence heuristic an
         GOTO-8 & 98.5\% & 98.9\% & 45.3\% \tabularnewline
         GOTO-SR & 99.0\% & 99.1\% & 27.3\% \tabularnewline
     \end{tabular}
-    \caption{Summary statistics. The second column shows the proportion of networks where the 99\% target accuracy was met or exceeded. The third and fourth column show the mean and minimum accuracy achieved.}
-    \label{table:app-general-outliers}
+    \caption[Accuracy of approximation algorithm on general flow networks]{Accuracy of approximation algorithm on general flow networks. The second column shows the proportion of networks where the 99\% target accuracy was met or exceeded. The third and fourth column show the mean and minimum accuracy achieved.}
+    \label{table:app-general-accuracy}
 \end{table}
 
-The accuracy under cost convergence is shown in \cref{fig:app-general-cost-accuracy-cdf}, along with the value of $c$ chosen by the previous step. For each class of networks, the 99\% target accuracy is achieved in at least 98\% of cases, as shown in \cref{table:app-general-outliers}. The accuracy distribution on GOTO datasets has a long tail, with accuracy below 50\% in the worst case. The heuristic is considerably more reliable on NETGEN: the worst-case accuracy across any NETGEN instance is 96.9\%, which is still close to optimal.
+The accuracy under cost convergence is shown in \cref{fig:app-general-cost-accuracy-cdf}, along with the value of $c$ chosen by the previous step. For each class of networks, the 99\% target accuracy is achieved in at least 98\% of cases, as shown in \cref{table:app-general-accuracy}. The accuracy distribution on GOTO datasets has a long tail, with accuracy below 50\% in the worst case. The heuristic is considerably more reliable on NETGEN: the worst-case accuracy across any NETGEN instance is 96.9\%, which is still close to optimal.
 
 \begin{figure}
     \begin{widepage}
@@ -567,13 +573,13 @@ The accuracy under cost convergence is shown in \cref{fig:app-general-cost-accur
             \caption{GOTO-SR}
         \end{subfigure}
     \end{widepage}
-    \caption{Speedup under {\color{matplotlib_blue}cost convergence}, compared with the {\color{matplotlib_green}oracle policy}.}
+    \caption[Speedup of approximation algorithm on general flow networks]{Speedup of approximation algorithm on general flow networks. CDFs compare {\color{matplotlib_blue}cost convergence} to the upper bound given by the {\color{matplotlib_green}oracle policy}.}
     \label{fig:app-general-cost-speed-cdf}
 \end{figure}
 
 \Cref{fig:app-general-cost-speed-cdf} shows the speedup achieved by cost convergence, along with the upper bound provided by the oracle. For the majority of networks (NETGEN-8, NETGEN-SR, GOTO-8 and GOTO-SR), cost convergence comes very close to achieving this upper bound. Indeed, the oracle model is almost totally obscured by the cost convergence model in the graphs on the left-hand side.
 
-Cost convergence also provides a robust speedup on the ``loose`` NETGEN instances, NETGEN-LO-SR and NETGEN-LO-8, of 268\% and 469\% respectively. However, this is significantly less than the maximum achievable speedup of 343\% and 622\%. The reason for this is clearly visible from \cref{fig:app-general-cost-parameters:netgen-lo-8,fig:app-general-cost-parameters:netgen-lo-sr}. The 25\textsuperscript{th} percentile and {\color{matplotlib_cyan} median} liens remain above the target accuracy line until $c > 80\%$. However, to ensure that this target accuracy is reliably achieved, $c$ is set much more conservatively based on when the {\color{matplotlib_blue} 1\textsuperscript{st} percentile} line drops below 99\%, giving a value of $c < 10\%$. This conservative choice is also reflected in \cref{fig:app-general-cost-accuracy-cdf:netgen-lo-8,fig:app-general-cost-accuracy-cdf:netgen-lo-sr}: the accuracy CDF is shifted further to the right than for other graphs, with almost all solutions achieving an accuracy in excess of 99.8\%.
+Cost convergence also provides a robust speedup on the ``loose`` NETGEN instances, NETGEN-LO-SR and NETGEN-LO-8, of 268\% and 469\% respectively. However, this is significantly less than the maximum achievable speedup of 343\% and 622\%. The reason for this is clearly visible from \cref{fig:app-general-cost-parameters:netgen-lo-8,fig:app-general-cost-parameters:netgen-lo-sr}. The 25\textsuperscript{th} percentile and {\color{matplotlib_cyan} median} lines remain above the target accuracy line until $c > 80\%$. However, to ensure that this target accuracy is reliably achieved, $c$ is set much more conservatively based on when the {\color{matplotlib_blue} 1\textsuperscript{st} percentile} line drops below 99\%, giving a value of $c < 10\%$. This conservative choice is also reflected in \cref{fig:app-general-cost-accuracy-cdf:netgen-lo-8,fig:app-general-cost-accuracy-cdf:netgen-lo-sr}: the accuracy CDF is shifted further to the right than for other graphs, with almost all solutions achieving an accuracy in excess of 99.8\%.
 
 \section{Incremental algorithm} \label{sec:eval-incremental}
 
@@ -592,28 +598,28 @@ The next section compares the performance of the successive shortest path (see \
 
 \subsection{Relative performance}
 
-\todo{XXX: Bump this up to full size for relaxation; augmenting path you'll need to keep at medium. Flag up difference in full performance in text.}
+%XXX: Explain the long tail for relaxation. You might want to provide a result of a hybrid solver?
 \begin{figure}
     \begin{widepage}
         \begin{subfigure}[c]{\textwidth}
             \includegraphics{inc/same_ap_cdf_2col}
             \includegraphics{inc/same_ap_incremental_only_cdf_2col}
-            \caption{Successive shortest path}
+            \caption{Successive shortest path on medium (600 machine) cluster.}
             \label{fig:inc-same:ssp}
         \end{subfigure}
         \begin{subfigure}[c]{\textwidth}
-            \includegraphics{inc/same_relax_medium_cdf_2col}                        \includegraphics{inc/same_relax_medium_incremental_only_cdf_2col}
-            \caption{Relaxation (my version)}
+            \includegraphics{inc/same_relax_large_cdf_2col}                        \includegraphics{inc/same_relax_large_incremental_only_cdf_2col}
+            \caption{My implementation of relaxation on large (3,000 machine) cluster.}
             \label{fig:inc-same:relax-my}
         \end{subfigure}
         \begin{subfigure}[c]{\textwidth}
-            \includegraphics{inc/same_relaxf_cdf_2col}
-            \includegraphics{inc/same_relaxf_incremental_only_cdf_2col}
-            \caption{Relaxation (my adaptation of RelaxIV)}
+            \includegraphics{inc/same_relaxf_large_cdf_2col}
+            \includegraphics{inc/same_relaxf_large_incremental_only_cdf_2col}
+            \caption{My adaptation of RelaxIV, a reference implementation of relaxation, on large (3,000) machine cluster.}
             \label{fig:inc-same:relax-iv}
         \end{subfigure}
     \end{widepage}
-    \caption{Performance in incremental vs full mode, on medium (600 machine) dataset}
+    \caption[Performance in incremental vs from scratch mode]{Performance in incremental vs from scratch mode. The CDFs in the left column compare the same implementation operating in different modes; those in the right column zoom in on the incremental mode. All experiments were replicated 5 times.}
     \label{fig:inc-same}
 \end{figure}
 
@@ -635,7 +641,7 @@ The next section compares the performance of the successive shortest path (see \
             \caption{Full Google cluster (12,000 machines)}
         \end{subfigure}
     \end{widepage}
-    \caption{Performance of incremental augmenting path vs standard cost scaling}
+    \caption[Performance of incremental successive shortest path vs from scratch cost scaling]{CDF showing performance of incremental successive shortest path (SSP) vs from scratch cost scaling. Experiments were replicated 5 times.}
     \label{fig:inc-head-to-head-my}
 \end{figure}
 
@@ -643,7 +649,7 @@ The previous section showed that the incremental mode of operation considerably 
 \footnotetext{Relaxation is extremely fast on some networks, but unfortunately not flow scheduling networks.}
 
 %XXX: Update based on new results from relax.
-Cost scaling is the fastest full algorithm on flow scheduling networks. \Cref{fig:inc-head-to-head-my} pits my incremental algorithm against my implementation of cost scaling. The incremental algorithm considerably outperforms cost scaling, with a speedup of 19x on the full (12,000 machine) Google cluster. Note this is, however, significantly less than the 450x speedup observed in the previous section. This is to be expected, as cost scaling is considerably faster on the full problem.
+Cost scaling is the fastest full algorithm on flow scheduling networks. \Cref{fig:inc-head-to-head-my} pits my incremental algorithm against my implementation of cost scaling. The incremental algorithm considerably outperforms cost scaling, with a speedup of 18x on the full (12,000 machine) Google cluster. Note this is, however, significantly less than the 450x speedup observed in the previous section. This is to be expected, as cost scaling is considerably faster on the full problem.
 
 \subsection{Comparative evaluation}
 
@@ -660,7 +666,7 @@ Cost scaling is the fastest full algorithm on flow scheduling networks. \Cref{fi
             \label{fig:inc-head-to-head-optimised:full-size}
         \end{subfigure}
     \end{widepage}
-    \caption{Performance of optimised versions of incremental relaxation and cost scaling}
+    \caption[Performance of my incremental algorithm against optimised reference implementation]{CDF showing performance of my incremental relaxation algorithm against optimised reference implementation of from scratch cost scaling. Experiments were replicated 5 times.}
     \label{fig:inc-head-to-head-optimised}
 \end{figure}
 
@@ -674,11 +680,11 @@ To investigate this, I extended the reference implementation of the relaxation a
 
 \begin{figure}
     \includegraphics{inc/head_to_head_optimised_full_size_incremental_only_target_latency_cdf_1col}
-    \caption{Performance of incremental relaxation on full Google cluster (12,000 machines)}
+    \caption[Performance of my incremental algorithm on the full Google cluster]{Zooming in on \cref{fig:inc-head-to-head-optimised:full-size}. This CDF shows my incremental relaxation algorithm achieves sub-second scheduling latency on the full Google cluster (12,000 machines) in 97.4\% of cases.}
     \label{fig:inc-head-to-head-optimised-inconly}
 \end{figure}
 
-\Cref{fig:inc-head-to-head-optimised} shows the incremental solver significantly outperforms the full solver. The incremental solver is faster than the full solver at every percentile: note that the incremental solver is always to the left of the full solver. There is a 14.5x mean speedup on the full (12,000 machine) Google cluster, similar to the 19x speedup observed with the unoptimised implementations\footnotemark. With a mean scheduling latency of \SI{197}{\milli\second} for the incremental solver, most tasks will be scheduled without any perceptible delay. Moreover, \cref{fig:inc-head-to-head-optimised-inconly} shows the incremental solver achieves sub-second scheduling latency in $98.4\%$ of cases.
+\Cref{fig:inc-head-to-head-optimised} shows the incremental solver significantly outperforms the full solver. The incremental solver is faster than the full solver at every percentile: note that the incremental solver is always to the left of the full solver. There is a 14.5x mean speedup on the full (12,000 machine) Google cluster, similar to the 19x speedup observed with the unoptimised implementations\footnotemark. With a mean scheduling latency of \SI{197}{\milli\second} for the incremental solver, most tasks will be scheduled without any perceptible delay. Moreover, \cref{fig:inc-head-to-head-optimised-inconly} shows the incremental solver achieves sub-second scheduling latency in $97.4\%$ of cases.
 \footnotetext{This is to be expected: implementation optimisations do not change the asymptotic complexity of the algorithm, only its constant factors. However, it is encouraging this is confirmed empirically, and it provides support for the use of relative performance figures elsewhere in this evaluation.} 
 
 %Both distributions are long tailed, reflecting the added workload when there are large numbers of changes %WONTFIX: Add reference to next section when written. Adding preemption support will change this slightly, probably removing the long tail of CS2 but shifting it to the right. If you don't add preemption support, might want to explain why workload varies for standard solver}.

@@ -67,6 +67,8 @@
 \theoremstyle{remark}
 \newtheorem{remark}{Remark}[section]
 
+\renewcommand{\listtheoremname}{List of theorems and definitions}
+
 %% Some new operators
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -348,9 +350,11 @@ any substantial extent for a comparable purpose.
 
 \tableofcontents
 
+%XXX: Short form captions where appropriate.
 \listofalgorithms
-\listoffigures
 \listoftables
+\listoffigures
+%\listoftheorems[ignoreall,show={theorem,lemma,cor,defn,assumption}]
 %XXX: list of theorems?
 
 \newpage

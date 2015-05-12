@@ -351,7 +351,7 @@ INCREMENTAL_FIGURES = {
   },
   'same_relaxf': {
     'data': 'ion_same_relaxf',
-    'trace': 'medium',
+    'trace': ['medium', 'large', 'full_size'],
     'window_size': '60s',
   },
   # TODO: inc_ap works OK on full_size, too

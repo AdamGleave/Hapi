@@ -17,36 +17,37 @@ All test machines had the same specification, with:
     \begin{widepage}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/cc_compiler_2col}
-        \caption{Cycle cancelling}
+        \caption{Cycle cancelling, small (120 machine) cluster}
         \label{fig:compilers:cc}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/ap_compiler_2col}
-        \caption{Augmenting Path}
+        \caption{Successive shortest path, medium (600 machine) cluster}
         \label{fig:compilers:ap}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/relax_compiler_2col}
-        \caption{Relaxation}
+        % XXX: Rerun this test
+        \caption{Relaxation, small (120 machine) cluster}
         \label{fig:compilers:relax}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/cs_compiler_2col}
-        \caption{Cost scaling}
+        \caption{Cost scaling, medium (600 machine) cluster}
         \label{fig:compilers:cs}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/goldberg_compiler_2col}
-        \caption{Goldberg's cost scaling}
+        \caption{Goldberg's cost scaling, warehouse scale (12,000 machine) cluster}
         \label{fig:compilers:goldberg}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/frangioni_compiler_2col}
-        \caption{Frangioni's relaxation algorithm}
+        \caption{Frangioni's relaxation algorithm, medium (600 machine) cluster}
         \label{fig:compilers:frangioni}
     \end{subfigure}
     \end{widepage}
-    \caption{Performance under different compilers and optimisation levels}
+    \caption[Choosing a compiler]{Choosing a compiler: runtime on GCC and Clang at varying optimisation levels. Dataset sizes were chosen so that each algorithm would have a runtime of the order of magnitude of 10s in tests. The bars represent the mean runtime over 5 replications, with error bars indicating the 95\% confidence interval.}
     \label{fig:compilers}
 \end{figure}
 

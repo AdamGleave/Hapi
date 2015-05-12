@@ -26,7 +26,7 @@ The cluster scheduler's policy must be suitable for the applications it is sched
         Fast and scalable & Scheduling latency remains low even for large clusters. \tabularnewline
         \hline
     \end{tabular}
-    \caption{Design goals for cluster schedulers}
+    \caption{Cluster scheduler design goals}
     \label{table:cluster-scheduler-design-goals}
 \end{table}
 
@@ -241,14 +241,12 @@ Given such a variety of possible policies, the solver developed in this project 
 \begin{table}
     \centering
     \begin{tabular}{ccl}
-        \hline 
         \textbf{Cost} & \textbf{Edge} & \textbf{Meaning}\tabularnewline
         \hline 
         $\gamma_{i,m}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{M}_{m}$ & Cost of scheduling on machine $\mathbf{M}_{m}$.\tabularnewline
         $\rho_{i,l}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{R}_{l}$ & Cost of scheduling on worst machine in rack $\mathbf{R}_{l}$.\tabularnewline
         $\alpha_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{X}$ & Cost of scheduling on worst machine in cluster.\tabularnewline
         $v_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{U}^{j}$ & Cost of leaving task $\mathbf{T}_{i}^{j}$ unscheduled.\tabularnewline
-        \hline 
     \end{tabular}
     \caption{Costs in the Quincy model}
     \label{table:quincy-costs}
@@ -257,14 +255,12 @@ Given such a variety of possible policies, the solver developed in this project 
 \begin{table}
     \centering
     \begin{tabular}{cl}
-        \hline 
         \textbf{Variable} & \textbf{Meaning}\tabularnewline
         \hline 
         $\chi^{X}\left(\mathbf{T}_{i}^{j}\right),\chi_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the core switch.\tabularnewline % if: scheduled on worst possible computer in cluster, scheduled on worst possible computer in rack $\mathbf{R}_{l}$ or scheduled on computer $\mathbf{M}_{m}$ respectively.
         $\mathcal{R}^{X}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the top-of-rack switch.\tabularnewline
         $\theta_{i}^{j}$ & Number of seconds task $\mathbf{T}_{i}^{j}$ has spent scheduled.\tabularnewline
         $\nu_{i}^{j}$ & Number of seconds task $\mathbf{T}_{i}^{j}$ has spent unscheduled.\tabularnewline
-        \hline
     \end{tabular}
     \caption{Variables in the Quincy model}
     \label{table:quincy-variables}
@@ -273,15 +269,11 @@ Given such a variety of possible policies, the solver developed in this project 
 \begin{table}
     \centering
     \begin{tabular}{cl}
-        \hline 
         \textbf{Parameter} & \textbf{Meaning}\tabularnewline
         \hline 
         $\epsilon$ & Cost of transferring 1 GB across core switch\tabularnewline
-        \hline 
         $\psi$ & Cost of transferring 1 GB across top of rack switch\tabularnewline
-        \hline 
         $\omega$ & Wait-time cost factor for unscheduled aggregators\tabularnewline
-        \hline 
     \end{tabular}
     \caption{Parameters for the Quincy model}
     \label{table:quincy-parameters}
@@ -544,7 +536,7 @@ The main goals for the project are listed in \cref{table:prep-project-requiremen
         E3 & Optimise algorithm implementations & Low & Medium & High \tabularnewline
         \hline
     \end{tabular}
-    \caption{Deliverables for the project}
+    \caption{Project deliverables}
     \label{table:prep-project-requirements}
 \end{table}
 

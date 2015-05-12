@@ -29,7 +29,7 @@ Cycle cancelling is inspired by the negative cycle optimality conditions, stated
 \optimalitynegcycle*
 
 \begin{algorithm}
-    \caption{Cycle cancelling algorithm}
+    \caption{Cycle cancelling}
     \label{algo:cycle-cancelling}
     \begin{algorithmic}[1]
         \State $\mathbf{x}\gets $ result of maximum-flow algorithm \Comment{establishes x feasible}
@@ -105,7 +105,7 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
 \subsection{Algorithm description}
 
 \begin{algorithm}
-    \caption{Successive shortest path algorithm}
+    \caption{Successive shortest path}
     \label{algo:successive-shortest-path}
     \begin{algorithmic}[1]
         \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
@@ -412,7 +412,7 @@ The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $
 \end{remark}
 
 \begin{algorithm}
-    \caption{Relaxation algorithm}
+    \caption{Relaxation: main procedure}
     \label{algo:relaxation}
     \begin{algorithmic}[1]
         \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$ \label{algo:relaxation:initialisation}
@@ -443,7 +443,7 @@ The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $
 \end{algorithm}
 
 \begin{algorithm}
-    \caption{Relaxation algorithm: potential update procedure}
+    \caption{Relaxation: potential update procedure}
     \label{algo:relaxation-update-potentials}
     \begin{algorithmic}[1]
         \Require $e(S) > r(\boldsymbol{\pi},S)$
@@ -464,7 +464,7 @@ The algorithm only adds arcs with zero reduced cost to the tree. Consequently, $
 \end{algorithm}
 
 \begin{algorithm}
-    \caption{Relaxation algorithm: flow augmentation procedure}
+    \caption{Relaxation: flow augmentation procedure}
     \label{algo:relaxation-augment-flow}
     \begin{algorithmic}[1]
         \Require $e(S) \leq r(\boldsymbol{\pi},S)$ and $e(t) < 0$
@@ -668,7 +668,7 @@ The condition $\epsilon < 1/n$ implies $n\epsilon > -1$. By \cref{assumption:int
         \State \Call{Refine}{$\mathbf{x}$,$\boldsymbol{\pi}$,$\epsilon$}
     \EndWhile \label{algo:cost-scaling:end-loop}
 \end{algorithmic}
-\caption{Cost scaling algorithm}
+\caption{Cost scaling}
 \label{algo:cost-scaling}
 \end{algorithm}
 
@@ -692,7 +692,7 @@ The procedure described in \cref{algo:cost-scaling} is inspired by \cref{thm:eps
             \EndWhile \label{algo:cost-scaling-generic-refine:end-loop}
         \EndFunction
     \end{algorithmic}
-    \caption{Cost scaling: Generic \textproc{Refine} routine}
+    \caption{Cost scaling: generic \textproc{Refine} routine}
     \label{algo:cost-scaling-generic-refine}
 \end{algorithm}
 
@@ -719,7 +719,7 @@ One might wonder why $\epsilon$ is not immediately set to a value $< 1/n$ during
         \Let{$\pi_i$}{$\min \set{\pi_j + c_{ij} + \epsilon | (i,j) \in E_{\mathbf{x}}}$}
     \EndFunction
 \end{algorithmic}
-\caption{Cost scaling basic operations: push and relabel}
+\caption{Cost scaling: the basic operations, push and relabel}
 \label{algo:cost-scaling-operations}
 \end{algorithm}
 
@@ -921,7 +921,7 @@ On flow scheduling networks, $m = O(n)$ by \cref{lemma:network-num-arcs}, so the
     \Until{no excess vertex encountered in \textbf{for} loop}
     \EndFunction
 \end{algorithmic}
-\caption{Cost scaling: Wave \textproc{Refine} routine}
+\caption{Cost scaling: wave \textproc{Refine} routine}
 \label{algo:cost-scaling-wave-refine}
 \end{algorithm}
 
