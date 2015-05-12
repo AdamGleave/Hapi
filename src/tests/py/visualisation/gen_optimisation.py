@@ -209,8 +209,9 @@ def generate_compiler(data, figconfig):
     return ys
       
   means, errors = group_by_level(means), group_by_level(errors)
+  legend_loc = figconfig.get('legend_loc', None)
   barchart(means, errors, levels, compilers, figconfig['colours'],
-           legend_loc='upper right', log=False)
+           legend_loc=legend_loc, log=False)
   
   plt.xlabel('Compiler')
   plt.ylabel('Runtime (\si{\second})')

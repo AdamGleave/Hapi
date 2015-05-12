@@ -56,7 +56,7 @@ In practice, the algorithms developed in this project would be used as part of a
     \end{subfigure}
     \begin{subfigure}{\textwidth}
         \includegraphics[width=\textwidth]{screenshots/Firmament_flow_graph}
-        \caption{An extract of a flow graph, showing the scheduling of a small number of tasks (left hand side). Arcs are {\color{red} red} if they carry flow, {\color{gray} grey} otherwise.}
+        \caption{An extract of a flow graph, showing the scheduling of a small number of tasks (left hand side). Arcs are \textbf{\color{red} red} if they carry flow, \textbf{\color{gray} grey} otherwise.}
     \end{subfigure}
     \caption[Firmament scheduling tasks]{Firmament scheduling tasks using <TBC:PNAME>}
     \label{fig:firmament-ui}
@@ -272,7 +272,7 @@ In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementat
 \subsection{Compilers} \label{sec:eval-optimisations-compilers}
 
 \begin{figure}
-    \includegraphics{com/cs_compiler_1col}
+    \includegraphics{com/cs_with_legend_compiler_1col}
     \caption[Choosing a compiler for cost scaling]{Choosing a compiler for cost scaling: runtime on GCC and Clang at varying optimisation levels. Experiment conducted on medium (600 machine) cluster. The bars represent the mean runtime over 5 replications, with error bars indicating the 95\% confidence interval.}
     \label{fig:compiler-settings}
 \end{figure}
@@ -341,11 +341,11 @@ Two heuristics, \emph{cost convergence} and \emph{task assignment convergence} w
 \begin{figure}
     \centering
     \includegraphics{app/quincy_medium_policy_cost_parameters_1col}
-    \caption[Parameter choice for cost convergence with flow scheduling]{Parameter choice for cost convergence on flow scheduling networks: selecting a cost threshold $c$. Cost convergence was applied, for various parameters $c$, to each of the 250 networks in the training set. The solution accuracy measures how close the resulting solutions were to optimality. $c$ was selected to be $0.01\%$, where the {\color{matplotlib_blue} 1st percentile} cuts the 99\% target accuracy line.}
+    \caption[Parameter choice for cost convergence with flow scheduling]{Parameter choice for cost convergence on flow scheduling networks: selecting a cost threshold $c$. Cost convergence was applied, for various parameters $c$, to each of the 250 networks in the training set. The solution accuracy measures how close the resulting solutions were to optimality. $c$ was selected to be $0.01\%$, where the \textbf{\color{matplotlib_blue} 1st percentile} cuts the 99\% target accuracy line.}
     \label{fig:app-quincy-medium-cost-parameters}
 \end{figure}
 
-Under cost convergence, the algorithm terminates when the cost changes by less than a factor $c$. \Cref{fig:app-quincy-medium-cost-parameters} shows the accuracy achieved at various percentiles for different parameters. The {\color{matplotlib_blue} 1st percentile} line, representing the accuracy which is met or exceeded 99\% of the time in the training set, drops precipitously at the left of the graph. Consequently, $c$ is set to a very low value of $0.01\%$. This is not encouraging: such a low threshold will tend to give a correspondingly low speedup.
+Under cost convergence, the algorithm terminates when the cost changes by less than a factor $c$. \Cref{fig:app-quincy-medium-cost-parameters} shows the accuracy achieved at various percentiles for different parameters. The \textbf{\color{matplotlib_blue} 1st percentile} line, representing the accuracy which is met or exceeded 99\% of the time in the training set, drops precipitously at the left of the graph. Consequently, $c$ is set to a very low value of $0.01\%$. This is not encouraging: such a low threshold will tend to give a correspondingly low speedup.
 
 \begin{figure}
     \begin{widepage}
@@ -371,7 +371,7 @@ Under cost convergence, the algorithm terminates when the cost changes by less t
 \begin{figure}
     \centering
     \includegraphics{app/quincy_medium_policy_task_assignments_parameters_1col}
-    \caption[Parameter choice for task migration convergence with flow scheduling]{Parameter choice for task migration convergence on flow scheduling networks: selecting a task migration threshold $t$. As with \cref{fig:app-quincy-medium-cost-parameters}, the policy was applied to the 250 networks in the training set. A threshold $t=6206$ is chosen, where the {\color{matplotlib_blue} 1st percentile} cuts the 99\% target accuracy line.}
+    \caption[Parameter choice for task migration convergence with flow scheduling]{Parameter choice for task migration convergence on flow scheduling networks: selecting a task migration threshold $t$. As with \cref{fig:app-quincy-medium-cost-parameters}, the policy was applied to the 250 networks in the training set. A threshold $t=6206$ is chosen, where the \textbf{\color{matplotlib_blue} 1st percentile} cuts the 99\% target accuracy line.}
     \label{fig:app-quincy-medium-task-assignment-parameters}
 \end{figure}
 
@@ -489,7 +489,7 @@ Each generator takes input parameters controlling the structure of the generated
             \caption{GOTO-SR}
         \end{subfigure}
     \end{widepage}
-    \caption[Parameter choice for cost convergence on general flow networks]{Parameter choice for cost convergence on general flow networks: selecting a cost threshold $c$. Cost convergence was applied, for various parameters $c$, to each of the 250 networks in the training set. The solution accuracy measures how close the resulting solutions were to optimality. Key: {\color{matplotlib_blue} 1\textsuperscript{st} percentile}, {\color{matplotlib_green} 5\textsuperscript{th} percentile}, {\color{matplotlib_red} 25\textsuperscript{th} percentile}, {\color{matplotlib_cyan} median}.}
+    \caption[Parameter choice for cost convergence on general flow networks]{Parameter choice for cost convergence on general flow networks: selecting a cost threshold $c$. Cost convergence was applied, for various parameters $c$, to each of the 250 networks in the training set. The solution accuracy measures how close the resulting solutions were to optimality. Key: \textbf{\color{matplotlib_blue} 1\textsuperscript{st} percentile}, \textbf{\color{matplotlib_green} 5\textsuperscript{th} percentile}, \textbf{\color{matplotlib_red} 25\textsuperscript{th} percentile}, \textbf{\color{matplotlib_cyan} median}.}
     \label{fig:app-general-cost-parameters}
 \end{figure}
 
@@ -573,13 +573,13 @@ The accuracy under cost convergence is shown in \cref{fig:app-general-cost-accur
             \caption{GOTO-SR}
         \end{subfigure}
     \end{widepage}
-    \caption[Speedup of approximation algorithm on general flow networks]{Speedup of approximation algorithm on general flow networks. CDFs compare {\color{matplotlib_blue}cost convergence} to the upper bound given by the {\color{matplotlib_green}oracle policy}.}
+    \caption[Speedup of approximation algorithm on general flow networks]{Speedup of approximation algorithm on general flow networks. CDFs compare \textbf{\color{matplotlib_blue} cost convergence} to the upper bound given by the \textbf{\color{matplotlib_green} oracle policy}.}
     \label{fig:app-general-cost-speed-cdf}
 \end{figure}
 
 \Cref{fig:app-general-cost-speed-cdf} shows the speedup achieved by cost convergence, along with the upper bound provided by the oracle. For the majority of networks (NETGEN-8, NETGEN-SR, GOTO-8 and GOTO-SR), cost convergence comes very close to achieving this upper bound. Indeed, the oracle model is almost totally obscured by the cost convergence model in the graphs on the left-hand side.
 
-Cost convergence also provides a robust speedup on the ``loose`` NETGEN instances, NETGEN-LO-SR and NETGEN-LO-8, of 268\% and 469\% respectively. However, this is significantly less than the maximum achievable speedup of 343\% and 622\%. The reason for this is clearly visible from \cref{fig:app-general-cost-parameters:netgen-lo-8,fig:app-general-cost-parameters:netgen-lo-sr}. The 25\textsuperscript{th} percentile and {\color{matplotlib_cyan} median} lines remain above the target accuracy line until $c > 80\%$. However, to ensure that this target accuracy is reliably achieved, $c$ is set much more conservatively based on when the {\color{matplotlib_blue} 1\textsuperscript{st} percentile} line drops below 99\%, giving a value of $c < 10\%$. This conservative choice is also reflected in \cref{fig:app-general-cost-accuracy-cdf:netgen-lo-8,fig:app-general-cost-accuracy-cdf:netgen-lo-sr}: the accuracy CDF is shifted further to the right than for other graphs, with almost all solutions achieving an accuracy in excess of 99.8\%.
+Cost convergence also provides a robust speedup on the ``loose`` NETGEN instances, NETGEN-LO-SR and NETGEN-LO-8, of 268\% and 469\% respectively. However, this is significantly less than the maximum achievable speedup of 343\% and 622\%. The reason for this is clearly visible from \cref{fig:app-general-cost-parameters:netgen-lo-8,fig:app-general-cost-parameters:netgen-lo-sr}. The 25\textsuperscript{th} percentile and \textbf{\color{matplotlib_cyan} median} lines remain above the target accuracy line until $c > 80\%$. However, to ensure that this target accuracy is reliably achieved, $c$ is set much more conservatively based on when the \textbf{\color{matplotlib_blue} 1\textsuperscript{st} percentile} line drops below 99\%, giving a value of $c < 10\%$. This conservative choice is also reflected in \cref{fig:app-general-cost-accuracy-cdf:netgen-lo-8,fig:app-general-cost-accuracy-cdf:netgen-lo-sr}: the accuracy CDF is shifted further to the right than for other graphs, with almost all solutions achieving an accuracy in excess of 99.8\%.
 
 \section{Incremental algorithm} \label{sec:eval-incremental}
 

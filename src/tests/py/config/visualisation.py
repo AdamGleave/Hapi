@@ -110,20 +110,20 @@ ONESHOT_DATASETS = ['Small', 'Medium', 'Large', 'Warehouse scale']
 
 COMPILER_IMPLEMENTATIONS_FULL = {
   'clang_debug': 'Clang Debug',
-  'clang_O0': 'Clang O0 (Unoptimised)',
+  'clang_O0': 'Clang O0 (unoptimised)',
   'clang_O1': 'Clang O1',
   'clang_O2': 'Clang O2',
   'clang_O3': 'Clang O3',
   'gcc_debug': 'GCC Debug',
-  'gcc_O0': 'GCC O0 (Unoptimised)',
+  'gcc_O0': 'GCC O0 (unoptimised)',
   'gcc_O1': 'GCC O1',
   'gcc_O2': 'GCC O2',
   'gcc_O3': 'GCC O3',
 }
 
-COMPILER_LEVELS = ['O0 (Unoptimised)', 'O1', 'O2', 'O3']
+COMPILER_LEVELS = ['O0 (unoptimised)', 'O1', 'O2', 'O3']
 COMPILER_LEVEL_COLOURS = {
-  'O0 (Unoptimised)': 'r', 
+  'O0 (unoptimised)': 'r', 
   'O1': 'g',
   'O2': 'b',
   'O3': 'k'
@@ -149,6 +149,12 @@ COMPILER_FIGURES = {
   'cs': {
     'data': 'f_compilers_cs',
     'dataset': 'Medium',
+  },
+  'cs_with_legend': {
+    'data': 'f_compilers_cs',
+    'test_filter': dictFilter(compiler_implementations('cs')),
+    'dataset': 'Medium',
+    'legend': 'upper right',
   },
   'relax': {
     'data': 'f_compilers_relax',
