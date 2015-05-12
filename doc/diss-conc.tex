@@ -1,6 +1,6 @@
 \chapter{Conclusions}
 
-This dissertation has described the design, implementation and evaluation of high-performance flow solvers. As far as I am aware, both the approximate and incremental solvers are the first of their kind. The incremental solver outperforms state of the art implementations by an order of magnitude, achieving sub-second scheduling latency on even the largest clusters used today. Approximation was found to be unsuitable for flow scheduling, however the results are promising for use in other domains.
+This dissertation has described the design, implementation and evaluation of high-performance flow solvers. As far as I am aware, both the approximate and incremental solvers are the first of their kind. The incremental solver outperforms state of the art implementations by an order of magnitude, achieving sub-second scheduling latency on even the largest clusters used today. I found approximation to be unsuitable for flow scheduling, however the results are promising for use in other domains.
 
 \section{Achievements}
 
@@ -10,9 +10,7 @@ The incremental solver has broken new ground, with no comparable published work.
 
 % Problem: want to state figures to show how successful it is, but they're already on the page next to it! You may want to add the figures back in if you add more sections to your eval, pushing conclusion further away.
 
-I believe this is also the first investigation into approximate solution methods for the (single-commodity) minimum-cost flow problem. Although I found approximation to be of limited use for flow scheduling, considerable performance gains of over 10x are realised on other classes of networks. Furthermore, the cost of the solutions is very close to the minimum, with mean accuracy above 98.9\% in all cases. Consequently, I would anticipate approximation to be useful in a variety of other applications, where speed is more important than strict optimality.
-
-% Exceeded initial project requirements: implemented not only approximate algorithm based around cost scaling, but also incremental algorithm based around an entirely different class of algorithms. Significant 
+I believe this is also the first investigation into approximate solution methods for the (single-commodity) minimum-cost flow problem. Although I found approximation to be of limited use for flow scheduling, considerable performance gains of over $10\times$ are realised on other classes of networks. Furthermore, the cost of the solutions is very close to the minimum, with mean accuracy above 98.9\% in all cases. Consequently, I would anticipate approximation to be useful in a variety of other applications, where speed is more important than strict optimality.
 
 \section{Lessons learnt}
 
@@ -20,15 +18,13 @@ It was necessary to assimilate the large body of existing research into flow pro
 
 \section{Further work}
 
-The project is complete in the sense that it satisfies the requirements outlined in my project proposal (see \cref{appendix:proposal}). However, there is scope both to improve the solvers, and to further investigate their performance.
+The project is complete in the sense that it satisfies the requirements outlined in my project proposal (see \cref{appendix:proposal}). However, there is scope both to improve the solvers, and to further investigate their performance:
 
-My incremental solver has made a key contribution to the Firmament system, enabling it to scale to large clusters\todo{Do you agree with this statement?}. I plan to work with my supervisors to refine this work, including a description of the incremental technique in forthcoming papers on Firmament. In addition, I hope to publish a general version of these results, so that those working in other application areas can benefit.
-
-Areas for extension include:
 \begin{itemize}
     \item \textbf{New incremental solvers:} it may be possible to adapt the network simplex algorithm to operate incrementally. Although this appears to be considerably more challenging than the modifications required for augmenting path algorithms, if successful it could yield a still greater speedup.
     \item \textbf{Approximation heuristics:} the terminating conditions, cost convergence and task migration convergence, are relatively simplistic. More sophisticated approaches may improve the reliability of the algorithm, and achieve speedups closer to that of the oracle policy.
-    \item \textbf{New cost models:} development on Firmament has to date focused on the core components, and consequently it currently only supports trivial cost models such as Octopus. I added support for Quincy, but did not have time to implement additional models. As work on Firmament continues, I intend to perform further experiments to investigate the performance of my solvers under other cost models.
     \item \textbf{Other applications:} the focus of this project was on flow scheduling, however flow problems arise in a wide range of domains. The approximation method seems to be very generally applicable, as explained above: I would like to conduct a more thorough investigation into its performance in other domains. 
     %Incremental solution is applicable to any problem producing flow networks in a time-series. I am not aware of any such problem besides flow scheduling, however I would like to verify there are none I have overlooked.
 \end{itemize}
+
+My incremental solver has made a key contribution to the Firmament system, enabling it to scale to large clusters. I plan to work with my supervisors to refine this work, including a description of the incremental technique in forthcoming papers on Firmament. In addition, I hope to publish a general version of these results, so that those working in other application areas can benefit from this work.
