@@ -141,7 +141,7 @@
     citecolor={blue!50!black},
     urlcolor={blue!80!black},
     pdfauthor = {Adam Gleave},
-    pdftitle = {Flow network scheduling},
+    pdftitle = {Hapi: fast and scalable cluster scheduling using flow networks},
     pdfcreator = {LaTeX, git commit \gitAbbrevHash}
 }
 
@@ -268,6 +268,14 @@
 }
 \makeatother
 
+% footnote without number marker
+\newcommand\blfootnote[1]{%
+    \begingroup
+    \renewcommand\thefootnote{}\footnote{#1}%
+    \addtocounter{footnote}{-1}%
+    \endgroup
+}
+
 \usepackage{layout}
 
 \begin{document}
@@ -287,22 +295,40 @@
 
 \vspace*{30mm}
 
+% Title? Positive words: accurate/optimal/precise; high-performance/fast; 
+% High-performance cluster scheduling using flow networks
+% Come up with couple of alternatives
+% Cluster scheduling at scale: ...
+% Data-center scheduling?
+
 \begin{center}
-	% TODO: Name for project; logo; snappy title
-	{\LARGE \textbf{Cluster scheduling using flow networks}} \\
+   	%{\Huge \textbf{Hapi}} \\
+    {\fontsize{36pt}{1em}\selectfont \textbf{Hapi}} \\
     \large
-	\vspace*{5mm}
+    \vspace*{2mm}
+    \textbf{Fast and scalable cluster scheduling \\ using flow networks} \\
+   	\vspace*{10mm}
+    \includegraphics[width=0.35\textwidth]{logo/Hapy_tying} \\
+	\vspace*{10mm}
 	Computer Science Tripos, Part II \\
 	\vspace*{5mm}
 	St John's College \\
 	\vspace*{5mm}
-    % PROOFREAD: Replace with fixed date. Make sure to have 'th/nd' in superscript
-	\today
+    % PROOFREAD: DATE
+    13\textsuperscript{th} May 2015
 \end{center}
 \clearpage
 \vspace*{\fill}
 
-TBC: Back of cover sheet
+Hapi is the ancient Egyptian god of the annual flooding of the Nile. The floods were critical to Egyptian agriculture, depositing fertile soil on the river banks. In line with his importance, Hapi was also the god of both upper and lower Egypt. My project's logo depicts this duality, with the double deity tieing together the symbol of upper Egypt (the lotus, on the left) and lower Egypt (the papyrus, on the right).
+
+Much as the Nile was the lifeblood of Egyptian society, cluster schedulers are critical in modern cloud computing applications. After Hapi has solved the flow problem, the scheduler can deliver work to idle machines, in a periodic pattern reminiscent of the Nile's annual floods. I am proud to say Hapi also embodies the duality of its namesake, bringing together the theoretical and applied in computer science similarly to how the deity brought together the two halves of Egypt.
+
+%I am proud to say Hapi also embodies the duality of its namesake, making theoretical advancements to solve a pressing problem in distributed systems research
+
+%Much as the Nile was the lifeblood of Egyptian society, cluster schedulers are critical in modern cloud computing applications. In a pattern reminiscent of the Nile's annual flood, in each periodic scheduling round Hapi sends flow through the network, delivering work to idle machines. This project has a theoretical focus, with most work performed on algorithms for optimisation problems. However, it is motivated by pressing problems in distributed systems research. This duality mirrors that of Hapi, and I am pleased to bring together strands of Computer Science much as Hapi united Egypt.
+
+\blfootnote{The logo is by Jeff Dahl, and is inspired by ancient Egyptian depictions. It is available under the GNU Free Documentation License at \url{http://commons.wikimedia.org/wiki/File:Hapy_tying.svg}.}
 
 \vspace*{\fill}
 
@@ -318,7 +344,7 @@ TBC: Back of cover sheet
 	\begin{tabular}{ll}
 		Name:			        & \textbf{Adam Gleave}					\\
 		College:		        & \textbf{St John's College}\\
-        Project Title:	        & \textbf{Cluster scheduling using flow networks}\\
+        Project Title:	        & \textbf{Hapi: fast and scalable cluster scheduling using flow networks}\\
 		Examination:	        & \textbf{Computer Science Tripos, Part II (June 2015)}\\
         Word Count:		        & \textbf{\input{diss-auto-wordcount} \unskip}\\
 		Project Originators:	& \textbf{Ionel Gog}\\
@@ -331,12 +357,12 @@ TBC: Back of cover sheet
 \vspace*{-1em}
 \section*{Original aims of the project}
 
-Recent research into cluster scheduling --- assigning tasks to machines --- has suggested that scheduling can fruitfully be expressed in terms of an optimisation problem over flow networks. The <TBC:PNAME> project seeks to develop high-performance algorithms to solve these problems, enabling so-called flow scheduling systems to scale to the largest clusters built today. Implementation and performance analysis of an approximation algorithm forms the core success criteria for <TBC:PNAME>. Extensions include development of an incremental solver, which would reuse previous optimal solutions to exploit similarities between successive flow networks.
+Recent research into cluster scheduling --- assigning tasks to machines --- has suggested that scheduling can fruitfully be expressed in terms of an optimisation problem over flow networks. The \emph{Hapi} project seeks to develop high-performance algorithms to solve these problems, enabling so-called flow scheduling systems to scale to the largest clusters built today. Implementation and performance analysis of an approximation algorithm forms the core success criteria for \emph{Hapi}. Extensions include development of an incremental solver, which would reuse previous optimal solutions to exploit similarities between successive flow networks.
 
 \vspace*{-1em}
 \section*{Work completed}
 
-<TBC:PNAME> was highly successful, achieving a $14.5\times$ speedup over state of the art implementations and sub-second scheduling latency on a 12,000 machine cluster. I surpassed the success criteria by developing both an approximate and incremental solver. As far as I am aware, both implementations are the first of their kind. The performance of these solvers was thoroughly evaluated under the Firmament flow scheduling system, including simulation of a cluster based on pubicly available trace data. In addition, approximation yielded a speedup of between $2\text{--}11\times$ on networks arising in other applications, suggesting its use beyond flow scheduling.
+\emph{Hapi} was highly successful, achieving a $14.5\times$ speedup over state of the art implementations and sub-second scheduling latency on a 12,000 machine cluster. I surpassed the success criteria by developing both an approximate and incremental solver. As far as I am aware, both implementations are the first of their kind. The performance of these solvers was thoroughly evaluated under the Firmament flow scheduling system, including simulation of a cluster based on pubicly available trace data. In addition, approximation yielded a speedup of between $2\text{--}11\times$ on networks arising in other applications, suggesting its use beyond flow scheduling.
 
 \vspace*{-1em}
 \section*{Special difficulties}
@@ -356,8 +382,8 @@ any substantial extent for a comparable purpose.
 \bigskip
 \leftline{Signed}
 \medskip
-% PROOFREAD: Replace with fixed date. Make sure to have 'th/nd' in superscript
-\leftline{Date: \today}
+% PROOFREAD: DATE
+\leftline{Date: 13\textsuperscript{th} May 2015}
 
 \clearpage
 
