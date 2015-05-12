@@ -120,13 +120,12 @@ void CostScaling::relabel(uint32_t id) {
 			dst_id = arc->getDstId();
 			cost = arc->getCost();
 			capacity = arc->getCapacity();
-		} else if (arc->getDstId() == id) {
-			// reverse arc
+		} else {
+		  // reverse arc
+		  assert(arc->getDstId() == id);
 			dst_id = arc->getSrcId();
 			cost = -arc->getCost();
 			capacity = arc->getInitialCapacity() - arc->getCapacity();
-		} else {
-			assert(false);
 		}
 
 		if (capacity > 0) {

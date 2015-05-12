@@ -288,7 +288,7 @@ COMPILERS = {
   "gcc_O2": extend_dict(COMPILER_GCC, {"flags": "-O2 -DNDEBUG"}),
   "gcc_O3": extend_dict(COMPILER_GCC, {"flags": "-O3 -DNDEBUG"}),
   #"clang_debug": extend_dict(COMPILER_CLANG, {"flags": "-g"}),
-  "clang_O0": extend_dict(COMPILER_CLANG, {"flags": "-O0 -NDEBUG"}),
+  "clang_O0": extend_dict(COMPILER_CLANG, {"flags": "-O0 -DNDEBUG"}),
   "clang_O1": extend_dict(COMPILER_CLANG, {"flags": "-O1 -DNDEBUG"}),
   "clang_O2": extend_dict(COMPILER_CLANG, {"flags": "-O2 -DNDEBUG"}),
   "clang_O3": extend_dict(COMPILER_CLANG, {"flags": "-O3 -DNDEBUG"}),

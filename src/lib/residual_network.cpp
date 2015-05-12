@@ -160,7 +160,7 @@ void ResidualNetwork::removeNode(uint32_t id) {
 		uint32_t dst_id = adjacency.first;
 		// erase reverse pointer
 		uint32_t num_erased = arcs[dst_id].erase(id);
-		assert(num_erased = 1);
+		assert(num_erased == 1);
 	 }
 
 	// remove the outgoing edges
