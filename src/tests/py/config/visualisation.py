@@ -158,7 +158,7 @@ COMPILER_FIGURES = {
   },
   'relax': {
     'data': 'f_compilers_relax',
-    'dataset': 'Small',
+    'dataset': 'Medium',
   },
   # others implementations
   'goldberg': {

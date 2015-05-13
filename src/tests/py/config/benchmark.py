@@ -765,7 +765,7 @@ FULL_TESTS = {
                            COMPILERS.keys())
   },
   "compilers_relax": {
-    "files": FULL_DATASET["all_1hour_small"],
+    "files": FULL_DATASET["quincy_1hour"] + FULL_DATASET["octopus_1hour_small"],
     "iterations": 5,              
     "tests": compilerTests({"relax": {"implementation": "f_relax_latest"}},
                            COMPILERS.keys())
