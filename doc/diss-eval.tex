@@ -599,7 +599,6 @@ The next section compares the performance of the successive shortest path (see \
 
 \subsection{Relative performance}
 
-%XXX: Explain the long tail for relaxation. You might want to provide a result of a hybrid solver?
 \begin{figure}
     \begin{widepage}
         \begin{subfigure}[c]{\textwidth}
@@ -609,28 +608,34 @@ The next section compares the performance of the successive shortest path (see \
             \label{fig:inc-same:ssp}
         \end{subfigure}
         \begin{subfigure}[c]{\textwidth}
-            \includegraphics{inc/same_relax_large_cdf_2col}                        \includegraphics{inc/same_relax_large_incremental_only_cdf_2col}
+            \includegraphics{inc/same_relax_large_cdf_2col_reformat_mean}                        \includegraphics{inc/same_relax_large_incremental_only_cdf_2col}
             \caption{My implementation of relaxation on large (3,000 machine) cluster.}
             \label{fig:inc-same:relax-my}
         \end{subfigure}
-        \begin{subfigure}[c]{\textwidth}
-            \includegraphics{inc/same_relaxf_large_cdf_2col}
-            \includegraphics{inc/same_relaxf_large_incremental_only_cdf_2col}
-            \caption{My adaptation of RelaxIV, a reference implementation of relaxation, on large (3,000) machine cluster.}
-            \label{fig:inc-same:relax-iv}
-        \end{subfigure}
+%        \begin{subfigure}[c]{\textwidth}
+%            \includegraphics{inc/same_relaxf_large_cdf_2col}
+%            \includegraphics{inc/same_relaxf_large_incremental_only_cdf_2col}
+%            \caption{My adaptation of RelaxIV, a reference implementation of relaxation, on large (3,000) machine cluster.}
+%            \label{fig:inc-same:relax-iv}
+%        \end{subfigure}
     \end{widepage}
     \caption[Performance in incremental vs from scratch mode]{Performance in incremental vs from scratch mode. The CDFs in the left column compare the same implementation operating in different modes; those in the right column zoom in on the incremental mode. All experiments were replicated 5 times.}
     \label{fig:inc-same}
 \end{figure}
 
-\Cref{fig:inc-same} shows a dramatic speedup from using the augmenting path class of algorithms (successive shortest path and relaxation) in an incremental mode of operation. For successive shortest path, scheduling takes just over \SI{50}{\milli\second} in the incremental case, compared to a best case of just under \SI{2}{\second} in the from scratch case: an improvement of $40\times$. The difference is even more pronounced when considering the \emph{mean} scheduling latency, which is \SI{3.38}{\second} in the from scratch case but a mere \SI{6.95}{\milli\second} for the incremental solver: a speedup of over $450\times$. Similar results hold for both versions of relaxation.\todo{Write more once you have results from your new version of relax.}
+\Cref{fig:inc-same} shows a dramatic speedup from using the augmenting path class of algorithms (successive shortest path and relaxation) in an incremental mode of operation. For successive shortest path, scheduling takes at most \SI{800}{\milli\second} in the incremental case, compared to a best case of over \SI{3}{\second} in the from scratch case. The difference is even more pronounced when considering the \emph{mean} scheduling latency, which is \SI{6.15}{\second} in the from scratch case but a mere \SI{23.3}{\milli\second} for the incremental solver: a speedup of over $260\times$. 
+
+% From scratch version quite fast, so speedup can't be as large
+Relaxation is significantly faster than successive shortest path, both as a from scratch and incremental solver\footnotemark. The mean scheduling latency shown in \cref{fig:inc-same:relax-my} is significantly lower than that in \cref{fig:inc-same:ssp}, despite the test dataset of the former being some $5\times$ larger than that of the latter. However, the performance of relaxation is known to be highly dependent on the problem instance (see \cref{sec:impl-relax}), so this result may not hold for cost models invented in the future. Incremental successive shortest path is a viable alternative in this case.
+\footnotetext{In fact, relaxation is competitive with algorithms such as cost scaling on this class of flow network.}
+
+Both incremental solvers have a long tail. This is a reflection of the distribution of events in the cluster trace. In most scheduling rounds, there are only a handful of changes, and the incremental solver returns quickly. Occasionally, however, thousands of events may occur in a small time window such as when a large job is submitted. In this case, reoptimisation may take a while, although it is still faster than solving from scratch.
 
 % SOMEDAY: Could mention performance on other sized datasets?
 
 \subsection{Best-in-class comparison}
 
-% TODO: Add in relaxation to this once you ion_irelax has finished, it should beat augmenting path
+% TODO: Add in relaxation to this once ion_irelax has finished, it should beat augmenting path
 \begin{figure}
     \begin{widepage}
         \begin{subfigure}[c]{0.5\textwidth}
@@ -649,7 +654,6 @@ The next section compares the performance of the successive shortest path (see \
 The previous section showed that the incremental mode of operation considerably reduces the work performed by augmenting path algorithms. However, augmenting path algorithms are very slow on the from scratch problem\footnotemark: is the speedup of incremental operation enough to overcome this?
 \footnotetext{Relaxation is extremely fast on some networks, but unfortunately not flow scheduling networks.}
 
-%XXX: Update based on new results from relax.
 Cost scaling is the fastest from scratch algorithm on flow scheduling networks. \Cref{fig:inc-head-to-head-my} pits my incremental algorithm against my implementation of cost scaling. The incremental algorithm considerably outperforms cost scaling, with a speedup of $18\times$ on the full (12,000 machine) Google cluster. Note this is, however, significantly less than the $450\times$ speedup observed in the previous section. This is to be expected, as cost scaling is considerably faster on the from scratch problem.
 
 \subsection{Comparative evaluation}

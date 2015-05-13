@@ -11,6 +11,23 @@ All test machines had the same specification, with:
     \item Ubuntu 14.04 \textit{Trusty} operating system.
 \end{itemize}
 
+\section{Test harness} \label{appendix:impl-benchmark-harness}
+
+Running the tests manually would be unwieldly and error-prone. I thus developed a test harness in Python to automate the process. The configuration of the harness includes a list of implementations and datasets. Individual test cases in the configuration specify which implementation to test and what datasets to use, along with other parameters.
+
+In addition to testing the final versions of the solvers, the harness was used to evaluate the impact of optimisations implemented throughout the project, as reported in \cref{sec:eval-optimisations}. To support this, the harness was integrated with the Git version control system~\cite{GitWWW}. Versions of an implementation can be specified by a Git commit ID.
+
+%FIGURE: Malte thinks extract from configuration file would be good
+I anticipated that this project would involve running a large number of experiments. The harness was therefore designed to make the process as simple as possible. Test cases can be specified in fewer than ten lines. Running the experiment is simple: the harness checks out appropriate versions of the code and builds the implementations without user intervention, returning once the results of the test are complete.
+
+Efficiency was also a key requirement: with many experiments, it is important that they complete as fast as possible. The harness reuses intermediate computation where possible. Implementations are only checked out and built once. A cache of generated flow networks is maintained, so that the overhead is only incurred on the first run.
+%\footnotetext{Except where this could affect the results. For example, the test to measure scheduling latency described in the previous section requires the network be regenerated on each run, as it may vary slightly depending on the runtime of the algorithm.}
+
+% Omitted, may want to mention:
+% - Supports both offline (graph file) and hybrid/online (simulator) tests
+% - For offline: supports both incremental and full, via snapshot solver.
+% - For offline: can specify files with globs, etc.
+
 \section{Evaluation of compilers} \label{appendix:test-compilers}
 
 \begin{figure}
@@ -27,8 +44,7 @@ All test machines had the same specification, with:
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics[width=\textwidth]{com/relax_compiler_2col}
-        % XXX: Rerun this test
-        \caption{Relaxation, small (120 machine) cluster}
+        \caption{Relaxation, large (3,000 machine) cluster}
         \label{fig:compilers:relax}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
