@@ -1,4 +1,32 @@
-\section{Analysis of cycle cancelling} \label{appendix:impl-cc-analysis}
+\section{Cycle cancelling} \label{appendix:impl-cc}
+
+\subsection{Algorithm description}
+
+Cycle cancelling iteratively reduces the cost of the solution by sending flow along negative-cost cycles. This is inspired by the negative cycle optimality conditions, stated in \cref{thm:optimality-neg-cycle}:\\
+
+\optimalitynegcycle*
+
+\begin{algorithm}
+    \caption{Cycle cancelling}
+    \label{algo:cycle-cancelling}
+    \begin{algorithmic}[1]
+        \State $\mathbf{x}\gets $ result of maximum-flow algorithm \Comment{establishes x feasible}
+        \While{$G_\mathbf{x}$ contains a negative cost cycle}
+        \State identify negative cost cycle $W$ \Comment{e.g. using Bellman-Ford}
+        \Let{$\delta$}{$\min_{(i,j) \in W} r_{ij}$}
+        \State augment $\delta$ units of flow along cycle $W$
+        \EndWhile{}
+    \end{algorithmic}
+\end{algorithm}
+
+The algorithm is initialised with a feasible flow $\mathbf{x}$. This may be found by any maximum-flow algorithm, such as Ford-Fulkerson~\cite{FordFulkerson:1956}. The feasibility of the solution $\mathbf{x}$ is maintained at all times, and its cost is successively reduced. 
+
+Each iteration of the algorithm identifies a directed cycle of negative cost in the residual network $G_\mathbf{x}$. Note negative cycles can occur despite \cref{assumption:non-negative-arc-costs} of non-negative arc costs, as reverse arcs in the residual network have the opposite sign to forward arcs.
+
+Negative cost cycles are \emph{cancelled} by pushing as much flow as possible along the cycle. This causes it to `drop out' of the residual network: one or more arcs along the cycle become saturated, and so are no longer present in the residual network. Sending flow along a negative cost cycle reduces the cost of the solution, bringing it closer to optimality. The algorithm terminates when no negative cost directed cycles remain, guaranteeing optimality by \cref{thm:optimality-neg-cycle}.
+
+%SOMEDAY: Difficult to justify, better way of saying it?
+Note this generic version of the algorithm does not specify \emph{how} negative cycles are to be identified. I used the well-known Bellman-Ford~\cite[p.~651]{CLRS:2009} algorithm, although other more efficient methods exist. However, cycle cancelling was only implemented in order to have a known-working algorithm early on in development. Even the fastest variants are too slow for practical purposes.
 
 \subsubsection{Correctness} \label{appendix:impl-cc-analysis:correctness}
 
@@ -13,9 +41,12 @@ I will show that, if the algorithm terminates, it produces the correct result. \
     For the inductive case, suppose $\mathbf{x}$ is feasible immediately prior to an iteration of the loop body. The body pushes flow along a cycle. This maintains feasibility: the excess at the vertices along the cycles remain zero, with any increase in the flow leaving a vertex being counterbalanced by an equal increase in the flow entering that vertex.
 \end{proof}
 
-\cccorrectness*
+\begin{thm}[Correctness of cycle cancelling]
+    \label{thm:cycle-cancelling-correctness}
+    Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
+\end{thm}
 \begin{proof}
-By \cref{lemma:cycle-cancelling-invariant}, $\mathbf{x}$ is a feasible solution upon termination. The algorithm only terminates when no negative-cost directed cycles exist. It follows by \cref{thm:optimality-neg-cycle} that $\mathbf{x}$ is optimal.
+    By \cref{lemma:cycle-cancelling-invariant}, $\mathbf{x}$ is a feasible solution upon termination. The algorithm only terminates when no negative-cost directed cycles exist. It follows by \cref{thm:optimality-neg-cycle} that $\mathbf{x}$ is optimal.
 \end{proof}
 
 \subsubsection{Termination and asymptotic complexity} \label{appendix:impl-cc-analysis:complexity}
@@ -34,10 +65,17 @@ I will now show that the algorithm always terminates, and provide a bound on its
     The number of iterations is thus bounded by cost of the initial feasible flow. $mCU$ is an upper bound on the cost of any flow, hence the result.
 \end{proof}
 
-\cccomplexity*
+\begin{thm}[Asymptotic complexity of cycle cancelling]
+    \label{thm:cycle-cancelling-complexity}
+    The asymptotic complexity is $O(nm^2CU)$.
+\end{thm}
 \begin{proof}
     Note that Bellman-Ford runs in $O(nm)$ time. Augmenting flow along the cycle is of cost linear in the length of the cycle, and so is certainly $O(n)$. Thus each iteration runs in $O(nm)$. By \cref{lemma:cycle-cancelling-termination}, it follows the complexity of the algorithm is $O(nm^2CU)$.
 \end{proof}
+
+\begin{remark}
+    On networks produced by flow schedulers, the asymptotic complexity is $O(n^3CU)$ by \cref{lemma:network-num-arcs}.
+\end{remark}
 
 \section{Successive shortest path} \label{appendix:impl-ssp}
 
