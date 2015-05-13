@@ -12,6 +12,11 @@ Alternatively, the problem can be solved \emph{incrementally}, outlined in \cref
 
 These strategies are not solution methods in themselves. Rather, they suggest modifications that can be made to minimum-cost flow algorithms. Consequently, this chapter starts with an outline of the standard algorithms implemented in this project, before going on to describe the two strategies.
 
+% Three classes: those verbatim, those substantially modified [both cited], those entirely my own
+% Some results: novel, specific to flow scheduling; proofs missing from literature, or unclear
+I include a complexity analysis and proof of correctness for each algorithm. Where the proof is borrowed or adapted from existing work, I have cited my source. Any proof without a citation is therefore my own work. These include analyses specific to flow scheduling, for which there has been no prior research. I have also on occasion devised new proofs for existing results, where I felt this made the result easier to understand.
+
+In the interests of brevity, standard results are summarised in this chapter, with complete proofs given in \cref{appendix:impl}. Proofs are given in this chapter only where they are substantially my own work, or where the proof is critical to understanding the implementation of the algorithm.
 % FIGURE: Asymptotic complexity summary XXX
 
 \section{Cycle cancelling algorithm} \label{sec:impl-cycle-cancelling}
@@ -572,32 +577,23 @@ However, sending flow along $(i,j)$ could add arc $(j,i)$ to the residual networ
 No other changes are made which could affect the $\epsilon$-optimality conditions given in \cref{eq:epsilon-optimality}, so \textproc{Push} preserves $\epsilon$-optimality.
 \end{proof}
 
-\begin{lemma}[Correctness of \textproc{Relabel}] \label{lemma:cost-scaling-relabel-correctness}
+\begin{restatable}[Correctness of \textproc{Relabel}]{lemma}{csrelabelcorrectness} \label{lemma:cost-scaling-relabel-correctness}
 Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ be $\epsilon$-optimal, and the precondition for $\textproc{Relabel}(i)$ hold: $e_i > 0$ and $\forall(i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} \geq 0$.
 
 Let $\boldsymbol{\pi}'$ denote the potentials after \textproc{Relabel}. Then $\pi'_i\ \geq \pi_i + \epsilon$ and $\pi'_j = \pi_j$ for $j \neq i$. Moreover, $\left(\mathbf{x},\boldsymbol{\pi}'\right)$ continues to be $\epsilon$-optimal.
-\end{lemma}
-\begin{proof} (Adapted from Goldberg and Tarjan~\cite[lemma~5.2]{Goldberg:1987})
-    
-By the precondition, $\forall(i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} \geq 0$. Substituting for the definition of reduced costs in \cref{eq:reduced-costs} gives $\forall(i,j) \in E_{\mathbf{x}} \cdot c_{ij} + \pi_j \geq \pi_i$. Thus:
-\[\pi'_i = \min \set{\pi_j + c_{ij} + \epsilon | (i,j) \in E_{\mathbf{x}}} \geq \pi_i + \epsilon\]
-\textproc{Relabel} does not modify any other components of $\boldsymbol{\pi}$, so $\pi'_j = \pi_j$ for $j \neq i$.
-
-Increasing $\pi_i$ has the effect of decreasing the reduced cost $c^{\boldsymbol{\pi}}_{ij}$ of outgoing arcs $(i,j)$, increasing $c^{\boldsymbol{\pi}}_{ji}$ for incoming arcs $(j,i)$ and leaving the reduced cost of other arcs unchanged. Increasing $c^{\boldsymbol{\pi}}_{ji}$ cannot violate $\epsilon$-optimality, but decreasing $c^{\boldsymbol{\pi}}_{ij}$ might. However, for any $(v,w) \in E_{\mathbf{x}}$:
-\[c_{vw} + \pi_w - \min \left\{\pi_j + c_{ij} \::\: (i,j) \in E_{\mathbf{x}}\right\} \geq 0\]
-Thus by definition of $\boldsymbol{\pi}'$, and taking out the constant $\epsilon$:
-\[c_{vw} + \pi_w - \pi'_i \geq -\epsilon\]
-And so $c_{vw}^{\boldsymbol{\pi}'} \geq -\epsilon$, as required for $\epsilon$-optimality.
+\end{restatable}
+\begin{proof}
+See \cref{appendix:impl-cs:correctness}.
 \end{proof}
 
-\begin{thm}[Correctness of \textproc{Refine}] \label{thm:cost-scaling-refine-correctness}
+\begin{lemma}[Correctness of \textproc{Refine}]
+\label{thm:cost-scaling-refine-correctness}
 Let the precondition for $\textproc{Refine}$ hold: $\mathbf{x}$ is a pseudoflow. Then upon termination of \textproc{Refine}, the postcondition holds: $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal.
-\end{thm}
+\end{lemma}
 \begin{proof} (Adapted from Goldberg and Tarjan~\cite[theorem~5.4]{Goldberg:1987})
+    The initial flow after \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} is $0$-optimal (and so certainly $\epsilon$-optimal). $\epsilon$-optimality is preserved by subsequent \textproc{Push} and \textproc{Relabel} operations by \cref{lemma:cost-scaling-push-correctness,lemma:cost-scaling-relabel-correctness}. Hence $\epsilon$-optimality is maintained as an invariant.
     
-The initial flow after \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} is $0$-optimal (and so certainly $\epsilon$-optimal). $\epsilon$-optimality is preserved by subsequent \textproc{Push} and \textproc{Relabel} operations by \cref{lemma:cost-scaling-push-correctness,lemma:cost-scaling-relabel-correctness}. Hence $\epsilon$-optimality is maintained as an invariant.
- 
-Given that \textproc{Refine} has terminated, the mass balance constraints must be satisfied by the loop condition on \cref{algo:cost-scaling-generic-refine:start-loop}. Thus $\mathbf{x}$ must also be a flow upon termination.
+    Given that \textproc{Refine} has terminated, the mass balance constraints must be satisfied by the loop condition on \cref{algo:cost-scaling-generic-refine:start-loop}. Thus $\mathbf{x}$ must also be a flow upon termination.
 \end{proof}
 
 \begin{cor}[Correctness of cost scaling]

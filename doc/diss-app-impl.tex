@@ -215,24 +215,42 @@ First, \textproc{UpdatePotentials} and \textproc{AugmentFlow} are shown to prese
     The algorithm terminates when the mass balance constraints are satisfied, so $\mathbf{x}$ is feasible. Thus upon termination, $\mathbf{x}$ is feasible and satisfies reduced cost optimality conditions. Therefore, $\mathbf{x}$ is a solution to the minimum-cost flow problem. 
 \end{proof}
 
-\section{Heuristics for cost scaling} \label{appendix:impl-csheuristics}
+\section{Cost scaling} \label{appendix:impl-cs}
+
+\subsection{Correctness analysis} \label{appendix:impl-cs:correctness}
+
+\csrelabelcorrectness*
+\begin{proof} (Adapted from Goldberg and Tarjan~\cite[lemma~5.2]{Goldberg:1987})
+    
+    By the precondition, $\forall(i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} \geq 0$. Substituting for the definition of reduced costs in \cref{eq:reduced-costs} gives $\forall(i,j) \in E_{\mathbf{x}} \cdot c_{ij} + \pi_j \geq \pi_i$. Thus:
+    \[\pi'_i = \min \set{\pi_j + c_{ij} + \epsilon | (i,j) \in E_{\mathbf{x}}} \geq \pi_i + \epsilon\]
+    \textproc{Relabel} does not modify any other components of $\boldsymbol{\pi}$, so $\pi'_j = \pi_j$ for $j \neq i$.
+    
+    Increasing $\pi_i$ has the effect of decreasing the reduced cost $c^{\boldsymbol{\pi}}_{ij}$ of outgoing arcs $(i,j)$, increasing $c^{\boldsymbol{\pi}}_{ji}$ for incoming arcs $(j,i)$ and leaving the reduced cost of other arcs unchanged. Increasing $c^{\boldsymbol{\pi}}_{ji}$ cannot violate $\epsilon$-optimality, but decreasing $c^{\boldsymbol{\pi}}_{ij}$ might. However, for any $(v,w) \in E_{\mathbf{x}}$:
+    \[c_{vw} + \pi_w - \min \left\{\pi_j + c_{ij} \::\: (i,j) \in E_{\mathbf{x}}\right\} \geq 0\]
+    Thus by definition of $\boldsymbol{\pi}'$, and taking out the constant $\epsilon$:
+    \[c_{vw} + \pi_w - \pi'_i \geq -\epsilon\]
+    And so $c_{vw}^{\boldsymbol{\pi}'} \geq -\epsilon$, as required for $\epsilon$-optimality.
+\end{proof}
+
+\subsection{Heuristics for cost scaling} \label{appendix:impl-csheuristics}
 % Proofread: 1 minor edits
 Goldberg has proposed a number of heuristics to improve the real-world performance of his cost scaling algorithm~\cite{Goldberg:1997}, described in \cref{sec:impl-cost-scaling}. These have been found to result in considerable real-world improvements in efficiency~\cite{Bunnagel:1998,KiralyKovacs:2012}. Note that their effectiveness depends on the problem instance. Moreover, several of the heuristics such as arc fixing and potential update are highly sensitive to parameter settings or other implementation choices.
 
-\subsection{Potential refinement} \label{appendix:impl-csheuristics-potential-refinement}
+\subsubsection{Potential refinement} \label{appendix:impl-csheuristics-potential-refinement}
 The $\textproc{Refine}(\mathbf{x},\boldsymbol{\pi},\epsilon)$ routine is guaranteed to produce an $\epsilon$-optimal flow. However, it may also be $\epsilon'$-optimal for $\epsilon' < \epsilon$. This heuristic decreases $\epsilon$ while modifying the potentials $\boldsymbol{\pi}$, without changing the flow $\mathbf{x}$. This has been found to yield a 40\% performance improvement~\cite{Bunnagel:1998}.
 
-\subsection{Push lookahead}
+\subsubsection{Push lookahead}
 Before performing $\textproc{Push}(i,j)$, this heuristic checks whether $j$ is a deficit vertex ($e_j < 0$) or if $j$ has an outgoing admissible arc. If so, the \textproc{Push} operation proceeds.
 
 Otherwise, the \textproc{Push} operation is aborted, and \textproc{Relabel} is performed instead. Were the \textproc{Push} operation to be performed, the flow would get `stuck' at vertex $j$, and end up being pushed back to $i$. This heuristic has been found to significantly reduce the number of \textproc{Push} operations performed~\cite{Goldberg:1997}.
 
-\subsection{Arc fixing}
+\subsubsection{Arc fixing}
 The algorithm examines a large number of arcs, sometimes unnecessarily. It can be proved that for any arc $(i,j)$ with reduced cost satisfying $\left|c^{\boldsymbol{\pi}}_{ij}\right| > 2n\epsilon$, the flow $x_{ij}$ is never again modified. These arcs can safely be \emph{fixed}: removed from the adjacency list examined by the algorithm. 
 
 This heuristic takes things a step further, \emph{speculatively} fixing arcs whenever $\left|c^{\boldsymbol{\pi}}_{ij}\right|$ is above some threshold $\beta$. Speculatively fixed arcs may still need to have their flow updated, but this is unlikely. Consequently, the algorithm examines these arcs very infrequently, unfixing arcs found to violate reduced cost optimality conditions.
 
-\subsection{Potential update}
+\subsubsection{Potential update}
 The \textproc{Relabel} operation given in \cref{algo:cost-scaling-operations} updates the potential at a single vertex. This heuristic is based around an alternative \emph{set relabel} operation, which updates potentials at many vertices at once.
 
 Regular relabel operations are still used, with set relabel called periodically. The optimum frequency is dependent on both the problem and implementation, but calling set relabel every $O(n)$ regular relabels has been found to be a good rule of thumb~\cite{Goldberg:1997}.
