@@ -116,20 +116,6 @@ I modified the successive shortest path algorithm to terminate Djikstra as soon 
 
 \subsection{Analysis} \label{sec:impl-ssp-analysis}
 
-% WORDCOUNT: Ionel reckoned you can move it to the appendix
-
-%\begin{restatable}[Correctness of cycle cancelling]{thm}{correctnesscc}
-%    \label{thm:cycle-cancelling-correctness}
-%    Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
-%\end{restatable} \vspace{0.5em}
-%\begin{restatable}[Asymptotic complexity of cycle cancelling]{thm}{complexitycc}
-%    \label{thm:cycle-cancelling-complexity}
-%    The asymptotic complexity is $O(nm^2CU)$.
-%\end{restatable} \vspace{0.5em}
-%\begin{remark}
-%    On networks produced by flow schedulers, the asymptotic complexity is $O(n^3CU)$ by \cref{lemma:network-num-arcs}.
-%\end{remark}
-
 \begin{restatable}[Loop invariant of successive shortest path]{thm}{sspinvariant} \label{thm:ssp-invariant}
     Immediately before each iteration of the loop, $(\mathbf{x},\boldsymbol{\pi})$ satisfies reduced cost optimality.
 \end{restatable}
@@ -177,6 +163,9 @@ Like the successive shortest path algorithm, the relaxation algorithm works by a
 Relaxation performs much better empirically than the successive shortest path algorithm, and is one of the fastest algorithms for some classes of flow networks~\cite{KiralyKovacs:2012}. However, its worst-case complexity is exponential, slower than all others algorithms considered in this dissertation\footnotemark. Like successive shortest path, it is well suited to being used incrementally, but is inappropriate for an approximate solver.
 \footnotetext{The generic version of cycle cancelling is also exponential in the worst-case, however there are variants with a strongly polynomial bound. By contrast, there are no variants of relaxation achieving polynomial time, although in practice exponential runtime is not observed on realistic flow networks.}
 
+% WORDCOUNT: Unsure whether to move the proofs for this section to appendix.
+% They are mostly your own, but not especially enlightening or difficult.
+% Definitely keep the statements here, though, they're pretty important.
 \subsection{The relaxed integer programming problem}
 Before describing how the relaxation algorithm works, it is necessary to understand the problem it seeks to optimise. The primal (see \cref{sec:prep-flow-mcf}) and dual (see \cref{sec:prep-flow-rc-and-dual}) versions of the minimum-cost flow problem have been previously been discussed. The relaxed version of the problem may be derived by applying Lagrangian relaxation to the primal problem, and has characteristics of both the primal and dual formulations. It is denoted by $\mathrm{LR}(\boldsymbol{\pi})$, and is defined by:
 
@@ -206,7 +195,9 @@ w\left(\pi\right)= & \min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}x_{ij}+\sum
 \end{align*}
 \end{proof}
 
+\begin{remark}
 Note that \cref{eq:relax-obj-fun-excess} is expressed in terms of the excesses ($\mathbf{x}$-dependent) and arc costs, whereas \cref{eq:relax-obj-fun-balance} is expressed in terms of the reduced costs ($\boldsymbol{\pi}$-dependent) and balances.\\
+\end{remark}
 
 \begin{lemma} \label{lemma:relax-rc-lr-equivalence}
 Let $\mathbf{x}$ be a pseudoflow and $\boldsymbol{\pi}$ vertex potentials. Then $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfies reduced cost optimality conditions if and only if $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$.
@@ -372,73 +363,30 @@ Each iteration of the outer loop of \cref{algo:relaxation} selects an excess ver
 
 \subsection{Analysis} \label{sec:impl-relax-analysis}
 
+%\begin{restatable}[Correctness of cycle cancelling]{thm}{correctnesscc}
+%    \label{thm:cycle-cancelling-correctness}
+%    Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
+%\end{restatable} \vspace{0.5em}
+%\begin{restatable}[Asymptotic complexity of cycle cancelling]{thm}{complexitycc}
+%    \label{thm:cycle-cancelling-complexity}
+%    The asymptotic complexity is $O(nm^2CU)$.
+%\end{restatable} \vspace{0.5em}
+%\begin{remark}
+%    On networks produced by flow schedulers, the asymptotic complexity is $O(n^3CU)$ by \cref{lemma:network-num-arcs}.
+%\end{remark}
+
 \subsubsection{Correctness}
 
-First, \textproc{UpdatePotentials} and \textproc{AugmentFlow} are shown to preserve reduced cost optimality. Using these lemmas, it can be shown that that reduced cost optimality is maintained as an invariant throughout the algorithm. It follows that, if the algorithm terminates, then $\mathbf{x}$ is a solution to the minimum-cost flow problem. Some other useful properties of \textproc{UpdatePotentials} and \textproc{AugmentFlow} are also proved.\\
-
-% SOMEDAY: This proof is a little bit confusing. You're talking about sums inside a minimisation. Also, you're saying w(pi) is unchanged by changing x: well, of course it is, it has to be as w isn't a function of x! I know wht you mean, but this could perhaps be restated to be explicit. 
-\begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
-Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, the new pseudoflow and vertex potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
-\end{lemma}
-\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[p.~334]{Ahuja:1993})
-    
-Arcs with a reduced cost of zero are saturated by \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd}, and drop out of the residual network as a result. This preserves reduced cost optimality: the flow on arcs with a reduced cost of zero is arbitrary. Moreover, it leaves $w(\boldsymbol{\pi})$ unchanged. Recall the formulation of $w(\boldsymbol{\pi})$ given in \cref{eq:relax-obj-fun-balance}:
-\[w(\boldsymbol{\pi})=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}\right]\]
-The second sum is unchanged, as potentials $\mathbf{\pi}$ are unchanged. The first sum is also unchanged, as $x'_{ij}$ differs from $x_{ij}$ only when the reduced costs are $c_{ij}^{\boldsymbol{\pi}}=0$.
-
-Note that there is now $r(\boldsymbol{\pi},S)$ more flow leaving vertices in $S$, so the tree excess is now:
-\[e'(S) = e(S) - r(\boldsymbol{\pi},S)\]
-By the precondition, $e'(S)$ is (strictly) positive.
-
-After \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd}, all arcs in the residual network crossing the cut $\left(S,\overline{S}\right)$ have positive reduced cost\footnotemark. Let $\alpha > 0$ be the minimal such remaining reduced cost.
-\footnotetext{Since none had negative reduced cost, by assumption of reduced cost optimality on entering the procedure.}
-
-$\boldsymbol{\pi}'$ is now obtained from $\boldsymbol{\pi}$ by increasing the potential of every vertex $i \in S$ in the tree by $\alpha$. Recall the formulation of the objective function in terms of costs and excesses, given in \cref{eq:relax-obj-fun-excess}:
-\[w\left(\boldsymbol{\pi}\right)=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}x_{ij}+\sum_{i\in V}\boldsymbol{\pi}_{i}e_{i}\right]\]
-The first sum is unchanged: modifying the potentials $\boldsymbol{\pi}$ does not change the original arc cost $c_{ij}$ or flow $x_{ij}$. For the second sum:
-\begin{align*}
-\sum_{i\in V}\pi'_{i}e'_{i}= & \sum_{i\in S}\left(\pi_{i}+\alpha\right)e'_{i}+\sum_{i\in\overline{S}}\pi_{i}e'_{i}\\
-= &\:\alpha\sum_{i\in S}e'_{i}+\sum_{i\in V}\pi_{i}e'_{i}\\
-= &\:\alpha e'(S)+\sum_{i\in V}\pi_{i}e'_{i}
-\end{align*}
-Since $w\left(\boldsymbol{\pi}\right)$ is unchanged after updating $\mathbf{x}$, it follows:
-\[w\left(\boldsymbol{\pi}'\right)=w(\boldsymbol{\pi})+\alpha e'(S)\]
-$\alpha > 0$ and $e'(S) > 0$ have already been shown; by \cref{assumption:integrality}, it follows that $\alpha \geq 1 $ and $e'(S) \geq 1$ by. Thus $\alpha e'(S) \geq 1$, so $w\left(\boldsymbol{\pi}'\right) > w\left(\boldsymbol{\pi}\right)$.
-
-It remains to show that updating potentials maintains reduced cost optimality. Note that increasing the potentials of vertices in $S$ by $\alpha$ decreases the reduced cost of arcs in $\left(S,\overline{S}\right)$ by $\alpha$, increases the reduced cost of arcs in $\left(\overline{S},S\right)$ by $\alpha$ and leaves the reduced cost of other arcs unchanged.
-
-Prior to updating potentials, all arcs in the residual network had (strictly) positive reduced costs. Consequently, increasing the reduced cost cannot violate reduced cost optimality\footnotemark, but decreasing the reduced cost might. Consequently, before updating the potentials, $c_{ij}^{\boldsymbol{\pi}} \geq \alpha$ for all $(i,j)\in\left(S,\overline{S}\right)\:\mbox{with}\:r_{ij}>0$. Hence, after the potential update, $c_{ij}^{\boldsymbol{\pi}'}\geq 0$ for these arcs.
-\footnotetext{Note increasing the reduced cost from zero to a positive number could violate optimality, but this case has been excluded.}
-\end{proof}
-
-\begin{lemma}[Correctness of \textproc{AugmentFlow}] \label{lemma:relax-correctness-augmentflow}
-Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e_t < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, there is a new pseudoflow $\mathbf{x}'$ and $\left(\mathbf{x}',\boldsymbol{\pi}\right)$ still satisfy reduced cost optimality conditions. Moreover, under $\mathbf{x}'$ the excess at vertex $s$ and deficit at vertex $t$ decreases, without changing the excess/deficit at any other vertex.
-\end{lemma}
-\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[p.~336]{Ahuja:1993})
-    
-\Cref{algo:relaxation-augment-flow:find-P} finds a shortest path $P$ from the excess vertex $s$ to a deficit vertex $t$. \Crefrange{algo:relaxation-augment-flow:compute-delta}{algo:relaxation-augment-flow:augment-path} then send as much flow as possible along path $P$, subject to:
-\begin{enumerate}
-    \item satisfying the capacity constraints at each arc on $P$, and
-    \item ensuring $e_s \geq 0$ and $e_t \leq 0$.
-\end{enumerate}
-The restriction on $e_s$ and $e_t$ ensures that the feasibility of the solution is improved, by ensuring the unmet supply/demmand $|e_i|$ monotonically decreases for all $i \in V$\footnotemark.
-\footnotetext{If the algorithm were allowed to `overshoot' and turn $s$ into a deficit vertex or $t$ into an excess, this property might not hold.}
-
-Since an equal amount of flow is sent on each arc in $P$, the excess at vertices other than the start $s$ and end $t$ of path $P$ are unchanged.
-\end{proof}
-
-\begin{thm}[Correctness] \label{thm:relax-correctness}
-Upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
-\end{thm}
+\begin{restatable}[Correctness of relaxation]{thm}{relaxcorrectness} \label{thm:relax-correctness}
+Immediately before each iteration of the loop, $(\mathbf{x},\boldsymbol{\pi})$ satisfies reduced cost optimality. Moreover, upon termination, $\mathbf{x}$ is a solution of the minimum-cost flow problem.
+\end{restatable}
 \begin{proof}
-For the same reason as given in \cref{thm:ssp-invariant}, the initial values of $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. \textproc{AugmentFlow} and \textproc{UpdatePotentials} are only invoked when their preconditions are satisfied, and so by \cref{lemma:relax-correctness-augmentflow,lemma:relax-correctness-updatepotentials} it follows that reduced cost optimality is maintained. Moreover, the main algorithm given in \cref{algo:relaxation} does not update $\mathbf{x}$ or $\boldsymbol{\pi}$ except via calls to $\textproc{AugmentFlows}$ and $\textproc{UpdatePotentials}$. So, reduced cost optimality is maintained as an invariant throughout the algorithm.
-
-The algorithm terminates when the mass balance constraints are satisfied, so $\mathbf{x}$ is feasible. Thus upon termination, $\mathbf{x}$ is feasible and satisfies reduced cost optimality conditions. Therefore, $\mathbf{x}$ is a solution to the minimum-cost flow problem. 
+See \cref{appendix:impl-relaxation-correctness}.
 \end{proof}
 
-\subsubsection{Termination and asymptotic complexity}
+\subsubsection{Asymptotic complexity}
 
-Many of the previous proofs were adopted from the literature. By contrast, analysis of the algorithm's complexity was conspicuously absent from all the standard sources. Authors are, perhaps, shy of highlighting relaxation's worst-case exponential performance. Fortunately, it is fairly straightforward to analyse: I provide my results below. \\
+Analysis of the algorithm's complexity is conspicuously absent from all the standard sources. Authors are, perhaps, shy of highlighting relaxation's worst-case exponential performance. However, it is fairly straightforward to analyse: I provide my results below. \\
 
 \begin{lemma} \label{lemma:relax-complexity-updatepotentials}
 The time complexity of $\textproc{UpdatePotentials}$ is $O(m)$.
@@ -851,7 +799,7 @@ I believe this to be the first study of approximation algorithms for the minimum
 The solution returned by an approximate algorithm must be \emph{feasible}, although it need not be \emph{optimal}. Of the algorithms considered in sections \ref{sec:impl-cycle-cancelling} to \ref{sec:impl-cost-scaling}, cycle cancelling and cost scaling are the only ones which maintain feasibility as an invariant on the flow\footnotemark.
 \footnotetext{Successive shortest path and relaxation, by contrast, operate on a pseudoflow and maintain optimality as an invariant.}
 
-Both cycle cancelling and cost scaling work by finding successive approximations to an optimal solution, and so can readily be adapted to operate as an approximate solver. In cycle cancelling, the cost of the solution monotonically decreases after each iteration (shown in the proof of \cref{thm:cycle-cancelling-termination}). The error is \emph{not} guaranteed to decrease between iterations in cost scaling, however the error bound $\epsilon$ undergoes exponential decay.
+Both cycle cancelling and cost scaling work by finding successive approximations to an optimal solution, and so can readily be adapted to operate as an approximate solver. In cycle cancelling, the cost of the solution monotonically decreases after each iteration (shown in the proof of \cref{lemma:cycle-cancelling-termination}). The error is \emph{not} guaranteed to decrease between iterations in cost scaling, however the error bound $\epsilon$ undergoes exponential decay.
 
 This suggests that cost scaling is more suitable. In cycle cancelling, a large decrease in the cost of the solution may occur at \emph{any} point in the algorithm's execution. By contrast, in cost scaling $\epsilon$ attains a small value many iterations before the algorithm would normally terminate. 
 
