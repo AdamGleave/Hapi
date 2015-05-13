@@ -12,11 +12,7 @@ Alternatively, the problem can be solved \emph{incrementally}, outlined in \cref
 
 These strategies are not solution methods in themselves. Rather, they suggest modifications that can be made to minimum-cost flow algorithms. Consequently, this chapter starts with an outline of the standard algorithms implemented in this project, before going on to describe the two strategies.
 
-% Three classes: those verbatim, those substantially modified [both cited], those entirely my own
-% Some results: novel, specific to flow scheduling; proofs missing from literature, or unclear
-I include a complexity analysis and proof of correctness for each algorithm. Where the proof is borrowed or adapted from existing work, I have cited my source. Any proof without a citation is therefore my own work. These include analyses specific to flow scheduling, for which there has been no prior research. I have also on occasion devised new proofs for existing results, where I felt this made the result easier to understand.
-
-In the interests of brevity, standard results are summarised in this chapter, with complete proofs given in \cref{appendix:impl}. Proofs are given in this chapter only where they are substantially my own work, or where the proof is critical to understanding the implementation of the algorithm.
+I include a complexity analysis and proof of correctness for each algorithm. In the interests of brevity, I mostly summarise the results in this chapter, giving complete proofs in \cref{appendix:impl}. I have included proofs in this chapter where they are substantially my own work, or when the proof is critical to understanding the implementation of the algorithm.
 % FIGURE: Asymptotic complexity summary XXX
 
 \section{Cycle cancelling algorithm} \label{sec:impl-cycle-cancelling}
@@ -55,7 +51,7 @@ Note this generic version of the algorithm does not specify \emph{how} negative 
 
 \subsection{Analysis}
 
-Proofs of these results are provided in \cref{appendix:impl-cc-analysis}.
+Proofs of these results are provided in \cref{appendix:impl-cc-analysis}. \\
 
 \begin{restatable}[Correctness of cycle cancelling]{thm}{cccorrectness}
 \label{thm:cycle-cancelling-correctness}
@@ -106,7 +102,6 @@ The amount of flow $\delta$ sent over the path is limited by the minimum residua
 
 \subsection{Optimisations} \label{sec:impl-ssp-optimisations}
 
-% WORDCOUNT: Could summarise and drop most to appendix
 \subsubsection{Choice of shortest-path algorithm}
 The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure.
 
@@ -114,7 +109,6 @@ Fibonacci heaps have considerable implementation complexity: whilst asymptotical
 
 \subsubsection{Terminating Djikstra's algorithm early}
 
-%WORDCOUNT: Can move the proof, etc. to appendix.
 Djikstra's algorithm is said to have \emph{permanently labelled} a vertex $i$ when it extracts $i$ from the heap. At this point, Djikstra has found a shortest path from $s$ to $i$.
 
 I modified the successive shortest path algorithm to terminate Djikstra as soon as it permanently labels a deficit vertex $l$. Although this does not affect asymptotic complexity, it may considerably improve performance in practice. Details of the implementation and a proof of correctness is provided in \cref{appendix:impl-ssp:partial-djikstra}.\\
@@ -168,7 +162,7 @@ Like the successive shortest path algorithm, the relaxation algorithm works by a
 Relaxation performs much better empirically than the successive shortest path algorithm, and is one of the fastest algorithms for some classes of flow networks~\cite{KiralyKovacs:2012}. However, its worst-case complexity is exponential, slower than all others algorithms considered in this dissertation\footnotemark. Like successive shortest path, it is well suited to being used incrementally, but is inappropriate for an approximate solver.
 \footnotetext{The generic version of cycle cancelling is also exponential in the worst-case, however there are variants with a strongly polynomial bound. By contrast, there are no variants of relaxation achieving polynomial time, although in practice exponential runtime is not observed on realistic flow networks.}
 
-% WORDCOUNT: Unsure whether to move the proofs for this section to appendix.
+% WORDCOUNT: Relaxation -- unsure whether to move the proofs for this section to appendix
 % They are mostly your own, but not especially enlightening or difficult.
 % Definitely keep the statements here, though, they're pretty important.
 \subsection{The relaxed integer programming problem}
@@ -892,6 +886,7 @@ Step 2 varies considerably between algorithms, and will be discussed later in \c
 %\footnotetext{For example, a representation of adjacencies that can be very efficient is to allocate an array large enough to store the adjacency list for each vertex. These are then laid out sequentially, and a separate array stores the start and end index in the adjacency array for each vertex. This achieves excellent spatial locality, giving a high cache hit rate when scanning the adjacency list. Inserting an arc into this data structure is extremely expensive, however, as it may require moving a large number of other elements.}
 
 \subsection{Choice of algorithms} \label{sec:impl-incremental-choice}
+% WORDCOUNT: Incremental choice of algorithms -- could probably cut why cycle cancelling doesn't work; maybe true for cost scaling, too.
 Standard minimum-cost flow algorithms were described in \cref{sec:impl-cycle-cancelling} to \Cref{sec:impl-cost-scaling}. All of these can be modified to operate incrementally. However, their performance varies considerably. Moreover, the algorithms that run the fastest from scratch do not necessarily perform best on the incremental problem. This section evaluates each of the standard algorithms in turn.
 
 \subsubsection{Cost scaling} 
@@ -1002,7 +997,7 @@ The method to preserve reduced cost optimality, described in \cref{sec:impl-incr
 The wrapper class provides the same interface as the graph classes. It can therefore be used as a drop-in replacement, minimising the changes needed in the rest of the codebase. The algorithms themselves required little modification: I merely added a to indicate whether the initialisation routine should run, depending on if the algorithm is operating from scratch or incrementally.
  
 \subsubsection{Extending RelaxIV}
-%WORDCOUNT: Could probably make further cuts here
+%WORDCOUNT: Extending RelaxIV -- could probably make further cuts here
 The RelaxIV solver was considerably more challenging to modify. Whereas this project's implementations attempted to strike a balance between flexibility and efficiency, performance was the overriding objective for RelaxIV. 
 
 The source code is 5,000 lines in total, with some individual functions longer than 800 lines. The original Fortran version of the code is due to Bertsekas, and dates to 1988~\cite{BertsekasCodes:1988}. I worked with the C++ port by Frangioni and Gentile from 2003~\cite{RelaxIV:2011}.

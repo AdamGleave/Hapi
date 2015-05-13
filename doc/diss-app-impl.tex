@@ -41,6 +41,49 @@ I will now show that the algorithm always terminates, and provide a bound on its
 
 \section{Successive shortest path} \label{appendix:impl-ssp}
 
+\subsection{Correctness analysis} \label{appendix:impl-ssp:analysis-correctness}
+
+\Cref{lemma:ssp-reduced-costs,cor:ssp-reduced-costs} prove properties of the algorithm, allowing \cref{thm:ssp-invariant} to show that reduced cost optimality is maintained as an invariant. Correctness of the algorithm follows in \cref{cor:ssp-correctness} by using the terminating condition of the algorithm.\\
+
+\begin{lemma} \label{lemma:ssp-reduced-costs}
+    Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions of \cref{eq:optimality-reduced-cost} with respect to potentials $\boldsymbol{\pi}$. Let $\mathbf{d}$ represent the shortest path distances in the residual network $G_{\mathbf{x}}$ from a vertex $s \in V$ to all other vertices, with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$. Then:
+    
+    \begin{enumerate}[label=(\alph*)]
+        \item $\mathbf{x}$ also satisfies reduced cost optimality conditions with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
+        \item The reduced costs $c^{\boldsymbol{\pi}'}_{ij}$ are zero for all arcs $(i,j)$ in the shortest-path tree rooted at $s \in V$.
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    See Ahuja, \textit{et al.}~\cite[lemma~9.11]{Ahuja:1993}.
+\end{proof}
+
+\begin{cor} \label{cor:ssp-reduced-costs}
+    Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $\mathbf{x}$ by sending flow along a shortest path from vertex $s$ to some other vertex $k \in V$. Then $\mathbf{x}'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
+\end{cor}
+\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[lemma~9.12]{Ahuja:1993})
+    
+    By \cref{lemma:ssp-reduced-costs}(a), $\left(\mathbf{x},\boldsymbol{\pi'}\right)$ satisfies the reduced cost optimality conditions.
+    
+    Pushing flow along an arc $(i,j) \in G_{\mathbf{x}}$ might add its reversal $(j,i)$ to the residual network. Let $P$ be a shortest path from $s$ to $k$. By \cref{lemma:ssp-reduced-costs}(b), it follows that any arc $(i,j) \in P$ has $c^{\boldsymbol{\pi}'}_{ij} = 0$. So $c^{\boldsymbol{\pi}'}_{ji} = 0$. Thus any arcs are added to the residual network by augmenting flow along $P$ have a zero reduced cost, and so still satisfy the reduced cost optimality conditions of \cref{eq:optimality-reduced-cost}.
+\end{proof}
+
+\sspinvariant*
+\begin{proof} (Induction)
+    
+    For the base case, note that $(\mathbf{0},\mathbf{0})$ satisfies reduced cost optimality. $G_{\boldsymbol{0}} = G$ holds, i.e.\ the residual and original network are the same. Moreover, all arc costs $c_{ij}$ are non-negative (by \cref{assumption:non-negative-arc-costs}) and so the reduced costs $c^{\boldsymbol{0}}_{ij}=c_{ij}$ are also non-negative. Thus reduced cost optimality holds.
+    
+    Now, assume that reduced cost optimality holds immediately prior to execution of the loop body. The body computes the shortest path distances $\mathbf{d}$ from a vertex $s$, and updates $\boldsymbol{\pi}$ to become $\boldsymbol{\pi'}$ as defined in \cref{lemma:ssp-reduced-costs}. It then pushes flow along a shortest path from $s$ to another vertex, yielding a new flow of the same form as $\mathbf{x'}$ in \cref{cor:ssp-reduced-costs}. It follows by \cref{cor:ssp-reduced-costs} that $(\mathbf{x}',\boldsymbol{\pi}')$ satisfies reduced cost optimality at the end of the loop body. Hence, the inductive hypothesis continues to hold.
+\end{proof}
+
+\sspcorrectness*
+\begin{proof}
+    The algorithm terminates when the mass balance constraints of \cref{eq:mass-balance-constraints} are satisfied. At this point, the solution $\mathbf{x}$ is feasible (see \cref{sec:prep-flow-pseudo}). 
+    
+    By \cref{thm:ssp-invariant}, we know the algorithm maintains the invariant that $\mathbf{x}$ satisfies reduced cost optimality. 
+    
+    It follows that $\mathbf{x}$ is both optimal and a feasible flow upon termination, so $\mathbf{x}$ is a solution to the minimum-cost flow problem.
+\end{proof}
+
 \subsection{Terminating Djikstra's algorithm early} \label{appendix:impl-ssp:partial-djikstra}
 
 Djikstra's algorithm is said to have \emph{permanently labelled} a vertex $i$ when it extracts $i$ from the heap. At this point, Djikstra has found a shortest path from $s$ to $i$.
@@ -110,52 +153,11 @@ Any constant shift in the potential for every vertex will leave reduced costs un
 
 This is computationally more efficient, as it reduces the number of elements of $\boldsymbol{\pi}$ that must be updated.
 
-\subsection{Correctness analysis} \label{appendix:impl-ssp:analysis-correctness}
 
-\Cref{lemma:ssp-reduced-costs,cor:ssp-reduced-costs} prove properties of the algorithm, allowing \cref{thm:ssp-invariant} to show that reduced cost optimality is maintained as an invariant. Correctness of the algorithm follows in \cref{cor:ssp-correctness} by using the terminating condition of the algorithm.\\
 
-\begin{lemma} \label{lemma:ssp-reduced-costs}
-    Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions of \cref{eq:optimality-reduced-cost} with respect to potentials $\boldsymbol{\pi}$. Let $\mathbf{d}$ represent the shortest path distances in the residual network $G_{\mathbf{x}}$ from a vertex $s \in V$ to all other vertices, with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$. Then:
-    
-    \begin{enumerate}[label=(\alph*)]
-        \item $\mathbf{x}$ also satisfies reduced cost optimality conditions with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
-        \item The reduced costs $c^{\boldsymbol{\pi}'}_{ij}$ are zero for all arcs $(i,j)$ in the shortest-path tree rooted at $s \in V$.
-    \end{enumerate}
-\end{lemma}
-\begin{proof}
-    See Ahuja, \textit{et al.}~\cite[lemma~9.11]{Ahuja:1993}.
-\end{proof}
+\section{Correctness analysis of relaxation} \label{appendix:impl-relaxation-correctness}
 
-\begin{cor} \label{cor:ssp-reduced-costs}
-    Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $\mathbf{x}$ by sending flow along a shortest path from vertex $s$ to some other vertex $k \in V$. Then $\mathbf{x}'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
-\end{cor}
-\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[lemma~9.12]{Ahuja:1993})
-    
-    By \cref{lemma:ssp-reduced-costs}(a), $\left(\mathbf{x},\boldsymbol{\pi'}\right)$ satisfies the reduced cost optimality conditions.
-    
-    Pushing flow along an arc $(i,j) \in G_{\mathbf{x}}$ might add its reversal $(j,i)$ to the residual network. Let $P$ be a shortest path from $s$ to $k$. By \cref{lemma:ssp-reduced-costs}(b), it follows that any arc $(i,j) \in P$ has $c^{\boldsymbol{\pi}'}_{ij} = 0$. So $c^{\boldsymbol{\pi}'}_{ji} = 0$. Thus any arcs are added to the residual network by augmenting flow along $P$ have a zero reduced cost, and so still satisfy the reduced cost optimality conditions of \cref{eq:optimality-reduced-cost}.
-\end{proof}
-
-\sspinvariant*
-\begin{proof} (Induction)
-    
-    For the base case, note that $(\mathbf{0},\mathbf{0})$ satisfies reduced cost optimality. $G_{\boldsymbol{0}} = G$ holds, i.e.\ the residual and original network are the same. Moreover, all arc costs $c_{ij}$ are non-negative (by \cref{assumption:non-negative-arc-costs}) and so the reduced costs $c^{\boldsymbol{0}}_{ij}=c_{ij}$ are also non-negative. Thus reduced cost optimality holds.
-    
-    Now, assume that reduced cost optimality holds immediately prior to execution of the loop body. The body computes the shortest path distances $\mathbf{d}$ from a vertex $s$, and updates $\boldsymbol{\pi}$ to become $\boldsymbol{\pi'}$ as defined in \cref{lemma:ssp-reduced-costs}. It then pushes flow along a shortest path from $s$ to another vertex, yielding a new flow of the same form as $\mathbf{x'}$ in \cref{cor:ssp-reduced-costs}. It follows by \cref{cor:ssp-reduced-costs} that $(\mathbf{x}',\boldsymbol{\pi}')$ satisfies reduced cost optimality at the end of the loop body. Hence, the inductive hypothesis continues to hold.
-\end{proof}
-
-\sspcorrectness*
-\begin{proof}
-    The algorithm terminates when the mass balance constraints of \cref{eq:mass-balance-constraints} are satisfied. At this point, the solution $\mathbf{x}$ is feasible (see \cref{sec:prep-flow-pseudo}). 
-    
-    By \cref{thm:ssp-invariant}, we know the algorithm maintains the invariant that $\mathbf{x}$ satisfies reduced cost optimality. 
-    
-    It follows that $\mathbf{x}$ is both optimal and a feasible flow upon termination, so $\mathbf{x}$ is a solution to the minimum-cost flow problem.
-\end{proof}
-
-\section{Relaxation correctness analysis} \label{appendix:impl-relaxation-correctness}
-
-First, \textproc{UpdatePotentials} and \textproc{AugmentFlow} are shown to preserve reduced cost optimality. Using these lemmas, it can be shown that that reduced cost optimality is maintained as an invariant throughout the algorithm. It follows that, if the algorithm terminates, then $\mathbf{x}$ is a solution to the minimum-cost flow problem. Some other useful properties of \textproc{UpdatePotentials} and \textproc{AugmentFlow} are also proved.\\
+First, I show \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve reduced cost optimality. Using these lemmas, I show that reduced cost optimality is maintained as an invariant throughout the algorithm. It follows that, if the algorithm terminates, then $\mathbf{x}$ is a solution to the minimum-cost flow problem. I also prove some other useful properties of \textproc{UpdatePotentials} and \textproc{AugmentFlow}.\\
 
 % SOMEDAY: This proof is a little bit confusing. You're talking about sums inside a minimisation. Also, you're saying w(pi) is unchanged by changing x: well, of course it is, it has to be as w isn't a function of x! I know wht you mean, but this could perhaps be restated to be explicit. 
 \begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
@@ -233,7 +235,7 @@ First, \textproc{UpdatePotentials} and \textproc{AugmentFlow} are shown to prese
     And so $c_{vw}^{\boldsymbol{\pi}'} \geq -\epsilon$, as required for $\epsilon$-optimality.
 \end{proof}
 
-\subsection{Heuristics for cost scaling} \label{appendix:impl-csheuristics}
+\subsection{Heuristics} \label{appendix:impl-csheuristics}
 % Proofread: 1 minor edits
 Goldberg has proposed a number of heuristics to improve the real-world performance of his cost scaling algorithm~\cite{Goldberg:1997}, described in \cref{sec:impl-cost-scaling}. These have been found to result in considerable real-world improvements in efficiency~\cite{Bunnagel:1998,KiralyKovacs:2012}. Note that their effectiveness depends on the problem instance. Moreover, several of the heuristics such as arc fixing and potential update are highly sensitive to parameter settings or other implementation choices.
 

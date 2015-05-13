@@ -12,7 +12,7 @@ def errorsZero(e):
   return arrayZero(lower) and arrayZero(upper)
 
 def barchart(means, errors, bar_labels, group_labels, colours, legend_loc,
-             group_width=0.7, **kwargs):
+             group_width=0.7, padding=0.02, **kwargs):
   n_groups = len(group_labels)
   n_bars_in_group = len(bar_labels)
   assert(len(means) == len(errors) == len(bar_labels))
@@ -39,7 +39,9 @@ def barchart(means, errors, bar_labels, group_labels, colours, legend_loc,
             label=label,
             **kwargs)
   
-  plt.autoscale(axis='x', tight=True)
+  padding = padding * n_groups
+  plt.xlim(-padding, n_groups - 1 + group_width + padding)
+  #plt.autoscale(axis='x', tight=True)
   plt.xticks(index + group_width / 2, group_labels)
   if legend_loc:
     plt.legend(loc=legend_loc)
@@ -245,7 +247,10 @@ def generate_scaling_factors(data, figconfig):
                  color=figconfig['colours'],
                  yerr=errors,
                  error_kw=error_config)
-      
+  
+  padding = 0.02
+  padding = padding * n_factors
+  plt.xlim(-padding, n_factors + padding)    
   plt.xticks(index + bar_width / 2, figconfig['implementations'])
   
   plt.xlabel('Scaling factor')

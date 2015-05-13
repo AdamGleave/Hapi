@@ -29,7 +29,7 @@ def set_rcs_common():
   rc('text', usetex=True)
   rc('text.latex', preamble=LATEX_PREAMBLE)
   rc('axes', linewidth=0.5)
-  rc('lines', linewidth=0.5)
+  rc('lines', linewidth=1)
   #rc('figure.subplot', left=0.10, top=0.90, bottom=0.12, right=0.95)
   #rc('figure.subplot', left=0.10, top=0.90, bottom=0.2, right=0.95)
   rc('figure', autolayout=True)
@@ -459,7 +459,8 @@ def updateIncrementalFigures(d):
            'incremental_only_cdf': (['incremental_implementation'], FigureTypes.incremental_only_incremental_cdf),
            'incremental_only_target_latency_cdf': (['incremental_implementation', 'target_latency', 'target_latency_min_prob'], FigureTypes.incremental_only_incremental_target_latency_cdf),
            #'hist': ([], FigureTypes.incremental_hist),
-           'over_time': ([], FigureTypes.incremental_over_time)}
+           #'over_time': ([], FigureTypes.incremental_over_time)
+           }
   return updateFiguresWithTypes(d, types)
 
 INCREMENTAL_FIGURES = updateIncrementalFigures(INCREMENTAL_FIGURES)
@@ -506,8 +507,8 @@ APPROXIMATE_FIGURES = {
     'test': 750,
     'min_accuracy_terminating_condition': 96,
     'max_cost_parameter': 30,
-    'parameters_legend': None,
-    'speed_legend': None,
+    'parameters_legend': {'cost': 'lower left'},
+    'speed_legend': 'lower right',
     'speed_annotate_means': {'Cost convergence': None},
   },
   'netgen_sr': {

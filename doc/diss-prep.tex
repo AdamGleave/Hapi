@@ -40,6 +40,7 @@ Getting the objectives right is hard, but implementing a scheduler which effecti
 Finally, the system should remain responsive at scale. Today's warehouse scale computers contain tens of thousands of machines, running hundreds of thousands of tasks. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform, requiring sub-second scheduling latency~\cite{Ousterhout:2013}.
 
 \subsection{Prevailing approaches}
+%WORDCOUNT: Prevailing approaches -- could cut by 2/3rd
 %TODO: Would be good to rewrite to talk about other schedulers, but you may not have time. Can ask Malte.
 
 % PROOFREAD: 1. Minor edits.
@@ -64,6 +65,7 @@ Hitherto, I have considered only the public state of the art. With today's major
 However, the information which is public suggests that the basic approach is the same. The designs have, of course, been tweaked to meet specific application requirements, and to operate efficiently on the cluster architectures favoured by the firm. For example, Google's scheduler lets tasks specify a kernel version constraint, and seeks to minimise peak power demand by load balancing~\cite[\S2.1]{Sharma:2011}.
 
 \subsection{Firmament and flow scheduling}
+%WORDCOUNT: Firmament and flow scheduling -- could probably trim
 
 % PROOFREAD: 1. Major edits. Need to reread.
 
@@ -168,7 +170,8 @@ Note, in general, that the MCF and maximum flow problem may be infeasible. For e
 \footnotetext{For robustness, all algorithms implemented as part of this project detect if a network is infeasible.}
 
 \subsection{Scheduling using flows} \label{sec:prep-flow-scheduling}
-
+% XXX: Rewrite details of flow scheduling. 
+% WORDCOUNT: Could summarize Quincy, provide details in appendix.
 Firmament and Quincy frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, each consisting of a number of \emph{tasks}. Flow drains from task vertices to a sink vertex. Along the way, it passes either through a machine vertex (indicating the task is to be placed there) or a special job unscheduled aggregator vertex (indicating the task is to be left unscheduled).
 
 Arc capacities are used to \emph{restrict} the possible scheduling assignments. The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Scheduling policies are therefore encoded in terms of a \emph{cost model}.
@@ -298,49 +301,24 @@ The only remaining cost is $v_i^j$, the penalty associated with leaving a task $
 
 % PROOFREAD: 1 minor edits.
 
-Although the costs assigned to arcs vary between policies, the structure of the network remains the same. Some simple properties are proved below, which will be useful when analysing the asymptotic complexity of algorithms.
+I state below some properties which hold for all flow scheduling networks. These will be useful in the next chapter, when analysing the complexity of algorithms. \\
 
 % WORDCOUNT: Could shift the proofs to appendix, although keep the claims here.
-\begin{lemma} \label{lemma:network-num-vertices}
+\begin{restatable}[Number of vertices in flow scheduling networks]{lemma}{flowschedulingnumvertices}
+\label{lemma:network-num-vertices}
 Let $n$ denote the number of vertices in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.
-\end{lemma}
+\end{restatable}
 \begin{proof}
-There is one vertex $\mathbf{T}_i^j$ for every task and one vertex $\mathbf{M}_m$ for every machine, so trivially $n = \Omega\left(\text{\# machines} + \text{\# tasks}\right)$.
-
-It remains to show $n = O\left(\text{\# machines} + \text{\# tasks}\right)$. Consider each class of vertex in turn.
-
-As stated above $\text{\# task vertices} = \text{\# tasks}$ and $\text{\# machine vertices} = \text{\# machines}$. There is an unscheduled aggregator $\mathbf{U}^j$ for each job $j$, and $\text{\# jobs} = O\left(\text{\# tasks}\right)$. There is at least one machine in every rack, so $\text{\# rack aggregator vertices} = O\left(\text{\# machines}\right)$. 
-
-In addition, there is also a cluster aggregator vertex $\mathbf{X}$ and sink vertex $\mathbf{S}$ which are independent of the number of tasks and machines, contributing $O(1)$ vertices.
-
-Thus:
-\[n = O\left(\text{\# tasks} + \text{\# machines} + 1\right) = O\left(\text{\# tasks} + \text{\# machines}\right)\]
-
-Hence:
-\[n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)\]
+See \cref{appendix:flow-scheduling}.
 \end{proof}
 
-\begin{lemma} \label{lemma:network-num-arcs}
+\begin{restatable}[Number of arcs in flow scheduling networks]{lemma}{flowschedulingnumarcs} 
+\label{lemma:network-num-arcs}
 Let $m$ denote the number of arcs in the network. Then $m = O(n)$. That is, the network is \emph{sparse}.
-\end{lemma}
+\end{restatable}
 \begin{proof}
-Consider the outgoing arcs from each class of vertex. Since every arc is outgoing from exactly one vertex, this will count every vertex exactly once.
-
-Each machine $\mathbf{M}_l$ and unscheduled aggregator $\mathbf{U}^j$ has a single outgoing arc, to sink vertex $\mathbf{S}$. This contributes $O\left(\text{\# machines}\right)$ arcs. The sink vertex $\mathbf{S}$ has no outgoing arcs.
-
-Rack aggregators $\mathbf{R}_l$ have outgoing arcs to each machine in their rack. Each machine is present in exactly one rack, so these contribute collectively $O\left(\text{\# machines}\right)$ arcs. The cluster aggregator $\mathbf{X}$ has outgoing arcs to each rack; since $O\left(\text{\# racks}\right) = O\left(\text{\# machines}\right)$, this contributes $O\left(\text{\# machines}\right)$ arcs.
-
-It remains to consider task vertices $\mathbf{T}_i^j$. The number of arcs leaving the task vertex has a constant upper bound. The system computes a \emph{preference list} of machines and racks, and includes arcs only to those vertices (and the cluster aggregator $\mathbf{X}$). Thus this contributes $O\left(\text{\# tasks}\right)$ arcs.
-
-Hence:
-\[m = \left(\text{\# machines} + \text{\# tasks}\right)\]
-By \cref{lemma:network-num-vertices}, it follows:
-\[m = O(n)\]
+See \cref{appendix:flow-scheduling}.
 \end{proof}
-
-\begin{remark}
-In fact we have $m = \Theta(n)$: the network is connected so certainly $m = \Omega(n)$. However, we will only use the bound $m = O(n)$.\\
-\end{remark}
 
 \begin{lemma} \label{lemma:network-supply}
 The largest supply in the network is a unit supply.

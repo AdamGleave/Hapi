@@ -4,7 +4,7 @@ All test machines had the same specification, with:
 \begin{itemize}
     \item Intel Xeon E5-2430L CPU.
     \begin{itemize}
-        \item 6 physical cores, each. running at 2.4 GHz.
+        \item 6 physical cores, each running at 2.4 GHz.
         \item In addition, hyperthreading (Intel's term for simultaneous multithreading) is supported, so each physical core presents as two logical cores. For benchmarking, this is undesirable, as two test tasks running on the same physical core could interfere with each other. Accordingly, the number of test instances per machine was limited to the number of physical cores.
     \end{itemize}
     \item 64 GB of system memory.
@@ -69,7 +69,7 @@ Efficiency was also a key requirement: with many experiments, it is important th
 
 \Cref{fig:compilers} shows the complete set of results from the compiler optimisation experiment described in \cref{sec:eval-optimisations-compilers}. In all cases, GCC O3 was either the fastest compiler, or highly competitive (within a few percent) of the fastest. 
 
-Interestingly, optimisations yield the biggest performance improvement on implementations where little development time has been spent on hand-optimising the code. The naive implementation of cycle cancelling in \cref{fig:compilers:cc} enjoys a very considerable speedup from optimisation, although it remains one of the slowest algorithms overall\footnotemark. My other implementations enjoy moderate speedups. By contrast, Goldberg's cost scaling implementation experiences only a slight speedup of around 25\%. Frangioni's relaxation implementation has statistically indistinguishable performance at O3 and at O0.
+Interestingly, optimisations yield the biggest performance improvement on implementations where little development time has been spent on hand-optimising the code. The na\"{\i}ve implementation of cycle cancelling in \cref{fig:compilers:cc} enjoys a very considerable speedup from optimisation, although it remains one of the slowest algorithms overall\footnotemark. My other implementations enjoy moderate speedups. By contrast, Goldberg's cost scaling implementation experiences only a slight speedup of around 25\%. Frangioni's relaxation implementation has statistically indistinguishable performance at O3 and at O0.
 \footnotetext{Note different algorithms were evaluated on different sized datasets in this test.} 
 
 \section{Probability distributions in cluster simulator} \label{appendix:test-distributions}

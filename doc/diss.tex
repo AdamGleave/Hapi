@@ -203,6 +203,8 @@
     \crefnames{appendix,subappendis,subsubappendix}{appendix}{appendices}
 }
 \crefsections
+
+\crefname{figure}{figure}{figures}
 % Tell cleveref what plural forms for theorems are
 \crefname{thm}{theorem}{theorems}
 \crefname{lemma}{lemma}{lemmas}
@@ -441,10 +443,13 @@ I would like to thank my supervisors, Ionel Gog and Malte Schwarzkopf, for their
 
 %TC:ignore
 \appendix
+\chapter{Analysis of flow scheduling networks} \label{appendix:flow-scheduling}
+\include{diss-app-flow-scheduling}
+
 \chapter{Details of algorithms} \label{appendix:impl}
 \input{diss-app-impl}
 
-\chapter{Details of testing} \label{appendix:test}
+\chapter{Details of tests} \label{appendix:test}
 \input{diss-app-test}
 
 % Note project proposal must appear at very end of dissertation, so do not move this!

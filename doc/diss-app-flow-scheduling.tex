@@ -1,0 +1,39 @@
+Although the costs assigned to arcs vary between policies, the structure of the network remains the same. Some simple properties are proved below, which will be useful when analysing the asymptotic complexity of algorithms.
+
+% WORDCOUNT: Could shift the proofs to appendix, although keep the claims here.
+\flowschedulingnumvertices*
+\begin{proof}
+There is one vertex $\mathbf{T}_i^j$ for every task and one vertex $\mathbf{M}_m$ for every machine, so trivially $n = \Omega\left(\text{\# machines} + \text{\# tasks}\right)$.
+
+It remains to show $n = O\left(\text{\# machines} + \text{\# tasks}\right)$. Consider each class of vertex in turn.
+
+As stated above $\text{\# task vertices} = \text{\# tasks}$ and $\text{\# machine vertices} = \text{\# machines}$. There is an unscheduled aggregator $\mathbf{U}^j$ for each job $j$, and $\text{\# jobs} = O\left(\text{\# tasks}\right)$. There is at least one machine in every rack, so $\text{\# rack aggregator vertices} = O\left(\text{\# machines}\right)$. 
+
+In addition, there is also a cluster aggregator vertex $\mathbf{X}$ and sink vertex $\mathbf{S}$ which are independent of the number of tasks and machines, contributing $O(1)$ vertices.
+
+Thus:
+\[n = O\left(\text{\# tasks} + \text{\# machines} + 1\right) = O\left(\text{\# tasks} + \text{\# machines}\right)\]
+
+Hence:
+\[n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)\]
+\end{proof}
+
+\flowschedulingnumarcs*
+\begin{proof}
+Consider the outgoing arcs from each class of vertex. Since every arc is outgoing from exactly one vertex, this will count every vertex exactly once.
+
+Each machine $\mathbf{M}_l$ and unscheduled aggregator $\mathbf{U}^j$ has a single outgoing arc, to sink vertex $\mathbf{S}$. This contributes $O\left(\text{\# machines}\right)$ arcs. The sink vertex $\mathbf{S}$ has no outgoing arcs.
+
+Rack aggregators $\mathbf{R}_l$ have outgoing arcs to each machine in their rack. Each machine is present in exactly one rack, so these contribute collectively $O\left(\text{\# machines}\right)$ arcs. The cluster aggregator $\mathbf{X}$ has outgoing arcs to each rack; since $O\left(\text{\# racks}\right) = O\left(\text{\# machines}\right)$, this contributes $O\left(\text{\# machines}\right)$ arcs.
+
+It remains to consider task vertices $\mathbf{T}_i^j$. The number of arcs leaving the task vertex has a constant upper bound. The system computes a \emph{preference list} of machines and racks, and includes arcs only to those vertices (and the cluster aggregator $\mathbf{X}$). Thus this contributes $O\left(\text{\# tasks}\right)$ arcs.
+
+Hence:
+\[m = \left(\text{\# machines} + \text{\# tasks}\right)\]
+By \cref{lemma:network-num-vertices}, it follows:
+\[m = O(n)\]
+\end{proof}
+
+\begin{remark}
+In fact, $m = \Theta(n)$: the network is connected so certainly $m = \Omega(n)$. However, I will only use the bound $m = O(n)$.
+\end{remark}

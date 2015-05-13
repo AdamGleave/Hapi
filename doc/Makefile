@@ -14,11 +14,10 @@ proposal.pdf: proposal.tex propbody.tex diss.bib
 progressreport.pdf: progressreport.tex progressbody.tex diss.bib
 	latexmk -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make progressreport.tex" progressreport.tex
 
-diss.pdf: diss.tex diss-intro.tex diss-prep.tex diss-impl.tex diss-eval.tex diss-conc.tex diss.bib
+diss.pdf: diss.tex diss-intro.tex diss-prep.tex diss-impl.tex diss-eval.tex diss-conc.tex diss.bib wordcount
 	@echo "Fetching figures (you may need to enter srguser password)"
 	scripts/caelum_fetch_figures.sh
 	@echo "Compiling dissertation"
-	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //' > diss-auto-wordcount.tex
 	latexmk -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diss.tex" diss.tex
 
 diff.pdf: diff.tex
@@ -28,7 +27,7 @@ diss_continual: diss.tex diss.bib
 	latexmk -pvc -bibtex -pdf -pdflatex="pdflatex -interactive=nonstopmode -use-make diss.tex" diss.tex
 
 wordcount:
-	scripts/texcount.pl -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //' | tee diss-auto-wordcount.tex
+	scripts/texcount.pl -sum=1,0,0,0,0,0,0 -inc diss.tex | grep -A5 "File(s) total" | sed -n 2p | sed -e 's/Words in text: //' | tee diss-auto-wordcount.tex
 
 clean:
 	rm -f *.pdf
