@@ -537,7 +537,7 @@ Deliverables S2, E1 and E3 were all rated as medium or high risk. Their requirem
 
 \subsection{Testing strategy}
 \label{sec:prep-management-testing}
-I developed unit tests for each class. Where possible, I used the GTest framework (see \cref{sec:prep-tools-libraries}). However, testing of flow algorithms requires large external datasets: a Python test harness was developed to automate these tests. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-integration}).
+I developed unit tests for each class. Where possible, I used the GTest framework (see \cref{sec:prep-tools-libraries}). However, testing of flow algorithms requires large external datasets: a Python test harness was developed to automate these tests. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-correctness}).
 
 Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E2 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-firmament}, \cref{sec:eval-benchmark-strategy} and \cref{appendix:impl-benchmark-harness}.
 
@@ -591,7 +591,7 @@ I implemented the minimum-cost flow algorithms in C++. The performance of C++ is
 \footnotetext{Clang and GCC were used in this project.}
 
 \subsubsection{Python and shell}
-I used the Python scripting language for the development of test harnesses (see \cref{sec:eval-testing-unit} and \cref{appendix:impl-benchmark-harness}), and for generation of many of the figures appearing in \cref{chap:eval}. As a high-level language, Python aided productivity, although it was not used for any performance critical code. Shell scripting was used for particularly simple tasks, that involved plumbing together UNIX utilities. Python was favoured for anything more complicated, however, as it allows for a more structured programming style.
+I used the Python scripting language for the development of test harnesses (see \cref{sec:eval-test-correctness} and \cref{appendix:impl-benchmark-harness}), and for generation of many of the figures appearing in \cref{chap:eval}. As a high-level language, Python aided productivity, although it was not used for any performance critical code. Shell scripting was used for particularly simple tasks, that involved plumbing together UNIX utilities. Python was favoured for anything more complicated, however, as it allows for a more structured programming style.
 
 \subsection{Libraries} \label{sec:prep-tools-libraries}
 
