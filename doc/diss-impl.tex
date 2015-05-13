@@ -775,30 +775,29 @@ I decided not to implement any heuristics. The heuristics are already well-studi
 
 Feasible solutions to flow scheduling networks correspond to scheduling assignments. A solution's cost indicates the degree to which the assignment meets the scheduler's policy goals. The algorithms considered so far find \emph{minimal} cost flows, producing scheduling assignments which \emph{maximise} the policy objectives.
 
-Finding the best solution may take some time, yet minimising scheduling latency is itself an important objective (see \cref{sec:prep-scheduling}). I develop an approximate solution method, which allows the trade-off between accuracy and speed to be chosen explicitly.
+Finding the best solution may take some time, yet minimising scheduling latency is itself important (see \cref{sec:prep-scheduling}). I develop an approximate solution method, allowing the trade-off between accuracy and speed to be chosen explicitly.
 
 % It may be possible to find an \emph{approximate} solution -- a flow with low, albeit not minimal, cost -- faster than an optimal solution. Whole-system performance may improve due to the reduction in scheduling latency, in spite of a less-than-optimal allocation of tasks.
 %However, finding the best solution may take some time, yet minimising scheduling latency is itself an important objective (see \cref{sec:prep-scheduling}). It is wasteful for machines to run idle, waiting for tasks to be scheduled; moreover, interactive applications cannot tolerate high scheduling delays. I develop an \emph{approximate} solver, allowing the trade-off between scheduling accuracy and speed to be chosen explicitly.
 
-I believe this to be the first study of approximation algorithms for the minimum-cost flow problem. There has been some prior work on finding approximate solutions for the related NP-complete problems of multi-commodity flows~\cite{Garg:2007} and dynamic flows~\cite{Hoppe:1994}. These techniques are of limited applicability to minimum-cost flow problems\footnotemark, however, and this project uses entirely different methods for approximation.
+I believe this is the first study of approximation algorithms for the minimum-cost flow problem. There is some prior work on finding approximate solutions for the related NP-complete problems of multi-commodity flows~\cite{Garg:2007} and dynamic flows~\cite{Hoppe:1994}. These techniques are of limited applicability to minimum-cost flow problems\footnotemark, however, and Hapi uses entirely different methods for approximation.
 \footnotetext{For example, approximation methods for multi-commodity flow problems often work by solving many single-commodity flow problems. Obviously this reduction method does not help when the problem is already single-commodity.}
 
 \subsection{Choice of algorithms} \label{sec:impl-approx-choice}
 
 % PROOFREAD - 1 minor edits.
-The solution returned by an approximate algorithm must be \emph{feasible}, although it need not be \emph{optimal}. Of the algorithms considered in sections \ref{sec:impl-cycle-cancelling} to \ref{sec:impl-cost-scaling}, cycle cancelling and cost scaling are the only ones which maintain feasibility as an invariant on the flow\footnotemark.
+The solution returned by an approximate algorithm must be \emph{feasible}, although it need not be \emph{optimal}. Of the algorithms considered in sections \ref{sec:impl-cycle-cancelling} to \ref{sec:impl-cost-scaling}, only cycle cancelling and cost scaling maintain feasibility as an invariant\footnotemark.
 \footnotetext{Successive shortest path and relaxation, by contrast, operate on a pseudoflow and maintain optimality as an invariant.}
 
-Both cycle cancelling and cost scaling work by finding successive approximations to an optimal solution, and so can readily be adapted to operate as an approximate solver. In cycle cancelling, the cost of the solution monotonically decreases after each iteration (shown in the proof of \cref{lemma:cycle-cancelling-termination}). The error is \emph{not} guaranteed to decrease between iterations in cost scaling, however the error bound $\epsilon$ undergoes exponential decay.
+Both cycle cancelling and cost scaling find successive approximations to an optimal solution, and so can readily be adapted to find approximate solutions. In cycle cancelling, the cost of the solution monotonically decreases after each iteration (shown in the proof of \cref{lemma:cycle-cancelling-termination}). However, a large decrease in the cost of the solution may occur at \emph{any} point in the algorithm's execution.
 
-This suggests that cost scaling is more suitable. In cycle cancelling, a large decrease in the cost of the solution may occur at \emph{any} point in the algorithm's execution. By contrast, in cost scaling $\epsilon$ attains a small value many iterations before the algorithm would normally terminate. 
-
-Furthermore, cost scaling is considerably faster than cycle cancelling when finding optimal solutions. Much of this performance advantage will carry over to the approximate solver. In light of the previous reasoning, the approximate solver implemented in this project was built around cost scaling.
+By contrast, in cost scaling the error bound $\epsilon$ undergoes exponential decay\footnotemark, reaching a small value many iterations before the algorithm would normally terminate. It will therefore produce a better approximation than cycle cancelling. Cost scaling is also considerably faster than cycle cancelling, making it the clear choice for an approximate solver.
+\footnotetext{The solution cost \emph{tends} to also undergo exponential decay. However, this is not guaranteed: the error bound is not tight, and the cost on occasion may even increase.}
 
 \subsection{Adapting cost scaling} \label{sec:impl-approx-adaptions}
 
 % PROOFREAD - 1 major edits.
-Cost scaling finds successive $\epsilon$-optimal solutions, where $\epsilon$ is decreased by a constant factor $\alpha$ after every iteration (see \cref{algo:cost-scaling}). The algorithm terminates when $\epsilon < 1/n$, at which point the solution is optimal by \cref{thm:epsilon-optimality-optimal}. Relaxing this terminating condition produces an approximate solver.
+Cost scaling finds successive $\epsilon$-optimal solutions, where $\epsilon$ is decreased by a constant factor $\alpha$ after every iteration (see \cref{algo:cost-scaling}). It terminates when $\epsilon < 1/n$, at which point the solution is optimal by \cref{thm:epsilon-optimality-optimal}. Relaxing this terminating condition produces an approximate solver.
 
 Ideally, it would be possible to specify a bound on the relative error of the solution: for example, terminating once the error is smaller than 1\%. Unfortunately, computing the relative error requires knowing the minimum cost, which can only be determined by finding an optimal solution.
 
@@ -806,9 +805,9 @@ It is possible to derive a bound on the absolute error of the solution, in terms
 
 \[\epsilon = \max_{(i,j) \in E_\mathbf{x}} -c_{ij}^{\boldsymbol{\pi}}\]
 
-$\epsilon$ therefore depends on the `worst' arc in the residual network: i.e.\ the one with the most negative reduced cost. If every arc were to attain this worst case, the error could be large even for small values of $\epsilon$. However, in practice this does not occur. The bound will therefore tend to significantly overestimate the error of a solution.
+$\epsilon$ therefore depends on the `worst' arc in the residual network: i.e.\ the one with the most negative reduced cost. If every arc were to attain this worst case, the error could be large even for small values of $\epsilon$. But in practice, this does not occur. The bound therefore tends to significantly overestimate the solution error.
 
-Since accurate analytic bounds on the error are not available, I had to develop heuristic terminating conditions. These are the focus of the rest of this section.
+As accurate analytic bounds on the error are not available, I had to develop heuristic terminating conditions. These are the focus of the rest of this section.
 
 % N.B. Commented out as never evaluated, and it's kind of a stupid heuristic anyway.
 %\subsubsection{$\epsilon$ threshold}
@@ -828,9 +827,9 @@ Since accurate analytic bounds on the error are not available, I had to develop 
 %    \label{fig:app-cost-over-time}
 %\end{figure}
 
-The first few iterations of cost scaling tend to produce large reductions in the cost. When the solution is nearly optimal, the change in cost between successive iterations is typically small.
+The first few iterations of cost scaling tend to produce large reductions in the cost. When the solution is nearly optimal, the change in cost between successive iterations is typically small. This heuristic exploits the above property, by measuring the difference between the cost after successive iterations. If the cost changes by a factor less than some threshold $t$, the algorithm terminates.
 
-This heuristic exploits the above property, by measuring the difference between the cost after successive iterations. Occasionally, cost scaling hits a brief `plateau', before continuing to make significant cost reductions. For robustness, the heuristic therefore operates over multiple iterations. The algorithm terminates when the cost changed less than threshold $t$ in each of the last $k \geq 1$ iterations, where $t$ and $k$ are fixed.
+On some flow networks, cost scaling hits a brief `plateau', before continuing to make significant cost reductions. My implementation can optionally consider multiple prior iterations, terminating only when the cost change is below the threshold in the last $k \geq 1$ iterations, to combat this.
 
 \subsubsection{Task migration convergence}
 
@@ -844,32 +843,33 @@ Vertices are labelled as representing either a task, machine or other entity. Th
 
 % PROOFREAD: 1 minor edits, 2 minor edits
 
+% FIGURE: Sequence of flow graphs, showing small change?
 Flow scheduling systems produce a sequence of closely related flow networks. Each new network in the sequence is generated in response to cluster events, such as task submission or completion. Most changes are highly localised in the flow network: consequently, the optimal flow remains mostly the same.
 
 My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach proved to be extremely successful, producing a factor of $14.5\times$ speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.
 
-Flow scheduling is ideally suited to an incremental solution method. However, the approach is much less compelling for traditional applications of flow networks: this may go some way to explaining the lack of prior work. As previously mentioned, most changes to the network in flow scheduling are small. This alone does not make the problem easy: reoptimising after even a single change may, in general, be as hard as solving the problem from scratch\footnotemark. Informally, the problem is that since the optimisation problem is global, an update in one region of the network may trigger a cascading sequence of changes in the optimal flow for distant regions.
+Flow scheduling is ideally suited to an incremental solution method. However, the approach is much less compelling for traditional applications of flow networks: this may go some way to explaining the lack of prior work. As previously mentioned, most network changes in flow scheduling are small. This alone does not make the problem easy: reoptimising after even a single change is, in general, as hard as solving the problem from scratch\footnotemark. Informally, the problem is that since the optimisation problem is global, an update in one region of the network may trigger a cascading sequence of changes in the optimal flow for distant regions.
 \footnotetext{To see this, consider two networks $A$ and $B$. WLOG, assume they each have a single supply vertex $s_x$ and demand vertex $t_x$ for $x \in {A,B}$. Remove the supply and demand at those vertices, introducing new supply and demand vertices $s$ and $t$. Add arcs $s\to s_x$ with capacity $b_{s_x}$, and $t_x \to t$ with capacity $-b_{t_x}$, for $x \in {A,B}$. Let $C$ be a cost larger than the cost of any flow in networks $A$ or $B$; set the cost of $s \to s_A$ to $C$ and $s \to s_B$ to $2C$. The resulting network is effectively equivalent to just network $A$. Dropping the cost on $s \to S_B$ from $2C$ to $0$ makes the resulting network effectively equivalent to $B$. Solving this incremental change is thus as hard as solving the entire network $B$.}
 
-Crucially, however, scheduling policies are designed to produce stable assignments of tasks to machines. Preempting a task is an expensive operation: it must sometimes be performed, but only sparingly. Consequently, cost models are naturally designed to avoid frequent changes to the optimal flow. This is precisely the property required for incremental solvers to perform well.
+Crucially, however, scheduling policies are designed to produce stable assignments of tasks to machines. Preempting a task is an expensive operation, which should be performed sparingly. Consequently, the cost model for any viable scheduling policy naturally avoids frequent changes to the optimal flow. This is precisely the property required for incremental solvers to perform well.
 
 My incremental solution method was inspired by a number of sources. The Quincy paper highlighted incremental solvers as an area for further research~\cite[\S6.5]{Isard:2007}. There has been some study of reoptimisation and sensitivity analysis on flow networks, which are related to the incremental problem, although these areas have received comparatively little attention. I survey the existing work below.
 
-Amini and Barr published a comprehensive empirical evaluation of reoptimisation algorithms in 1993~\cite{Amini:1993}. However, the study tested algorithms such as the out-of-kilter method, which have long since become obsolete. Moreover, the largest network studied had only 1,500 vertices, orders of magnitude smaller than the ones considered in this project. 
+Amini and Barr published a comprehensive empirical evaluation of reoptimisation algorithms in 1993~\cite{Amini:1993}. However, the study tested algorithms such as the out-of-kilter method, now long obsolete. Moreover, the largest network studied had only 1,500 vertices, orders of magnitude smaller than the ones considered in this project. 
 
-The most recent work is a computational study of algorithms for reoptimisation after arc cost changes, published by Frangioni and Manca in 2006~\cite{Frangioni:2006}. Although now almost a decade old, the algorithms evaluated are still in contemporary use. However, the results of the study may not generalise to flow scheduling, where any parameter -- not just arc costs -- may change. 
+The most recent work is a computational study of algorithms for reoptimisation after arc cost changes, published by Frangioni and Manca in 2006~\cite{Frangioni:2006}. Although now almost a decade old, the algorithms evaluated are still in contemporary use. However, the results of the study may not generalise to flow scheduling, where any parameter -- not just arc costs -- can change. 
 
-Sensitivity analysis on flow networks is concerned with determining how uncertainty in network parameters causes uncertainty in the optimal solution~\cite[\S9.11]{Ahuja:1993}. In scientific applications, this may be used to test the robustness of a flow model. Small changes in the input should produce similarly small changes in the output: otherwise, the model is too sensitive to measurement error. Although the goals of sensitivity analysis are considerably different to those of an incremental solver, some of the underlying techniques can be adapted.
+Sensitivity analysis on flow networks seeks to determine how uncertainty in network parameters causes uncertainty in the optimal solution~\cite[\S9.11]{Ahuja:1993}. In scientific applications, this may be used to test the robustness of a flow model. Small changes in the input should produce similarly small changes in the output: otherwise, the model is too sensitive to measurement error. Although the goals of sensitivity analysis are considerably different to those of an incremental solver, some of the underlying techniques can be adapted.
 
-I discuss the general approach to building an incremental solver in the next section, \cref{sec:impl-incremental-architecture}. Following this background, I evaluate the suitability of each flow algorithm to the incremental problem in \cref{sec:impl-incremental-choice}. The \emph{augmenting path} class of algorithms, including successive shortest path and relaxation, is identified as the best choice. \cref{sec:impl-incremental-maintaining-rc} describes the method I used to modify these algorithms. Following this, \cref{sec:impl-incremental-impl} explains each algorithm in detail.
+I discuss the general approach to building an incremental solver in the next section, \cref{sec:impl-incremental-architecture}. Following this background, I evaluate the suitability of different flow algorithms to the incremental problem in \cref{sec:impl-incremental-choice}. The \emph{augmenting path} class of algorithms, including successive shortest path and relaxation, is identified as the best choice. I describe the method I used to modify these algorithms in \cref{sec:impl-incremental-maintaining-rc}. Following this, \cref{sec:impl-incremental-impl} explains each algorithm in detail.
 
 \subsection{Architecture of an incremental algorithm} \label{sec:impl-incremental-architecture}
 
-Previous sections in this chapter described the implementation of pre-existing algorithms. These are designed to solve the minimum-cost flow problem ``from scratch'': finding an optimal solution without the benefit of any existing state. However, an obvious incremental approach is to simply rerun the algorithm on the updated network, using the previous state as a starting point.
+Previous sections in this chapter described the implementation of pre-existing algorithms. These are designed to solve the minimum-cost flow problem ``from scratch'': finding an optimal solution without the benefit of any existing state. An obvious incremental approach is to simply rerun one of these algorithms on the updated network, using the previous state as a starting point.
 
-This does not quite work, however: most flow algorithms maintain an invariant on the state of the solver during intermediate computations. After updating the network, this invariant may fail to hold with the old state. When the invariant is a precondition for the algorithm, as in relaxation, reoptimisation could fail. In other algorithms, such as cost scaling, the invariant is not needed for correctness. But the algorithm may run slower than the normal complexity bounds, as the proofs depend on the invariant. 
+This does not quite work, however: most flow algorithms maintain an invariant on the state of the solver during intermediate computations. After a network update, this invariant may fail to hold. When the invariant is a precondition for the algorithm, as in relaxation, reoptimisation might fail entirely. In other algorithms, such as cost scaling, the invariant is used only to prove complexity bounds. Reoptimisation will succeed, but may run slower than expected.
 
-I adopt a three-step approach to ensure that the invariant is satisfied:
+Consequently, I adopt a three-step approach for my incremental algorithm:
 
 \begin{enumerate}
     \item Receive changes to the flow network, updating any internal data structures.
@@ -881,93 +881,73 @@ I adopt a three-step approach to ensure that the invariant is satisfied:
 In practice, implementation of this approach is considerably more challenging than suggested by this summary. Step 1 superficially appears trivial, but many graph data structures cannot be efficiently modified. Considerable research effort has gone into devising \emph{dynamic} data structures to resolve this problem~\cite{Tarjan:1983,Eppstein:1996}. In addition to the network itself, many algorithms rely on auxiliary data structures\footnotemark, which must also be updated.
 \footnotetext{For example, many algorithms maintain a set of excess vertices to improve performance.}
 
-Step 2 varies considerably between algorithms, and will be discussed later in \cref{sec:impl-incremental-impl}. Somewhat ironically, step 3 is generally the simplest: the core of the algorithm remains mostly unmodified. Since step 2 ensures that the invariant holds, the optimisation procedure can be run as usual after disabling any initialisation code.
+Step 2 varies considerably between algorithms, and is discussed in \cref{sec:impl-incremental-impl}. Somewhat ironically, step 3 is the simplest, with the core of the algorithm remaining mostly unmodified. Since step 2 ensures that the invariant holds, the optimisation procedure can be run as usual after disabling any initialisation code.
 
 %\footnotetext{For example, a representation of adjacencies that can be very efficient is to allocate an array large enough to store the adjacency list for each vertex. These are then laid out sequentially, and a separate array stores the start and end index in the adjacency array for each vertex. This achieves excellent spatial locality, giving a high cache hit rate when scanning the adjacency list. Inserting an arc into this data structure is extremely expensive, however, as it may require moving a large number of other elements.}
 
 \subsection{Choice of algorithms} \label{sec:impl-incremental-choice}
 % WORDCOUNT: Incremental choice of algorithms -- could probably cut why cycle cancelling doesn't work; maybe true for cost scaling, too.
-Standard minimum-cost flow algorithms were described in \cref{sec:impl-cycle-cancelling} to \Cref{sec:impl-cost-scaling}. All of these can be modified to operate incrementally. However, their performance varies considerably. Moreover, the algorithms that run the fastest from scratch do not necessarily perform best on the incremental problem. This section evaluates each of the standard algorithms in turn.
+The approach suggested above could be applied to any flow algorithm considered in this dissertation. In this section, I consider which algorithms are most suited to operating incrementally. I start with cost scaling, which has excellent performance on the from scratch problem (see \cref{sec:impl-cost-scaling}). Next, I consider successive shortest path and relaxation (see \cref{sec:impl-ssp} and \cref{sec:impl-relax}). I do not discuss cycle cancelling, as it is considerably slower than the other algorithms.
 
 \subsubsection{Cost scaling} 
-Goldberg's cost scaling algorithm offers excellent performance on the full problem, but fares comparatively poorly on the incremental problem. 
+Despite excellent performance on the full problem, Goldberg's cost scaling algorithm fares poorly on the incremental problem. 
 
-During the main loop in \cref{algo:cost-scaling}, cost scaling maintains the invariant that $\mathbf{x}$ is a feasible flow and $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal. This invariant is not required for correctness -- \textproc{Refine}'s precondition is just that $\mathbf{x}$ satisfies flow conservation -- but is needed to prove the asymptotic complexity bounds.
+Cost scaling maintains the invariant that $\mathbf{x}$ is a feasible flow and $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal. This invariant is not required for correctness, but is needed for proofs of its complexity.
 
-The starting state may be neither feasible nor optimal on the new network. To satisfy the invariant, feasibility must first be restored, such as by running a max-flow algorithm\footnotemark. This step will tend to make the flow less optimal.
+The starting state may be neither feasible nor optimal on the new network. To satisfy the invariant, feasibility must first be restored, such as by running a max-flow algorithm\footnotemark, which will tend to make the flow less optimal.
 \footnotetext{In fact, it is perfectly legitimate to skip this stage and run \textproc{Refine} directly, which will also restore feasibility. However, the analysis is clearer when considering these stages separately.}
 
-Next, the value of $\epsilon$ for which $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal must be calculated. This can be performed in one pass over the arcs in the residual network\footnotemark. Alternatively, the potential refinement heuristic described in \cref{appendix:impl-csheuristics-potential-refinement} could used: this might find a smaller value of $\epsilon$ by updating the potentials $\boldsymbol{\pi}$.
-\footnotetext{This could conceivably be made more efficient by keeping track of which arcs have changed cost in the network update, or been added to the residual network when restoring feasibility.}
+Next, the value of $\epsilon$ for which $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal must be calculated. This can be computed by a single pass over the arcs in the residual network. Alternatively, the potential refinement heuristic described in \cref{appendix:impl-csheuristics-potential-refinement} could be used: this might find a smaller value of $\epsilon$ by updating the potentials $\boldsymbol{\pi}$.
 
 % I'm not sure that restoring feasibility does break $\epsilon$-optimality. We can just invoke Refine on the non-feasible flow, that's fine I think.
-The key problem with incremental cost scaling is that $\epsilon$ may be very large even after a small update. Recall that $\epsilon$-optimality (see \cref{defn:epsilon-optimality}) is defined as a property satisfied by \emph{every} arc. $\epsilon$ is thus a measure of the \emph{maximum} error in the solution, not the average. An update as simple as changing the cost on a single arc can make $\epsilon$ large, even though the rest of the network remains $0$-optimal.
-
-Since $\epsilon$ often ends up close (in logarithmic terms) to the initial starting value $C$, the algorithm tends to perform almost as many iterations of \textproc{Refine} as it would in the full case. Furthermore, there is no reason to hope the iterations will complete any faster than usual. Although \textproc{Refine} maintains $\epsilon$-optimality, it can make previously optimised segments of the network \emph{less} optimal (up to the bound of $\epsilon$), effectively creating more work for future iterations.
+The key problem is that $\epsilon$ may be very large even after a small update. Recall that $\epsilon$-optimality (see \cref{defn:epsilon-optimality}) is defined as a property satisfied by \emph{every} arc. $\epsilon$ is thus a measure of the \emph{maximum} error in the solution. An update as simple as changing the cost on a single arc can make $\epsilon$ large, even though the rest of the network remains $0$-optimal. Since $\epsilon$ often ends up close (in logarithmic terms) to its starting value $C$, the algorithm performs almost as many iterations of \textproc{Refine} as it would in the full case.
+% Below is good, but wordcount.
+% Furthermore, there is no reason to hope the iterations will complete any faster than usual. Although \textproc{Refine} maintains $\epsilon$-optimality, it can make previously optimised segments of the network \emph{less} optimal (up to the bound of $\epsilon$), effectively creating more work for future iterations.
 
 %WONTFIX: Would be interesting to try and model the performance of CS2. Simple approach which could work: assume new epsilon is ~U[0,C], what is the mean and variance of log_2 (C/epsilon)?
-The computational study by Frangioni and Manca~\cite{Frangioni:2006} provides empirical support for this assertion. A modest speedup of around a factor of two was observed when cost scaling was used for cost reoptimisation. This result is disappointing compared to other algorithms surveyed, where speedups of a factor of 20 or more were observed. Moreover, the performance of cost scaling was unpredictable, varying considerably even within networks of the same class.
-
-Given the theoretical and empirical evidence against cost scaling, I decided to focus my attention on more promising algorithms.
+The computational study of cost reoptimisation by Frangioni and Manca~\cite{Frangioni:2006} supports my assertion. Whereas other algorithms enjoyed speedups of $20\times$ or more, cost scaling had only a $2\times$ speedup. Moreover, its performance was unpredictable, varying considerably even within networks of the same class.
 
 \subsubsection{Successive shortest path and relaxation}
 
-Both the successive shortest path and relaxation algorithm work by sending flow along \emph{augmenting paths} of zero or negative reduced cost, from an excess to a deficit vertex. Although their implementations differ considerably, they have similar incremental properties. In particular, note both algorithms maintain the invariant that $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfies reduced-cost optimality conditions, and seek to successively improve the feasibility of $\mathbf{x}$\footnotemark.
+Both the successive shortest path and relaxation algorithm work by sending flow along \emph{augmenting paths}. These paths start at an excess vertex, and reach an excess vertex traversing only arcs of zero or negative reduced cost. Although the two algorithms differ considerably, they have similar incremental properties. In particular, note they both maintain the invariant that $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfies reduced-cost optimality conditions, seeking to successively improve the feasibility of $\mathbf{x}$\footnotemark.
 \footnotetext{This is most clear in the successive shortest path algorithm, which improves the feasibility of $\mathbf{x}$ on every iteration. It is not strictly speaking the case for the relaxation algorithm, since the the \textproc{UpdatePotentials} operation may make the flow \emph{less} feasible. But, indirectly, \textproc{UpdatePotentials} is still working towards feasibility since it allows for more \textproc{AugmentFlow} operations to take place.}
 
-Although changes to the network can violate reduced cost optimality, it is relatively simple to update the pseudoflow to maintain optimality: I describe my technique in \cref{sec:impl-incremental-maintaining-rc}. Provided this invariant is maintained, the algorithm can simply be run as usual to reoptimise, restoring feasibility. The time this takes tends to be proportional to the reduction in flow feasibility after the updates\footnotemark. This is a very desirable property for flow scheduling: most of the changes are small, and so only impact the feasibility of a small region of the network.
+Changes to the network can violate reduced cost optimality, but the pseudoflow can be modified inexpensively to maintain optimality (see \cref{sec:impl-incremental-maintaining-rc} for my method). The algorithm can then be run as usual to reoptimise, restoring feasibility. This takes time proportional to the reduction in feasibility of the solution caused by the updates\footnotemark. This is a very desirable property for flow scheduling, where most changes will only impact the feasibility of a small region of the network.
 \footnotetext{Note that the feasibility may be reduced directly and indirectly. Direct decreases in feasibility occur as an immediate consequence of a network update: for example, adding a new source and sink vertex. The feasibility may also be compromised indirectly: the operations needed to maintain reduced cost optimality might require pushing flows along arcs, resulting in excesses or deficits at vertices.}
 
-The relaxation algorithm was evaluated empirically in the study by Frangioni and Manca. As previously discussed in \cref{sec:impl-relax}, the practical performance characteristics of the algorithm are heavily dependent on the class of problem. This was apparent in the study: relaxation is competitive on the NETGEN, GRIDGEN and GOTO instances but has disappointing performance on PDS instances~\cite[tables~1~to~4]{Frangioni:2006}. As I found relaxation to perform well on flow scheduling networks in the full problem (see \cref{fig:inc-same:relax-my}), there are reasons to be optimistic about its performance as an incremental solver
+The relaxation algorithm is evaluated empirically in the study by Frangioni and Manca. As I discussed in \cref{sec:impl-relax}, the practical performance characteristics of the algorithm are heavily dependent on the class of problem. This is apparent from the study: relaxation is competitive on the NETGEN, GRIDGEN and GOTO instances but performs poorly on PDS instances~\cite[tables~1~to~4]{Frangioni:2006}. Relaxation is fast on flow scheduling networks even as a from scratch solver (see \cref{fig:inc-same:relax-my}), so there are reasons to be optimistic about its incremental performance. 
 
-The literature does not contain any benchmarks for reoptimisation using successive shortest path. However, since it belongs to the same class of algorithms as relaxation, it is likely to enjoy a similar relative speedup. Its performance is likely to be more robust across different problem types than relaxation, but will not reach the peak performance achieved by relaxation.
+There are no benchmarks in the literature for reoptimisation using successive shortest path. However, since it belongs to the same class of algorithms as relaxation, I would predict a similar relative speedup. 
 
 To conclude, there are substantial theoretical and practical reasons to favour the augmenting path algorithms. Based on this support, I decided to implement incremental versions of successive shortest path and relaxation, described further in \cref{sec:impl-incremental-impl}.
-
-\subsubsection{Cycle cancelling}
-
-Although the cycle cancelling algorithm could in principle be adapted to work incrementally, there is little to recommend it. Like cost scaling, it maintains the invariant that $\mathbf{x}$ is a feasible flow, so shares in many of the same drawbacks.  
-
-Cycle cancelling has the advantage that the solution cost monotonically decreases during reoptimisation, unlike cost scaling\footnotemark. This may allow cycle cancelling to enjoy a larger \emph{relative} speedup than cost scaling, although it will still lag that of the augmenting path algorithms.
-\footnotetext{It is quite possible for the cost of the solution to temporarily \emph{increase} under cost scaling. Whilst $\epsilon$-optimality imposes an upper bound on the cost, there is no exact relationship. Cost increases are especially likely to occur during reoptimisation, where the initial cost is already close to the minimum, but $\epsilon$ may be large.}
-
-However, cost scaling was only worth considering because it is one of the fastest algorithms on the full problem, trouncing successive shortest path and often beating relaxation. Cycle cancelling, by contrast, is extremely slow on the full problem. In light of this, I decided not to implement an incremental version.
-
-\subsubsection{Conclusion}
-
-The \emph{augmenting path} algorithms --- successive shortest path and relaxation --- are the most promising solution methods for the incremental problem. Although Goldberg's cost scaling is one of the fastest algorithms on the full problem, its incremental performance is disappointing. Cycle cancelling is even worse: it is one of the slowest algorithms on the full problem, and has similar disadvantages to cost scaling when applied incrementally.
-
-The next section details how augmenting path algorithms may be modified to operate in an incremental mode.
 
 \subsection{Maintaining reduced cost optimality} \label{sec:impl-incremental-maintaining-rc}
 
 Augmenting path algorithms maintain the invariant that $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfies reduced cost optimality conditions, that is:
 \[\forall(i,j)\in E_{\mathbf{x}}\cdot c_{ij}^{\boldsymbol{\pi}}\geq 0.\]
-Normally, the optimisation routine initialises both $\mathbf{x}$ and $\boldsymbol{\pi}$ to $\mathbf{0}$, guaranteeing these conditions hold. When reoptimising, the initialisation routine is disabled: it is the responsibility of the caller to ensure the starting state satisfies the invariant.
+In from scratch optimisation, both $\mathbf{x}$ and $\boldsymbol{\pi}$ are initialised to $\mathbf{0}$, guaranteeing these conditions hold. When reoptimising, it is the responsibility of the caller to ensure the starting state satisfies the invariant.
 
-The rest of this section describes a method to restore reduced cost optimality after the network is updated. Note the pseudoflow $\mathbf{x}$ may become less feasible as a side-effect of this method, although I minimise this where possible. The procedure only modifies the pseudoflow $\mathbf{x}$: the potential $\pi_i$ of an existing vertex $i \in V$ is never changed.
+In this section, I describe the method I developed to restore reduced cost optimality after the network is updated. Note the pseudoflow $\mathbf{x}$ may become less feasible as a side-effect of this procedure, although I minimise this where possible. The routine only modifies the pseudoflow $\mathbf{x}$: the potential $\pi_i$ of an existing vertex $i \in V$ is never changed.
 
 \subsubsection{Vertex updates}
 
-Adding or removing a vertex without cannot violate reduced cost optimality, as $E_\mathbf{x}$ is unchanged. Of course, a vertex is added or removed along with its associated arcs\footnotemark, but arc updates are considered in the next section. It follows that no action need be taken on vertex removal. When a vertex $i$ is added, the potential vector $\boldsymbol{\pi}$ must be extended to include an element $\pi_i$. The choice of the value $\pi_i$ is arbitrary: it is initialised to zero in my implementation.
-\footnotetext{It must have some arcs, since the graphs is required to be (directly) connected.}
+Adding or removing a vertex without arcs cannot violate reduced cost optimality, as $E_\mathbf{x}$ is unchanged. Of course, a vertex is added or removed along with its associated arcs, but arc updates are considered in the next section. It follows that no action need be taken on vertex removal. When a vertex $i$ is added, the potential vector $\boldsymbol{\pi}$ must be extended to include an element $\pi_i$. The choice of the value $\pi_i$ is arbitrary: it is initialised to zero in my implementation.
 
-It is also possible to change the supply or demand $b_i$ of an existing vertex $i \in V$\footnotemark. Since this does not change the reduced cost of any arc, it cannot violate the optimality conditions, so no action is taken.
-\footnotetext{For flow scheduling, this only ever happens at the sink vertex $S$.} 
+It is also possible to change the supply or demand $b_i$ of an existing vertex $i \in V$. Since this does not change the reduced cost of any arc, it cannot violate the optimality conditions, so no action is taken.
 
 \subsubsection{Adding or removing an arc}
 
-Note that an arc $(i,j) \in E$ of zero capacity is equivalent to the case of there being no such arc in the network, $(i,j) \not \in E$. In both cases, the flow $x_{ij}$ is always zero. Furthermore, neither the forward nor reverse arc are present in the residual network: $(i,j) \not \in E_\mathbf{x} \land (j,i) \not \in E_\mathbf{x}$.
+Note that having an arc $(i,j) \in E$ of zero capacity is equivalent to having no such arc in the network, $(i,j) \not \in E$. In both cases, the flow $x_{ij}$ is always zero, and the arc is absent from the residual network: $(i,j) \not \in E_\mathbf{x} \land (j,i) \not \in E_\mathbf{x}$.
 
-It is therefore possible to model addition of an arc $(i,j)$ with cost $c_{ij}$ and capacity $u_{ij}$ in terms of increasing the capacity of an arc $(i,j)$ with cost $c_{ij}$ from $0$ to $u_{ij}$. Similarly, removing an arc $(i,j)$ corresponds to decreasing the capacity to $0$. Adding or removing an arc thus reduces to changing the capacity on the arc, covered in the next section.
+Adding or removing an arc thus reduces to changing the capacity on the arc, covered in the next section. Removing an arc $(i,j)$ is equivalent to decreasing its capacity to $0$. The addition of an arc $(i,j)$ with cost $c_{ij}$ and capacity $u_{ij}$ can be modelled as updating increasing the capacity of an arc $(i,j)$ with cost $c_{ij}$ from $0$ to $u_{ij}$.
 
 \subsubsection{Updating arc capacity}
 
-Changing the capacity of an arc $(i,j)$ from $u_{ij}$ to $u'_{ij}$ does not change $c_{ij}$ or the potentials $\boldsymbol{\pi}$. The reduced cost $c_{ij}^{\boldsymbol{\pi}}$ therefore remains unchanged. It may still be necessary to update $x_{ij}$, however. The procedure depends on whether the capacity is increasing, or decreasing.
+Changing the capacity of an arc $(i,j)$ from $u_{ij}$ to $u'_{ij}$ does not change $c_{ij}$ or the potentials $\boldsymbol{\pi}$. The reduced cost $c_{ij}^{\boldsymbol{\pi}}$ therefore remains unchanged. However, it may be necessary to update $x_{ij}$. The procedure depends on whether the capacity is increasing, or decreasing.
 
 \begin{itemize}
     \item \textbf{Decreasing capacity.} Set $x_{ij} \gets \min\left(x_{ij},u'_{ij}\right)$ to ensure the capacity constraints of \cref{eq:capacity-constraints} continue to hold\footnotemark. The below case analysis shows this preserves reduced cost optimality.
-    \footnotetext{Whilst the primary goal of this method is to preserve reduced cost optimality, it a more primitive requirement is that $\mathbf{x}$ continues to be a pseudoflow!}
+    \footnotetext{Whilst the primary goal of this method is to preserve reduced cost optimality, a more primitive requirement is that $\mathbf{x}$ continues to be a pseudoflow!}
     
     Suppose $(i,j) \not \in E_\mathbf{x}$: the arc was not present in the residual network prior to the update. Then the arc was previously saturated, with $x_{ij} = u_{ij}$, and $x_{ij} = u'_{ij}$ now holds. Thus the arc remains saturated, and so $(i,j) \not \in E_\mathbf{x}$ is still true.
     
@@ -992,27 +972,26 @@ I developed three incremental solvers. I adapted my implementations of the succe
 \subsubsection{Extending this project's implementations}
 It proved relatively straightforward to modify my existing implementations of successive shortest path and the relaxation algorithm. This reflects the emphasis placed on modularity and design flexibility during earlier development.
 
-The method to preserve reduced cost optimality, described in \cref{sec:impl-incremental-maintaining-rc}, was implemented using a wrapper class encapsulating graph objects. Changes sent to the wrapper are forwarded to the underlying graph object, after updating the flow as needed to maintain optimality. 
+The method to preserve reduced cost optimality, described in \cref{sec:impl-incremental-maintaining-rc}, was implemented using a wrapper class encapsulating graph objects. The wrapper first updates the flow to maintain optimality, and then forwards the changes to the underlying graph object.
 
-The wrapper class provides the same interface as the graph classes. It can therefore be used as a drop-in replacement, minimising the changes needed in the rest of the codebase. The algorithms themselves required little modification: I merely added a to indicate whether the initialisation routine should run, depending on if the algorithm is operating from scratch or incrementally.
+Since the wrapper provides the same interface as the graph classes, it can be used as a drop-in replacement. This minimises the changes needed in the rest of the codebase. The algorithms themselves required little modification: I merely added a flag to disable the initialisation routine when operating incrementally.
  
 \subsubsection{Extending RelaxIV}
 %WORDCOUNT: Extending RelaxIV -- could probably make further cuts here
 The RelaxIV solver was considerably more challenging to modify. Whereas this project's implementations attempted to strike a balance between flexibility and efficiency, performance was the overriding objective for RelaxIV. 
 
-The source code is 5,000 lines in total, with some individual functions longer than 800 lines. The original Fortran version of the code is due to Bertsekas, and dates to 1988~\cite{BertsekasCodes:1988}. I worked with the C++ port by Frangioni and Gentile from 2003~\cite{RelaxIV:2011}.
+The source code is 5,000 lines in total, with some individual functions longer than 800 lines. The original Fortran version of the code is due to Bertsekas, and dates to 1988~\cite{BertsekasCodes:1988}. I worked with a C++ port by Frangioni and Gentile from 2003~\cite{RelaxIV:2011}.
 
 %Although this port made integration with the rest of my project somewhat easier, many of the foibles of the original code remain, and some new ones were introduced.
 
-Frangioni had already added support for cost reoptimisation as part of his aforementioned computational study~\cite{Frangioni:2006}. It appears he started to add support for other forms of updates, but this development must have been interrupted as my testing uncovered numerous bugs. Fixing these proved time consuming due to the large, legacy codebase. I intend to report the bugs discovered to the authors, making my modifications available.
+Frangioni had already added support for cost reoptimisation for his aforementioned computational study~\cite{Frangioni:2006}. It appears he started to add support for other forms of updates; however, this development must have been interrupted, since my testing uncovered numerous bugs. The large, legacy codebase made these time consuming to fix. I intend to report the bugs discovered to the authors, making my patches available.
 
 The rest of the changes I made were comparatively straightforward. RelaxIV allocated data structure memory statically. This is problematic for an incremental solver, as the size of the network is not known in advance. I added support to dynamically resize the data structures, employing the usual strategy of exponential growth in size to achieve memory allocation in amortized linear time\footnotemark.
 \footnotetext{Spikes in scheduling latency are undesirable, even if the average latency remains low. Since the solver is nowhere close to exhausting available memory, my implementation initially allocates twice as much memory as currently needed, in a bid to avoid needing to ever grow the array.}
 
-RelaxIV does not reuse vertex identifiers, resulting in a memory leak. The size of the data structures continues to grow as vertices are added, even if the total number of live vertices remains constant. I modified the algorithm to maintain a set of free vertices. New vertices are allocated an identifier from this set; the data structures are grown only once the free set is exhausted.
+RelaxIV does not reuse vertex identifiers, causing a memory leak. I modified the algorithm to maintain a set of free vertices. New vertices are allocated an identifier from this set, with the underlying data structures expanded only when there are no free vertices.
 
-Each arc $(i,j)$ is identified by an index in RelaxIV. Of course, the flow scheduling system is not privy to this internal index, and can only identify arcs by their source and destination vertices $i$ and $j$. Finding the index in RelaxIV requires scanning the adjacency list of $i$ to find an arc to $j$ (or vice-versa), an $O(n)$ operation. My implementation makes a time-memory tradeoff, maintaining a hash table mapping pairs $(i,j)$ to indices, providing $O(1)$ lookups\footnotemark.
-\footnotetext{This change does not affect the asymptotic space complexity. Furthermore, the algorithm is not memory constrained in practice, so this time-memory tradeoff is appropriate.}
+Each arc $(i,j)$ is identified by an array index in RelaxIV. Of course, the flow scheduling system is not privy to this internal index, and can only identify arcs by their source and destination vertices $i$ and $j$. Finding the index requires scanning the adjacency list of $i$ to find the arc to $j$ (or vice-versa), an $O(n)$ operation. My implementation makes a time-memory tradeoff, maintaining a hash table mapping pairs $(i,j)$ to indices, providing $O(1)$ lookups.
 
 %\section{Input and output}
 %
@@ -1044,16 +1023,16 @@ Each arc $(i,j)$ is identified by an index in RelaxIV. Of course, the flow sched
 
 % FIGURE: scope of Firmament extension? XXX [good to get credit for this, & relatively easy]
 
-The last two sections described my implementation of approximate and incremental solution methods. This section considers their use as part of a flow scheduling system, Firmament~\cite[ch.~5]{Schwarzkopf:2015}. Integration with Firmament was straightforward: the standard DIMACS format is used to exchange flow networks and their solution~\cite{DIMACSStandard}. However, I significantly extended Firmament in other ways.
+The last two sections described my implementation of approximate and incremental solution methods. This section considers their use as part of a flow scheduling platform, Firmament~\cite[ch.~5]{Schwarzkopf:2015}. Integration with Firmament was straightforward: the standard DIMACS format is used to exchange flow networks and their solution~\cite{DIMACSStandard}. However, I significantly extended Firmament in other ways.
 
-The most substantial change was adding support for incremental solvers. Firmament already generated incremental updates to the flow network. However, the vast majority of the updates were spurious\footnotemark: parsing the changes took longer than reoptimising! I patched the Firmament network generator to eliminate these spurious changes, considerably improving performance.
+The most substantial change was adding support for incremental solvers. Although Firmament already generated incremental updates to the flow network, the vast majority of such updates were spurious\footnotemark. Parsing the changes took longer than reoptimising! I patched the Firmament to generate only authentic changes, considerably improving performance.
 \footnotetext{For example, arc change events were generated for every arc from a task to an unscheduled aggregator, irrespective of whether any parameters had changed.}
 
-Other extensions were implemented to assist performance evaluation. Firmament included a cluster \emph{simulator}, allowing experiments to be conducted on a virtual cluster. However, the simulator required substantial modification in order to evaluate flow schedulers.
+I implemented other extensions to assist performance evaluation. Firmament includes a cluster \emph{simulator}, allowing experiments to be conducted on a virtual cluster. However, the simulator was never intended to evaluate flow schedulers, and required substantial modification.
 
-The simulator only supported the Octopus cost model, a simplistic policy which merely balances the load across machines. This produces flow networks that are much less complex than other cost models, making the performance results overly optimistic. I implemented the Quincy cost model, described in \cref{sec:prep-flow-scheduling}, to provide a more realistic basis for comparison. This required building entirely new simulated components, such as a distributed filesystem, described further in \cref{sec:eval-benchmark-strategy}.
+The simulator only supported the Octopus cost model, a simplistic policy which merely balances the load across machines (see \cref{sec:eval-benchmark-strategy-octopus}). I implemented the Quincy cost model, described in \cref{sec:prep-flow-scheduling}, to provide a more realistic basis for comparison. This required building entirely new simulated components, such as a distributed filesystem, described further in \cref{sec:eval-benchmark-strategy-quincy}.
 
-Various other minor extensions were made. For example, a statistics module was implemented to record scheduling latency and properties of the cluster, such as the number of running tasks. Moreover, many new configuration options were added: for example, an option to specify the number of machines in the simulated cluster.
+I made various other minor extensions: for example, building a statistics module to record scheduling latency and other properties of the cluster, such as the number of running tasks. Moreover, I added numerous configuration options to the simulator: for example, allowing the number of machines in the cluster to be varied.
 
 % Not mentioned:
 %  - New termination conditions: number of events, number of rounds
@@ -1063,8 +1042,6 @@ Various other minor extensions were made. For example, a statistics module was i
 
 \section{Summary}
 
-This chapter began by summarising several standard flow algorithms which were implemented in this project. Next, I turned my attention to how these algorithms may be extended to improve performance on the flow scheduling problem. In \cref{sec:impl-approx}, I described how I modified the cost scaling algorithm to build an approximate solver, allowing accuracy to be traded off for speed. I developed an incremental method of solution, described in \cref{sec:impl-incremental}, based upon augmenting path and the relaxation algorithm. As far as I am aware, both implementations are the first of their kind.
+This chapter began by summarising several standard flow algorithms which were implemented in this project. Next, I turned my attention to how these algorithms may be extended to improve performance on the flow scheduling problem. In \cref{sec:impl-approx}, I described how I modified the cost scaling algorithm to build an approximate solver, allowing accuracy to be traded for speed. In \cref{sec:impl-incremental}, I modified the successive shortest path and relaxation algorithm to operate incrementally. As far as I am aware, both implementations are the first of their kind.
 
-When describing the standard algorithms, particular emphasis was placed on their performance characteristics and theoretical properties. I made reference to this analysis in \cref{sec:impl-approx} and \cref{sec:impl-incremental} when justifying the choice of algorithms used in the approximate and incremental solver.
-
-The chapter concluded with a summary of the extensions I made to the Firmament flow scheduling system, including adding support for the Quincy cost model. In the next chapter, I demonstrate the considerable speedup that results from using the solvers developed in this project.
+I concluded with a summary of the extensions I made to the Firmament flow scheduling system, including adding support for the Quincy cost model. In the next chapter, I demonstrate the considerable speedup that results from using the solvers developed in this project with Firmament.
