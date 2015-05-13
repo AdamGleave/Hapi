@@ -221,7 +221,24 @@ First, I show \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve re
 
 \subsection{Correctness analysis} \label{appendix:impl-cs:correctness}
 
-\csrelabelcorrectness*
+I show that \textproc{Push} and \textproc{Relabel} preserve $\epsilon$-optimality. I then prove the correctness of \textproc{Refine} from these results, with correctness of the cost scaling algorithm following as a corollary.\\
+
+\begin{lemma}[Correctness of \textproc{Push}] \label{lemma:cost-scaling-push-correctness}
+    Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ be $\epsilon$-optimal, and the precondition for $\textproc{Push}(i,j)$ hold: $e_i > 0$, $(i,j) \in E_{\mathbf{x}}$ and $c^{\boldsymbol{\pi}}_{ij} < 0$. Then $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continues to be $\epsilon$-optimal after $\textproc{Push}$.
+\end{lemma}
+\begin{proof}
+    $\textproc{Push}(i,j)$ increases the flow on arc $(i,j)$. By assumption, $(i,j)$ satisfied $\epsilon$-optimality prior to \textproc{Push}. $(i,j)$ may drop out of the residual network after increasing the flow, but this cannot violate optimality. If $(i,j)$ remains in the residual network, $(i,j)$ continues to satisfy $\epsilon$-optimality, since the reduced cost is unchanged.
+    
+    However, sending flow along $(i,j)$ could add arc $(j,i)$ to the residual network. By the precondition $c^{\boldsymbol{\pi}}_{ij} < 0$, it follows $c^{\boldsymbol{\pi}}_{ji} > 0 \geq -\epsilon$. Thus $(j,i)$ satisfies $\epsilon$-optimality.
+    
+    No other changes are made which could affect the $\epsilon$-optimality conditions given in \cref{eq:epsilon-optimality}, so \textproc{Push} preserves $\epsilon$-optimality.
+\end{proof}
+
+\begin{lemma}[Correctness of \textproc{Relabel}] \label{lemma:cost-scaling-relabel-correctness}
+    Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ be $\epsilon$-optimal, and the precondition for $\textproc{Relabel}(i)$ hold: $e_i > 0$ and $\forall(i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} \geq 0$.
+    
+    Let $\boldsymbol{\pi}'$ denote the potentials after \textproc{Relabel}. Then $\pi'_i\ \geq \pi_i + \epsilon$ and $\pi'_j = \pi_j$ for $j \neq i$. Moreover, $\left(\mathbf{x},\boldsymbol{\pi}'\right)$ continues to be $\epsilon$-optimal.
+\end{lemma}
 \begin{proof} (Adapted from Goldberg and Tarjan~\cite[lemma~5.2]{Goldberg:1987})
     
     By the precondition, $\forall(i,j) \in E_{\mathbf{x}} \cdot c^{\boldsymbol{\pi}}_{ij} \geq 0$. Substituting for the definition of reduced costs in \cref{eq:reduced-costs} gives $\forall(i,j) \in E_{\mathbf{x}} \cdot c_{ij} + \pi_j \geq \pi_i$. Thus:
@@ -234,6 +251,71 @@ First, I show \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve re
     \[c_{vw} + \pi_w - \pi'_i \geq -\epsilon\]
     And so $c_{vw}^{\boldsymbol{\pi}'} \geq -\epsilon$, as required for $\epsilon$-optimality.
 \end{proof}
+
+\begin{lemma}[Correctness of \textproc{Refine}]
+    \label{lemma:cost-scaling-refine-correctness}
+    Let the precondition for $\textproc{Refine}$ hold: $\mathbf{x}$ is a pseudoflow. Then upon termination of \textproc{Refine}, the postcondition holds: $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal.
+\end{lemma}
+\begin{proof} (Adapted from Goldberg and Tarjan~\cite[theorem~5.4]{Goldberg:1987})
+    The initial flow after \crefrange{algo:cost-scaling-generic-refine:start-init}{algo:cost-scaling-generic-refine:end-init} of \cref{algo:cost-scaling-generic-refine} is $0$-optimal (and so certainly $\epsilon$-optimal). $\epsilon$-optimality is preserved by subsequent \textproc{Push} and \textproc{Relabel} operations by \cref{lemma:cost-scaling-push-correctness,lemma:cost-scaling-relabel-correctness}. Hence $\epsilon$-optimality is maintained as an invariant.
+    
+    Given that \textproc{Refine} has terminated, the mass balance constraints must be satisfied by the loop condition on \cref{algo:cost-scaling-generic-refine:start-loop}. Thus $\mathbf{x}$ must also be a flow upon termination.
+\end{proof}
+
+\costscalingcorrectness*
+\begin{proof}
+    After each iteration of the algorithm, $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfies $\epsilon$-optimality by \cref{lemma:cost-scaling-refine-correctness}. Upon termination, $\epsilon < 1/n$. So by \cref{thm:epsilon-optimality-optimal}, $\mathbf{x}$ is an optimal solution.
+\end{proof}
+
+\subsection{Termination and complexity analysis} \label{appendix:impl-cs:analysis}
+
+\begin{lemma} \label{lemma:cost-scaling-operations-complexity}
+    The basic operations given in \cref{algo:cost-scaling-operations} have the following time complexities:
+    \begin{enumerate}[label=(\alph*)]
+        \item $\textproc{Push}(i,j)$ runs in $O(1)$ time.
+        \item $\textproc{Relabel}(i)$ runs in $O\left(\left|\mathrm{Adj}(i)\right|\right)$ time, that is linear in the number of adjacent arcs.
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    Immediate from inspection of \cref{algo:cost-scaling-operations}.
+\end{proof}
+
+\begin{defn}
+    An invocation of $\textproc{Push}(i,j)$ is said to be \emph{saturating} if $r_{ij} = 0$ after the operation; otherwise, it is nonsaturating.
+\end{defn}
+
+\begin{remark}
+    Note a push operation is saturating if and only if $e_i \geq r_{ij}$ prior to calling \textproc{Push}.\\
+\end{remark}
+
+\begin{lemma} \label{lemma:cost-scaling-number-operations}
+    Within an invocation of \textproc{Refine}, the following upper bounds apply to the number of times each basic operation is performed:
+    \begin{enumerate}[label=(\alph*)]
+        \item $O(n^2)$ \textproc{Relabel} operations.
+        \item $O(nm)$ saturating \textproc{Push} operations.
+        \item $O(n^2m)$ nonsaturating \textproc{Push} operations.
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    See Goldberg and Tarjan~\cite[lemma~6.3, lemma~6.4, lemma~6.7]{Goldberg:1987}.
+\end{proof}
+
+\costscalingrefinecomplexity*
+\begin{proof}
+    Immediate from \cref{lemma:cost-scaling-operations-complexity,lemma:cost-scaling-number-operations}.
+    %The result follows by \cref{lemma:cost-scaling-operations-complexity,lemma:cost-scaling-number-operations}. \textproc{Relabel} is executed at most $O(n^2)$ times, with each operation having a cost of $O\left(\left|\mathrm{Adj}(i)\right|\right) = O(n)$, contributing a total cost of $O(n^3)$. There are up to $O(nm)$ saturating and $O(n^2m)$ nonsaturating \textproc{Push} operations. Each has a cost of $O(1)$, and so \textproc{Push} contributes a total cost of $O(n^2m)$. Hence the basic operations executed by \textproc{Refine} contribute a complexity of $O(n^3 + n^2m) = O(n^2m)$.
+\end{proof}
+
+\begin{remark}
+    It is not possible to prove a bound on the complexity of the generic refine routine given in \cref{algo:cost-scaling-generic-refine}, as it depends on how vertices and arcs are chosen on how excess vertices are selected on \cref{algo:cost-scaling-generic-refine:select-vertex,algo:cost-scaling-generic-refine:call-push}. Bounds on specific implementations of refine are given in \cref{sec:impl-cost-scaling-implementations}.\\
+\end{remark}
+
+\costscalinggenericcomplexity*
+\begin{proof} (Adapted from Goldberg and Tarjan~\cite[theorem~4.1]{Goldberg:1987})
+    
+    The algorithm terminates once $\epsilon < 1/n$, which takes place after $\log_2\left(\frac{C}{1/n}\right) = \log_2 (nC)$ iterations of \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}. The loop condition on \cref{algo:cost-scaling:start-loop} and the assignment on \cref{algo:cost-scaling:update-epsilon} are both $O(1)$, so the dominant cost of each iteration is the execution of \textproc{Refine}. \Crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop} thus contribute a cost of $O\left(R(n,m)\lg(nC)\right)$. This dominates the initialisation on \crefrange{algo:cost-scaling:start-loop}{algo:cost-scaling:end-loop}, and thus is the overall cost of the algorithm.
+\end{proof}
+
 
 \subsection{Heuristics} \label{appendix:impl-csheuristics}
 % Proofread: 1 minor edits
