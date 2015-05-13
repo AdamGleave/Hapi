@@ -61,15 +61,14 @@ The amount of flow $\delta$ sent over the path is limited by the minimum residua
 \subsection{Optimisations} \label{sec:impl-ssp-optimisations}
 
 \subsubsection{Choice of shortest-path algorithm}
-The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure.
+The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure\footnotemark.
+\footnotetext{Although binary and Fibonacci heaps have the same asymptotic complexity on flow scheduling networks, since $m = O(n)$ by \cref{lemma:network-num-arcs}.} 
 
-Fibonacci heaps have considerable implementation complexity: whilst asymptotically faster, the constant factor hidden by the asymptotic notation is much greater. Computational benchmarks have found them to be slower than binary heaps in practice, for all but the largest of graphs~\cite[p.~15]{KiralyKovacs:2012}. In any case, for the class of networks produced by flow schedulers, $m = O(n)$ holds by \cref{lemma:network-num-arcs} and so the two are asymptotically equivalent. In light of this, a binary heap implementation was used for this project.
+However, computational benchmarks have found Fibonacci heaps to be slower than binary heaps in practice, except on extremely large graphs~\cite[p.~15]{KiralyKovacs:2012}. In light of this, I used a binary heap implementation in this project.
 
 \subsubsection{Terminating Djikstra's algorithm early}
 
-Djikstra's algorithm is said to have \emph{permanently labelled} a vertex $i$ when it extracts $i$ from the heap. At this point, Djikstra has found a shortest path from $s$ to $i$.
-
-I modified the successive shortest path algorithm to terminate Djikstra as soon as it permanently labels a deficit vertex $l$. Although this does not affect asymptotic complexity, it may considerably improve performance in practice. Details of the implementation and a proof of correctness is provided in \cref{appendix:impl-ssp:partial-djikstra}.\\
+Djikstra's algorithm is said to have \emph{permanently labelled} a vertex $i$ when it extracts $i$ from the heap. At this point, Djikstra has found a shortest path from $s$ to $i$. I modified the successive shortest path algorithm to terminate Djikstra as soon as it permanently labels a deficit vertex $l$: details of the implementation and a proof of correctness are given in \cref{appendix:impl-ssp:partial-djikstra}.
 
 \subsection{Analysis} \label{sec:impl-ssp-analysis}
 
@@ -86,7 +85,7 @@ See \cref{appendix:impl-ssp:analysis-correctness}.
 See \cref{appendix:impl-ssp:analysis-correctness}.
 \end{proof}
 
-\begin{thm}[Asymptotic complexity of successive shortest path] \label{thm:ssp-complexity}
+\begin{thm}[Asymptotic complexity of generic successive shortest path] \label{thm:ssp-complexity}
 Let $S(n,m,C)$ denote the time complexity of solving a single-source shortest path problem (SSSP) with non-negative arc costs, bounded above by $C$, over a network with $n$ vertices and $m$ arcs. Then the time complexity of successive shortest path is $O(nUS(n,m,C))$.
 \end{thm}
 \begin{proof}
@@ -100,7 +99,7 @@ The cost of \cref{algo:successive-shortest-path:select-active,algo:successive-sh
 It follows that the overall time complexity of the algorithm is $O(nUS(n,m,C))$.
 \end{proof}
 
-\begin{cor}
+\begin{cor}[Asymptotic complexity of successive shortest path in Hapi]
 The implementation in this project has a time complexity of $O(nmU \lg n)$.
 \end{cor}
 \begin{proof}
@@ -739,15 +738,16 @@ Flow scheduling is ideally suited to an incremental solution method. However, th
 
 Crucially, however, scheduling policies are designed to produce stable assignments of tasks to machines. Preempting a task is an expensive operation, which should be performed sparingly. Consequently, the cost model for any viable scheduling policy naturally avoids frequent changes to the optimal flow. This is precisely the property required for incremental solvers to perform well.
 
-My incremental solution method was inspired by a number of sources. The Quincy paper highlighted incremental solvers as an area for further research~\cite[\S6.5]{Isard:2007}. There has been some study of reoptimisation and sensitivity analysis on flow networks, which are related to the incremental problem, although these areas have received comparatively little attention. I survey the existing work below.
+I describe the sources I drew on to develop my incremental solver in the next section, \cref{sec:impl-incremental-related-work}. Following this, I discuss my approach to building such a solver in \cref{sec:impl-incremental-architecture}. After this background, I evaluate the suitability of different flow algorithms to the incremental problem in \cref{sec:impl-incremental-choice}. Following this, \cref{sec:impl-incremental-impl} provides details of the solvers I implemented.
+
+\subsection{Related work} \label{sec:impl-incremental-related-work}
+The Quincy paper highlighted incremental solvers as an area for further research, sparking my interest in such an approach~\cite[\S6.5]{Isard:2007}. There has been some study of reoptimisation and sensitivity analysis on flow networks, which are related to the incremental problem, although these areas have received comparatively little attention. I survey the existing work below.
 
 Amini and Barr published a comprehensive empirical evaluation of reoptimisation algorithms in 1993~\cite{Amini:1993}. However, the study tested algorithms such as the out-of-kilter method, now long obsolete. Moreover, the largest network studied had only 1,500 vertices, orders of magnitude smaller than the ones considered in this project. 
 
 The most recent work is a computational study of algorithms for reoptimisation after arc cost changes, published by Frangioni and Manca in 2006~\cite{Frangioni:2006}. Although now almost a decade old, the algorithms evaluated are still in contemporary use. However, the results of the study may not generalise to flow scheduling, where any parameter -- not just arc costs -- can change. 
 
 Sensitivity analysis on flow networks seeks to determine how uncertainty in network parameters causes uncertainty in the optimal solution~\cite[\S9.11]{Ahuja:1993}. In scientific applications, this may be used to test the robustness of a flow model. Small changes in the input should produce similarly small changes in the output: otherwise, the model is too sensitive to measurement error. Although the goals of sensitivity analysis are considerably different to those of an incremental solver, some of the underlying techniques can be adapted.
-
-I discuss the general approach to building an incremental solver in the next section, \cref{sec:impl-incremental-architecture}. Following this background, I evaluate the suitability of different flow algorithms to the incremental problem in \cref{sec:impl-incremental-choice}. The \emph{augmenting path} class of algorithms, including successive shortest path and relaxation, is identified as the best choice. I describe the method I used to modify these algorithms in \cref{sec:impl-incremental-maintaining-rc}. Following this, \cref{sec:impl-incremental-impl} explains each algorithm in detail.
 
 \subsection{Architecture of an incremental algorithm} \label{sec:impl-incremental-architecture}
 
