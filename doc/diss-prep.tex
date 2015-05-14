@@ -179,7 +179,7 @@ subject to the constraint that $\mathbf{x}$ must be a feasible flow.
 Note, in general, that the MCF and maximum flow problem may be infeasible. For example, the network might be imbalanced: $\sum_{i\in V}b_{i}\neq0$. All networks produced by Firmament are guaranteed to be solvable, however, so I will tend not to discuss this case\footnotemark.
 \footnotetext{For robustness, all algorithms implemented as part of this project detect if a network is infeasible.}
 
-\subsection{Scheduling using flows} \label{sec:prep-flow-scheduling}
+\subsection{Scheduling with flows} \label{sec:prep-flow-scheduling}
 
 I will now show how cluster scheduling can be formulated in terms of the MCF problem, using the Quincy model as an example. For a detailed description of Quincy, see Isard \textit{et al.}~\cite{Isard:2009}. Firmament generalises Quincy, supporting different scheduling policies via a \emph{cost model} framework. I describe how I ported Quincy to this framework in \cref{appendix:flow-scheduling}. Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015} provides several examples of representing other scheduling policies in this manner.
 
