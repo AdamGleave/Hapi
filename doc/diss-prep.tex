@@ -58,7 +58,7 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
         \hline
         \textit{Flow-based schedulers} \tabularnewline
         Quincy~\cite{Isard:2009} & \xmark & \cmark & \xmark \tabularnewline 
-        Firmament~\cite[ch.~4]{Schwarzkopf:2015} & \cmark & \cmark & \xmark \tabularnewline
+        Firmament~\cite[ch.~5]{Schwarzkopf:2015} & \cmark & \cmark & \xmark \tabularnewline
         Firmament using Hapi & \cmark & \cmark & \cmark \tabularnewline
         \hline
     \end{tabular}
@@ -180,132 +180,30 @@ Note, in general, that the MCF and maximum flow problem may be infeasible. For e
 \footnotetext{For robustness, all algorithms implemented as part of this project detect if a network is infeasible.}
 
 \subsection{Scheduling using flows} \label{sec:prep-flow-scheduling}
-% XXX: Rewrite details of flow scheduling. 
-% WORDCOUNT: Could summarize Quincy, provide details in appendix.
-Firmament and Quincy frame scheduling in terms of the minimum-cost flow problem. \emph{Jobs} are submitted to the scheduler, each consisting of a number of \emph{tasks}. Flow drains from task vertices to a sink vertex. Along the way, it passes either through a machine vertex (indicating the task is to be placed there) or a special job unscheduled aggregator vertex (indicating the task is to be left unscheduled).
 
-Arc capacities are used to \emph{restrict} the possible scheduling assignments. The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Scheduling policies are therefore encoded in terms of a \emph{cost model}.
+I will now show how cluster scheduling can be formulated in terms of the MCF problem, using the Quincy model as an example. For a detailed description of Quincy, see Isard \textit{et al.}~\cite{Isard:2009}. Firmament generalises Quincy, supporting different scheduling policies via a \emph{cost model} framework. I describe how I ported Quincy to this framework in \cref{appendix:flow-scheduling}. Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015} provides several examples of representing other scheduling policies in this manner.
 
-% TODO: Flow scheduling is somewhat confused between Quincy and general cost models.
-% N.B. Skipped applying diffs here since may rewrite substantially.
-% N.B. Ionel had comments here as well
+% FIGURE: Prep:Scheduling using flows desperately needs a flow graph
+
 \subsubsection{Network structure}
 
-% PROOFREAD: 1 major edits, need to reread.
+Each machine in the cluster is represented by a vertex, $\mathbf{M}_l$. The topology of the network follows that of the cluster: each rack is represented by a rack aggregator vertex $\mathbf{R}_j$, with arcs to  machines in that rack. There is also a single cluster aggregator vertex $\mathbf{X}$, with arcs to every rack aggregator.
 
-%FIGURE: Table summarising vertices
-%FIGURE: Flow graphs
+The scheduler manages \emph{jobs}, which consist of a number of \emph{tasks}. Each job $j$ has an \emph{unscheduled aggregator} $\mathbf{U}_j$, and a task vertex $\mathbf{T}_i^j$ for each task. Every task has an arc to the cluster aggregator. Tasks may also have arcs to rack aggregators and machines.
 
-Each task $i$ in job $j$ is represented by a vertex $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by vertices $\mathbf{M}_l$, with arcs to a sink vertex $\mathbf{S}$. Task vertices have arcs to machine vertices, the arc cost specifying the task's preference for being scheduled on that machine.
+Each task vertex $\mathbf{T}_i^j$ has unit supply. Tasks must drain into the \emph{sink} vertex $\mathbf{S}$, passing through a machine or unscheduled aggregator along the way\footnotemark.  Supply from tasks can only drain into the sink vertex via machines and unscheduled aggregators. If the flow from $\mathbf{T}_i^j$ passes through machine $\mathbf{M}_l$, the task is scheduled there; if it passes through the unscheduled aggregator $\mathbf{U}_j$, the task is left unscheduled.
+\footnotetext{In fact, unscheduled aggregators may themselves have demand, consuming the flow before it reaches the sink: see \cref{appendix:flow-scheduling:capacities}.}
 
-There is a problem with this scheme: if there are more tasks submitted than can be scheduled, the flow problem becomes infeasible. To fix this, we introduce \emph{unscheduled aggregators} $\mathbf{U}^j$ for each job $j$, with an arc to $\mathbf{S}$. Each task vertex $\mathbf{T}_i^j$ has an arc to its unscheduled aggregator $\mathbf{U}_j$, with the cost specifying the penalty for being unscheduled.
+\subsubsection{Capacities and costs}
+Arc capacities are used to \emph{restrict} the possible scheduling assignments. In Quincy, the capacities are chosen to provide a lower and upper bound on the number of tasks that may be scheduled for each job, guaranteeing fairness (see \cref{appendix:flow-scheduling:capacities}).
 
-In the model above, every task has an arc to each machine. Whilst this allows for the model to be highly precise, it is very inefficient\footnotemark.
-\footnotetext{The number of arcs will scale linearly with the number of machines. But, of course, as the size of a cluster grows the number of tasks being scheduled will also tend to grow proportionally. So the number of arcs actually will tend to grow \emph{quadratically} with increases in the number of machines. Scalability is a key concern, making this is highly undesirable.}
-Firmament adds support for \emph{equivalence classes}, which may be over tasks or machines\footnotemark. Each equivalence class has an aggregator vertex, with arcs to all vertices in the class. In this way, multiple arcs connecting to vertices in the same class can be combined into a single arc.
-\footnotetext{In fact, Firmament supports representing resources at a finer grain than machines: for example, an individual core. So machines may themselves be aggregator vertices.}
+The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Quincy seeks to achieve data locality, and so sets the cost of an arc to be proportional to the network resources consumed. For arcs from a task to a machine, this can be computed exactly. When the arc is to a rack (or cluster) aggregator, a conservative approximation is used, assuming the scheduler places the task on the \emph{worst} machine in that rack (or the cluster as a whole).
 
-The Quincy system provides a concrete example of an equivalence class. Each rack has an associated \emph{rack aggregator} vertex $\mathbf{R}_k$, with arcs to every machine in the rack. Moreover, a single \emph{cluster aggregator} $\mathbf{X}$ is introduced, with arcs to each rack aggregator. This scheme is appropriate for Quincy as its costs depend on inter-rack bandwidth usage, so will tend to be similar within a rack\footnote{Costs also depend on intra-rack bandwidth usage, but less weight is given to this factor as it is rarely a bottleneck.}. Rather than arcs from every task $\mathbf{T}_i^j$ to each machine, there is a single arc to $\mathbf{X}$ and a fixed number of arcs to preferred machines and racks.
+To reduce the size of the network, Quincy only includes arcs to machines or racks which store a substantial proportion of the input data for the task. This bounds the outdegree, guaranteeing sparseness. 
 
-\subsubsection{Capacities}
+Solving the minimum-cost flow problem on the resulting network finds a scheduling assignment which maximises data locality, subject to fairness constraints.
 
-% PROOFREAD: 1 minor edits.
-Every arc leaving a task vertex $\mathbf{T}_i^j$ has unit capacity. Note $\mathbf{T}_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
-
-The arcs $\mathbf{M}_l \to \mathbf{S}$ from machine vertices to the sink vertex have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
-\footnotetext{In the original Quincy system, $K=1$. However, this is clearly a poor utilisation of modern multi-core machines. In fact, performance may often be improved by setting $K > \text{\# of cores}$, on simultaneous multi-threading (SMT) machines.}
-
-The arcs $\mathbf{R}_k \to \mathbf{M}_l$ also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $\mathbf{X} \to \mathbf{R}_k$ have capacity $mK$, where $m$ is the number of machines in each rack\footnotemark.
-\footnotetext{In fact, it would be perfectly legitimate to leave these arcs uncapacitated: the capacity on $\mathbf{M}_l \to \mathbf{S}$ will ensure there are not too many tasks scheduled. However, these capacity constraints may improve the efficiency of the solver.}
-
-The arcs $\mathbf{U}^j \to \mathbf{S}$ can be set to be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. Firmament and Quincy, however, choose to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom.
-
-Let $N_j$ be the number of tasks submitted for job $j$. To enforce the upper bound $F_j$, give $\mathbf{U}^j$ a demand of $N_j - F_j$. At least this many tasks in job $j$ must then be left unscheduled, guaranteeing no more than $F_j$ tasks are scheduled.
-
-To enforce the lower bound, we set the capacity on $\mathbf{U}^j \to \mathbf{S}$ to $F_j - E_j$. The maximum number of unscheduled tasks is thus the $N_j - F_j$ which are absorbed at $\mathbf{U}^j$, plus the $F_j - E_j$ draining via $\mathbf{U}^j \to \mathbf{S}$. This gives an upper bound of $N_j - E_j$ unscheduled tasks, guaranteeing that at least $E_j$ tasks remain scheduled.
-
-\subsubsection{Cost models}  
-
-% PROOFREAD: 1 minor edits.
-
-A key benefit of the flow scheduling approach is its flexibility: support for a policy can be added simply by defining a new cost model. The model used in the original Quincy system attempts to achieve \emph{data locality}: scheduling tasks close to their input data, in order to minimise network traffic. 
-
-Firmament supports three other cost models~\cite[ch.~5]{Schwarzkopf:2015}. The Whare-Map and Coordinate Co-Location models aim to improve utilisation of resources in heterogeneous clusters. The Energy-Aware model seeks to achieve energy efficiency while meeting application performance guarantees, in clusters containing machines of varying performance and efficiency.
-
-% SOMEDAY: Not happy with "having an intuition for how cost models operate is valuable", rephrase
-Given such a variety of possible policies, the solver developed in this project must be independent of any particular cost model. However, having an intuition for how cost models operate is valuable. For reasons of brevity, I will only summarize the cost model in the original Quincy system. Further details of this model are available in~\cite{Isard:2009}. A description of the other models mentioned is in~\cite[ch.~5]{Schwarzkopf:2015}.
-
-\begin{table}
-    \centering
-    \begin{tabular}{ccl}
-        \textbf{Cost} & \textbf{Arc} & \textbf{Meaning}\tabularnewline
-        \hline 
-        $\gamma_{i,m}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{M}_{m}$ & Cost of scheduling on machine $\mathbf{M}_{m}$.\tabularnewline
-        $\rho_{i,l}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{R}_{l}$ & Cost of scheduling on worst machine in rack $\mathbf{R}_{l}$.\tabularnewline
-        $\alpha_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{X}$ & Cost of scheduling on worst machine in cluster.\tabularnewline
-        $v_{i}^{j}$ & $\mathbf{T}_{i}^{j}\to\mathbf{U}^{j}$ & Cost of leaving task $\mathbf{T}_{i}^{j}$ unscheduled.\tabularnewline
-    \end{tabular}
-    \caption{Costs in the Quincy model}
-    \label{table:quincy-costs}
-\end{table}
-
-\begin{table}
-    \centering
-    \begin{tabular}{cl}
-        \textbf{Variable} & \textbf{Meaning}\tabularnewline
-        \hline 
-        $\chi^{X}\left(\mathbf{T}_{i}^{j}\right),\chi_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the core switch.\tabularnewline % if: scheduled on worst possible computer in cluster, scheduled on worst possible computer in rack $\mathbf{R}_{l}$ or scheduled on computer $\mathbf{M}_{m}$ respectively.
-        $\mathcal{R}^{X}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{l}^{R}\left(\mathbf{T}_{i}^{j}\right),\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ & Data transfer for task $\mathbf{T}_{i}^{j}$ across the top-of-rack switch.\tabularnewline
-        $\theta_{i}^{j}$ & Number of seconds task $\mathbf{T}_{i}^{j}$ has spent scheduled.\tabularnewline
-        $\nu_{i}^{j}$ & Number of seconds task $\mathbf{T}_{i}^{j}$ has spent unscheduled.\tabularnewline
-    \end{tabular}
-    \caption{Variables in the Quincy model}
-    \label{table:quincy-variables}
-\end{table}
-
-\begin{table}
-    \centering
-    \begin{tabular}{cl}
-        \textbf{Parameter} & \textbf{Meaning}\tabularnewline
-        \hline 
-        $\epsilon$ & Cost of transferring 1 GB across core switch\tabularnewline
-        $\psi$ & Cost of transferring 1 GB across top of rack switch\tabularnewline
-        $\omega$ & Wait-time cost factor for unscheduled aggregators\tabularnewline
-    \end{tabular}
-    \caption{Parameters for the Quincy model}
-    \label{table:quincy-parameters}
-\end{table}
-
-The arc costs specified by the Quincy model are given in \cref{table:quincy-costs}. All arcs not mentioned in this table have a cost of zero\footnotemark.
-\footnotetext{In particular, arcs leaving aggregator vertices and arcs entering the sink have zero cost.}
-
-The model assumes tasks process data residing in a distributed file system. Files may be accessed from any machine, with the file being fetched from a remote machines if there is no local copy. Retrieving a file from a machine in another rack is more expensive -- both in terms of request latency and network resources consumed -- than from a neighbouring machine. Reading the data from a directly connected disk is cheaper still. The Quincy scheduler quantifies the data transfer costs for each scheduling assignment. Solving the resulting minimum-cost flow problem yields an assignment which minimises the total data transfer cost, achieving data locality.
-
-\Cref{table:quincy-variables} gives the variables maintained by the Quincy scheduler. All arc costs are functions of these variables. The system breaks down the data transfer of a task $\mathbf{T}_{i}^{j}$ into two components: transfer across the core switch, $\chi\left(\mathbf{T}_{i}^{j}\right)$, and top of rack switches, $\mathcal{R}\left(\mathbf{T}_{i}^{j}\right)$.
-
-For a particular machine $\mathbf{M}_m$, the data transfer $\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ and $\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ can be computed exactly. However, when it comes to determining the cost of arcs to aggregator vertices $\mathbf{R}_l$ or $\mathbf{X}$, an exact figure is not possible. Instead, Quincy takes a conservative upper bound: the \emph{greatest} data transfer that results from scheduling $\mathbf{T}_{i}^{j}$ on the \emph{worst} machine in rack $\mathbf{R}_l$ or the cluster as a whole, respectively.
-
-The system also keeps track of the time $\theta_i^j$ and $\nu_i^j$ a task spends scheduled and unscheduled, respectively. If the task is stopped and then restarted, these times continue to accumulate. This property is needed to guarantee the scheduler makes progress.
-
-Quincy is controlled by three simple parameters, given in \cref{table:quincy-parameters}. $\epsilon$ and $\psi$ specify the cost of data transfers across core and top of rack switches respectively. In general, we would expect $\epsilon > \psi$, since the core switch is more likely to become a bottleneck. $\omega$ controls the penalty for leaving a task unscheduled\footnotemark. Increasing $\epsilon$ and $\psi$ will cause the scheduler to more aggressively optimise for data locality. Increasing $\omega$ will 
-\footnotetext{It is possible to vary $\omega$ between jobs in order to encode a notion of priority.}
-
-It is now possible to state formulae for the arc costs listed in \cref{table:quincy-costs}. For convenience, we will define the data transfer cost function:
-\[d_{b}^{A}\left(\mathbf{T}_{i}^{j}\right) = \epsilon\chi_{b}^{A}\left(\mathbf{T}_{i}^{j}\right)+\psi\mathcal{R}_{b}^{A}\left(\mathbf{T}_{i}^{j}\right)\]
-
-The cost of scheduling on the worst machine in the cluster and the worst machine in rack $\mathbf{R}_l$ immediately follow from this:
-\[\alpha_{i}^{j} = d^X\left(\mathbf{T}_{i}^{j}\right)\]
-\[\rho_{i}^{j,l} = d^R_l\left(\mathbf{T}_{i}^{j}\right)\]
-It is tempting to use the same form for the cost, $\gamma^j_{i,m}$ of scheduling on a particular machine $\mathbf{M}_m$. When $\mathbf{T}_{i}^{j}$ is not running on $\mathbf{M}_m$ (either it is unscheduled, or is running on a different machine), this is valid. 
-
-However, this formula is inappropriate when $\mathbf{T}_{i}^{j}$ is already scheduled on  $\mathbf{M}_m$: $d^M_m\left(\mathbf{T}_{i}^{j}\right)$ will overestimate the cost of the remaining data transfer. To account for the work already invested in $\mathbf{T}_{i}^{j}$, we subtract the time it has been running, giving:
-\[\gamma_{i,m}^{j} = d_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)-\begin{cases}
-\theta_{i}^{j} & \text{if \ensuremath{\mathbf{T}_{i}^{j}}running on \ensuremath{\mathbf{M}_{m}}}\\
-0 & \text{otherwise}
-\end{cases}\]
-
-The only remaining cost is $v_i^j$, the penalty associated with leaving a task $\mathbf{T}_{i}^{j}$ unscheduled. We set it proportional to the length of time it has been unscheduled:
-\[v_i^j = \omega\nu_{n}^{j}\]
+% XXX: TBC. Give references to more detailed sections of the appendix.
 
 \subsubsection{Properties of these networks}
 
@@ -319,7 +217,7 @@ I state below some properties which hold for all flow scheduling networks. These
 Let $n$ denote the number of vertices in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.
 \end{restatable}
 \begin{proof}
-See \cref{appendix:flow-scheduling}.
+See \cref{appendix:flow-scheduling:properties}.
 \end{proof}
 
 \begin{restatable}[Number of arcs in flow scheduling networks]{lemma}{flowschedulingnumarcs} 
@@ -327,7 +225,7 @@ See \cref{appendix:flow-scheduling}.
 Let $m$ denote the number of arcs in the network. Then $m = O(n)$. That is, the network is \emph{sparse}.
 \end{restatable}
 \begin{proof}
-See \cref{appendix:flow-scheduling}.
+See \cref{appendix:flow-scheduling:properties}.
 \end{proof}
 
 \begin{lemma}[Size of supply in flow scheduling networks] \label{lemma:network-supply}
@@ -338,7 +236,7 @@ The only vertices in the network with any supply are the task vertices, $\mathbf
 \end{proof}
 
 \begin{remark}
-Most vertices in the network are transshipment vertices, with no demand nor supply. The demand vertices in the network are the sink vertex $\mathbf{S}$ and (optionally) unscheduled aggregators, $\mathbf{U}^j$. These may have a greater than unit demand.
+Most vertices in the network are transshipment vertices, with no demand nor supply. The demand vertices in the network are the sink vertex $\mathbf{S}$ and unscheduled aggregators, $\mathbf{U}^j$. These may have a greater than unit demand.
 \end{remark}
 
 \subsection{Key concepts in flow algorithms}
@@ -416,7 +314,7 @@ Below, I give conditions for a solution vector $\mathbf{x}$ to be optimal. These
 Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-cost flow problem if and only if the residual network $G_\mathbf{x}$ has no negative cost (directed) cycle.
 \end{restatable}
 \begin{proof}
-See Ahuja, \textit{et al.}~\cite[p.~307]{Ahuja:1993}.
+See Ahuja \textit{et al.}~\cite[p.~307]{Ahuja:1993}.
 \end{proof}
 
 \begin{thm}[Reduced cost optimality conditions] \label{thm:optimality-reduced-cost}
@@ -427,7 +325,7 @@ Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-
 \end{equation}
 \end{thm}
 \begin{proof}
-See Ahuja, \textit{et al.}~\cite[p.~309]{Ahuja:1993}.
+See Ahuja \textit{et al.}~\cite[p.~309]{Ahuja:1993}.
 \end{proof}
 
 \begin{thm}[Complementary slackness optimality conditions] \label{thm:optimality-complementary-slackness}
@@ -443,7 +341,7 @@ Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-
 \end{subequations}
 \end{thm}
 \begin{proof}
-The result follows immediately from expanding out \cref{eq:optimality-reduced-cost}, applying the definition of a residual network and performing a case analysis. A detailed proof is given by Ahuja, \textit{et al.}~\cite[p.~310]{Ahuja:1993}.
+The result follows immediately from expanding out \cref{eq:optimality-reduced-cost}, applying the definition of a residual network and performing a case analysis. A detailed proof is given by Ahuja \textit{et al.}~\cite[p.~310]{Ahuja:1993}.
 \end{proof}
 
 \subsubsection{Notation for complexity analysis} \label{sec:prep-flow-complexity}

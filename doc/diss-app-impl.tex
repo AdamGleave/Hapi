@@ -92,13 +92,13 @@ I will now show that the algorithm always terminates, and provide a bound on its
     \end{enumerate}
 \end{lemma}
 \begin{proof}
-    See Ahuja, \textit{et al.}~\cite[lemma~9.11]{Ahuja:1993}.
+    See Ahuja \textit{et al.}~\cite[lemma~9.11]{Ahuja:1993}.
 \end{proof}
 
 \begin{cor} \label{cor:ssp-reduced-costs}
     Let a pseudoflow $\mathbf{x}$ satisfy the reduced cost optimality conditions, with respect to some potentials $\boldsymbol{\pi}$. Let $\mathbf{x}'$ denote the pseudoflow obtained from $\mathbf{x}$ by sending flow along a shortest path from vertex $s$ to some other vertex $k \in V$. Then $\mathbf{x}'$ also satisfies the reduced cost optimality conditions, with respect to potentials $\boldsymbol{\pi}' = \boldsymbol{\pi} - \mathbf{d}$.
 \end{cor}
-\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[lemma~9.12]{Ahuja:1993})
+\begin{proof} (Adapted from Ahuja \textit{et al.}~\cite[lemma~9.12]{Ahuja:1993})
     
     By \cref{lemma:ssp-reduced-costs}(a), $\left(\mathbf{x},\boldsymbol{\pi'}\right)$ satisfies the reduced cost optimality conditions.
     
@@ -201,7 +201,7 @@ First, I show \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve re
 \begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
     Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, the new pseudoflow and vertex potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
 \end{lemma}
-\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[p.~334]{Ahuja:1993})
+\begin{proof} (Adapted from Ahuja \textit{et al.}~\cite[p.~334]{Ahuja:1993})
     
     Arcs with a reduced cost of zero are saturated by \crefrange{algo:relaxation-update-potentials:saturate-loop}{algo:relaxation-update-potentials:saturate-cmd}, and drop out of the residual network as a result. This preserves reduced cost optimality: the flow on arcs with a reduced cost of zero is arbitrary. Moreover, it leaves $w(\boldsymbol{\pi})$ unchanged. Recall the formulation of $w(\boldsymbol{\pi})$ given in \cref{eq:relax-obj-fun-balance}:
     \[w(\boldsymbol{\pi})=\min_{x}\left[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}\right]\]
@@ -235,7 +235,7 @@ First, I show \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve re
 \begin{lemma}[Correctness of \textproc{AugmentFlow}] \label{lemma:relax-correctness-augmentflow}
     Let $e(S) \leq r(\boldsymbol{\pi},S)$, and $e_t < 0$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing \textproc{AugmentFlow}, there is a new pseudoflow $\mathbf{x}'$ and $\left(\mathbf{x}',\boldsymbol{\pi}\right)$ still satisfy reduced cost optimality conditions. Moreover, under $\mathbf{x}'$ the excess at vertex $s$ and deficit at vertex $t$ decreases, without changing the excess/deficit at any other vertex.
 \end{lemma}
-\begin{proof} (Adapted from Ahuja, \textit{et al.}~\cite[p.~336]{Ahuja:1993})
+\begin{proof} (Adapted from Ahuja \textit{et al.}~\cite[p.~336]{Ahuja:1993})
     
     \Cref{algo:relaxation-augment-flow:find-P} finds a shortest path $P$ from the excess vertex $s$ to a deficit vertex $t$. \Crefrange{algo:relaxation-augment-flow:compute-delta}{algo:relaxation-augment-flow:augment-path} then send as much flow as possible along path $P$, subject to:
     \begin{enumerate}

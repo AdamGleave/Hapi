@@ -76,11 +76,11 @@ Interestingly, optimisations yield the biggest performance improvement on implem
 
 \subsection{Task runtime}
 
-Figure 2 in Reiss, \textit{et al.}~\cite{Reiss:2012} shows an inverted CDF of task runtimes in the Google trace. On the log-log scale, the inverted CDF is approximately a straight line, justifying an inverted power law $F(x) = 1 - ax^k$. Parameters $a = 0.298$ and $k=-0.263$ were computed from points on the figures, $\left(x_0,y_0\right) = \left(10^-2,1.8\times 10^4\right)$ and $\left(x_1,y_1\right)=\left(6\times 10^2, 10^3\right)$.
+Figure 2 in Reiss \textit{et al.}~\cite{Reiss:2012} shows an inverted CDF of task runtimes in the Google trace. On the log-log scale, the inverted CDF is approximately a straight line, justifying an inverted power law $F(x) = 1 - ax^k$. Parameters $a = 0.298$ and $k=-0.263$ were computed from points on the figures, $\left(x_0,y_0\right) = \left(10^-2,1.8\times 10^4\right)$ and $\left(x_1,y_1\right)=\left(6\times 10^2, 10^3\right)$.
 
 \subsection{Task input size and file size}
 
-Figures 1 and 3 in Chen, \textit{et al.}~\cite{Chen:2012} provide CDFs for file size and task input size from a contemporary Facebook cluster. At very small and very large sizes, the empirical CDF does not follow any standard distribution. However, at intermediate sizes the CDF is approximately a straight line with the a log-scale $x$ axis, suggesting a distribution proportional to $\lg(x)$.
+Figures 1 and 3 in Chen \textit{et al.}~\cite{Chen:2012} provide CDFs for file size and task input size from a contemporary Facebook cluster. At very small and very large sizes, the empirical CDF does not follow any standard distribution. However, at intermediate sizes the CDF is approximately a straight line with the a log-scale $x$ axis, suggesting a distribution proportional to $\lg(x)$.
 
 The task input size CDF shows that a small proportion (less than 1\%) of files are extremely large, being a terabyte or more. This long tail I believe is an artefact of MapReduce. These ``files'' will likely never be read in their entirety, with individual tasks processing only small segments. As there is no way to infer the true number of bytes read from the data, it seems prudent to instead truncate the distribution at the upper end. I chose an upper bound of 10 GB for file sizes, and 20 GB for input sizes of tasks.
 

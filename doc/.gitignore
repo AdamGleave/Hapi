@@ -16,6 +16,7 @@ gitHeadInfo.gin
 *.lof
 *.loa
 *.lot
+*.loe
 *.fdb_latexmk
 *.run.xml
 *.txss
