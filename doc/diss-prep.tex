@@ -5,7 +5,7 @@
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
 % TODO: Get some references from Malte/Ionel on this?
-Much as an operating system schedulers maps threads to processor cores, a cluster scheduler maps tasks to machines. Scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their importance, cluster schedulers are an active area of research.
+Much as an operating system scheduler maps threads to processor cores, a cluster scheduler maps tasks to machines. Better scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their importance, cluster schedulers are an active area of research.
 
 I start by outlining desirable properties of cluster schedulers. Following this, I summarise the prevailing approaches to scheduling. I conclude by discussing the principles underlying Firmament, showing how it improves upon competing approaches with its use of flow scheduling.
 
@@ -20,13 +20,12 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
 
 \begin{table}
     \centering
-    \begin{tabular}{c|l}
+    \begin{tabular}{cl}
         \textbf{Goal} & \textbf{Description}\tabularnewline
         \hline
         Targeted & Application requirements are reflected in the scheduler policy. \tabularnewline
         Effective & The schedules produced are optimal given the policy objectives. \tabularnewline
         Fast and scalable & Scheduling latency remains low even for large clusters. \tabularnewline
-        \hline
     \end{tabular}
     \caption{Cluster scheduler design goals}
     \label{table:cluster-scheduler-design-goals}
@@ -43,35 +42,7 @@ Finally, the system should remain responsive at scale. Today's warehouse scale c
 
 \subsection{Prevailing approaches}
 %WORDCOUNT: Prevailing approaches -- could cut by 2/3rd
-%TODO: Would be good to rewrite to talk about other schedulers, but you may not have time. Can ask Malte.
 
-% PROOFREAD: 1. Minor edits.
-
-Apache Hadoop is by far the most widely used distributed storage and processing framework. Originally developed at Yahoo, it has since been adopted by many other firms, including Amazon, Facebook and LinkedIn~\cite{HadoopPoweredBy}. Representing the state of the art used in industry, it is instructive to consider the scheduling techniques it uses.
-
-Until 2008, Hadoop supported only one scheduler~\cite{HadoopFairSchedulerJIRA}: a FIFO queue, executing whichever job had waited longest. This offers high throughput, and so is attractive for batch jobs, Hadoop's traditional application. However, it fares poorly with other applications. In particular, the latency can be very high: a job (no matter how small) must wait in line before all previously submitted tasks. In addition, their is no notion of fairness: a heavy user of the cluster can starve all other users.
-
-Hadoop's developers introduced a pluggable scheduler framework to resolve these shortcomings~\cite{HadoopSchedulingIBM}. In the terminology of \cref{table:cluster-scheduler-design-goals}, by allowing users to write their own scheduler the policy can be precisely \emph{targeted} to specific application needs. Although this approach is powerful, to some extent it merely shifts the problem elsewhere. It is not feasible for each application to be bundled with its own scheduler\footnotemark. The vast majority of installations use one of the schedulers distributed with Hadoop: the Fair Scheduler or Capacity Scheduler.
-\footnotetext{Clusters typically run many applications simultaneously, but Hadoop only supports one scheduler per cluster, so this would not be a viable approach anyway.}
-
-The Fair Scheduler was designed at Facebook, guaranteeing each job an equal share of available resources. It pioneered a technique known as delay-scheduling, which allows the cluster administrator to sacrifice some fairness in order to achieve greater data locality~\cite{Zaharia:2010}. 
-
-The Capacity Scheduler was designed at Yahoo, in order to support distinct application classes on the same cluster. Hard resource guarantees can be provided to each application class, ensuring a minimum service level. Applications are allowed to burst beyond this level when there are cluster resources idle.
-
-Note both schedulers are designed with specific purposes in mind. Although effective, offering good performance for their stated objectives, the schedulers cannot be targeted to particular applications: there is limited policy flexibility.
-
-There are also some questions as to how effective these schedulers truly are. Cluster environments are increasingly heterogeneous~\cite{Reiss:2012}, posing problems for traditional schedulers which run blind to the underlying hardware. The LATE scheduler, designed to be robust to heterogeneity, halved response times compared to Hadoop's default scheduler when running on Amazon's Elastic Compute Cloud~\cite{Zaharia:2008}.
-
-Hitherto, I have considered only the public state of the art. With today's major web companies dependent upon clusters, there is naturally considerable research into this area by industry. Unfortunately, the details of the schedulers developed by major technology firms such as Google are trade secrets.
-
-However, the information which is public suggests that the basic approach is the same. The designs have, of course, been tweaked to meet specific application requirements, and to operate efficiently on the cluster architectures favoured by the firm. For example, Google's scheduler lets tasks specify a kernel version constraint, and seeks to minimise peak power demand by load balancing~\cite[\S2.1]{Sharma:2011}.
-
-\subsection{Firmament and flow scheduling}
-%WORDCOUNT: Firmament and flow scheduling -- could probably trim
-
-% PROOFREAD: 1. Major edits. Need to reread.
-
-% SOMEDAY: Add citations
 \begin{table}
     \centering
     \begin{tabular}{lccc}
@@ -92,22 +63,57 @@ However, the information which is public suggests that the basic approach is the
     \caption[Scheduler feature matrix]{Scheduler feature matrix showing {\cmarkcolor full \cmark}, {\mmarkcolor partial \mmark} or {\xmarkcolor no \xmark} support.}
     \label{table:cluster-scheduler-feature-matrix}
 \end{table}
+% PROOFREAD: 1. Minor edits.
 
-Schedulers have traditionally relied on \textit{ad hoc} heuristics to provide a hard-coded policy. This approach is easy to implement, but is inflexible.
+% Keep it brief.
+% Good to highlight in this or next section that many authors believe centralised scheduling cannot scale to large clusters.
+% Show existing approaches rely on heuristics.
+% Hadopp FIFO queue gentle introduction, but kind of bogus -- probably best dropped.
 
-\Cref{table:cluster-scheduler-feature-matrix} summarises the results of the previous section, and previews this section. It is apparent that the key drawback of the heuristic approach is an inability to \emph{target} the scheduling policy. This has led to a proliferation of different schedulers, but it will never be possible to meet all application needs in this way.
+% Best to draw out general trends, then cite particular schedulers as example.
+% Multi-tentant: Hadoop Capacity Scheduler
 
-There has been some attempt to make heuristic schedulers more general. For example, the Fair Scheduler allows the trade-off between data locality and fairness to be specified. But it is rare that these are the only two objectives of importance. Low scheduling latency is important to many applications, which conflicts with the other two objectives. For example, data locality is boosted by keeping a task unscheduled until a compute vertex close to the data becomes free. There is no way to adjust this trade-off using the Fair Scheduler.
+% Probably good to mention work on heterogenous clusters, e.g. LATE, given this is what Firmament does?
 
-The Firmament cluster scheduler, by contrast, is specifically designed to be flexible. Rather than using a heuristic approach, Firmament models scheduling as an optimisation problem over \emph{flow networks}. The details of this are described in \cref{sec:prep-flow-scheduling}, but the key point is that the scheduling policy is encoded in terms of a \emph{cost model} which assigns costs to arcs in the network. Defining a new cost model is straightforward, making it easy to implement a wide variety of policies.
+% Apache Mesos: allocates resources to multiple frameworks, such as Hadoop. Uses DRF (?).
+% YARN: Hadoop-centric cluster manager. Applications negotiate for resources. Similar to what Google uses for MapReduce with Borg.
+% Hadoop Capacity Scheduler: multi-tenant, provides strong guarantees.
+% Apollo: predicts task runtime; per-job scheduler, good for scalability
+% Omega: reasonably targeted (each application can have its own scheduling policies), but a lot of work to implement. 
 
-It would be an overstatement to say that all policies can be expressed in this way: flow networks are not Turing complete. For example, in gang scheduling pairs of tasks must be run simultaneously, or not at all. This policy is difficult to express, as flows in a network are inherently independent. However, in practice the model is very powerful, allowing a range of scheduling policies to be specified.
+% Apollo paper presents better summary.
+% Monolothic schedulers: Quincy, Hadoop Fair Scheduler
+% Centralised but multiple workload support: Mesos, YARN, Corona (targeted, in my nomenclature).
+% Distributed schedulers: Omega, Sparrow, apollo. Very scalable. May limit effectiveness?
+% Multi-tenant support: capacity scheduler, Apollo
 
-This flow scheduling approach may also be more \emph{effective} than heuristic designs, since the optimisation considers \emph{all} possible assignments. The Quincy system, which pioneered flow scheduling, sought to achieve \emph{data locality}. Throughput under Quincy is 40\% greater than traditional designs; moreover, data transfer is reduced by up to $3.9\times$.
+% FIGURES: Axes, distributed vs centralised and monolothic vs flexible
 
-Another contemporary problem is that of scheduling in heterogeneous environments. There have been attempts to solve this problem using heuristic approaches. LATE, for example, identifies tasks which are under-performing and speculatively executes them on a faster vertex~\cite{Zaharia:2008}. This, however, is inefficient: the task has already spent time executing on a node, only to be preempted. Firmament encodes the resources available in the cluster explicitly in the flow network, to avoid placing resource-intensive tasks on machines which are already overloaded.
+Commensurate with their importance, a variety of cluster scheduling designs have been investigated, summarised in \cref{table:cluster-scheduler-feature-matrix}. Traditionally, schedulers have been \emph{monolithic}, designed for a single workload. For example, the Hadoop Fair Scheduler only manages MapReduce jobs~\cite{HadoopFairSchedulerJIRA}.
 
-A key advantage of heuristic designs is that they are computationally inexpensive, which allows them to scale to very large clusters. Moreover, for applications which require very low scheduling latencies, it is possible to speed up the scheduler by adopting simpler heuristics, or distributing the scheduling (as in Sparrow~\cite{Ousterhout:2013}). The goal of this project is to improve the scheduling latency and scalability of flow based systems, allowing them to compete with the fastest heuristic schedulers. The next section provides background on the problem which must be solved.
+Although monolithic schedulers may perform well on their intended workload, they cannot be targeted to different applications. Newer schedulers such as Mesos~\cite{Mesos} adopt a \emph{two-level} design~\cite[\S3.3]{Omega}: a centralised allocator dynamically partitions resources in the cluster between \emph{scheduling frameworks}, each of which implement a policy appropriate to the applications they manage. However, as each framework sees only a subset of the resources in the cluster, they are not as effective as monolithic schedulers.
+
+To support interactive applications on large-scale clusters, there has been research into \emph{distributed} scheduling. These methods can be very fast. For example, the Sparrow scheduler achieves sub-\SI{100}{\milli\second} scheduling latency, employing a sampling mechanism to avoid maintaining any centralised state~\cite[fig.~10]{Ousterhout:2013}. However, the lack of global state imposes limits on the effectiveness of distributed schedulers.
+
+\subsection{Firmament and flow scheduling}
+%WORDCOUNT: Firmament and flow scheduling -- could probably trim
+
+% PROOFREAD: 1. Major edits. Need to reread.
+
+% SOMEDAY: Add citations
+
+% Introduce flow scheduling: Quincy monolithic scheduler. Very effective: avoid heuristic approaches.
+% Firmament generalises it: targeted, effective.
+% But SLOW! What if we can solve this?
+% Centralised scheduling, scaling to large clusters?
+
+% Key benefit of flow scheduling: global optimisation? Flexible policy also useful.
+
+\emph{Flow scheduling} models scheduling as an optimisation problem over flow networks (see \cref{sec:prep-flow-scheduling}). The effectiveness of this approach was demonstrated in the pioneering Quincy system, which delivered a 40\% increase in throughput and reduced data transfer by $3.9\times$~\cite{Isard:2009}. 
+
+Firmament generalises Quincy, allowing a variety of scheduling policies to be specified. Like with two-level schedulers, the policy can be chosen on a per-application basis. However, flow scheduling does not partition the cluster: solving the optimisation problem globally allows better scheduling decisions to be made.
+
+Flow algorithms are notoriously difficult to parallelise, due to the global nature of the problem. Accordingly, the flow solver quickly becomes a bottleneck, leading some researchers to claim flow scheduling systems cannot scale~\cite[\S6]{Apollo}. In this dissertation, I design and implement new flow algorithms which allow these systems to compete with the fastest distributed schedulers.
 
 \section{Flow networks} \label{sec:prep-flow}
 
