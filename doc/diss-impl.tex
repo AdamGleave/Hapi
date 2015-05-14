@@ -6,14 +6,48 @@
 
 Considerable research effort has been expended over the past 60 years to produce efficient flow algorithms, as discussed in \cref{sec:intro-challenges} and \cref{sec:intro-related-work}. My approach has been to embrace prior work rather than attempting to supplant it, adapting existing algorithms to improve performance for the special case of flow scheduling.
 
-Two strategies seemed particularly promising. \emph{Approximate} solutions to the problem can be found, described in \cref{sec:impl-approx}. Existing algorithms always seek to find optimal solutions: for flow scheduling, we may be happy to trade optimality for reduced scheduling latency. 
+Two strategies seemed particularly promising. \emph{Approximate} solutions to the problem can be found, described in \cref{sec:impl-approx}. Existing algorithms always seek to find optimal solutions: for flow scheduling, we may be happy to trade optimality for reduced scheduling latency. Alternatively, the problem can be solved \emph{incrementally}, outlined in \cref{sec:impl-incremental}. The network remains largely unchanged between runs of the scheduler. Significant performance improvements can be realised by reoptimising from the last optimal solution found. 
 
-Alternatively, the problem can be solved \emph{incrementally}, outlined in \cref{sec:impl-incremental}. The network remains largely unchanged between runs of the scheduler. Significant performance improvements can be realised by reoptimising from the last optimal solution found.
+These strategies are not solution methods in themselves. Rather, they suggest modifications that can be made to existing minimum-cost flow algorithms. \Cref{table:impl-application-summary} lists the algorithms I implemented, alongside the strategy they are used in.
 
-These strategies are not solution methods in themselves. Rather, they suggest modifications that can be made to minimum-cost flow algorithms. Consequently, this chapter starts with an outline of the standard algorithms implemented in this project, before going on to describe the two strategies.
+I analysed the complexity of each algorithm, both in the general case and for scheduling flow networks. My results are summarised in \cref{table:impl-complexity-summary}, and show that the algorithmic complexity often improves on scheduling flow networks, sometimes quite significantly: for example, successive shortest path goes from being weakly to strongly polynomial.
 
-I include a complexity analysis and proof of correctness for each algorithm. In the interests of brevity, I mostly summarise the results in this chapter, giving complete proofs in \cref{appendix:impl}. I have included proofs in this chapter where they are substantially my own work, or when the proof is critical to understanding the implementation of the algorithm.
-% FIGURE: Asymptotic complexity summary XXX
+This chapter starts by outlining the standard each of the standard algorithms listed in \cref{table:impl-application-summary}, before going on to discuss the approximate and incremental strategy. I include proofs of correctness, and the complexity results given in \cref{table:impl-complexity-summary}. However, in the interests of brevity, these results are mostly summarised in this chapter with the proofs given in \cref{appendix:impl}. I have included proofs in the main text when they are critical to understanding the implementation of the algorithm, or where they are substantially my own work.
+
+% eliminate section prefix
+\crefformats{chapter,section,subsection,appendix,subappendix,subsubappendix}{#2#1#3}
+\crefnames{chapter,section,subsection,appendix,subappendix,subsubappendix}{}{}
+\begin{table}
+    \centering
+    \begin{tabular}{lccc}
+        \textbf{Name} & \textbf{Section} & \textbf{Approximation?} & \textbf{Incremental?} \tabularnewline
+        \hline
+        Cycle cancelling & \Cref{appendix:impl-cc} & \xmark & \xmark \tabularnewline
+        Successive shortest path & \cref{sec:impl-ssp} & \xmark & \cmark \tabularnewline
+        Relaxation & \cref{sec:impl-relax} & \xmark & \cmark \tabularnewline
+        Cost scaling & \cref{sec:impl-cost-scaling} & \cmark & \xmark \tabularnewline
+        \hline
+    \end{tabular}
+    \caption[Application of flow algorithms]{How each algorithm implemented in this project was used.}
+    \label{table:impl-application-summary}
+\end{table}
+
+\begin{table}
+    \centering
+    \begin{tabular}{lcll}
+        \parbox{0.1\textwidth}{\textbf{Name} \\} & \parbox{0.1\textwidth}{\textbf{Section}\\} & \parbox{0.2\textwidth}{\centering\textbf{Complexity \\ (general)}} & \parbox{0.25\textwidth}{\centering\textbf{Complexity \\ (flow scheduling)}} \tabularnewline
+        \hline
+        Cycle cancelling & \Cref{appendix:impl-cc} & \hspace{1em}$O\left(nm^2CU\right)$ & \hspace{2em}$O\left(n^3CU\right)$ \tabularnewline
+        Successive shortest path & \cref{sec:impl-ssp} & \hspace{1em}$O\left(nmU \lg n\right)$ & \hspace{2em}$O\left(n^2\lg n\right)$ \tabularnewline
+        Relaxation & \cref{sec:impl-relax} & \hspace{1em}$O\left(nm^2CU^2\right)$ & \hspace{2em}$O\left(n^3CU\right)$ \tabularnewline
+        Cost scaling - FIFO & \cref{sec:impl-cost-scaling} & \hspace{1em}$O\left(n^2m\lg(nC)\right)$ & \hspace{2em}$O\left(n^3\lg(nC)\right)$ \tabularnewline
+        Cost scaling - WAVE & \cref{sec:impl-cost-scaling} & \hspace{1em}$O\left(n^3\lg(nC)\right)$ & \hspace{2em}$O\left(n^3\lg(nC)\right)$ \tabularnewline
+        \hline
+    \end{tabular}
+    \caption[Asymptotic complexity of flow algorithms]{Summary of asymptotic complexity of flow algorithms.}
+    \label{table:impl-complexity-summary}
+\end{table}
+\crefsections
 
 \section{Cycle cancelling algorithm} \label{sec:impl-cycle-cancelling}
 
@@ -105,7 +139,7 @@ The implementation in this project has a time complexity of $O(nmU \lg n)$.
 Djikstra's algorithm with a binary heap data structure is used to solve the SSSP problem, giving $S(n,m,C) = O(m \lg n)$. The result follows by \cref{thm:ssp-complexity}.
 \end{proof}
 
-\begin{remark}
+\begin{remark} \label{remark:ssp-flow-scheduling-complexity}
 On flow scheduling networks, no vertex has a greater than unit supply by \cref{lemma:network-supply}. This gives a bound on the total excess of $O(n)$ rather than $O(nU)$. Moreover, by \cref{lemma:network-num-arcs}, $m = O(n)$. So the complexity improves to $O(n^2 \lg n)$.
 \end{remark}
 
@@ -374,7 +408,8 @@ For a bound on the total number of iterations, note an iteration ends after call
 \footnotetext{Of course $\textproc{UpdatePotentials}$ might be called on \cref{algo:relaxation:first-update-potentials}. This is not guaranteed, however, so cannot form part of the complexity analysis.}
 \end{proof}
 
-\begin{thm} The algorithm runs in $O(nm^2CU^2)$ time.
+\begin{thm} \label{thm:relax-complexity}
+    The algorithm runs in $O(nm^2CU^2)$ time.
 \end{thm}
 \begin{proof}
 Initialisation on \cref{algo:relaxation:initialisation} of \cref{algo:relaxation} has cost $O(m)$. The loop body on \crefrange{algo:relaxation:outer-loop-start}{algo:relaxation:outer-loop-end}, excluding function calls and the inner loop on \crefrange{algo:relaxation:inner-loop-start}{algo:relaxation:inner-loop-end}, has cost $O(1)$: initialising $S$, $e(S)$ and $r(\boldsymbol{\pi},S)$ are all constant cost.
@@ -387,6 +422,14 @@ Note that each iteration of this loop adds a new vertex to $S$, and so is execut
 
 The overall time complexity can now be proved using the above results and the bounds in \cref{lemma:relax-iterations}. $\textproc{UpdatePotentials}$ is called $O(mCU)$ times and has cost $O(m)$, so contributes a total cost of $O(m^2CU)$. $\textproc{AugmentFlow}$ is called $O(nmCU^2)$ times and has cost $O(n)$, so contributes a total cost of $O(n^2mCU^2)$. Finally, the body of the while loop on \crefrange{algo:relaxation:outer-loop-start}{algo:relaxation:outer-loop-end} of \cref{algo:relaxation} is executed $O(nmCU^2)$ times. Excluding the cost of the procedure calls, each iteration costs $O(m)$, so this contributes a cost of $O(nm^2CU^2)$. This dominates the other costs, and is thus the overall time complexity of the algorithm.
 \end{proof}
+
+\begin{remark}
+As with \cref{remark:ssp-flow-scheduling-complexity}, there is an $O(n)$ bound on the total excess in flow scheduling networks by \cref{lemma:network-supply}, improving \cref{lemma:relax-iterations}(b) from $O\left(nU\right)$ to $O(n)$. 
+
+Note that, in general, $U = \omega(1)$ as there is no bound on the capacity of arcs in flow scheduling networks. Accordingly, the bound on the maximum cost of a feasible flow remains $O(mCU)$.
+
+The complexity is thus $O\left(nm^2CU\right)$ on flow scheduling networks by the proof of \cref{thm:relax-complexity}, which improves to $O\left(n^3CU\right)$ by \cref{lemma:network-num-arcs}.
+\end{remark}
 
 \section{Cost scaling algorithm} \label{sec:impl-cost-scaling}
 
@@ -537,7 +580,7 @@ See \cref{appendix:impl-cs:analysis}.
 
 The preceding section presented a generic version of the \textproc{Refine} routine, \cref{algo:cost-scaling-generic-refine}. The order in which the basic operations are to be applied is intentionally left unspecified in \crefrange{algo:cost-scaling-generic-refine:start-loop}{algo:cost-scaling-generic-refine:end-loop} of the algorithm. Both the practical and theoretical performance of cost scaling is affected by this order. I implemented two variants, \textit{FIFO} and \textit{wave}, which differ in the rule used to select basic operations. Both versions were first proposed by Goldberg and Tarjan~\cite{Goldberg:1990}.
 
-\subsubsection{FIFO refine}
+\subsubsection{FIFO refine} \label{sec:impl-cs-impl-fifo}
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -608,7 +651,7 @@ In fact, this complexity bound holds for any refine routine which repeatedly app
 On flow scheduling networks, $m = O(n)$ by \cref{lemma:network-num-arcs}, so the bound is trivially $O(n^3 \lg (nC))$ in any case.
 \end{remark}
 
-\subsubsection{Wave refine}
+\subsubsection{Wave refine} \label{sec:impl-cs-impl-wave}
 
 \begin{algorithm}
 \begin{algorithmic}[1]
