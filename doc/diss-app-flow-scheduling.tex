@@ -1,29 +1,42 @@
 In Firmament, scheduling policies are represented in terms of a \emph{cost model}. As the name suggests, this specifies the costs of arcs. It also determines the network structure, grouping tasks and resources into \emph{equivalence classes}. In this section, I describe how I ported Quincy to this model. Details of the implementation work are provided in \cref{sec:impl-firmament} and \cref{sec:eval-benchmark-strategy-quincy}. For a more thorough description of the general framework and other examples of cost models, see Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015}.
 
-% TODO: Flow scheduling is somewhat confused between Quincy and general cost models.
-% N.B. Skipped applying diffs here since may rewrite substantially.
-% N.B. Ionel had comments here as well
+% XXX: Reference figures from text
 \section{Network structure} \label{appendix:flow-scheduling:structure}
 
+\begin{figure}
+    \centering
+    \input{figures/flow/quincy-example-no-costs}
+    \caption[Quincy scheduling flow network]{A small Quincy scheduling flow network. Vertices are \textbf{\color{blue} machines $\mathbf{M}_l$}, \textbf{\color{brown} cluster and rack aggregators $\mathbf{X}$} and \textbf{\color{brown}$\mathbf{R}_l$}, \textbf{\color{green} tasks $\mathbf{T}_i^j$}, \textbf{\color{red} unscheduled aggregators $\mathbf{U}^j$} and sink $S$. Task $\mathbf{T}_2^0$ is already scheduled on machine $\mathbf{M}_1$: the dotted line represents the \textbf{running arc}. All other tasks are unscheduled. Task $\mathbf{T}_0^1$ has two \textbf{preference arcs} to machine $M_3$ and rack aggregator $R_1$, represented by dashed lines.}
+    \label{fig:flow-network-no-costs-appendix}
+\end{figure}
 % PROOFREAD: 1 major edits, need to reread.
 
-%FIGURE: Table summarising vertices
-%FIGURE: Flow graphs
+%FIGURE-LOWPRI: Table summarising vertices
 
-Each task $i$ in job $j$ is represented by a vertex $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by vertices $\mathbf{M}_l$, with arcs to a sink vertex $\mathbf{S}$. Task vertices have arcs to machine vertices, the arc cost specifying the task's preference for being scheduled on that machine.
+\Cref{fig:flow-network-no-costs-appendix} depicts a Quincy flow network, on a cluster of four machines scheduling two jobs with a total of five tasks.
 
-There is a problem with this scheme: if there are more tasks than can be scheduled, the flow problem becomes infeasible. To fix this, \emph{unscheduled aggregators} $\mathbf{U}^j$ exist for each job $j$, with an arc to $\mathbf{S}$. Each task vertex $\mathbf{T}_i^j$ has an arc to its unscheduled aggregator $\mathbf{U}_j$, with the cost specifying the penalty for being unscheduled.
+Each task $i$ in job $j$ is represented by a vertex $\mathbf{T}_i^j$, with a single unit of supply. Machines are represented by vertices $\mathbf{M}_l$, with arcs to a sink vertex $\mathbf{S}$. Task vertices have arcs to machine vertices or aggregators, the arc cost specifying the task's preference for being scheduled on that machine.
 
-In the model above, every task has an arc to each machine. Although this allows for the model to be highly precise, it is very inefficient\footnotemark.
-\footnotetext{The number of arcs will scale linearly with the number of machines. But, of course, as the size of a cluster grows the number of tasks being scheduled will also tend to grow proportionally. So the number of arcs actually will tend to grow \emph{quadratically} with increases in the number of machines. Scalability is a key concern, making this is highly undesirable.}
-Firmament adds support for \emph{equivalence classes}, which may be over tasks or resources\footnotemark. Each equivalence class has an aggregator vertex, with arcs to all vertices in the class. In this way, multiple arcs connecting to vertices in the same class can be combined into a single arc.
+There may be more tasks than can be scheduled. To ensure the flow problem is always feasible, \emph{unscheduled aggregators} $\mathbf{U}^j$ exist for each job $j$, allowing excess flow to drain to the sink $\mathbf{S}$. Each task vertex $\mathbf{T}_i^j$ has an arc to its unscheduled aggregator $\mathbf{U}_j$, with the cost specifying the penalty for being unscheduled.
+
+Although it would be possible for each task to have an arc to every machine, this would result in a much larger network than necessary. Firmament has support for \emph{equivalence classes}, which may be over tasks or resources\footnotemark. Each equivalence class has an aggregator vertex, with arcs to all vertices in the class. In this way, multiple arcs connecting to vertices in the same class can be combined into a single arc.
 \footnotetext{In the simplest model, each machine is a resource. However, a more fine-grained representation than this is possible, such as modelling individual processor cores.}
 
-The Quincy system provides a concrete example of an equivalence class. Each rack has an associated \emph{rack aggregator} vertex $\mathbf{R}_k$, with arcs to every machine in the rack. Moreover, a single \emph{cluster aggregator} $\mathbf{X}$ is introduced, with arcs to each rack aggregator. This scheme is appropriate for Quincy as its costs depend on inter-rack bandwidth usage, so will tend to be similar within a rack\footnote{Costs also depend on intra-rack bandwidth usage, but less weight is given to this factor as it is rarely a bottleneck.}. Rather than arcs from every task $\mathbf{T}_i^j$ to each machine, there is a single arc to $\mathbf{X}$ and a fixed number of arcs to preferred machines and racks.
+The Quincy system provides a concrete example of an equivalence class. Each rack has an associated \emph{rack aggregator} vertex $\mathbf{R}_k$, with arcs to every machine in the rack. Moreover, a single \emph{cluster aggregator} $\mathbf{X}$ is introduced, with arcs to each rack aggregator. Each task has a single arc to $\mathbf{X}$, and \emph{preference arcs} to favoured machines and racks.
+%This scheme is appropriate for Quincy as its costs depend on inter-rack bandwidth usage, which will tend to be similar within a rack\footnote{Costs also depend on intra-rack bandwidth usage, but less weight is given to this factor as it is rarely a bottleneck.}.
 
 \section{Capacities} \label{appendix:flow-scheduling:capacities}
 
-% PROOFREAD: 1 minor edits.
+\begin{figure}
+    \centering
+    \input{figures/flow/quincy-example-capacities}
+    \caption[Capacities on a Quincy scheduling flow network]{The network previously depicted in \cref{fig:flow-network-no-costs-appendix} with an example flow. Each arc has a label \texttt{flow} / \texttt{capacity}, with those carrying flow in \textbf{\color{red} red}. Note $K=1$ for this example: at most one task can run on each machine. The scheduling assignment depicted is $T^0_0$ unscheduled, $T_0^1$ on $M_1$ (i.e.\ it is not moved) and $T_0^1$ on its preferred machine $M_3$ with $T_0^2$ and $T_1^1$ being scheduled on any idle machine. \newline \newline
+    Quincy sets the upper bound $F_j$ on the number of running tasks to equal the number of machines divided by the number of jobs. So, $F_j = 2$ in this example. Accordingly, $\mathbf{U}_0$ has a demand of $1$. Hence the flow entering $\mathbf{U}_0$ from $\mathbf{T}_0^0$ does not leave the vertex.}
+    \label{fig:flow-network-capacities}
+\end{figure}
+
+\Cref{fig:flow-network-capacities} shows arc capacities for the previous example network, along with a possible solution to the network. 
+
 Every arc leaving a task vertex $\mathbf{T}_i^j$ has unit capacity. Note $\mathbf{T}_i^j$ has unit supply and no incoming arcs, so any (non-zero) capacity would be equivalent to unit capacity.
 
 The arcs $\mathbf{M}_l \to \mathbf{S}$ from machine vertices to the sink vertex have capacity $K$, where $K$ is a parameter specifying the number of tasks which may concurrently run on a machine\footnotemark.
@@ -32,7 +45,7 @@ The arcs $\mathbf{M}_l \to \mathbf{S}$ from machine vertices to the sink vertex 
 The arcs $\mathbf{R}_k \to \mathbf{M}_l$ also have capacity $K$, since up to $K$ jobs may be scheduled on each machine in the rack via the aggregator. The arcs $\mathbf{X} \to \mathbf{R}_k$ have capacity $mK$, where $m$ is the number of machines in each rack\footnotemark.
 \footnotetext{In fact, it would be perfectly legitimate to leave these arcs uncapacitated: the capacity on $\mathbf{M}_l \to \mathbf{S}$ will ensure there are not too many tasks scheduled. However, these capacity constraints may improve the efficiency of the solver.}
 
-The arcs $\mathbf{U}^j \to \mathbf{S}$ can be set to be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. Firmament and Quincy, however, choose to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom~\cite[p.~19]{Isard:2009}.
+The arcs $\mathbf{U}^j \to \mathbf{S}$ can be uncapacitated, allowing any number of tasks in job $j$ to be unscheduled. Firmament and Quincy, however, choose to enforce a lower bound $E_j$ and upper bound $F_j$ on the number of tasks that can be scheduled for each job. This can provide some degree of fairness, and in particular specifying $E_j \geq 1$ ensures starvation freedom~\cite[p.~19]{Isard:2009}.
 
 Let $N_j$ be the number of tasks submitted for job $j$. To enforce the upper bound $F_j$, give $\mathbf{U}^j$ a demand of $N_j - F_j$. At least this many tasks in job $j$ must then be left unscheduled, guaranteeing no more than $F_j$ tasks are scheduled.
 
@@ -40,9 +53,15 @@ To enforce the lower bound, set the capacity on $\mathbf{U}^j \to \mathbf{S}$ to
 
 \section{Costs} \label{appendix:flow-scheduling:costs}
 
+\begin{figure}
+    \centering
+    \input{figures/flow/quincy-example-with-costs}
+    \caption[Costs in a Quincy scheduling flow network]{The network previously depicted in \cref{fig:flow-network-no-costs-appendix}, with arcs labelled by their cost. Note only arcs leaving tasks have a cost in Quincy.}
+    \label{fig:flow-network-with-costs}
+\end{figure}
 % PROOFREAD: 1 minor edits.
 
-Quincy seeks to achieve \emph{data locality}: scheduling tasks close to their input data, in order to minimise network traffic. Consequently, the arc costs (given in \cref{table:quincy-costs}) depend on bandwidth consumption of the task.
+Quincy seeks to achieve \emph{data locality}: scheduling tasks close to their input data, in order to minimise network traffic. Consequently, the arc costs (given in \cref{table:quincy-costs}) depend on bandwidth consumption of the task. \Cref{fig:flow-network-capacities} show these costs on the example network.
 
 \begin{table}
     \centering
@@ -86,13 +105,15 @@ Quincy seeks to achieve \emph{data locality}: scheduling tasks close to their in
     \label{table:quincy-parameters}
 \end{table}
 
-The model assumes that tasks process data residing in a distributed file system. Files may be accessed from any machine, with the file being fetched from remote machines if there is no local copy. Retrieving a file from a machine in another rack is more expensive -- both in terms of request latency and network resources consumed -- than from a neighbouring machine. Reading the data from a directly connected disk is cheaper still. The Quincy scheduler quantifies the data transfer costs for each scheduling assignment. Solving the resulting minimum-cost flow problem yields an assignment which minimises the total data transfer cost, achieving data locality.
+The model assumes that tasks process data residing in a distributed file system. Files may be accessed from any machine, with the file being fetched from remote machines if there is no local copy. 
+
+Retrieving a file from a machine in another rack is more expensive -- both in terms of request latency and network resources consumed -- than from a neighbouring machine. Reading the data from a directly connected disk is cheaper still. The Quincy scheduler quantifies the data transfer costs for each scheduling assignment. Solving the resulting minimum-cost flow problem yields an assignment which minimises the total data transfer cost, achieving data locality.
 
 \Cref{table:quincy-variables} gives the variables maintained by the Quincy scheduler. All arc costs are functions of these variables. The system breaks down the data transfer of a task $\mathbf{T}_{i}^{j}$ into two components: transfer across the core switch, $\chi\left(\mathbf{T}_{i}^{j}\right)$, and top of rack switches, $\mathcal{R}\left(\mathbf{T}_{i}^{j}\right)$.
 
 For a particular machine $\mathbf{M}_m$, the data transfer $\chi_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ and $\mathcal{R}_{m}^{M}\left(\mathbf{T}_{i}^{j}\right)$ can be computed exactly. However, when it comes to determining the cost of arcs to aggregator vertices $\mathbf{R}_l$ or $\mathbf{X}$, an exact figure is not possible. Instead, Quincy takes a conservative upper bound: the \emph{greatest} data transfer that results from scheduling $\mathbf{T}_{i}^{j}$ on the \emph{worst} machine in rack $\mathbf{R}_l$ or the cluster as a whole, respectively.
 
-The system also keeps track of the time $\theta_i^j$ and $\nu_i^j$ a task spends scheduled and unscheduled, respectively. If the task is stopped and then restarted, these times continue to accumulate. This property is needed to guarantee the scheduler makes progress~\cite[p.~19]{Isard:2009}..
+The system also keeps track of the time $\theta_i^j$ and $\nu_i^j$ a task spends scheduled and unscheduled, respectively. If the task is stopped and then restarted, these times continue to accumulate. This property is needed to guarantee that the scheduler makes progress~\cite[p.~19]{Isard:2009}..
 
 Quincy is controlled by three simple parameters, given in \cref{table:quincy-parameters}. $\epsilon$ and $\psi$ specify the cost of data transfers across core and top of rack switches respectively. In general, we would expect $\epsilon > \psi$, since the core switch is more likely to become a bottleneck. $\omega$ controls the penalty for leaving a task unscheduled\footnotemark. Increasing $\epsilon$ and $\psi$ causes the scheduler to more aggressively optimise for data locality, whereas increasing $\omega$ decreases queuing delay.
 \footnotetext{It is possible to vary $\omega$ between jobs in order to encode a notion of priority.}

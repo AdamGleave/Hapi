@@ -10,16 +10,16 @@ Clusters of commodity servers have become the dominant platform for high-through
 
 A \emph{cluster scheduler} chooses which tasks to run on each machine. The choice of scheduler has considerable ramifications on cluster performance and efficiency. Despite this, most approaches rely on \emph{ad hoc} heuristics, which makes it difficult to adapt the scheduler to different cluster designs and application requirements.
 
-The Firmament cluster scheduling platform has been developed to overcome this limitation\footnotemark~\cite[ch.~5]{Schwarzkopf:2015}. In a departure from traditional designs, Firmament represents scheduling as an optimisation problem over a flow network. Machines and tasks are represented as vertices. Flow drains from each task vertex $\mathbf{T}_i^j$ into either a machine vertex $\mathbf{M}_l$ (to schedule the task there), or a special vertex $\mathbf{U}_j$ (leaving the task unscheduled).
+The Firmament cluster scheduling platform has been developed to overcome this limitation\footnotemark~\cite[ch.~5]{Schwarzkopf:2015}. In a departure from traditional designs, Firmament represents scheduling as an optimisation problem over a flow network: \cref{fig:flow-network-simple} shows a simple example.
 \footnotetext{Firmament was developed by Malte Schwarzkopf and Ionel Gog, as part of the Cambridge Systems at Scale initiative (\url{http://camsas.org}).}
 
 \begin{figure}
     \centering
-    \input{figures/flow/quincy-example-no-costs} 
-    \caption[A scheduling flow network]{A scheduling flow network, representing a small cluster of four machines scheduling five tasks.}
+    \input{figures/flow/quincy-example-no-costs-simple} 
+    \caption[A scheduling flow network]{A small scheduling flow network. Flow drains left-to-right from \textbf{\color{green} tasks $\mathbf{T}_i^j$} to sink $\mathbf{S}$. If the flow passes through a \textbf{\color{blue} machine $\mathbf{M}_l$}, then the task is scheduled there. Alternatively, it may flow through an \text{\color{red} unscheduled aggregator $\mathbf{U}_j$}, in which case the task is left unscheduled. Capacities and costs (not shown) determine the scheduling policy.}
+    % $\mathbf{X},\mathbf{R}_0,\mathbf{R}_1$ are {\color{brown} aggregator nodes} reflecting the topology of the cluster.
+    \label{fig:flow-network-simple}
 \end{figure}
-
-% FIGURE: XXX Example flow scheduling network here.
 
 The arc capacities within the flow network restrict the possible schedules, e.g.\ limiting the number of tasks which can run on each machine. Cost values specify preferences between possible assignments. Solving the minimum-cost flow problem on this network yields a schedule that is optimal for the given costs.
 

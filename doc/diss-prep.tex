@@ -144,9 +144,14 @@ Note, in general, that the MCF and maximum flow problem may be infeasible. For e
 
 \subsection{Scheduling with flows} \label{sec:prep-flow-scheduling}
 
-I will now show how cluster scheduling can be formulated in terms of the MCF problem, using the Quincy model as an example. For a detailed description of Quincy, see Isard \textit{et al.}~\cite{Isard:2009}. Firmament generalises Quincy, supporting different scheduling policies via a \emph{cost model} framework. I describe how I ported Quincy to this framework in \cref{appendix:flow-scheduling}. Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015} provides several examples of representing other scheduling policies in this manner.
+I will now show how cluster scheduling can be formulated in terms of the MCF problem, using Quincy as an example. For a detailed description of Quincy, see Isard \textit{et al.}~\cite{Isard:2009}. Firmament generalises Quincy, supporting different scheduling policies via a \emph{cost model} framework. I describe how I ported Quincy to this framework in \cref{appendix:flow-scheduling}. Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015} provides several examples of representing other scheduling policies in this manner.
 
-% FIGURE: Prep:Scheduling using flows desperately needs a flow graph
+\begin{figure}
+    \centering
+    \input{figures/flow/quincy-example-no-costs}
+    \caption[Quincy scheduling flow network]{A small Quincy scheduling flow network. Vertices are \textbf{\color{blue} machines $\mathbf{M}_l$}, \textbf{\color{brown} cluster and rack aggregators $\mathbf{X}$} and \textbf{\color{brown}$\mathbf{R}_l$}, \textbf{\color{green} tasks $\mathbf{T}_i^j$}, \textbf{\color{red} unscheduled aggregators $\mathbf{U}^j$} and sink $S$. Task $\mathbf{T}_2^0$ is already scheduled on machine $\mathbf{M}_1$: the dotted line represents the \textbf{running arc}. All other tasks are unscheduled. Task $\mathbf{T}_0^1$ has two \textbf{preference arcs} to machine $M_3$ and rack aggregator $R_1$, represented by dashed lines.}
+    \label{fig:flow-network-no-costs}
+\end{figure}
 
 \subsubsection{Network structure}
 
@@ -157,16 +162,14 @@ The scheduler manages \emph{jobs}, which consist of a number of \emph{tasks}. Ea
 Each task vertex $\mathbf{T}_i^j$ has unit supply. Tasks must drain into the \emph{sink} vertex $\mathbf{S}$, passing through a machine or unscheduled aggregator along the way\footnotemark.  Supply from tasks can only drain into the sink vertex via machines and unscheduled aggregators. If the flow from $\mathbf{T}_i^j$ passes through machine $\mathbf{M}_l$, the task is scheduled there; if it passes through the unscheduled aggregator $\mathbf{U}_j$, the task is left unscheduled.
 \footnotetext{In fact, unscheduled aggregators may themselves have demand, consuming the flow before it reaches the sink: see \cref{appendix:flow-scheduling:capacities}.}
 
+All tasks have an arc to cluster aggregator $\mathbf{X}$. In addition, a task may have \emph{preference arcs} to racks or machines which store a substantial proportion of the input data. Tasks that are already executing also have a \emph{running arc} to the machine they are currently scheduled on.
+
 \subsubsection{Capacities and costs}
 Arc capacities are used to \emph{restrict} the possible scheduling assignments. In Quincy, the capacities are chosen to provide a lower and upper bound on the number of tasks that may be scheduled for each job, guaranteeing fairness (see \cref{appendix:flow-scheduling:capacities}).
 
-The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Quincy seeks to achieve data locality, and so sets the cost of an arc to be proportional to the network resources consumed. For arcs from a task to a machine, this can be computed exactly. When the arc is to a rack (or cluster) aggregator, a conservative approximation is used, assuming the scheduler places the task on the \emph{worst} machine in that rack (or the cluster as a whole).
-
-To reduce the size of the network, Quincy only includes arcs to machines or racks which store a substantial proportion of the input data for the task. This bounds the outdegree, guaranteeing sparseness. 
+The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Quincy seeks to achieve data locality, setting arc costs proportional to the network resources consumed. For arcs from a task to a machine, this can be computed exactly. When the arc is to a rack (or cluster) aggregator, a conservative approximation is used, assuming the scheduler places the task on the \emph{worst} machine in that rack (or the cluster as a whole).
 
 Solving the minimum-cost flow problem on the resulting network finds a scheduling assignment which maximises data locality, subject to fairness constraints.
-
-% XXX: TBC. Give references to more detailed sections of the appendix.
 
 \subsubsection{Properties of these networks}
 

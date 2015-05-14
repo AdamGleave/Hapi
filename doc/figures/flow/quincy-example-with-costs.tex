@@ -75,11 +75,11 @@
 \end{scope}
 
 % running task
-\draw [->, dotted] (t10) edge[out=0, in=200, looseness=1] node[below, sloped] {$\gamma'^1_{0,\textbf{M}_3}$} (m3);
-\draw [->, dashed] (t10) edge[out=0, in=200, looseness=1] node[above right, sloped] {$\rho^1_{0,1}$} (r1);
-
-% preference edge
 \draw [->, dotted] (t02) edge[in=180, looseness=0.8] node[above, sloped] {$\gamma^0_{1,\textbf{M}_1}$} (m1);
+
+% preference edges
+\draw [->, dashed] (t10) edge[out=0, in=200, looseness=1] node[below, sloped] {$\gamma^1_{0,\textbf{M}_3}$} (m3);
+\draw [->, dashed] (t10) edge[out=0, in=200, looseness=1] node[above right, sloped] {$\rho^1_{0,1}$} (r1);
 
 \end{tikzpicture} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
