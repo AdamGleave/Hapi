@@ -31,33 +31,35 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
     \label{table:cluster-scheduler-design-goals}
 \end{table}
 
-% SOMEDAY: Bring the word "targeting" into it somehow?
-Scheduler policies can have a variety of objectives. For batch processing, job throughput may be the primary goal; for interactive jobs, low latency may be more important. Moreover, modern clusters are often multi-tenant: it is essential that the scheduler is \emph{fair}, providing an equitable distribution of resources between users. Naturally, objectives often conflict with each other, and a trade-off must be chosen.
-
-Getting the objectives right is hard, but implementing a scheduler which effectively achieves those objectives is still more difficult. Particularly challenging is the sheer amount of information that must be processed: as an example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it monitors the performance of \emph{every} task running in the cluster, building up a profile of how applications interact.
-\footnotetext{In fact, the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
-
-% SOMEDAY: Terminology re: latency is a bit confused. Here you're talking about scheduling latency to do with the solver being slow. But in the next section you talk about latency due to policy: a FIFO queue.
-Finally, the system should remain responsive at scale. Today's warehouse scale computers contain tens of thousands of machines, running hundreds of thousands of tasks. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform, requiring sub-second scheduling latency~\cite{Ousterhout:2013}.
+%WORDCOUNT: Could cut next three paragraphs without losing much
+%Scheduler policies can have a variety of objectives. For batch processing, job throughput may be the primary goal; for interactive jobs, low latency may be more important. Moreover, modern clusters are often multi-tenant: it is essential that the scheduler is \emph{fair}, providing an equitable distribution of resources between users. Naturally, objectives often conflict with each other, and a trade-off must be chosen.
+%
+%Getting the objectives right is hard, but implementing a scheduler which effectively achieves those objectives is still more difficult. Particularly challenging is the sheer amount of information that must be processed: as an example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it monitors the performance of \emph{every} task running in the cluster, building up a profile of how applications interact.
+%\footnotetext{In fact, the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
+%
+%% SOMEDAY: Terminology re: latency is a bit confused. Here you're talking about scheduling latency to do with the solver being slow. But in the next section you talk about latency due to policy: a FIFO queue.
+%Finally, the system should remain responsive at scale. Today's warehouse scale computers contain tens of thousands of machines, running hundreds of thousands of tasks. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform, requiring sub-second scheduling latency~\cite{Ousterhout:2013}.
 
 \subsection{Prevailing approaches}
-%WORDCOUNT: Prevailing approaches -- could cut by 2/3rd
 
 \begin{table}
     \centering
     \begin{tabular}{lccc}
         \textbf{System} & \textbf{Targeted} & \textbf{Effective} & \textbf{Fast and scalable} \tabularnewline
         \hline
-        \textit{Heuristic approach} \tabularnewline
-        FIFO Queue & \xmark & \mmark & \cmark \tabularnewline
-        Fair Scheduler & \mmark & \cmark & \mmark \tabularnewline 
-        Capacity Scheduler & \mmark & \cmark & \mmark \tabularnewline 
-        LATE & \xmark & \cmark & \mmark \tabularnewline 
-        Sparrow & \xmark & \mmark & \cmark \tabularnewline 
+        \textit{Traditional schedulers} \tabularnewline % TODO: new name? or mention heuristic in body text
+        Hadoop Fair Scheduler~\cite{HadoopFairSchedulerJIRA} & \mmark & \cmark & \mmark \tabularnewline 
+%        YARN~\cite{YARN} & \cmark & \mmark & \mmark \tabularnewline
+        Apache Mesos~\cite{Mesos} & \cmark & \mmark & \mmark \tabularnewline
+%        Omega~\cite{Omega} & \mmark & \cmark & \mmark \tabularnewline 
+        Sparrow~\cite{Ousterhout:2013} & \xmark & \mmark & \cmark \tabularnewline 
+%        Capacity Scheduler & \mmark & \cmark & \mmark \tabularnewline 
+%        LATE & \xmark & \cmark & \mmark \tabularnewline 
         \hline
-        \textit{Flow-based system} \tabularnewline
-        Quincy & \xmark & \cmark & \xmark \tabularnewline 
-        Firmament & \cmark & \cmark & \xmark \tabularnewline 
+        \textit{Flow-based schedulers} \tabularnewline
+        Quincy~\cite{Isard:2009} & \xmark & \cmark & \xmark \tabularnewline 
+        Firmament~\cite[ch.~4]{Schwarzkopf:2015} & \cmark & \cmark & \xmark \tabularnewline
+        Firmament using Hapi & \cmark & \cmark & \cmark \tabularnewline
         \hline
     \end{tabular}
     \caption[Scheduler feature matrix]{Scheduler feature matrix showing {\cmarkcolor full \cmark}, {\mmarkcolor partial \mmark} or {\xmarkcolor no \xmark} support.}
@@ -152,7 +154,7 @@ at that vertex (which may be negative, in the case of demand vertices).
 
 \subsubsection{Assumptions}
 
-The following two assumptions hold for all flow scheduling networks, and will be used in the design and analysis of algorithms in the next chapter.
+The following two assumptions hold for all flow scheduling networks, and will be used in the design and analysis of algorithms in the next chapter. \\
 
 \begin{assumption}[Integrality] \label{assumption:integrality}
 All quantities defining the flow network take on only integer values.\\
