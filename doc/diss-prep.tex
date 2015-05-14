@@ -5,16 +5,18 @@
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
 % TODO: Get some references from Malte/Ionel on this?
-Much as an operating system schedulers maps threads to processor cores, a cluster scheduler maps tasks to machines. Better scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their importance, cluster schedulers remain an active area of research, both within academia and in industry.
+Much as an operating system schedulers maps threads to processor cores, a cluster scheduler maps tasks to machines. Scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their importance, cluster schedulers are an active area of research.
 
-To start, desirable properties of cluster schedulers are outlined. Following this, the prevailing approaches to scheduling are summarised. This section concludes by discussing the principles underlying Firmament, showing how it improves upon competing approaches with its use of flow scheduling.
+I start by outlining desirable properties of cluster schedulers. Following this, I summarise the prevailing approaches to scheduling. I conclude by discussing the principles underlying Firmament, showing how it improves upon competing approaches with its use of flow scheduling.
 
 \subsection{Design goals} \label{sec:prep-scheduling-goals}
+
+%WORDCOUNT: Could cut design goals down considerably, although I feel this is reasonably good stuff.
 
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
 % SOMEDAY: Rephrase 2nd sentence: "Moreover, ... may need to analyse a large amount of data ..."
-The cluster scheduler's policy must be suitable for the applications it is scheduling. Moreover, to effectively implement a policy the scheduler may need to analyse a large amount of data, such as the load at each machine and the resource requirements of every task. To support interactive applications, all decisions should be made as quickly as possible. Furthermore, the system must be able to scale to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}.
+To achieve optimal performance, the scheduling policy employed must be \emph{targeted} to the requirements of the workload. The scheduler may need to analyse a large amount of data, such as the resource requirements of each task and the utilisation of each machine, to \emph{effectively} implement a particular policy. All decisions should be made as \emph{fast} as possible, to support interactive applications. Furthermore, the system must be able to \emph{scale} to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}.
 
 \begin{table}
     \centering
@@ -31,9 +33,9 @@ The cluster scheduler's policy must be suitable for the applications it is sched
 \end{table}
 
 % SOMEDAY: Bring the word "targeting" into it somehow?
-Scheduler policies can have a variety of objectives. They may want to maximise job throughput for batch processing, or achieve low latency for interactive jobs. Modern clusters are often multi-tenant: it is important to ensure \emph{fairness}, an equitable distribution of resources between users. Naturally, objectives often conflict with each other: each scheduler must choose a particular trade-off.
+Scheduler policies can have a variety of objectives. For batch processing, job throughput may be the primary goal; for interactive jobs, low latency may be more important. Moreover, modern clusters are often multi-tenant: it is essential that the scheduler is \emph{fair}, providing an equitable distribution of resources between users. Naturally, objectives often conflict with each other, and a trade-off must be chosen.
 
-Getting the objectives right is hard, but implementing a scheduler which effectively achieves those objectives is more difficult still. Particularly challenging is the sheer amount of information that must be processed: as an example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it monitors the performance of \emph{every} task running in the cluster, building up a profile of how each application interacts with others.
+Getting the objectives right is hard, but implementing a scheduler which effectively achieves those objectives is still more difficult. Particularly challenging is the sheer amount of information that must be processed: as an example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it monitors the performance of \emph{every} task running in the cluster, building up a profile of how applications interact.
 \footnotetext{In fact, the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
 
 % SOMEDAY: Terminology re: latency is a bit confused. Here you're talking about scheduling latency to do with the solver being slow. But in the next section you talk about latency due to policy: a FIFO queue.
