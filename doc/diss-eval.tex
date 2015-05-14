@@ -297,7 +297,7 @@ All tests were conducted using my implementation of cost scaling, described in \
 
 There is one notable exception to this. The oracle policy achieves a speedup even at 100\% accuracy in these experiments, since optimality is often reached when $\epsilon > 1/n$. The \emph{price refinement} heuristic (see \cref{appendix:impl-csheuristics}), present in highly optimised implementations such as Goldberg's CS2~\cite{CS2:2009}, is able to detect such early optimality. Implementations with price refinement therefore achieve the same performance as the oracle model at 100\% accuracy. Further work is required to determine if any other differences exist.
 
-\subsection{Performance on flow scheduling}
+\subsection{Performance on flow scheduling} \label{sec:eval-approx-flow-scheduling}
 
 Evaluation took place on flow networks produced by the cluster simulator under the Quincy cost model (see \cref{sec:eval-benchmark-strategy}). A total of 1,000 different networks were produced by varying the seed used to initialise the random number generator. This had the effect of changing the generated simulated filesystem, and the input files associated with each task, with consequent changes to costs and preference arcs.
 

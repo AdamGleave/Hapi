@@ -743,26 +743,24 @@ As accurate analytic bounds on the error are not available, I had to develop heu
 %
 %More sophisticated heuristics are expected to outperform this technique. However, as the simplest possible approach, it serves as a natural baseline for evaluation.
 
-%XXX: I don't evaluate heuristics over multiple iterations. Would be a bit of a pain to do it now. Just rip it out here?
 \subsubsection{Cost convergence}
 
-% FIGURE: Approximate over time (you already have one!)
-%\begin{figure}
-%    \centering
-%    \includegraphics{app/road_over_time_2col}
-%    \caption{Successive approximations to the optimal solution}
-%    \label{fig:app-cost-over-time}
-%\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics{app/quincy_medium_over_time_2col}
+    \caption[Successive approximations to an optimal solution.]{Successive approximations to an optimal solution. Each iteration of cost scaling is marked by a point on the graph. The spacing between points on the $x$-axis indicate the time taken by \textproc{Refine}. This varies throughout execution of the algorithm, but does not show any trend: \textproc{Refine} runs for a similar length of time immediately before optimality as for the first iteration. Note that the $y$-axis, representing solution cost, is on a log scale. The results are for a scheduling flow network from the dataset described in \cref{sec:eval-approx-flow-scheduling}.}
+    \label{fig:app-cost-over-time}
+\end{figure}
 
-The first few iterations of cost scaling tend to produce large reductions in the cost. When the solution is nearly optimal, the change in cost between successive iterations is typically small. This heuristic exploits the above property, by measuring the difference between the cost after successive iterations. If the cost changes by a factor less than some threshold $t$, the algorithm terminates.
+The first few iterations of cost scaling tend to produce large reductions in the cost. When the solution is nearly optimal, the change in cost between successive iterations is typically small. This is illustrated in \cref{fig:app-cost-over-time}, which shows cost scaling running on a scheduling flow network. 
 
-On some flow networks, cost scaling hits a brief `plateau', before continuing to make significant cost reductions. My implementation can optionally consider multiple prior iterations, terminating only when the cost change is below the threshold in the last $k \geq 1$ iterations, to combat this.
+Cost convergence exploits this property, by measuring the difference between the cost after successive iterations. If the cost changes by a factor less than some threshold $t$, the algorithm terminates.
+
+%On some flow networks, cost scaling hits a brief `plateau', before continuing to make significant cost reductions. My implementation can optionally consider multiple prior iterations, terminating only when the cost change is below the threshold in the last $k \geq 1$ iterations, to combat this.
 
 \subsubsection{Task migration convergence}
 
-Cost convergence is a general approach, applicable to any class of flow network. By contrast, this heuristic exploits the nature of flow scheduling.
-
-Vertices are labelled as representing either a task, machine or other entity. The task assignments represented by the flow are computed (see \cref{sec:prep-flow-scheduling}). The heuristic measures the number of assignments which change between successive iterations. Similarly to cost convergence, the algorithm terminates when the number of changes is below threshold $t$ in each of the last $k \geq 1$ iterations.
+Cost convergence is a general approach, applicable to any class of flow network. By contrast, this heuristic exploits the nature of flow scheduling. Vertices are labelled as representing either a task, machine or other entity. Task assignments are computed from the flow (see \cref{sec:prep-flow-scheduling}), and the number of changes from the last iteration is measured. The algorithm terminates when this drops below a threshold $t$.
 
 % Extensions: hybrid schemes? Error bounds based on arcs being fixed?
 

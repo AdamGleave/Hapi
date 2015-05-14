@@ -571,6 +571,7 @@ APPROXIMATE_FIGURES = {
     'max_cost_parameter': 5,
     'max_task_assignments_parameter': 8000,
     'title': False,
+    'over_time_file': 'clusters/natural/google_trace/approx_quincy/medium/217.min',
     'parameters_legend': {'cost': 'upper right', 
                           'task_assignments': 'lower left'}
   },

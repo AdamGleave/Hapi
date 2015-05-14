@@ -581,5 +581,5 @@ def generate_cost_vs_time_plot(data, figconfig):
   plt.plot(xs, ys, marker='.')
   plt.yscale('log')
   
-  plt.xlabel('Runtime (\si{\second})')
+  plt.xlabel('Cumulative runtime (\si{\second})')
   plt.ylabel('Solution cost')
