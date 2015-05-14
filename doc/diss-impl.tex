@@ -64,6 +64,25 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
 
 \subsection{Algorithm description}
 
+\begin{figure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{../doc/figures/flow/ssp/initial}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{../doc/figures/flow/ssp/first_pi}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{../doc/figures/flow/ssp/first_augment}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{../doc/figures/flow/ssp/second_pi}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{../doc/figures/flow/ssp/second_augment}
+    \end{subfigure}
+    \caption[Successive shortest path algorithm in action]{The successive shortest path algorithm in action.}
+\end{figure}
+
 % SOMEDAY: footnote after $t$ is bad
 \begin{algorithm}
     \caption{Successive shortest path}
