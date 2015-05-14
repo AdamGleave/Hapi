@@ -11,8 +11,6 @@ I start by outlining desirable properties of cluster schedulers. Following this,
 
 \subsection{Design goals} \label{sec:prep-scheduling-goals}
 
-%WORDCOUNT: Could cut design goals down considerably, although I feel this is reasonably good stuff.
-
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
 % SOMEDAY: Rephrase 2nd sentence: "Moreover, ... may need to analyse a large amount of data ..."
@@ -31,7 +29,6 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
     \label{table:cluster-scheduler-design-goals}
 \end{table}
 
-%WORDCOUNT: Could cut next three paragraphs without losing much
 %Scheduler policies can have a variety of objectives. For batch processing, job throughput may be the primary goal; for interactive jobs, low latency may be more important. Moreover, modern clusters are often multi-tenant: it is essential that the scheduler is \emph{fair}, providing an equitable distribution of resources between users. Naturally, objectives often conflict with each other, and a trade-off must be chosen.
 %
 %Getting the objectives right is hard, but implementing a scheduler which effectively achieves those objectives is still more difficult. Particularly challenging is the sheer amount of information that must be processed: as an example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it monitors the performance of \emph{every} task running in the cluster, building up a profile of how applications interact.
@@ -74,18 +71,8 @@ Although monolithic schedulers may perform well on their intended workload, they
 To support interactive applications on large-scale clusters, there has been research into \emph{distributed} scheduling. These methods can be very fast. For example, the Sparrow scheduler achieves sub-\SI{100}{\milli\second} scheduling latency, employing a sampling mechanism to avoid maintaining any centralised state~\cite[fig.~10]{Ousterhout:2013}. However, the lack of global state imposes limits on the effectiveness of distributed schedulers.
 
 \subsection{Firmament and flow scheduling}
-%WORDCOUNT: Firmament and flow scheduling -- could probably trim
 
 % PROOFREAD: 1. Major edits. Need to reread.
-
-% SOMEDAY: Add citations
-
-% Introduce flow scheduling: Quincy monolithic scheduler. Very effective: avoid heuristic approaches.
-% Firmament generalises it: targeted, effective.
-% But SLOW! What if we can solve this?
-% Centralised scheduling, scaling to large clusters?
-
-% Key benefit of flow scheduling: global optimisation? Flexible policy also useful.
 
 \emph{Flow scheduling} models scheduling as an optimisation problem over flow networks (see \cref{sec:prep-flow-scheduling}). The effectiveness of this approach was demonstrated in the pioneering Quincy system, which delivered a 40\% increase in throughput and reduced data transfer by $3.9\times$~\cite{Isard:2009}. 
 
@@ -187,7 +174,6 @@ Solving the minimum-cost flow problem on the resulting network finds a schedulin
 
 I state below some properties which hold for all flow scheduling networks. These will be useful in the next chapter, when analysing the complexity of algorithms. \\
 
-% WORDCOUNT: Could shift the proofs to appendix, although keep the claims here.
 \begin{restatable}[Number of vertices in flow scheduling networks]{lemma}{flowschedulingnumvertices}
 \label{lemma:network-num-vertices}
 Let $n$ denote the number of vertices in the network. Then $n = \Theta\left(\text{\# machines} + \text{\# tasks}\right)$.

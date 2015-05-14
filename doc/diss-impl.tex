@@ -17,7 +17,6 @@ I include a complexity analysis and proof of correctness for each algorithm. In 
 
 \section{Cycle cancelling algorithm} \label{sec:impl-cycle-cancelling}
 
-%WORDCOUNT: Could shift this entire algorithm into appendix.
 % Proofread: 1 minor edits
 
 My implementation began with cycle cancelling, a simple flow algorithm due to Klein~\cite{Klein:1967}. Its performance is exponential in the worst case, and so is not a viable option for a high-performance flow solver. However, its simplicity allowed me to implement it early on in the project. This prototype enabled me to verify that I had correctly designed and implemented other classes, such as graph data structures and a parser. Since it is not used in the final version of Hapi, I describe the algorithm in \cref{appendix:impl-cc}.
@@ -119,7 +118,7 @@ Like the successive shortest path algorithm, the relaxation algorithm works by a
 Relaxation performs much better empirically than the successive shortest path algorithm, and is one of the fastest algorithms for some classes of flow networks~\cite{KiralyKovacs:2012}. However, its worst-case complexity is exponential, slower than any other algorithm considered in this dissertation\footnotemark. Like successive shortest path, it is well suited to incremental operation, but is inappropriate for an approximate solver.
 \footnotetext{The generic version of cycle cancelling is also exponential in the worst-case, however there are variants with a strongly polynomial bound. By contrast, there are no variants of relaxation achieving polynomial time, although in practice exponential runtime is not observed on realistic flow networks.}
 
-% WORDCOUNT: Relaxation -- unsure whether to move the proofs for this section to appendix
+% WORDCOUNT: Relaxation -- could move introductory proofs to appendix
 % They are mostly your own, but not especially enlightening or difficult.
 % Definitely keep the statements here, though, they're pretty important.
 \subsection{The relaxed integer programming problem}
@@ -763,19 +762,16 @@ Consequently, I adopt a three-step approach for my incremental algorithm:
     \item Run the algorithm to reoptimise.
 \end{enumerate}
 
-% Ultimately, updating the graph isn't that big a problem. Most dynamic graph data structures seek to maintain some other property, e.g. shortest path solutions, or sets of connected components. But I think this is still the best reference to give?
 In practice, implementation of this approach is considerably more challenging than suggested by this summary. Step 1 superficially appears trivial, but many graph data structures cannot be efficiently modified. Considerable research effort has gone into devising \emph{dynamic} data structures to resolve this problem~\cite{Tarjan:1983,Eppstein:1996}. In addition to the network itself, many algorithms rely on auxiliary data structures\footnotemark, which must also be updated.
 \footnotetext{For example, many algorithms maintain a set of excess vertices to improve performance.}
 
 Step 2 varies considerably between algorithms, and is discussed in \cref{sec:impl-incremental-impl}. Somewhat ironically, step 3 is the simplest, with the core of the algorithm remaining mostly unmodified. Since step 2 ensures that the invariant holds, the optimisation procedure can be run as usual after disabling any initialisation code.
 
-%\footnotetext{For example, a representation of adjacencies that can be very efficient is to allocate an array large enough to store the adjacency list for each vertex. These are then laid out sequentially, and a separate array stores the start and end index in the adjacency array for each vertex. This achieves excellent spatial locality, giving a high cache hit rate when scanning the adjacency list. Inserting an arc into this data structure is extremely expensive, however, as it may require moving a large number of other elements.}
-
 \subsection{Choice of algorithms} \label{sec:impl-incremental-choice}
-% WORDCOUNT: Incremental choice of algorithms -- could probably cut why cycle cancelling doesn't work; maybe true for cost scaling, too.
 The approach suggested above could be applied to any flow algorithm considered in this dissertation. In this section, I consider which algorithms are most suited to operating incrementally. I start with cost scaling, which has excellent performance on the from scratch problem (see \cref{sec:impl-cost-scaling}). Next, I consider successive shortest path and relaxation (see \cref{sec:impl-ssp} and \cref{sec:impl-relax}). I do not discuss cycle cancelling, as it is considerably slower than the other algorithms.
 
 \subsubsection{Cost scaling} 
+%WORDCOUNT: Incremental choice of algorithm -- could make cuts to cost scaling
 Despite excellent performance on the full problem, Goldberg's cost scaling algorithm fares poorly on the incremental problem. 
 
 Cost scaling maintains the invariant that $\mathbf{x}$ is a feasible flow and $\left(\mathbf{x},\boldsymbol{\pi}\right)$ is $\epsilon$-optimal. This invariant is not required for correctness, but is needed for proofs of its complexity.
