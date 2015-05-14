@@ -1,0 +1,5 @@
+This project made extensive use of the Boost family of libraries. Boost has been extensively peer-reviewed and tested, and is designed to integrate well with the C++ standard library. I used Boost's Program Options library for command-line argument parsing. To measure algorithm runtime, I employed Boost's Timer library. I also used Boost for a variety of smaller tasks, such as string manipulation during parsing.
+
+For logging, I used the glog library which was developed by Google. glog is highly configurable, allowing logging levels to be specified on a per-file or even per-function basis. glog also supports checking a variety of assertions: these were used extensively during development to verify invariants of algorithms and data structures.
+
+I developed unit tests with the aid of the gtest library, also due to Google. It follows the popular xUnit architecture, which I was already familiar with from JUnit. Further, I felt it was one of the best designed unit testing libraries: it has support for a wide range of assertions, and test failure produces informative error messages.

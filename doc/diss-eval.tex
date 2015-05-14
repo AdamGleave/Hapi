@@ -39,7 +39,7 @@ The project was highly successful. All success criteria set forth in the project
 % Tested individually and when integrated into the system
 % Essential for each component to be verified: e.g. standard algorithm implementation being wrong could cause bugs which are hard to track down.
 
-I developed unit tests for each component, which were re-run as a regression test at the end of each development cycle in accordance with the spiral model (see \cref{sec:prep-management-model}). Standard unit test frameworks are not designed to work with large, external datasets such as flow networks. Accordingly, I developed my own test harness in Python to automate verification of flow algorithms. I wrote unit tests for smaller components, such as data structures, using the GTest framework (see \cref{sec:prep-tools-libraries}).
+I developed unit tests for each component, which were re-run as a regression test at the end of each development cycle in accordance with the spiral model (see \cref{sec:prep-management-model}). Standard unit test frameworks are not designed to work with large, external datasets such as flow networks. Accordingly, I developed my own test harness in Python to automate verification of flow algorithms. I wrote unit tests for smaller components, such as data structures, using the GTest framework (see \cref{appendix:tools-libraries}).
 
 Hapi is intended to used as part of a larger cluster scheduling system. To demonstrate this capability, I integrated Hapi's solvers integrated into the Firmament system. \Cref{fig:firmament-ui} shows the system in action.
 

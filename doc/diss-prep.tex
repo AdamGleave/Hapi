@@ -537,7 +537,7 @@ Deliverables S2, E1 and E3 were all rated as medium or high risk. Their requirem
 
 \subsection{Testing strategy}
 \label{sec:prep-management-testing}
-I developed unit tests for each class. Where possible, I used the GTest framework (see \cref{sec:prep-tools-libraries}). However, testing of flow algorithms requires large external datasets: a Python test harness was developed to automate these tests. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-correctness}).
+I developed unit tests for each class. Where possible, I used the GTest framework (see \cref{appendix:tools-libraries}). However, testing of flow algorithms requires large external datasets: a Python test harness was developed to automate these tests. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-correctness}).
 
 Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E2 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-firmament}, \cref{sec:eval-benchmark-strategy} and \cref{appendix:impl-benchmark-harness}.
 
@@ -595,13 +595,7 @@ I used the Python scripting language for the development of test harnesses (see 
 
 \subsection{Libraries} \label{sec:prep-tools-libraries}
 
-% FIGURE: Not sure what, but Malte suggested it in annotation?
-% SOMEDAY: Format program names in different font?
-This project made extensive use of the Boost family of libraries. Boost has been extensively peer-reviewed and tested, and is designed to integrate well with the C++ standard library. I used Boost's Program Options library for command-line argument parsing. To measure algorithm runtime, I employed Boost's Timer library. I also used Boost for a variety of smaller tasks, such as string manipulation during parsing.
-
-For logging, I used the glog library which was developed by Google. glog is highly configurable, allowing logging levels to be specified on a per-file or even per-function basis. glog also supports checking a variety of assertions: these were used extensively during development to verify invariants of algorithms and data structures.
-
-I developed unit tests with the aid of the gtest library, also due to Google. It follows the popular xUnit architecture, which I was already familiar with from JUnit. Further, I felt it was one of the best designed unit testing libraries: it has support for a wide range of assertions, and test failure produces informative error messages.
+Hapi uses two libraries developed at Google --- glog and gtest --- for logging and unit tests. I also extensively used the Boost family of libraries. See \cref{appendix:tools-libraries} for details of how I used the libraries, and a justification of my choice. 
 
 \subsection{Flow scheduling}
 
