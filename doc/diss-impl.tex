@@ -853,7 +853,7 @@ Changing the cost of an arc $(i,j)$ from $c_{ij}$ to $c'_{ij} = c_{ij} + \delta$
 
 \subsection{Implementations} \label{sec:impl-incremental-impl}
 
-I developed three incremental solvers. I adapted my implementations of the successive shortest path and relaxation algorithm, described in \cref{sec:impl-ssp} and \cref{sec:impl-relax}, to support incremental operation. In addition, I extended RelaxIV~\cite{BertsekasCodes:1988,RelaxIV:2011} --- a highly optimised reference implementation of the relaxation algorithm --- to operate incrementally.
+I developed three incremental solvers. I adapted my implementations of the successive shortest path and relaxation algorithm, described in \cref{sec:impl-ssp} and \cref{sec:impl-relax}, to support incremental operation. In addition, I extended RELAX-IV~\cite{BertsekasCodes:1988,RelaxIV:2011} --- a highly optimised reference implementation of the relaxation algorithm --- to operate incrementally.
 
 \subsubsection{Extending this project's implementations}
 It proved relatively straightforward to modify my existing implementations of successive shortest path and the relaxation algorithm. This reflects the emphasis placed on modularity and design flexibility during earlier development.
@@ -862,9 +862,9 @@ The method to preserve reduced cost optimality, described in \cref{sec:impl-incr
 
 Since the wrapper provides the same interface as the graph classes, it can be used as a drop-in replacement. This minimises the changes needed in the rest of the codebase. The algorithms themselves required little modification: I merely added a flag to disable the initialisation routine when operating incrementally.
  
-\subsubsection{Extending RelaxIV}
-%WORDCOUNT: Extending RelaxIV -- could probably make further cuts here
-The RelaxIV solver was considerably more challenging to modify. Whereas this project's implementations attempted to strike a balance between flexibility and efficiency, performance was the overriding objective for RelaxIV. 
+\subsubsection{Extending RELAX-IV}
+%WORDCOUNT: Extending RELAX-IV -- could probably make further cuts here
+The RELAX-IV solver was considerably more challenging to modify. Whereas this project's implementations attempted to strike a balance between flexibility and efficiency, performance was the overriding objective for RELAX-IV. 
 
 The source code is 5,000 lines in total, with some individual functions longer than 800 lines. The original Fortran version of the code is due to Bertsekas, and dates to 1988~\cite{BertsekasCodes:1988}. I worked with a C++ port by Frangioni and Gentile from 2003~\cite{RelaxIV:2011}.
 
@@ -872,12 +872,12 @@ The source code is 5,000 lines in total, with some individual functions longer t
 
 Frangioni had already added support for cost reoptimisation for his aforementioned computational study~\cite{Frangioni:2006}. It appears he started to add support for other forms of updates; however, this development must have been interrupted, since my testing uncovered numerous bugs. The large, legacy codebase made these time consuming to fix. I intend to report the bugs discovered to the authors, making my patches available.
 
-The rest of the changes I made were comparatively straightforward. RelaxIV allocated data structure memory statically. This is problematic for an incremental solver, as the size of the network is not known in advance. I added support to dynamically resize the data structures, employing the usual strategy of exponential growth in size to achieve memory allocation in amortized linear time\footnotemark.
+The rest of the changes I made were comparatively straightforward. RELAX-IV allocated data structure memory statically. This is problematic for an incremental solver, as the size of the network is not known in advance. I added support to dynamically resize the data structures, employing the usual strategy of exponential growth in size to achieve memory allocation in amortized linear time\footnotemark.
 \footnotetext{Spikes in scheduling latency are undesirable, even if the average latency remains low. Since the solver is nowhere close to exhausting available memory, my implementation initially allocates twice as much memory as currently needed, in a bid to avoid needing to ever grow the array.}
 
-RelaxIV does not reuse vertex identifiers, causing a memory leak. I modified the algorithm to maintain a set of free vertices. New vertices are allocated an identifier from this set, with the underlying data structures expanded only when there are no free vertices.
+RELAX-IV does not reuse vertex identifiers, causing a memory leak. I modified the algorithm to maintain a set of free vertices. New vertices are allocated an identifier from this set, with the underlying data structures expanded only when there are no free vertices.
 
-Each arc $(i,j)$ is identified by an array index in RelaxIV. Of course, the flow scheduling system is not privy to this internal index, and can only identify arcs by their source and destination vertices $i$ and $j$. Finding the index requires scanning the adjacency list of $i$ to find the arc to $j$ (or vice-versa), an $O(n)$ operation. My implementation makes a time-memory tradeoff, maintaining a hash table mapping pairs $(i,j)$ to indices, providing $O(1)$ lookups.
+Each arc $(i,j)$ is identified by an array index in RELAX-IV. Of course, the flow scheduling system is not privy to this internal index, and can only identify arcs by their source and destination vertices $i$ and $j$. Finding the index requires scanning the adjacency list of $i$ to find the arc to $j$ (or vice-versa), an $O(n)$ operation. My implementation makes a time-memory tradeoff, maintaining a hash table mapping pairs $(i,j)$ to indices, providing $O(1)$ lookups.
 
 %\section{Input and output}
 %

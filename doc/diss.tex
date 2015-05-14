@@ -35,11 +35,64 @@
 % Note must load url before hyperref
 \usepackage[hyphens]{url}
 
-% Citations
+%%% Citations
 \usepackage{varioref}
 \usepackage{nameref}
-% TODO: What citation style should I use?
-\usepackage[backend=biber,bibencoding=UTF-8,style=numeric]{biblatex}
+%% BibLaTeX for bibliography
+\usepackage[
+backend=biber,
+bibencoding=UTF-8,
+style=numeric,
+minalphanames=3,
+sorting=nyt,
+backref=true,
+backrefstyle=two,
+abbreviate=false,
+maxnames=6,
+minbibnames=6,
+maxbibnames=6,
+% suppress some output
+isbn=false,
+eprint=false,
+url=false,
+doi=false,]{biblatex}
+% force preferred capitalisation
+\DeclareFieldFormat{sentencecase}{\MakeSentenceCase{#1}}
+
+\renewbibmacro*{title}{%
+    \ifthenelse{\iffieldundef{title}\AND\iffieldundef{subtitle}}
+    {}
+    {\ifthenelse{\ifentrytype{article}\OR\ifentrytype{inbook}%
+            \OR\ifentrytype{incollection}\OR\ifentrytype{inproceedings}%
+            \OR\ifentrytype{inreference}}
+        {\printtext[title]{%
+                \printfield[sentencecase]{title}%
+                \setunit{\subtitlepunct}%
+                \printfield[sentencecase]{subtitle}}}%
+        {\printtext[title]{%
+                \printfield[titlecase]{title}%
+                \setunit{\subtitlepunct}%
+                \printfield[titlecase]{subtitle}}}%
+        \newunit}%
+    \printfield{titleaddon}}
+%\newbibmacro*{journal}{%
+%    \iffieldundef{journaltitle}
+%    {}
+%    {\printtext[journaltitle]{%
+%            \printfield[noformat]{journaltitle}%
+%            \setunit{\subtitlepunct}%
+%            \printfield[noformat]{journalsubtitle}}}}
+%\newbibmacro*{inproceedings}{%
+%    \iffieldundef{booktitle}
+%    {}
+%    {\printtext[booktitle]{%
+%            \printfield[noformat]{booktitle}%
+%            \setunit{\subtitlepunct}%
+%            \printfield[noformat]{booksubtitle}}}}
+%\DeclareFieldFormat[article,inbook,incollection,inproceedings,patent,thesis,unpublished]{titlecase}{\MakeSentenceCase*{#1}}
+%\DeclareFieldFormat[article]{titlecase}{\MakeSentenceCase*{#1}}
+%\DeclareFieldFormat[inproceedings]{titlecase}{\MakeSentenceCase*{#1}}
+
 \bibliography{diss.bib}
 \DeclareBibliographyCategory{cited}
 \AtEveryCitekey{\addtocategory{cited}{\thefield{entrykey}}}
@@ -285,8 +338,6 @@
 %\layout
 
 \nocite{*}                      % detect unused references
-%\bibliographystyle{acm}		% used ieeetr in the proposal
-								% what is the style guide consensus?
 
 %TC:ignore
 %%

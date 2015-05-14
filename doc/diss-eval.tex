@@ -598,7 +598,7 @@ The next section compares the performance of the successive shortest path (see \
 %        \begin{subfigure}[c]{\textwidth}
 %            \includegraphics{inc/same_relaxf_large_cdf_2col}
 %            \includegraphics{inc/same_relaxf_large_incremental_only_cdf_2col}
-%            \caption{My adaptation of RelaxIV, a reference implementation of relaxation, on large (3,000) machine cluster.}
+%            \caption{My adaptation of RELAX-IV, a reference implementation of relaxation, on large (3,000) machine cluster.}
 %            \label{fig:inc-same:relax-iv}
 %        \end{subfigure}
     \end{widepage}
@@ -661,7 +661,7 @@ The previous section showed incremental augmenting path algorithms significantly
 
 Researchers have spent considerable time developing optimised implementations of flow algorithms. Since the focus of this project is on developing improved algorithmic techniques, I have spent little time optimising my implementations. Although I have attempted to ensure that all implementations in this project are optimised to an equal degree, there is a risk that the results in the previous section do not generalise to state-of-the-art reference implementations. 
 
-To investigate this, I extended the reference implementation of the relaxation algorithm, RelaxIV~\cite{RelaxIV:2011}, to support operating incrementally (see \cref{sec:impl-incremental-impl}). For the from scratch solver, I selected Goldberg's heavily optimised implementation of his cost scaling algorithm, CS2~\cite{CS2:2009}. This has been found to be one of the fastest flow solvers in independent benchmarks~\cite{KiralyKovacs:2012}, corroborated by my own tests.
+To investigate this, I extended the reference implementation of the relaxation algorithm, RELAX-IV~\cite{RelaxIV:2011}, to support operating incrementally (see \cref{sec:impl-incremental-impl}). For the from scratch solver, I selected Goldberg's heavily optimised implementation of his cost scaling algorithm, CS2~\cite{CS2:2009}. This has been found to be one of the fastest flow solvers in independent benchmarks~\cite{KiralyKovacs:2012}, corroborated by my own tests.
 
 Quincy also used CS2: Isard, \textit{et al.}\ report a scheduling latency of \textasciitilde\SI{1}{\second} on a 2,500 machine simulated cluster~\cite{Isard:2009}. \Cref{fig:inc-head-to-head-optimised:large} shows the results of my experiment on a similarly sized cluster, in which CS2 achieves a scheduling latency of \textasciitilde\SI{500}{\milli\second}. My incremental solver is faster at every percentile, achieving a $12\times$ average speedup.
 
