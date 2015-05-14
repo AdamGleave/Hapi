@@ -50,7 +50,7 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
         \textit{Traditional schedulers} \tabularnewline % TODO: new name? or mention heuristic in body text
         Hadoop Fair Scheduler~\cite{HadoopFairSchedulerJIRA} & \mmark & \cmark & \mmark \tabularnewline 
 %        YARN~\cite{YARN} & \cmark & \mmark & \mmark \tabularnewline
-        Apache Mesos~\cite{Mesos} & \cmark & \mmark & \mmark \tabularnewline
+        Apache Mesos~\cite{Hindman:2011} & \cmark & \mmark & \mmark \tabularnewline
 %        Omega~\cite{Omega} & \mmark & \cmark & \mmark \tabularnewline 
         Sparrow~\cite{Ousterhout:2013} & \xmark & \mmark & \cmark \tabularnewline 
 %        Capacity Scheduler & \mmark & \cmark & \mmark \tabularnewline 
@@ -67,33 +67,9 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
 \end{table}
 % PROOFREAD: 1. Minor edits.
 
-% Keep it brief.
-% Good to highlight in this or next section that many authors believe centralised scheduling cannot scale to large clusters.
-% Show existing approaches rely on heuristics.
-% Hadopp FIFO queue gentle introduction, but kind of bogus -- probably best dropped.
-
-% Best to draw out general trends, then cite particular schedulers as example.
-% Multi-tentant: Hadoop Capacity Scheduler
-
-% Probably good to mention work on heterogenous clusters, e.g. LATE, given this is what Firmament does?
-
-% Apache Mesos: allocates resources to multiple frameworks, such as Hadoop. Uses DRF (?).
-% YARN: Hadoop-centric cluster manager. Applications negotiate for resources. Similar to what Google uses for MapReduce with Borg.
-% Hadoop Capacity Scheduler: multi-tenant, provides strong guarantees.
-% Apollo: predicts task runtime; per-job scheduler, good for scalability
-% Omega: reasonably targeted (each application can have its own scheduling policies), but a lot of work to implement. 
-
-% Apollo paper presents better summary.
-% Monolothic schedulers: Quincy, Hadoop Fair Scheduler
-% Centralised but multiple workload support: Mesos, YARN, Corona (targeted, in my nomenclature).
-% Distributed schedulers: Omega, Sparrow, apollo. Very scalable. May limit effectiveness?
-% Multi-tenant support: capacity scheduler, Apollo
-
-% FIGURES: Axes, distributed vs centralised and monolothic vs flexible
-
 Commensurate with their importance, a variety of cluster scheduling designs have been investigated, summarised in \cref{table:cluster-scheduler-feature-matrix}. Traditionally, schedulers have been \emph{monolithic}, designed for a single workload. For example, the Hadoop Fair Scheduler only manages MapReduce jobs~\cite{HadoopFairSchedulerJIRA}.
 
-Although monolithic schedulers may perform well on their intended workload, they cannot be targeted to different applications. Newer schedulers such as Mesos~\cite{Mesos} adopt a \emph{two-level} design~\cite[\S3.3]{Omega}: a centralised allocator dynamically partitions resources in the cluster between \emph{scheduling frameworks}, each of which implement a policy appropriate to the applications they manage. However, as each framework sees only a subset of the resources in the cluster, they are not as effective as monolithic schedulers.
+Although monolithic schedulers may perform well on their intended workload, they cannot be targeted to different applications. Newer schedulers such as Mesos~\cite{Hindman:2011} adopt a \emph{two-level} design~\cite[\S3.3]{Schwarzkopf:2013}: a centralised allocator dynamically partitions resources in the cluster between \emph{scheduling frameworks}, each of which implement a policy appropriate to the applications they manage. However, as each framework sees only a subset of the resources in the cluster, they are not as effective as monolithic schedulers.
 
 To support interactive applications on large-scale clusters, there has been research into \emph{distributed} scheduling. These methods can be very fast. For example, the Sparrow scheduler achieves sub-\SI{100}{\milli\second} scheduling latency, employing a sampling mechanism to avoid maintaining any centralised state~\cite[fig.~10]{Ousterhout:2013}. However, the lack of global state imposes limits on the effectiveness of distributed schedulers.
 
@@ -115,7 +91,7 @@ To support interactive applications on large-scale clusters, there has been rese
 
 Firmament generalises Quincy, allowing a variety of scheduling policies to be specified. Like with two-level schedulers, the policy can be chosen on a per-application basis. However, flow scheduling does not partition the cluster: solving the optimisation problem globally allows better scheduling decisions to be made.
 
-Flow algorithms are notoriously difficult to parallelise, due to the global nature of the problem. Accordingly, the flow solver quickly becomes a bottleneck, leading some researchers to claim flow scheduling systems cannot scale~\cite[\S6]{Apollo}. In this dissertation, I design and implement new flow algorithms which allow these systems to compete with the fastest distributed schedulers.
+Flow algorithms are notoriously difficult to parallelise, due to the global nature of the problem. Accordingly, the flow solver quickly becomes a bottleneck, leading some researchers to claim flow scheduling systems cannot scale~\cite[\S6]{Boutin:2014}. In this dissertation, I design and implement new flow algorithms which allow these systems to compete with the fastest distributed schedulers.
 
 \section{Flow networks} \label{sec:prep-flow}
 
