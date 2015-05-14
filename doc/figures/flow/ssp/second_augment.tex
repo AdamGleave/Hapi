@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{tikzpicture}[nodes={font=\bf\small}, scale=0.65]
+\begin{tikzpicture}[nodes={font=\bf\small}, scale=0.45]
 %  \draw [help lines] (-1,-1) grid (8,5);o
 
 \tikzstyle{mynode}=[%
@@ -44,7 +44,7 @@
 \path [myarc] (b) edge[bend left=20, looseness=1] node[below, sloped] {$(1,0)$} (a);
 \path [myarc] (a) -- node[below, sloped] {$(1,0)$} (c);
 \path [myarc] (c) edge[bend right=20, looseness=1] node[above, sloped] {$(2,0)$} (a);
-\path [myarc] (b) -- node[above, sloped] {$(5, 6)$} (c);
+\path [myarc] (b) -- node[above right] {$(5, 6)$} (c);
 \path [myarc] (d) -- node[above, sloped] {$(1,4)$} (b);
 \path [myarc] (c) -- node[below, sloped] {$(3,0)$} (d);
 \path [myarc] (d) edge[bend right=20, looseness=1] node[above, sloped] {$(2,0)$} (c);

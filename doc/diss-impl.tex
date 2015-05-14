@@ -62,25 +62,43 @@ My implementation began with cycle cancelling, a simple flow algorithm due to Kl
 
 In general, this algorithm runs in weakly polynomial time. However, for the class of networks produced by flow schedulers this improves to a strongly polynomial time bound of $O(n^2 \lg n)$. Successive shortest path lends itself readily to an incremental implementation (see \cref{sec:impl-incremental}), but is inappropriate for an approximate solver.
 
+%PROOFREAD: XXX -- inserted page break here for SSP->Algo Description
+\newpage
+
 \subsection{Algorithm description}
 
 \begin{figure}
     \begin{subfigure}[c]{0.5\textwidth}
+        \centering
+        \input{../doc/figures/flow/ssp/key}
+        \caption{Notation: each arc is labelled with residual capacity and reduced cost.} 
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
         \input{../doc/figures/flow/ssp/initial}
+        \caption{Initial network.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \input{../doc/figures/flow/ssp/first_pi}
+        \caption{SSSP problem solved from \textbf{A}, and potentials updated.}
+        \label{fig:ssp-trace:first-pi}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \input{../doc/figures/flow/ssp/first_augment}
+        \label{fig:ssp-trace:first-augment}                
+        \caption{Flow augmented along shortest path $A \to B \to D$.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \input{../doc/figures/flow/ssp/second_pi}
+        \caption{SSSP problem solved from \textbf{A}, and potentials updated.}
+        \label{fig:ssp-trace:second-pi}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \input{../doc/figures/flow/ssp/second_augment}
+        \label{fig:ssp-trace:second-augment}        
+        \caption{Flow augmented along shortest path $A \to C \to D$.}
     \end{subfigure}
-    \caption[Successive shortest path algorithm in action]{The successive shortest path algorithm in action.}
+    \caption[Successive shortest path algorithm in action]{Step-by-step trace of the successive shortest path algorithm in action, depicting the residual network. Each node $i$ is labelled with its excess $e_i$ and potential $\pi_i$.}
+    \label{fig:ssp-trace}
 \end{figure}
 
 % SOMEDAY: footnote after $t$ is bad
@@ -109,6 +127,8 @@ The successive shortest path algorithm maintains a pseudoflow $\mathbf{x}$ (see 
 Each iteration of the algorithm identifies an excess vertex $s$ and excess vertex $t$. Next, the single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is solved from $s$. To maintain reduced cost optimality, the potentials $\boldsymbol{\pi}$ are updated. Finally, the pseudoflow $\mathbf{x}$ is augmented along a shortest path $P$ from $s$ to $t$. The algorithm terminates when no excess or deficit vertices exist.
 
 The amount of flow $\delta$ sent over the path is limited by the minimum residual capacity of arcs along $P$. $\delta$ is further restricted so that a non-negative supply at $s$ and demand at $t$ are maintained. This guarantees the excess at supply vertices and deficit at demand vertices is monotonically decreasing, ensuring each iteration improves the feasibility of the flow.
+
+\Cref{fig:ssp-trace} illustrates the operation of successive shortest path. Note that updating the potentials in \cref{fig:ssp-trace:first-pi,fig:ssp-trace:second-pi} makes the reduced cost of arcs in the shortest-path tree rooted at \textbf{A} zero, allowing the flow to be augmented in \cref{fig:ssp-trace:first-augment,fig:ssp-trace:second-augment} without violating reduced cost optimality.
 
 \subsection{Optimisations} \label{sec:impl-ssp-optimisations}
 
