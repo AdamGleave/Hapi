@@ -3,39 +3,39 @@
 %  \draw [help lines] (-1,-1) grid (8,5);
 
 % T_0,0
-\node [draw, circle] (t00) at (0,6.5) {T$_0^0$};
+\node [draw, circle, black!70!green] (t00) at (0,6.5) {T$_0^0$};
 % T_0,1
-\node [draw, circle] (t01) at (0,5.0) {T$_1^0$};
+\node [draw, circle, black!70!green] (t01) at (0,5.0) {T$_1^0$};
 % T_0,2
-\node [draw, circle] (t02) at (0,3.5) {T$_2^0$};
+\node [draw, circle, black!70!green] (t02) at (0,3.5) {T$_2^0$};
 
 % T_1,0
-\node [draw, circle] (t10) at (0,1.5) {T$_0^1$};
+\node [draw, circle, black!70!green] (t10) at (0,1.5) {T$_0^1$};
 % T_1,1
-\node [draw, circle] (t11) at (0,0.0) {T$_1^1$};
+\node [draw, circle, black!70!green] (t11) at (0,0.0) {T$_1^1$};
 
 % X
-\node [draw, rectangle] (x) at (5.0,3.5) {X};
+\node [draw, rectangle, brown] (x) at (5.0,3.5) {X};
 
 % R_0
-\node [draw, rectangle] (r0) at (7.0,5.5) {R$_0$};
+\node [draw, rectangle, brown] (r0) at (7.0,5.5) {R$_0$};
 % M_0 & M_1
-\node [draw, rectangle] (m0) at (10.0,6.5) {M$_0$};
-\node [draw, rectangle] (m1) at (10.0,4.5) {M$_1$};
+\node [draw, rectangle, blue] (m0) at (10.0,6.5) {M$_0$};
+\node [draw, rectangle, blue] (m1) at (10.0,4.5) {M$_1$};
 
 % R_1
-\node [draw, rectangle] (r1) at (7.0,1.5) {R$_1$};
+\node [draw, rectangle, brown] (r1) at (7.0,1.5) {R$_1$};
 % M_2 & M_3
-\node [draw, rectangle] (m2) at (10.0,2.5) {M$_2$};
-\node [draw, rectangle] (m3) at (10.0,0.5) {M$_3$};
+\node [draw, rectangle, blue] (m2) at (10.0,2.5) {M$_2$};
+\node [draw, rectangle, blue] (m3) at (10.0,0.5) {M$_3$};
 
 % sink
 \node [draw, regular polygon, regular polygon sides=6] (s) at (12, 3.5) {S};
 
 % U_0
-\node [draw, rectangle] (u0) at (3.0,7.0) {U$^0$};
+\node [draw, rectangle, red] (u0) at (3.0,7.0) {U$^0$};
 % U_1
-\node [draw, rectangle] (u1) at (3.0,-0.5) {U$^1$};
+\node [draw, rectangle, red] (u1) at (3.0,-0.5) {U$^1$};
 
 
 % Tasks to X
@@ -74,11 +74,11 @@
   \draw [->] (u1) -- ++(2,-0.5) -- node[below, sloped] {} ++(6,0) -- ++(1, 0.5) -- (s);
 \end{scope}
 
-% running task
+% preference edges
 \draw [->, dotted] (t10) edge[out=0, in=200, looseness=1] node[above, sloped] {} (m3);
+\draw [->, dashed] (t10) edge[out=0, in=200, looseness=1] node[above, sloped] {} (r1);
 
-% preference edge
-\draw [->, dashed] (t02) edge[in=180, looseness=0.8] node[above, sloped] {} (m1);
+\draw [->, dotted] (t02) edge[in=180, looseness=0.8] node[above, sloped] {} (m1);
 
 \end{tikzpicture} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
