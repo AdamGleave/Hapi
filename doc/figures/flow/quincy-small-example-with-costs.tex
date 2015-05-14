@@ -1,0 +1,103 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{tikzpicture}[nodes={font=\bf\small}, scale=0.65]
+%  \draw [help lines] (-1,-1) grid (8,5);o
+
+\tikzstyle{tasknode}=[%
+  draw,
+  circle,
+  minimum width=0.4,
+  inner sep=0.5mm,
+]
+
+% T_0,0
+\node [tasknode, black!70!green] (t00) at (0,6.5) {T$_0^0$};
+% T_0,1
+\node [tasknode, black!70!green] (t01) at (0,5.0) {T$_1^0$};
+% T_0,2
+\node [tasknode, black!70!green] (t02) at (0,3.5) {T$_2^0$};
+
+% T_1,0
+\node [tasknode, black!70!green] (t10) at (0,1.5) {T$_0^1$};
+% T_1,1
+\node [tasknode, black!70!green] (t11) at (0,0.0) {T$_1^1$};
+
+% X
+\node [draw, rectangle, brown] (x) at (5.0,3.5) {X};
+
+% R_0
+\node [draw, rectangle, brown] (r0) at (7.0,5.5) {R$_0$};
+% M_0 & M_1
+\node [draw, rectangle, blue] (m0) at (10.0,6.5) {M$_0$};
+\node [draw, rectangle, blue] (m1) at (10.0,4.5) {M$_1$};
+
+% R_1
+\node [draw, rectangle, brown] (r1) at (7.0,1.5) {R$_1$};
+% M_2 & M_3
+\node [draw, rectangle, blue] (m2) at (10.0,2.5) {M$_2$};
+\node [draw, rectangle, blue] (m3) at (10.0,0.5) {M$_3$};
+
+% sink
+\node [draw, regular polygon, regular polygon sides=6] (s) at (12, 3.5) {S};
+
+% U_0
+\node [draw, rectangle, red] (u0) at (3.0,7.0) {U$^0$};
+% U_1
+\node [draw, rectangle, red] (u1) at (3.0,-0.5) {U$^1$};
+
+% Tasks to X
+\path [draw, ->] (t00) -- node[above, sloped] {} (x);
+\path [draw, ->] (t01) -- node[below, sloped] {} (x);
+\path [draw, ->] (t02) -- node[below, near start, sloped] {$\alpha^0_2$} (x);
+\path [draw, ->] (t10) -- node[below, sloped] {} (x);
+\path [draw, ->] (t11) -- node[below, near end, sloped] {$\alpha^1_1$} (x);
+% OLD: all costs
+%\draw [->] (t00) -- node[below, sloped] {$\alpha^0_0$} (x);
+%\draw [->] (t01) -- node[below, sloped] {$\alpha^0_1$} (x);
+%\draw [->] (t02) -- node[below, sloped] {$\alpha^0_2$} (x);
+%\draw [->] (t10) -- node[below, sloped] {$\alpha^1_0$} (x);
+%\draw [->] (t11) -- node[below right, sloped] {$\alpha^1_1$} (x);
+
+% Tasks to U_i
+\path [draw, ->] (t00) -- node[above, sloped] {} (u0);
+\path [draw, ->] (t01) -- node[below, sloped] {} (u0);
+\path [draw, ->] (t02) -- node[below, near start, sloped] {$v^0_2$} (u0);
+\path [draw, ->] (t10) -- node[above, sloped] {} (u1);
+\path [draw, ->] (t11) -- node[above, near start, sloped] {$v^1_1$} (u1);
+%OLD: all costs
+%\draw [->] (t00) -- node[below, sloped] {$v^0_0$} (u0);
+%\draw [->] (t01) -- node[below, sloped] {$v^0_1$} (u0);
+%\draw [->] (t02) -- node[below, sloped] {$v^0_2$} (u0);
+%\draw [->] (t10) -- node[below, sloped] {$v^1_0$} (u1);
+%\draw [->] (t11) -- node[below, sloped] {$v^1_1$} (u1);
+
+% X to racks
+\path [draw, ->] (x) -- node[below, sloped] {$0$} (r0);
+\path [draw, ->] (x) -- node[below, sloped] {$0$} (r1);
+
+% Racks to machines
+%OLD: following eight lines had 0 cost
+\path [draw, ->] (r0) -- node[below, sloped] {$0$} (m0);
+\path [draw, ->] (r0) -- node[below, sloped] {} (m1);
+\path [draw, ->] (r1) -- node[below, sloped] {} (m2);
+\path [draw, ->] (r1) -- node[below, sloped] {$0$} (m3);
+
+% Machines to sink
+\path [draw, ->] (m0) -- node[above, sloped] {$0$} (s);
+\path [draw, ->] (m1) -- node[below, sloped] {} (s);
+\path [draw, ->] (m2) -- node[below, sloped] {} (s);
+\path [draw, ->] (m3) -- node[below, sloped] {$0$} (s);
+
+% U_i to sink
+\begin{scope}[decoration={post length=4pt},rounded corners=4mm]
+  \path [draw, ->] (u0) -- ++(2,0.5) -- node[below, sloped] {$0$} ++(6,0) -- ++(1,-0.5) -- (s);
+  \path [draw, ->] (u1) -- ++(2,-0.5) -- node[above, sloped] {$0$} ++(6,0) -- ++(1, 0.5) -- (s);
+\end{scope}
+
+% running task
+\path [draw, ->, dotted] (t10) edge[out=0, in=200, looseness=1] node[above, sloped] {$\gamma^1_{0,\textbf{M}_3}$} (m3);
+
+% preference edge
+\path [draw, ->, dashed] (t01) edge[in=180, out=20, looseness=0.8] node[above, sloped] {$\gamma^0_{1,\textbf{M}_1}$} (m1);
+
+\end{tikzpicture} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
