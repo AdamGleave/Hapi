@@ -1,0 +1,86 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{tikzpicture}[nodes={font=\bf}]
+%  \draw [help lines] (-1,-1) grid (8,5);
+
+% T_0,0
+\node [draw, circle, black!70!green] (t00) at (0,6.5) {T$_0^0$};
+% T_0,1
+\node [draw, circle, black!70!green] (t01) at (0,5.0) {T$_1^0$};
+% T_0,2
+\node [draw, circle, black!70!green] (t02) at (0,3.5) {T$_2^0$};
+
+% T_1,0
+\node [draw, circle, black!70!green] (t10) at (0,1.5) {T$_0^1$};
+% T_1,1
+\node [draw, circle, black!70!green] (t11) at (0,0.0) {T$_1^1$};
+
+% X
+\node [draw, rectangle, brown] (x) at (5.0,3.5) {X};
+
+% R_0
+\node [draw, rectangle, brown] (r0) at (7.0,5.5) {R$_0$};
+% M_0 & M_1
+\node [draw, rectangle, blue] (m0) at (10.0,6.5) {M$_0$};
+\node [draw, rectangle, blue] (m1) at (10.0,4.5) {M$_1$};
+
+% R_1
+\node [draw, rectangle, brown] (r1) at (7.0,1.5) {R$_1$};
+% M_2 & M_3
+\node [draw, rectangle, blue] (m2) at (10.0,2.5) {M$_2$};
+\node [draw, rectangle, blue] (m3) at (10.0,0.5) {M$_3$};
+
+% sink
+\node [draw, regular polygon, regular polygon sides=6] (s) at (12, 3.5) {S};
+
+% U_0
+\node [draw, rectangle, red] (u0) at (3.0,7.0) {U$^0$};
+% U_1
+\node [draw, rectangle, red] (u1) at (3.0,-0.5) {U$^1$};
+
+
+% Tasks to X
+\draw [->, red] (t00) -- node[below, sloped] {0 / 1} (x);
+\draw [->, red] (t01) -- node[below, sloped] {1 / 1} (x);
+\draw [->] (t02) -- node[below, sloped] {0 / 1} (x);
+\draw [->] (t10) -- node[below, sloped] {0 / 1} (x);
+\draw [->, red] (t11) -- node[below right, sloped] {1 / 1} (x);
+
+% Tasks to U_i
+\draw [->, red] (t00) -- node[below, sloped] {1 / 1} (u0);
+\draw [->] (t01) -- node[below, sloped] {0 / 1} (u0);
+\draw [->] (t02) -- node[below right, sloped] {0 / 1} (u0);
+\draw [->] (t10) -- node[below, sloped] {0 / 1} (u1);
+\draw [->] (t11) -- node[below, sloped] {0 / 1} (u1);
+
+% X to racks
+\draw [->, red] (x) -- node[below, sloped] {1 / 2} (r0);
+\draw [->, red] (x) -- node[below, sloped] {1 / 2} (r1);
+
+% Racks to machines
+\draw [->, red] (r0) -- node[below, sloped] {1 / 1} (m0);
+\draw [->] (r0) -- node[below, sloped] {0 / 1} (m1);
+\draw [->, red] (r1) -- node[below, sloped] {1 / 1} (m2);
+\draw [->] (r1) -- node[below, sloped] {0 / 1} (m3);
+
+% Machines to sink
+\draw [->, red] (m0) -- node[below, sloped] {1 / 1} (s);
+\draw [->, red] (m1) -- node[below, sloped] {1 / 1} (s);
+\draw [->, red] (m2) -- node[below, sloped] {1 / 1} (s);
+\draw [->, red] (m3) -- node[below, sloped] {1 / 1} (s);
+
+% U_i to sink
+\begin{scope}[decoration={post length=4pt},rounded corners=4mm]
+  \draw [->, red] (u0) -- ++(2,0.5) -- node[below, sloped] {1 / 3} ++(6,0) -- ++(1,-0.5) -- (s);
+  \draw [->] (u1) -- ++(2,-0.5) -- node[below, sloped] {0 / 2} ++(6,0) -- ++(1, 0.5) -- (s);
+\end{scope}
+
+% running task
+\draw [->, dotted, red] (t02) edge[in=180, looseness=0.8] node[above, sloped] {1 / 1} (m1);
+
+% preference edges
+\draw [->, dashed, red] (t10) edge[out=0, in=200, looseness=1] node[above, sloped] {1 / 1} (m3);
+\draw [->, dashed] (t10) edge[out=0, in=200, looseness=1] node[above, sloped] {0 / 1} (r1);
+
+
+\end{tikzpicture} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
