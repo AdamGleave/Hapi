@@ -1,0 +1,50 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{tikzpicture}[nodes={font=\bf\small}, scale=0.45]
+%  \draw [help lines] (-1,-1) grid (8,5);o
+
+% epsilon=10
+% Q=[A]  
+% discharge A
+% No negative reduced costs: relabel.
+% Pi(A) = 0 + 1 + 10 = 11
+% Q=[A]
+
+\tikzstyle{mynode}=[%
+  draw,
+  circle,
+  minimum width=0.4,
+  inner sep=0.5mm,
+]
+
+\tikzstyle{myarc}=[%
+  draw,
+  arrows={-Triangle[scale=1]},
+  line width=1pt,
+]
+
+% nodes
+\node [mynode] (a) at (0, 4) {A};
+\node [mynode] (b) at (4, 8) {B};
+\node [mynode] (c) at (4, 0) {C};
+\node [mynode] (d) at (8, 4) {D};
+
+% excesses
+\node [left=0.75cm] at (0,4.3) {$e_1 = 3$}; % A
+\node [above=0.6cm] at (4,8) {$e_2 = 0$}; % B
+\node [below=0.2cm] at (4,0) {$e_3 = 0$}; % C
+\node [right=0.5cm] at (8,4.3) {$e_4 = -3$}; % D
+
+% potentials
+\node [left=0.5cm] at (0,3.7) {$\pi_1 = 11$}; % A
+\node [above=0.15cm] at (4,8) {$\pi_2 = 0$}; % B
+\node [below=0.65cm] at (4,0) {$\pi_3 = 0$}; % C
+\node [right=0.5cm] at (8,3.7) {$\pi_4 = 0$}; % D
+
+\path [myarc] (a) -- node[above, sloped] {$(2,-10)$} (b);
+\path [myarc] (a) -- node[below, sloped] {$(3,-6)$} (c);
+\path [myarc] (b) -- node[right] {$(5,1)$} (c);
+\path [myarc] (b) -- node[above, sloped] {$(1,10)$} (d);
+\path [myarc] (c) -- node[below, sloped] {$(5,1)$} (d);
+
+\end{tikzpicture} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
