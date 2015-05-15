@@ -14,6 +14,9 @@
 % T_0,1
 \node [tasknode, black!70!green] (t01) at (0,4.5) {T$_1^0$};
 
+% T_1,0
+\node [tasknode, black!70!green] (t10) at (0,1.5) {T$_0^1$};
+
 % X
 \node [draw, rectangle, brown] (x) at (5.0,3.5) {X};
 
@@ -26,14 +29,18 @@
 
 % U_0
 \node [draw, rectangle, red] (u0) at (5.0,7.0) {U$^0$};
+% U_1
+\node [draw, rectangle, red] (u1) at (3.0,-0.5) {U$^1$};
 
 % Tasks to X
-\path [draw, ->] (t00) -- node[below, sloped] {1} (x);
-\path [draw, ->] (t01) -- node[below, sloped] {1} (x);
+\path [draw, ->] (t00) -- node[below, sloped] {2} (x);
+\path [draw, ->] (t01) -- node[below, sloped] {2} (x);
+\path [draw, ->] (t10) -- node[below, sloped] {} (x);
 
 % Tasks to U_i
 \path [draw, ->] (t00) -- node[above, sloped] {5} (u0);
 \path [draw, ->] (t01) -- node[above, sloped] {5} (u0);
+\path [draw, ->] (t10) -- node[above, sloped] {0} (u1);
 
 % X to machines
 \path [draw, ->] (x) -- node[below, sloped] {} (m0);
@@ -46,11 +53,15 @@
 % U_i to sink
 \begin{scope}[decoration={post length=4pt},rounded corners=4mm]
   \path [draw, ->] (u0) -- ++(1.5,0.5) -- node[below, sloped] {} ++(6,0) -- ++(1,-0.5) -- (s);
+  \path [draw, ->] (u1) -- ++(2,-0.5) -- node[above, sloped] {} ++(6,0) -- ++(1, 0.5) -- (s);
 \end{scope}
 
 % running tasks
 \path [draw, ->, dotted, red] (t00) edge[out=-30, in=180, looseness=1] node[above, sloped] {1} (m0);
 \path [draw, ->, dotted, red] (t01) edge[out=-30, in=180, looseness=1] node[above, sloped] {1} (m1);
+
+% preference edge
+\path [draw, ->, dashed] (t10) edge[in=180, out=-15, looseness=0.8] node[above, sloped] {$5$} (m1);
 
 \end{tikzpicture} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
