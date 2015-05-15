@@ -19,38 +19,41 @@
 
 % M_0 & M_1
 \node [draw, rectangle, blue] (m0) at (10.0,6.5) {M$_0$};
-\node [draw, rectangle, blue] (m1) at (10.0,0.5) {M$_1$};
+\node [draw, rectangle, blue] (m1) at (10.0,4.5) {M$_1$};
+\node [draw, rectangle, blue] (m2) at (10.0,2.5) {M$_2$};
 
 % sink
 \node [draw, regular polygon, regular polygon sides=6] (s) at (12, 3.5) {S};
 
 % U_0
-\node [draw, rectangle, red] (u0) at (5.0,7.0) {U$^0$};
+\node [draw, rectangle, red] (u0) at (6.0,7.5) {U$^0$};
 
 % Tasks to X
-\path [draw, ->] (t00) -- node[below, sloped] {1} (x);
-\path [draw, ->] (t01) -- node[below, sloped] {1} (x);
+\path [draw, ->] (t00) -- node[above, sloped] {3} (x);
+\path [draw, ->] (t01) -- node[below, sloped] {3} (x);
 
 % Tasks to U_i
-\path [draw, ->] (t00) -- node[above, sloped] {5} (u0);
+\path [draw, ->] (t00) -- node[above, sloped] {4} (u0);
 \path [draw, ->] (t01) -- node[above, sloped] {5} (u0);
 
 % X to machines
 \path [draw, ->] (x) -- node[below, sloped] {} (m0);
 \path [draw, ->] (x) -- node[below, sloped] {} (m1);
+\path [draw, ->] (x) -- node[below, sloped] {} (m2);
 
 % Machines to sink
-\path [draw, ->, red] (m0) -- node[above, sloped] {} (s);
-\path [draw, ->, red] (m1) -- node[below, sloped] {} (s);
+\path [draw, ->] (m0) -- node[above, sloped, red] {} (s);
+\path [draw, ->] (m1) -- node[below, sloped, red] {} (s);
+\path [draw, ->] (m2) -- node[below, sloped] {} (s);
 
 % U_i to sink
 \begin{scope}[decoration={post length=4pt},rounded corners=4mm]
-  \path [draw, ->] (u0) -- ++(1.5,0.5) -- node[below, sloped] {} ++(6,0) -- ++(1,-0.5) -- (s);
+  \path [draw, ->] (u0) -- ++(2,0.5) -- node[below, sloped] {$0$} ++(6,0) -- ++(1,-0.5) -- (s);
 \end{scope}
 
-% running tasks
-\path [draw, ->, dotted, red] (t00) edge[out=-30, in=180, looseness=1] node[above, sloped] {1} (m0);
-\path [draw, ->, dotted, red] (t01) edge[out=-30, in=180, looseness=1] node[above, sloped] {1} (m1);
+% running task
+\path [draw, ->, dotted, red] (t00) edge[out=-20, in=190, looseness=1] node[above, sloped] {$1$} (m0);
+\path [draw, ->, dotted, red] (t01) edge[out=0, in=170, looseness=1] node[above, sloped] {$2$} (m1);
 
 \end{tikzpicture} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
