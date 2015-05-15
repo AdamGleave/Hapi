@@ -843,12 +843,39 @@ Cost convergence is a general approach, applicable to any class of flow network.
 
 \section{Incremental algorithms} \label{sec:impl-incremental}
 
+\begin{figure}
+    \centering
+    \begin{subfigure}[c]{\textwidth}
+        \centering
+        \input{../doc/figures/flow/incremental/initial}
+        \vspace*{1em}        
+        \caption{The initial network, showing tasks $\mathbf{T}_0^0$ and $\mathbf{T}_1^0$ running on $\mathbf{M}_0$ and $\mathbf{M}_1$ respectively.}
+        \vspace*{2em}
+    \end{subfigure}
+    \begin{subfigure}[c]{\textwidth}
+        \centering
+        \input{../doc/figures/flow/incremental/new_job}
+        \vspace*{1em}
+        \caption{A job is submitted, consisting of a single task $\mathbf{T}^1_0$. It has no preference arcs, so its flow drains through $\mathbf{X}$ and into the idle machine $\mathbf{M}_2$.}
+        \label{fig:inc-network:new-job-idle}        
+        \vspace*{2em}
+    \end{subfigure}
+    \begin{subfigure}[c]{\textwidth}
+        \centering
+        \input{../doc/figures/flow/incremental/new_job_migration}
+        \vspace*{1em}        
+        \caption{An alternative to (b), where the task has a strong preference for running on machine $\mathbf{M}_1$, which is busy executing task $\mathbf{T}_1^0$. The cost of the running arc $\mathbf{T}_1^0 \to \mathbf{M}_1$ is lower than the cost of $\mathbf{T}_1^0 \to \mathbf{X}$, as the task is partially complete (see \cref{appendix:flow-scheduling:costs}). Nevertheless, the cheapest option is to \emph{migrate} $\mathbf{T}_1^0$ to $\mathbf{M}_2$, satisfying $\mathbf{T}_0^1$'s strong preference.}
+    \end{subfigure}
+    \caption[An incremental change to a scheduling flow network]{(b) and (c) show the result of incremental changes to the original network (a). Arcs are labelled with their cost; any unlabelled arc has a cost of zero. The optimal solution is shown by highlighting the arcs which carry flow in {\color{red} red}. Dotted lines represent \textbf{running arcs}, dashed lines \textbf{preference arcs} (see \cref{sec:prep-flow-scheduling}).}
+    \label{fig:inc-network}
+\end{figure}
+
 % PROOFREAD: 1 minor edits, 2 minor edits
 
 % FIGURE: Sequence of flow graphs, showing small change?
-Flow scheduling systems produce a sequence of closely related flow networks. Each new network in the sequence is generated in response to cluster events, such as task submission or completion. Most changes are highly localised in the flow network: consequently, the optimal flow remains mostly the same.
+Flow scheduling systems produce a sequence of closely related flow networks. Each new network in the sequence is generated in response to cluster events. \Cref{fig:inc-network} gives an example of the changes triggered by task submission, one of the most common events. Other events include task completion, machine addition and removal.
 
-My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach proved to be extremely successful, producing a factor of $14.5\times$ speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.
+These events cause localised changes to the flow network. Consequently, the optimal flow tends to remain mostly the same. My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach proved to be extremely successful, producing a factor of $14.5\times$ speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.
 
 Flow scheduling is ideally suited to an incremental solution method. However, the approach is much less compelling for traditional applications of flow networks: this may go some way to explaining the lack of prior work. As previously mentioned, most network changes in flow scheduling are small. This alone does not make the problem easy: reoptimising after even a single change is, in general, as hard as solving the problem from scratch\footnotemark. Informally, the problem is that since the optimisation problem is global, an update in one region of the network may trigger a cascading sequence of changes in the optimal flow for distant regions.
 \footnotetext{To see this, consider two networks $A$ and $B$. WLOG, assume they each have a single supply vertex $s_x$ and demand vertex $t_x$ for $x \in {A,B}$. Remove the supply and demand at those vertices, introducing new supply and demand vertices $s$ and $t$. Add arcs $s\to s_x$ with capacity $b_{s_x}$, and $t_x \to t$ with capacity $-b_{t_x}$, for $x \in {A,B}$. Let $C$ be a cost larger than the cost of any flow in networks $A$ or $B$; set the cost of $s \to s_A$ to $C$ and $s \to s_B$ to $2C$. The resulting network is effectively equivalent to just network $A$. Dropping the cost on $s \to S_B$ from $2C$ to $0$ makes the resulting network effectively equivalent to $B$. Solving this incremental change is thus as hard as solving the entire network $B$.}

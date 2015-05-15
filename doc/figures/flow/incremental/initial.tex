@@ -33,8 +33,8 @@
 \path [draw, ->] (t01) -- node[below, sloped] {3} (x);
 
 % Tasks to U_i
-\path [draw, ->] (t00) -- node[above, sloped] {4} (u0);
-\path [draw, ->] (t01) -- node[above, sloped] {5} (u0);
+\path [draw, ->] (t00) -- node[above, sloped] {10} (u0);
+\path [draw, ->] (t01) -- node[above, sloped] {10} (u0);
 
 % X to machines
 \path [draw, ->] (x) -- node[below, sloped] {} (m0);
@@ -42,13 +42,13 @@
 \path [draw, ->] (x) -- node[below, sloped] {} (m2);
 
 % Machines to sink
-\path [draw, ->] (m0) -- node[above, sloped, red] {} (s);
-\path [draw, ->] (m1) -- node[below, sloped, red] {} (s);
+\path [draw, ->, red] (m0) -- node[above, sloped, red] {} (s);
+\path [draw, ->, red] (m1) -- node[below, sloped, red] {} (s);
 \path [draw, ->] (m2) -- node[below, sloped] {} (s);
 
 % U_i to sink
 \begin{scope}[decoration={post length=4pt},rounded corners=4mm]
-  \path [draw, ->] (u0) -- ++(2,0.5) -- node[below, sloped] {$0$} ++(6,0) -- ++(1,-0.5) -- (s);
+  \path [draw, ->] (u0) -- ++(1.5,0.5) -- node[below, sloped] {} ++(4,0)  -- (s);
 \end{scope}
 
 % running task
