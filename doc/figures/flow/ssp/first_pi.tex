@@ -35,15 +35,15 @@
 
 % potentials
 \node [left=0.3cm] at (0,3.5) {$\pi_A = 0$}; % A
-\node [above=0.15cm] at (4,8) {$\pi_B = -1$}; % B
-\node [below=0.65cm] at (4,0) {$\pi_C = -5$}; % C
-\node [right=0.3cm] at (8,3.5) {$\pi_D = -2$}; % D
+\node [above=0.15cm] at (4,8) {\color{red} $\pi_B = -1$}; % B
+\node [below=0.65cm] at (4,0) {\color{red} $\pi_C = -5$}; % C
+\node [right=0.3cm] at (8,3.5) {\color{red} $\pi_D = -2$}; % D
 
 % (cap,cost)
-\path [myarc] (a) -- node[above, sloped] {$(2,0)$} (b);
-\path [myarc] (a) -- node[below, sloped] {$(3,0)$} (c);
-\path [myarc] (b) -- node[right] {$(5, 6)$} (c);
-\path [myarc] (b) -- node[above, sloped] {$(1,0)$} (d);
-\path [myarc] (c) -- node[below, sloped] {$(5,4)$} (d);
+\path [myarc] (a) -- node[above, sloped] {\color{red} $(2,0)$} (b);
+\path [myarc] (a) -- node[below, sloped] {\color{red} $(3,0)$} (c);
+\path [myarc] (b) -- node[right] {\color{red} $(5, 6)$} (c);
+\path [myarc] (b) -- node[above, sloped] {\color{red} $(1,0)$} (d);
+\path [myarc] (c) -- node[below, sloped] {\color{red} $(5,4)$} (d);
 
 \end{tikzpicture} 

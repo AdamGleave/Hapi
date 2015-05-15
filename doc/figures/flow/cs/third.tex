@@ -36,15 +36,15 @@
 
 % potentials
 \node [left=0.3cm] at (0,3.5) {$\pi_A = 11$}; % A
-\node [above=0.15cm] at (4,8) {$\pi_B = 11$}; % B
+\node [above=0.15cm] at (4,8) {\color{red}$\pi_B = 11$}; % B
 \node [below=0.65cm] at (4,0) {$\pi_C = 0$}; % C
 \node [right=0.3cm] at (8,3.5) {$\pi_D = 0$}; % D
 
-\path [myarc] (b) -- node[above, sloped] {$(2,-1)$} (a);
+\path [myarc] (b) -- node[above, sloped] {\color{red}$(2,-1)$} (a);
 \path [myarc] (a) -- node[below, sloped] {$(2,-6)$} (c);
 \path [myarc] (c) edge[bend right=20, looseness=1] node[above, sloped] {$(1,6)$} (a);
-\path [myarc] (b) -- node[right] {$(5,-10)$} (c);
-\path [myarc] (b) -- node[above, sloped] {$(1,-1)$} (d);
+\path [myarc] (b) -- node[right] {\color{red}$(5,-10)$} (c);
+\path [myarc] (b) -- node[above, sloped] {\color{red}$(1,-1)$} (d);
 \path [myarc] (c) -- node[below, sloped] {$(5,1)$} (d);
 
 \end{tikzpicture} 
