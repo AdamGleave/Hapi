@@ -70,30 +70,30 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
 \begin{figure}
     \begin{subfigure}[c]{0.5\textwidth}
         \centering
-        \input{../doc/figures/flow/ssp/key}
+        \input{figures/flow/ssp/key}
         \caption{Notation: each arc is labelled with residual capacity and reduced cost.} 
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \input{../doc/figures/flow/ssp/initial}
+        \input{figures/flow/ssp/initial}
         \caption{Initial network.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \input{../doc/figures/flow/ssp/first_pi}
+        \input{figures/flow/ssp/first_pi}
         \caption{SSSP problem solved from \textbf{A}, and potentials updated.}
         \label{fig:ssp-trace:first-pi}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \input{../doc/figures/flow/ssp/first_augment}
+        \input{figures/flow/ssp/first_augment}
         \label{fig:ssp-trace:first-augment}                
         \caption{Flow augmented along shortest path $A \to B \to D$.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \input{../doc/figures/flow/ssp/second_pi}
+        \input{figures/flow/ssp/second_pi}
         \caption{SSSP problem solved from \textbf{A}, and potentials updated.}
         \label{fig:ssp-trace:second-pi}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \input{../doc/figures/flow/ssp/second_augment}
+        \input{figures/flow/ssp/second_augment}
         \label{fig:ssp-trace:second-augment}        
         \caption{Flow augmented along shortest path $A \to C \to D$.}
     \end{subfigure}
@@ -621,6 +621,42 @@ The preceding section presented a generic version of the \textproc{Refine} routi
 
 \subsubsection{FIFO refine} \label{sec:impl-cs-impl-fifo}
 
+\begin{figure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \centering
+        \input{figures/flow/cs/key}
+        \caption{Notation: each arc is labelled with residual capacity and reduced cost.} 
+        \label{fig:cs-trace:key}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{figures/flow/cs/initial}
+        \caption{Initial network. $Q = \left[A\right]$.}
+        \label{fig:cs-trace:initial}        
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{figures/flow/cs/first}
+        \caption{$\textproc{Discharge}(A)$: immediately calls $\textproc{Relabel}(A)$ as there are no outgoing arcs with negative reduced cost. $Q$ remains $\left[A\right]$, as $A$ is popped and then immediately pushed again.}
+        \label{fig:cs-trace:first}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{figures/flow/cs/second}
+        \caption{$\textproc{Discharge}(A)$: calls $\textproc{Push}(A,B)$ and $\textproc{Push}(A,C)$, leaving $Q = \left[B,C\right]$.}
+        \label{fig:cs-trace:second}        
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+        \input{figures/flow/cs/third}
+        \caption{$\textproc{Discharge}(B)$: immediately calls $\textproc{Relabel}(B)$, leaving $Q = \left[C,B\right]$.}
+        \label{fig:cs-trace:third}
+    \end{subfigure}
+    \begin{subfigure}[c]{0.5\textwidth}
+       \input{figures/flow/cs/fourth}
+        \caption{$\textproc{Discharge}(C)$: immediately calls $\textproc{Relabel}(C)$, leaving $Q = \left[B,C\right]$.}
+        \label{fig:cs-trace:fourth}
+    \end{subfigure}
+    \caption[Cost scaling in action with FIFO vertex queue]{Partial trace of FIFO \textproc{Refine} from \cref{algo:cost-scaling-first-active-refine}, depicting the residual network after each call to \textproc{Discharge}. Each node $i$ is labelled with its excess $e_i$ and potential $\pi_i$. $\epsilon$ is taken to be $10$, as would be the case on the first call to \textproc{Refine} from \cref{algo:cost-scaling} (note the maximum cost $C$ in the network is 10.)}
+    \label{fig:cs-trace}
+\end{figure}
+
 \begin{algorithm}
 \begin{algorithmic}[1]
     \Function{Refine}{$\mathbf{x}$,$\boldsymbol{\pi}$,$\epsilon$}
@@ -673,7 +709,9 @@ The preceding section presented a generic version of the \textproc{Refine} routi
 
 $\textproc{Discharge}(s)$ is described in \cref{algo:cost-scaling-discharge}. It may be applied to any excess vertex, and performs a sequence of push operations until $e_s = 0$ or \textproc{Relabel} is called. For each vertex $i \in V$, an adjacency list is maintained, in a fixed (but arbitrary) order. The helper routine \textproc{PushOrRelabel} walks over this adjacency list, performing \textproc{Push} operations when possible. When the end of this adjacency list is reached, no further \textproc{Push} operations can be performed, and \textproc{Relabel} is invoked.
 
-Note any new excess vertices generated during execution of the algorithm must be added to the rear of $Q$. $\textproc{Push}(i,j)$ may make $j$ an excess vertex: \cref{algo:cost-scaling-operations} must be modified to check for this case. The code for \textproc{Refine} in \cref{algo:cost-scaling-generic-refine} must also be updated. \textproc{Refine} pops $s$ from $Q$ and then calls \textproc{Discharge}. If \textproc{Relabel} is called by \textproc{Discharge}, $s$ will still be an active vertex when \textproc{Discharge} returns, and must be added back to the queue $Q$.\\
+Note any new excess vertices generated during execution of the algorithm must be added to the rear of $Q$. $\textproc{Push}(i,j)$ may make $j$ an excess vertex: \cref{algo:cost-scaling-operations} must be modified to check for this case. The code for \textproc{Refine} in \cref{algo:cost-scaling-generic-refine} must also be updated. \textproc{Refine} pops $s$ from $Q$ and then calls \textproc{Discharge}. If \textproc{Relabel} is called by \textproc{Discharge}, $s$ will still be an active vertex when \textproc{Discharge} returns, and must be added back to the queue $Q$.
+
+\Cref{fig:cs-trace} illustrates the operation of FIFO \textproc{Refine}, showing how each call to \textproc{Discharge} modifies the potentials $\mathbf{\pi}$ and flow $\mathbf{x}$ on a simple network.
 
 \begin{thm} \label{thm:cost-scaling-first-active-complexity}
 The algorithm with FIFO refine has a running time of $O(n^2m \lg (nC))$.
