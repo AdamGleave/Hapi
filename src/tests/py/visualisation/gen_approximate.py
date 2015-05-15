@@ -454,7 +454,7 @@ def generate_terminating_condition_speed_distribution(data, parameter,
   heuristic_name = HEURISTIC_NAMES[condition]
   plot.cdf([oracle_speeds, heuristic_speeds],
            labels=['Oracle', heuristic_name], 
-           colours={heuristic_name: '#00008B', 'Oracle': '#004225'},
+           colours={heuristic_name: '#0000CD', 'Oracle': '#568203'},
            annotate_means=annotate_means,
            annotate_means_format=format)
   

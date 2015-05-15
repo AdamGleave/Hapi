@@ -179,8 +179,8 @@ doi=false,]{biblatex}
 %\newcommand{\circlegood}{\tikzcircle[green,fill=green]{2pt}}
 
 % colors for percentile figures
-\definecolor{matplotlib_blue}{HTML}{00008B}
-\definecolor{matplotlib_green}{HTML}{004225}
+\definecolor{matplotlib_blue}{HTML}{0000CD}
+\definecolor{matplotlib_green}{HTML}{568203}
 \definecolor{matplotlib_red}{HTML}{AE0C00}
 \definecolor{matplotlib_cyan}{HTML}{00FFFF}
 
@@ -413,12 +413,12 @@ Much as the Nile was the lifeblood of Egyptian society, cluster schedulers are c
 \vspace*{-1em}
 \section*{Original aims of the project}
 
-Recent research into cluster scheduling --- assigning tasks to machines --- has suggested that scheduling can fruitfully be expressed in terms of an optimisation problem over flow networks. The \emph{Hapi} project seeks to develop high-performance algorithms to solve these problems, enabling so-called flow scheduling systems to scale to the largest clusters built today. Implementation and performance analysis of an approximation algorithm forms the core success criteria for \emph{Hapi}. Extensions include development of an incremental solver, which would reuse previous optimal solutions to exploit similarities between successive flow networks.
+Recent research into cluster scheduling --- assigning tasks to machines --- has suggested that scheduling can fruitfully be expressed in terms of an optimisation problem over flow networks. The \emph{Hapi} project seeks to develop high-performance algorithms to solve these problems, enabling so-called \emph{flow scheduling} systems to scale to the largest clusters built today. Implementation and performance analysis of an approximation algorithm forms the core success criteria for \emph{Hapi}. Extensions include development of an incremental solver, which would reuse previous optimal solutions to exploit similarities between successive flow networks.
 
 \vspace*{-1em}
 \section*{Work completed}
 
-\emph{Hapi} was highly successful, achieving a $14.5\times$ speedup over state of the art implementations and sub-second scheduling latency on a 12,000 machine cluster. I surpassed the success criteria by developing both an approximate and incremental solver. As far as I am aware, both implementations are the first of their kind. The performance of these solvers was thoroughly evaluated under the Firmament flow scheduling system, including simulation of a cluster based on pubicly available trace data. In addition, approximation yielded a speedup of between $2\text{--}11\times$ on networks arising in other applications, suggesting its use beyond flow scheduling.
+\emph{Hapi} was highly successful, achieving a $14.5\times$ speedup over state of the art implementations and sub-second scheduling latency on a 12,000 machine cluster. I surpassed the success criteria by developing both an approximate and incremental solver. As far as I am aware, both implementations are the first of their kind. The performance of these solvers was thoroughly evaluated on the Firmament flow scheduling platform, including simulation of a cluster from publicly available trace data. In addition, approximation yielded a speedup of between $2\text{--}11\times$ on networks arising in other applications, suggesting its use beyond flow scheduling.
 
 \vspace*{-1em}
 \section*{Special difficulties}
@@ -443,15 +443,15 @@ any substantial extent for a comparable purpose.
 
 \clearpage
 
-{
-\hypersetup{linkcolor=black}
+% PROOFREAD: re-enable color before electronic submission
+% always print TOC in black
+\hypersetup{linkcolor=black,citecolor=black,urlcolor=black}
 \tableofcontents
 
-\listofalgorithms
-\listoftables
 \listoffigures
+\listoftables
+\listofalgorithms
 %\listoftheorems[ignoreall,show={theorem,lemma,cor,assumption}]
-}
 
 \newpage
 \section*{Acknowledgements}

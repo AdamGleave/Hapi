@@ -35,7 +35,7 @@ def set_rcs_common():
   rc('figure', autolayout=True)
   rc('legend', frameon=False) # disable border around legend
   
-  rc('font', size=8)
+  rc('font', size=10)
   rc('legend', fontsize=8)
   
 # LaTeX text width with default margins is 452 pt, or 158.85 cm for TeX
@@ -475,8 +475,8 @@ APPROXIMATE_MAX_TASK_ASSIGNMENTS_PARAMETER = 15000
 
 # N.B. List of (key,value) pairs rather than dict so order can be specified
 APPROXIMATE_DEFAULT_PERCENTILES = [
-  (1, '$1^{\mathrm{st}}$ percentile', '#00008B'), 
-  (5, '$5^{\mathrm{th}}$ percentile', '#004225'),
+  (1, '$1^{\mathrm{st}}$ percentile', '#0000CD'), 
+  (5, '$5^{\mathrm{th}}$ percentile', '#568203'),
   (25, '$25^{\mathrm{th}}$ percentile', '#AE0C00'),
   (50, 'Median', '#00FFFF'),
 ]

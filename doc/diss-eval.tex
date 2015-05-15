@@ -119,6 +119,7 @@ The algorithms were evaluated at multiple scales, ranging from small clusters th
         Medium & 5\% & 600 \tabularnewline
         Large & 25\% & 3000 \tabularnewline 
         Warehouse-scale & 100\% & 12,000 \tabularnewline
+        \hline
     \end{tabular}
     \caption{Cluster sizes used in benchmarks}
     \label{table:cluster-sizes}
@@ -272,6 +273,7 @@ In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementat
         \code{-O1} & Optimise to reduce code size and execution time. Do not perform optimisations which could greatly increase compilation time. \tabularnewline
         \code{-O2} & Perform optimisations which do not involve a space-speed tradeoff. \tabularnewline 
         \code{-O3} & Optimise even more, possibly at the expense of increased binary size. \tabularnewline
+        \hline
     \end{tabular}
     \caption{Optimisation levels supported by \emph{\code{gcc}} and \emph{\code{clang}}.}
     \label{table:optimisation-flags}
@@ -403,6 +405,7 @@ The method of approximation that I developed can be applied to any flow network.
         NETGEN-LO-8 NETGEN-LO-SR & Like NETGEN-8 and NETGEN-LO-SR, except the average per-vertex supply is 10. The arc capacities are therefore only ``loose'' bounds. \tabularnewline
         GOTO-8 & Sparse networks, with an average outdegree of $8$. Maximum arc capacity of 1,000, and cost of 10,000. \tabularnewline
         GOTO-SR & Dense networks, with an average outdegree of $\sqrt{n}$. Other parameters are the same as GOTO-8. \tabularnewline
+        \hline
     \end{tabular}
     \caption[Non-scheduling datasets used for benchmarking the approximation algorithm.]{Non-scheduling datasets used for benchmarking the approximation algorithm. These parameter choices for NETGEN and GOTO are due to Kir{\'{a}}ly and Kov{\'{a}}cs~\cite{KiralyKovacs:2012}.}
     \label{table:general-datasets}
@@ -523,6 +526,7 @@ The relationship between the threshold $c$ for the cost convergence heuristic an
         NETGEN-LO-SR & 99.3\% & 99.9\% & 98.0\% \tabularnewline
         GOTO-8 & 98.5\% & 98.9\% & 45.3\% \tabularnewline
         GOTO-SR & 99.0\% & 99.1\% & 27.3\% \tabularnewline
+        \hline
     \end{tabular}
     \caption[Accuracy of approximation algorithm on general flow networks]{Accuracy of approximation algorithm on general flow networks. The second column shows the proportion of networks where the 99\% target accuracy was met or exceeded. The third and fourth column show the mean and minimum accuracy achieved.}
     \label{table:app-general-accuracy}
@@ -707,5 +711,5 @@ I went beyond the evaluation of Isard \textit{et al.}\ by performing the experim
 
 \section{Summary}
 
-% XXX: Add headline figures to Eval:Summary
-In this chapter, I have outlined the correctness tests performed in this project, including unit tests for each algorithm and integration tests with the Firmament system. Following this, I described how a realistic simulation of a Google cluster was developed upon publicly available trace data. Benchmarks were then conducted on the approximate and incremental solver. I conclude in the next chapter by summarising these results and by discussing areas for further investigation.
+% SOMEDAY: Can you include headline figures? Danger you're just reiterating conclusion.
+In this chapter, I have outlined the correctness tests performed in this project, including unit tests for each algorithm and integration tests with the Firmament system. Following this, I described how a realistic simulation of a Google cluster was developed upon publicly available trace data. I then conducted benchmarks on the approximate and incremental solver. I conclude in the next chapter by summarising these results and by discussing areas for further investigation.
