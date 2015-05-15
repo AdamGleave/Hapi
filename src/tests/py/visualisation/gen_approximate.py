@@ -146,7 +146,7 @@ def speedup(x):
     for refine_it in x:
       refine_it = refine_it.copy()
       speedup = (baseline / refine_it['refine_time_cumulative']) - 1.0
-      refine_it['speedup'] = speedup * 100.0
+      refine_it['speedup'] = speedup
       res.append(refine_it)
     return res
   
@@ -221,7 +221,7 @@ def generate_oracle_policy_interpolate(data, figconfig):
   plt.plot(accuracies, means, 'g', label='Mean')
   
   plt.xlabel(r'Solution accuracy (\%)')
-  plt.ylabel('Speedup (\%)')
+  plt.ylabel('Speedup ($\\times$)')
   
   plt.legend(loc='lower left')
 
@@ -450,7 +450,7 @@ def generate_terminating_condition_speed_distribution(data, parameter,
   
   annotate_means = figconfig.get('speed_annotate_means', [])
   def format(mean):
-    return r"{0:.0f}\%".format(mean)
+    return r"{0:.1f}\times".format(mean)
   heuristic_name = HEURISTIC_NAMES[condition]
   plot.cdf([oracle_speeds, heuristic_speeds],
            labels=['Oracle', heuristic_name], 
@@ -458,7 +458,7 @@ def generate_terminating_condition_speed_distribution(data, parameter,
            annotate_means=annotate_means,
            annotate_means_format=format)
   
-  plt.xlabel('Speedup (\%)')
+  plt.xlabel('Speedup ($\\times$)')
   title = figconfig.get('title', True)
   if title:
     plt.title(cdf_title(condition, parameter))

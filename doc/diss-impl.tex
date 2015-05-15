@@ -6,13 +6,13 @@
 
 Considerable research effort has been expended over the past 60 years to produce efficient flow algorithms, as discussed in \cref{sec:intro-challenges} and \cref{sec:intro-related-work}. My approach has been to embrace prior work rather than attempting to supplant it, adapting existing algorithms to improve performance for the special case of flow scheduling.
 
-Two strategies seemed particularly promising. \emph{Approximate} solutions to the problem can be found, described in \cref{sec:impl-approx}. Existing algorithms always seek to find optimal solutions: for flow scheduling, we may be happy to trade optimality for reduced scheduling latency. Alternatively, the problem can be solved \emph{incrementally}, outlined in \cref{sec:impl-incremental}. The network remains largely unchanged between runs of the scheduler. Significant performance improvements can be realised by reoptimising from the last optimal solution found. 
+Two strategies seemed particularly promising. \emph{Approximate} solutions to the MCF problem can be found, described in \cref{sec:impl-approx}. Existing algorithms always seek to find optimal solutions: for flow scheduling, we may be happy to trade optimality for reduced scheduling latency. Alternatively, the problem can be solved \emph{incrementally}, outlined in \cref{sec:impl-incremental}. The network remains largely unchanged between runs of the scheduler: significant performance improvements can be realised by reoptimising from the last optimal solution found. 
 
 These strategies are not solution methods in themselves. Rather, they suggest modifications that can be made to existing minimum-cost flow algorithms. \Cref{table:impl-application-summary} lists the algorithms I implemented, alongside the strategy they are used in.
 
-I analysed the complexity of each algorithm, both in the general case and for scheduling flow networks. My results are summarised in \cref{table:impl-complexity-summary}, and show that the algorithmic complexity often improves on scheduling flow networks, sometimes quite significantly: for example, successive shortest path goes from being weakly to strongly polynomial.
+I analysed the complexity of each algorithm, both in the general case and for flow scheduling networks. My results are summarised in \cref{table:impl-complexity-summary}, and show that the algorithmic complexity often improves on flow scheduling networks, sometimes quite significantly: for example, successive shortest path goes from being weakly to strongly polynomial.
 
-This chapter starts by outlining the standard each of the standard algorithms listed in \cref{table:impl-application-summary}, before going on to discuss the approximate and incremental strategy. I include proofs of correctness, and the complexity results given in \cref{table:impl-complexity-summary}. However, in the interests of brevity, these results are mostly summarised in this chapter with the proofs given in \cref{appendix:impl}. I have included proofs in the main text when they are critical to understanding the implementation of the algorithm, or where they are substantially my own work.
+This chapter starts by outlining each of the standard algorithms listed in \cref{table:impl-application-summary}, before going on to discuss the approximate and incremental strategy. I include proofs of correctness, and the complexity results given in \cref{table:impl-complexity-summary}. However, in the interests of brevity, these results are generally summarised in this chapter, with the proofs given in \cref{appendix:impl}. I have included proofs in the main text only when they are critical to understanding the implementation of the algorithm, or where they are substantially my own work.
 
 % eliminate section prefix
 \crefformats{chapter,section,subsection,appendix,subappendix,subsubappendix}{#2#1#3}
@@ -83,9 +83,9 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
         \label{fig:ssp-trace:first-pi}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \input{figures/flow/ssp/first_augment}
-        \label{fig:ssp-trace:first-augment}                
+        \input{figures/flow/ssp/first_augment}             
         \caption{Flow augmented along shortest path $A \to B \to D$.}
+        \label{fig:ssp-trace:first-augment}          
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \input{figures/flow/ssp/second_pi}
@@ -93,9 +93,9 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
         \label{fig:ssp-trace:second-pi}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
-        \input{figures/flow/ssp/second_augment}
-        \label{fig:ssp-trace:second-augment}        
+        \input{figures/flow/ssp/second_augment}      
         \caption{Flow augmented along shortest path $A \to C \to D$.}
+        \label{fig:ssp-trace:second-augment}          
     \end{subfigure}
     \caption[Successive shortest path algorithm in action]{Step-by-step trace of the successive shortest path algorithm in action, depicting the residual network. Each node $i$ is labelled with its excess $e_i$ and potential $\pi_i$.}
     \label{fig:ssp-trace}
@@ -122,9 +122,9 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
 
 \footnotetext{Note so long as the mass balance constraints are unsatisfied, there must exist both an excess vertex $s$ and deficit vertex $t$. This is because the total sum of excesses must equal the total sum of deficits for any feasible problem.}
 
-The successive shortest path algorithm maintains a pseudoflow $\mathbf{x}$ (see \cref{sec:prep-flow-pseudo}) and potentials $\boldsymbol{\pi}$ satisfying reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility. This is in contrast to the cycle cancelling algorithm, which maintains feasibility and strives to achieve optimality.
+The successive shortest path algorithm maintains a pseudoflow $\mathbf{x}$ (see \cref{sec:prep-flow-pseudo}) and potentials $\boldsymbol{\pi}$ satisfying reduced cost optimality (see \cref{thm:optimality-reduced-cost}), and attempts to attain feasibility.
 
-Each iteration of the algorithm identifies an excess vertex $s$ and excess vertex $t$. Next, the single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is solved from $s$. To maintain reduced cost optimality, the potentials $\boldsymbol{\pi}$ are updated. Finally, the pseudoflow $\mathbf{x}$ is augmented along a shortest path $P$ from $s$ to $t$. The algorithm terminates when no excess or deficit vertices exist.
+Each iteration of the algorithm identifies an excess vertex $s$ and deficit vertex $t$. Next, the single-source shortest-path (SSSP) problem~\cite[ch.~24]{CLRS:2009} is solved from $s$. To maintain reduced cost optimality, the potentials $\boldsymbol{\pi}$ are updated. Finally, the pseudoflow $\mathbf{x}$ is augmented along a shortest path $P$ from $s$ to $t$. The algorithm terminates when no excess or deficit vertices exist.
 
 The amount of flow $\delta$ sent over the path is limited by the minimum residual capacity of arcs along $P$. $\delta$ is further restricted so that a non-negative supply at $s$ and demand at $t$ are maintained. This guarantees the excess at supply vertices and deficit at demand vertices is monotonically decreasing, ensuring each iteration improves the feasibility of the flow.
 
@@ -133,7 +133,7 @@ The amount of flow $\delta$ sent over the path is limited by the minimum residua
 \subsection{Optimisations} \label{sec:impl-ssp-optimisations}
 
 \subsubsection{Choice of shortest-path algorithm}
-The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure\footnotemark.
+The fastest known single-source shortest-path algorithms are all variants of Djikstra's algorithm~\cite[ch.~4]{Ahuja:1993}, differing only in the underlying heap data structure used. The asymptotically fastest are based on Fibonacci heaps, with a complexity of $O(m + n\lg n)$. By contrast, Djikstra's algorithm has a complexity of $O(m\lg n)$ when using the popular binary heap data structure\footnotemark.
 \footnotetext{Although binary and Fibonacci heaps have the same asymptotic complexity on flow scheduling networks, since $m = O(n)$ by \cref{lemma:network-num-arcs}.} 
 
 However, computational benchmarks have found Fibonacci heaps to be slower than binary heaps in practice, except on extremely large graphs~\cite[p.~15]{KiralyKovacs:2012}. In light of this, I used a binary heap implementation in this project.
@@ -179,7 +179,7 @@ Djikstra's algorithm with a binary heap data structure is used to solve the SSSP
 \end{proof}
 
 \begin{remark} \label{remark:ssp-flow-scheduling-complexity}
-On flow scheduling networks, no vertex has a greater than unit supply by \cref{lemma:network-supply}. This gives a bound on the total excess of $O(n)$ rather than $O(nU)$. Moreover, by \cref{lemma:network-num-arcs}, $m = O(n)$. So the complexity improves to $O(n^2 \lg n)$.
+On flow scheduling networks, by \cref{lemma:network-supply} no vertex has a greater than unit supply. This gives a bound on the total excess of $O(n)$ rather than $O(nU)$. Moreover, by \cref{lemma:network-num-arcs}, $m = O(n)$. So the complexity improves to $O(n^2 \lg n)$.
 \end{remark}
 
 \section{Relaxation algorithm} \label{sec:impl-relax}
@@ -234,7 +234,7 @@ Let $\mathbf{x}$ be a pseudoflow and $\boldsymbol{\pi}$ vertex potentials. Then 
 The complementary slackness conditions will be used rather than reduced cost optimality conditions, to simplify the proof. Recall the two conditions are equivalent (see \cref{sec:prep-flow-optimality}).
 
 By the definition of the relaxed problem and  \cref{eq:relax-obj-fun-balance}, $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$ if and only if it minimises:
-\[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}\]
+\[\sum_{\left(i,j\right)\in E}c_{ij}^{\boldsymbol{\pi}}x_{ij}+\sum_{i\in V}\pi_{i}b_{i}.\]
 subject to the capacity constraints of \cref{eq:capacity-constraints}.
 
 The second sum, $\sum_{i \in V} \pi_i b_i$, is constant in $\mathbf{x}$. Thus $\mathbf{x}$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi})$ if and only if it minimises:
@@ -270,7 +270,7 @@ by dropping the $\min_x$ and replacing $=$ with $\leq$.
 Note that the first sum is equal to $s(\mathbf{x}^*) = z^*$. Since $\mathbf{x}^*$ is a feasible flow, the mass balance constraints are satisfied, so:
 \[\forall i \in V\cdot e_i = 0\]
 and thus the second sum is equal to $0$. It follows that:
-\[w(\boldsymbol{\pi}) \leq z^* + 0 = z^*\]
+\[w(\boldsymbol{\pi}) \leq z^* + 0 = z^*.\]
 
 To prove the second part, let $\boldsymbol{\pi}^*$ be vertex potentials such that $\left(\mathbf{x}^*,\boldsymbol{\pi}^*\right)$ satisfy the reduced cost optimality conditions given in \cref{eq:optimality-reduced-cost}\footnotemark. By \cref{lemma:relax-rc-lr-equivalence}, it follows that $\mathbf{x}^*$ is an optimal solution to $\mathrm{LR}(\boldsymbol{\pi}^*)$. Thus $w(\boldsymbol{\pi}^*) = z^*$.
 \footnotetext{Note such a choice of $\boldsymbol{\pi}^*$ is guaranteed to exist since $\mathbf{x}^*$ is an optimal solution to the minimum-cost flow problem.}
@@ -290,27 +290,27 @@ The first operation is to \emph{update the potentials}, increasing the value of 
 
 The second operation is to \emph{augment the flow} $\mathbf{x}$, while leaving potentials $\boldsymbol{\pi}$ unchanged. The new flow $\mathbf{x}'$ remains an optimal solution of $\mathrm{LR}(\boldsymbol{\pi})$, and improves feasibility.
 
-The primary goal of the algorithm is thus to increase the value of the objective function, while the secondary goal is to increase feasibility (leaving the objective function unchanged). Therefore, when both operations are eligible to be executed, updating the potentials is preferred. 
+The primary goal of the algorithm is to increase the value of the objective function, while the secondary goal is to increase feasibility (leaving the objective function unchanged). Therefore, when both operations are eligible to be executed, updating the potentials is preferred. 
 
 A few definitions are necessary before specifying the preconditions for these operations.\\
 
 \begin{defn}[Tree excess] \label{defn:relax-tree-excess}
 Let $S$ denote the set of vertices spanned by the tree. Define:
 \begin{equation} \label{eq:relax-tree-excess}
-e(S) = \sum_{i \in S} e_i
+e(S) = \sum_{i \in S} e_i.
 \end{equation}
 \end{defn}
 
 \begin{defn}[Cuts] \label{defn:relax-cuts}
 A \emph{cut} of a graph $G = (V,E)$ is a partition of $V$ into two sets: $S$ and $\overline{S} = V \setminus S$. We denote the cut by $\left[S,\overline{S}\right]$. Let $\left(S,\overline{S}\right)$ and $\left(\overline{S},S\right)$ denote the set of forward and backward arcs crossing the cut, respectively. Formally:
-\[\left(S,\overline{S}\right) = \set{(i,j) \in E | i \in S \land j \in \overline{S}}\]
-\[\left(\overline{S},S\right) = \set{(i,j) \in E | i \in \overline{S} \land j \in S}\]
+\[\left(S,\overline{S}\right) = \set{(i,j) \in E | i \in S \land j \in \overline{S}};\]
+\[\left(\overline{S},S\right) = \set{(i,j) \in E | i \in \overline{S} \land j \in S}.\]
 \end{defn}
 
 \begin{defn} \label{defn:relax-tree-residual}
 Let:
 \begin{equation} \label{eq:relax-tree-residual}
-r(\boldsymbol{\pi},S) = \sum_{(i,j) \in \left(S,\overline{S}\right) \land c_{ij}^{\boldsymbol{\pi}}} r_{ij}
+r(\boldsymbol{\pi},S) = \sum_{(i,j) \in \left(S,\overline{S}\right) \land c_{ij}^{\boldsymbol{\pi}}} r_{ij}.
 \end{equation}
 \end{defn}
 

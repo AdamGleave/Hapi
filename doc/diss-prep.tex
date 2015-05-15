@@ -104,7 +104,7 @@ and mass balance constraints at each vertex $i \in V$:
 \end{equation}
 
 That is, the net flow out of the vertex is exactly equal to the supply
-at that vertex (which may be negative, in the case of demand vertices).
+at that vertex (which can be negative, in the case of demand vertices).
 
 \subsubsection{Assumptions}
 
@@ -135,12 +135,12 @@ Note, in general, that the MCF and maximum flow problem may be infeasible. For e
 
 \subsection{Scheduling with flows} \label{sec:prep-flow-scheduling}
 
-I will now show how cluster scheduling can be formulated in terms of the MCF problem, using Quincy as an example. For a detailed description of Quincy, see Isard \textit{et al.}~\cite{Isard:2009}. Firmament generalises Quincy, supporting different scheduling policies via a \emph{cost model} framework. I describe how I ported Quincy to this framework in \cref{appendix:flow-scheduling}. Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015} provides several examples of representing other scheduling policies in this manner.
+I will now show how cluster scheduling can be formulated in terms of the MCF problem, using Quincy as an example. For a detailed description of Quincy, see Isard \textit{et al.}~\cite{Isard:2009}. Firmament generalises Quincy, supporting different scheduling policies via a \emph{cost model} framework. I describe how I ported Quincy to this framework in \cref{appendix:flow-scheduling}. Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015} provides several examples of other scheduling policies represented in this manner.
 
 \begin{figure}
     \centering
     \input{figures/flow/quincy-example-no-costs}
-    \caption[Quincy scheduling flow network]{A small Quincy scheduling flow network. Vertices are \textbf{\color{blue} machines $\mathbf{M}_l$}, \textbf{\color{brown} cluster and rack aggregators $\mathbf{X}$} and \textbf{\color{brown}$\mathbf{R}_l$}, \textbf{\color{green} tasks $\mathbf{T}_i^j$}, \textbf{\color{red} unscheduled aggregators $\mathbf{U}^j$} and sink $S$. Task $\mathbf{T}_2^0$ is already scheduled on machine $\mathbf{M}_1$: the dotted line represents the \textbf{running arc}. All other tasks are unscheduled. Task $\mathbf{T}_0^1$ has two \textbf{preference arcs} to machine $M_3$ and rack aggregator $R_1$, represented by dashed lines.}
+    \caption[Quincy scheduling flow network]{A small Quincy scheduling flow network. Vertices are \textbf{\color{green} tasks $\mathbf{T}_i^j$}, \textbf{\color{red} unscheduled aggregators $\mathbf{U}^j$}, \textbf{\color{brown} cluster and rack aggregators $\mathbf{X}$} and \textbf{\color{brown}$\mathbf{R}_l$}, \textbf{\color{blue} machines $\mathbf{M}_l$}, and the sink $S$. Task $\mathbf{T}_2^0$ is already scheduled on machine $\mathbf{M}_1$: the dotted line represents the \textbf{running arc}. All other tasks are unscheduled. Task $\mathbf{T}_0^1$ has two \textbf{preference arcs} to machine $M_3$ and rack aggregator $R_1$, represented by dashed lines.}
     \label{fig:flow-network-no-costs}
 \end{figure}
 
@@ -148,9 +148,7 @@ I will now show how cluster scheduling can be formulated in terms of the MCF pro
 
 Each machine in the cluster is represented by a vertex, $\mathbf{M}_l$. The topology of the network follows that of the cluster: each rack is represented by a rack aggregator vertex $\mathbf{R}_j$, with arcs to  machines in that rack. There is also a single cluster aggregator vertex $\mathbf{X}$, with arcs to every rack aggregator.
 
-The scheduler manages \emph{jobs}, which consist of a number of \emph{tasks}. Each job $j$ has an \emph{unscheduled aggregator} $\mathbf{U}_j$, and a task vertex $\mathbf{T}_i^j$ for each task. Every task has an arc to the cluster aggregator. Tasks may also have arcs to rack aggregators and machines.
-
-Each task vertex $\mathbf{T}_i^j$ has unit supply. Tasks must drain into the \emph{sink} vertex $\mathbf{S}$, passing through a machine or unscheduled aggregator along the way\footnotemark.  Supply from tasks can only drain into the sink vertex via machines and unscheduled aggregators. If the flow from $\mathbf{T}_i^j$ passes through machine $\mathbf{M}_l$, the task is scheduled there; if it passes through the unscheduled aggregator $\mathbf{U}_j$, the task is left unscheduled.
+The scheduler manages \emph{jobs}, which consist of a number of \emph{tasks}. Each job $j$ has an \emph{unscheduled aggregator} $\mathbf{U}_j$. Every task $i$ in the job is represented by a task vertex $\mathbf{T}_i^j$, with unit supply. Tasks must drain into the \emph{sink} vertex $\mathbf{S}$, passing through a machine or unscheduled aggregator along the way\footnotemark.  Supply from tasks can only drain into the sink vertex via machines and unscheduled aggregators. If the flow from $\mathbf{T}_i^j$ passes through machine $\mathbf{M}_l$, the task is scheduled there; if it passes through the unscheduled aggregator $\mathbf{U}_j$, the task is left unscheduled.
 \footnotetext{In fact, unscheduled aggregators may themselves have demand, consuming the flow before it reaches the sink: see \cref{appendix:flow-scheduling:capacities}.}
 
 All tasks have an arc to cluster aggregator $\mathbf{X}$. In addition, a task may have \emph{preference arcs} to racks or machines which store a substantial proportion of the input data. Tasks that are already executing also have a \emph{running arc} to the machine they are currently scheduled on.
@@ -158,7 +156,7 @@ All tasks have an arc to cluster aggregator $\mathbf{X}$. In addition, a task ma
 \subsubsection{Capacities and costs}
 Arc capacities are used to \emph{restrict} the possible scheduling assignments. In Quincy, the capacities are chosen to provide a lower and upper bound on the number of tasks that may be scheduled for each job, guaranteeing fairness (see \cref{appendix:flow-scheduling:capacities}).
 
-The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Quincy seeks to achieve data locality, setting arc costs proportional to the network resources consumed. For arcs from a task to a machine, this can be computed exactly. When the arc is to a rack (or cluster) aggregator, a conservative approximation is used, assuming the scheduler places the task on the \emph{worst} machine in that rack (or the cluster as a whole).
+The costs associated with arcs specify \emph{preferences} between possible scheduling assignments. Quincy seeks to achieve data locality, setting arc costs proportional to the network resources consumed. For arcs from a task to a machine, this can be computed exactly. When the arc is to a rack (or cluster) aggregator, a conservative approximation is used, assuming the task runs on the \emph{worst} machine in that rack (or the cluster as a whole).
 
 Solving the minimum-cost flow problem on the resulting network finds a scheduling assignment which maximises data locality, subject to fairness constraints.
 
@@ -166,7 +164,7 @@ Solving the minimum-cost flow problem on the resulting network finds a schedulin
 
 % PROOFREAD: 1 minor edits.
 
-I state below some properties which hold for all flow scheduling networks. These will be useful in the next chapter, when analysing the complexity of algorithms. \\
+I state below some properties which hold for all scheduling flow networks. These will be useful in the next chapter, when analysing the complexity of algorithms. \\
 
 \begin{restatable}[Number of vertices in flow scheduling networks]{lemma}{flowschedulingnumvertices}
 \label{lemma:network-num-vertices}
@@ -192,7 +190,7 @@ The only vertices in the network with any supply are the task vertices, $\mathbf
 \end{proof}
 
 \begin{remark}
-Most vertices in the network are transshipment vertices, with no demand nor supply. The demand vertices in the network are the sink vertex $\mathbf{S}$ and unscheduled aggregators, $\mathbf{U}^j$. These may have a greater than unit demand.
+Most vertices in the network are transshipment vertices, with no demand nor supply. The demand vertices in the network are the sink vertex $\mathbf{S}$ and unscheduled aggregators, $\mathbf{U}^j$, which may have a greater than unit demand.
 \end{remark}
 
 \subsection{Key concepts in flow algorithms}
@@ -205,8 +203,8 @@ In the preceding sections, I have formalised the notion of a flow network and ou
 
 % PROOFREAD: 1 minor edits
 
-A \emph{pseudoflow} is a vector $\mathbf{x}$ which satisfies the capacity constraints
-\cref{eq:capacity-constraints}, but which need not satisfy the mass balance constraints \cref{eq:mass-balance-constraints}. While all flow algorithms must return a feasible solution, many operate on pseudoflows in intermediate stages. 
+A \emph{pseudoflow} is a vector $\mathbf{x}$ which satisfies the capacity constraints of
+\cref{eq:capacity-constraints}, but which need not satisfy the mass balance constraints of \cref{eq:mass-balance-constraints}. While all flow algorithms must return a feasible solution, many operate on pseudoflows in intermediate stages. 
 
 The \emph{excess} at a vertex $i\in V$ is defined to be:
 
@@ -214,15 +212,15 @@ The \emph{excess} at a vertex $i\in V$ is defined to be:
 e_i=b_i+\sum_{\set{j | (j,i)\in E}}x_{ji}-\sum_{\set{j | (i,j)\in E}}x_{ij}.
 \end{equation}
 
-Vertex $i$ is said to be an \emph{excess vertex} if $e_{i}>0$, and a \emph{deficit vertex} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$ is said to be \emph{balanced}. Note the mass balance constraints \cref{eq:mass-balance-constraints} hold if and only if all vertices are balanced.
+Vertex $i$ is said to be an \emph{excess vertex} if $e_{i}>0$, and a \emph{deficit vertex} if $e_{i}<0$ (with deficit $-e_{i}$). If $e_{i}=0$, $i$ is said to be \emph{balanced}. Note the mass balance constraints of \cref{eq:mass-balance-constraints} hold if and only if all vertices are balanced.
 
 \subsubsection{Residual networks}
 
 % PROOFREAD: 1 major edits.
 
-The notion of \emph{residual networks} is used in many flow algorithms. The residual network of $G$ is defined with respect to a (pseudo)flow $\mathbf{x}$, and is denoted by $G_{\mathbf{x}}$. Informally, it represents the actions an algorithm can take to modify the (pseudo)flow $\mathbf{x}$. In the case where $\mathbf{x=0},$ we have $G_{\mathbf{0}}=G$.
+The notion of \emph{residual networks} is used in many flow algorithms. The residual network of $G$ is defined with respect to a (pseudo)flow $\mathbf{x}$, and is denoted by $G_{\mathbf{x}}$. Informally, it represents the actions an algorithm can take to modify the (pseudo)flow $\mathbf{x}$. In the case where $\mathbf{x=0},$ $G_{\mathbf{0}}=G$ holds.
 
-Formally, we define $G_{\mathbf{x}}=\left(V,E_{\mathbf{x}}\right)$ to be a directed graph where:
+Formally, define $G_{\mathbf{x}}=\left(V,E_{\mathbf{x}}\right)$ as a directed graph where:
 \begin{equation}
 E_{\mathbf{x}}=\set{(i,j)\in V^{2} | (i,j)\in E\land x_{ij}<u_{ij}} \cup \set{(j,i)\in V^{2} | (i,j)\in E\land x_{ij}>0}. 
 \end{equation}
@@ -233,12 +231,12 @@ The \emph{residual capacity} of an arc $(i,j)\in E_{\mathbf{x}}$ is defined to b
 
 \begin{equation}
 r_{ij}=\begin{cases}
-u_{ij}-x_{ij} & ,\:(i,j)\:\mbox{is a forward arc;}\\
-x_{ij} & ,\:(i,j)\:\mbox{is a reverse arc.}
+u_{ij}-x_{ij} & \text{, if \ensuremath{(i,j)} is a forward arc;}\\
+x_{ij} & \text{, if \ensuremath{(i,j)} is a reverse arc.}
 \end{cases}
 \end{equation}
 
-The cost of forward arcs is the same as in the original network, whereas the cost of a reverse arc $(j,i)$ is defined as $-c_{ij}$.
+The cost of forward arcs is the same as in the original network, whereas the cost of a reverse arc $(j,i)$ is defined to be $-c_{ij}$.
 
 \subsubsection{Duality and reduced cost} \label{sec:prep-flow-rc-and-dual}
 
@@ -290,9 +288,9 @@ Let $\mathbf{x}$ be a (feasible) flow. It is an optimal solution to the minimum-
 \normalfont % don't want text in maths italic
 \begin{subequations} \label{eq:optimality-complementary-slackness}
 \begin{align} 
-\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}>0}, } & \text{then \ensuremath{x_{ij}=0}} \\
-\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}<0}, } & \text{then \ensuremath{x_{ij}=u_{ij}}} \\
-\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}=0}, } & \text{then \ensuremath{0\leq x_{ij}\leq  u_{ij}}}
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}>0}, } & \text{then \ensuremath{x_{ij}=0};} \\
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}<0}, } & \text{then \ensuremath{x_{ij}=u_{ij}};} \\
+\text{if \ensuremath{c_{ij}^{\boldsymbol{\pi}}=0}, } & \text{then \ensuremath{0\leq x_{ij}\leq  u_{ij}}.}
 \end{align}
 \end{subequations}
 \end{thm}
@@ -304,9 +302,7 @@ The result follows immediately from expanding out \cref{eq:optimality-reduced-co
 
 % PROOFREAD: 1 minor edits.
 
-Here, I introduce notation that will be useful for stating the asymptotic complexity of algorithms. Let $n=|V|$ and $m=|E|$ denote the number of vertices and arcs respectively.
-
-The running time of algorithms may depend not just on the size of the network, but also on the magnitudes of input data. Let $U$ denote the largest vertex supply/demand, or arc capacity:
+Here, I introduce notation that will be useful for stating the asymptotic complexity of algorithms. Let $n=|V|$ and $m=|E|$ denote the number of vertices and arcs respectively. Let $U$ denote the largest vertex supply/demand, or arc capacity:
 \begin{equation}
 U=\max\left(\max\left\{ |b_{i}|\::\: i\in V\right\} ,\max\left\{ u_{ij}\::\:\left(i,j\right)\in E\right\} \right)
 \end{equation}
@@ -314,7 +310,7 @@ U=\max\left(\max\left\{ |b_{i}|\::\: i\in V\right\} ,\max\left\{ u_{ij}\::\:\lef
 and let $C$ denote the largest arc cost:
 
 \begin{equation}
-C=\max\left\{ c_{ij}\::\:(i,j)\in E\right\} 
+C=\max\left\{ c_{ij}\::\:(i,j)\in E\right\}.
 \end{equation}
 
 \section{Project management}
@@ -343,7 +339,7 @@ The main goals for the project are listed in \cref{table:prep-project-requiremen
         \hline
         & \textit{Optional extensions} \tabularnewline
         E1 & Design an incremental solver & Med. & High & High \tabularnewline
-        E2 & Build cluster simulator & Med. & Med. & Med. \tabularnewline
+        E2 & Build cluster simulator & Med. & Low & Med. \tabularnewline
         E3 & Optimise algorithm implementations & Low & Med. & High \tabularnewline
         \hline
     \end{tabular}
@@ -353,7 +349,7 @@ The main goals for the project are listed in \cref{table:prep-project-requiremen
 
 Core success criteria were assigned a high priority: work on extensions only began once all success criteria had been met (see \cref{sec:prep-implsched}). Most of the risk was concentrated in the approximate solver. This approach had not previously been attempted, so it was difficult to predict how it would perform.
 
-I deemed extensions to be more risky. Although the incremental solution approach turned out to be highly successful (see \cref{sec:eval-incremental}), at the outset of the project it was unclear whether it was even possible to build such a solver. All extensions were rated medium or high difficulty, because of the considerable implementation work required.
+The extensions I deemd more risky. Although the incremental solution approach turned out to be highly successful (see \cref{sec:eval-incremental}), at the outset of the project it was unclear whether it was even possible to build such a solver. All extensions were rated medium or high difficulty, because of the considerable implementation work required.
 
 \subsection{Development life cycle}
 \label{sec:prep-management-model}
@@ -381,7 +377,7 @@ I deemed extensions to be more risky. Although the incremental solution approach
 % Test harness: incremental development, effectively sequences of waterfall
 % New approaches: evolutionary prototyping
 
-A software development life cycle or process provides structure to a project, dividing work into distinct phases to simplify management. This project has clearly defined requirements, suggesting a waterfall model. However, there was considerable uncertainty associated with the design of some deliverables: methods such as incremental development or evolutionary prototyping might be more appropriate in these cases. I adopted the \emph{spiral model}, a risk-driven life cycle \emph{generator}, which is able to accommodate such varying requirements.
+A software development life cycle or process provides structure to a project, dividing work into distinct phases to simplify management. This project has clearly defined requirements, suggesting a waterfall model. However, there was considerable uncertainty associated with the design of some deliverables: methods such as incremental development or evolutionary prototyping might be more appropriate in these cases. I adopted the \emph{spiral model}, a risk-driven life cycle generator, which is able to accommodate such varying requirements.
 
 The spiral model indicates that development of deliverables S1 and S3 in \cref{table:prep-project-requirements} should follow the \emph{waterfall} model: they are low risk, with precisely known requirements. By contrast, the test suite --- consisting of deliverables S4 and E2 --- used an \emph{incremental} development approach, with new tests added after other deliverables were completed.
 
@@ -391,7 +387,7 @@ Deliverables S2, E1 and E3 were all rated as medium or high risk. Their requirem
 
 \subsection{Testing strategy}
 \label{sec:prep-management-testing}
-I developed unit tests for each class. Where possible, I used the GTest framework (see \cref{appendix:tools-libraries}). However, testing of flow algorithms requires large external datasets: a Python test harness was developed to automate these tests. Integration tests with Firmament were also performed upon the completion of deliverables S1 and S3 (see \cref{sec:eval-test-correctness}).
+I developed unit tests for each class. Where possible, I used the GTest framework (see \cref{appendix:tools-libraries}). However, testing of flow algorithms requires large external datasets: a Python test harness was developed to automate such tests. I also performed integration tests with Firmament (see \cref{sec:eval-test-correctness}).
 
 Extensive performance evaluation was conducted. Anticipating this need, success criteria S4 and extension E2 deliver tools for benchmarking. Further details are provided in \cref{sec:impl-firmament}, \cref{sec:eval-benchmark-strategy} and \cref{appendix:impl-benchmark-harness}.
 
@@ -425,7 +421,7 @@ For a project of this scope, it is essential to plan the work before commencing 
     \item \label{itm:phase-evaluation} 
         \textbf{Performance evaluation} -- run experiments to determine the speed-up offered by the system. This required development of a benchmark suite to facilitate testing, and provided deliverables S4 and E2; see \cref{chap:eval}.
     \item \label{itm:phase-incremental} 
-        \textbf{Incremental solver} -- develop an algorithm solving the minimum-cost flow problem on sequences of related flow networks. The method reuses solutions to previous networks in the sequence to improve performance. Provided deliverable E1; see \cref{sec:impl-incremental}.
+        \textbf{Incremental solver} -- develop an algorithm solving the minimum-cost flow problem on sequences of related flow networks. The method reuses solutions to previous networks in the sequence to improve performance. Provided extension E1; see \cref{sec:impl-incremental}.
     \item \label{itm:phase-optimisations}
         \textbf{Optimisations} -- previous phases focused on improvements in \emph{algorithmic} techniques. In practice, performance is heavily dependent on the \emph{implementation} of the algorithm. Consequently, optimisations were necessary for the project to be competitive with existing solvers. Delivers extension E3; see \cref{sec:eval-optimisations}.
 \end{enumerate}
@@ -449,7 +445,7 @@ I used the Python scripting language for the development of test harnesses (see 
 
 \subsection{Libraries} \label{sec:prep-tools-libraries}
 
-Hapi uses two libraries developed at Google --- glog and gtest --- for logging and unit tests. I also extensively used the Boost family of libraries. See \cref{appendix:tools-libraries} for details of how I used the libraries, and a justification of my choice. 
+Hapi uses two libraries developed at Google --- glog and gtest --- for logging and unit tests. I also extensively used the Boost family of libraries. Further details are provided in \cref{appendix:tools-libraries}.
 
 \subsection{Flow scheduling}
 
@@ -472,6 +468,6 @@ Copies of the resulting snapshots were stored on the university MCS and the Stud
 
 \section{Summary}
 
-In this chapter, I have outlined the work undertaken prior to starting implementation for this project. I summarised the current state of the art cluster schedulers in \cref{sec:prep-scheduling}, and showed how flow scheduling can improve upon it. Next, I provided some elementary background on flow networks, and outlined how scheduling can be expressed in terms of a flow problem.
+In this chapter, I have outlined the work undertaken prior to starting implementation for this project. In \cref{sec:prep-scheduling}, I summarised the state of the art in cluster scheduling, and showed how flow scheduling can improve upon it. Next, I provided some elementary background on flow networks, and outlined how scheduling can be expressed in terms of a flow problem.
 
 After having surveyed the research area, I turned to more practical considerations. I started by conducting a requirements analysis, identifying an appropriate software development life cycle taking into account the risk profile of the requirements. Next, I developed a concrete plan of implementation using the aforementioned techniques. Finally, I identified the tools I would use during implementation. In the next chapter, I describe the algorithms developed in this project.

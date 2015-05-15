@@ -154,7 +154,7 @@ COMPILER_FIGURES = {
     'data': 'f_compilers_cs',
     'test_filter': dictFilter(compiler_implementations('cs')),
     'dataset': 'Medium',
-    'legend': 'upper right',
+    'legend_loc': 'upper right',
   },
   'relax': {
     'data': 'f_compilers_relax',
@@ -297,7 +297,7 @@ def updateOptimisationFigures(d):
 
 OPTIMISATION_FIGURES = updateOptimisationFigures(OPTIMISATION_FIGURES)
 
-SCALING_FACTORS = list(range(2,9)) + list(range(10,32,2))
+SCALING_FACTORS = list(range(2,9)) + [10] + list(range(12,32,4))
 OPTIMISATION_FIGURES['cs_scaling_factor'] = {
   'data': 'f_opt_cs_scaling_factor',
   'type': FigureTypes.optimisation_scaling_factors,

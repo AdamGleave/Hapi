@@ -72,17 +72,14 @@ Development of flow algorithms continues to the present day. While it is impract
 
 \subsection{Network simplex}
 
-The network simplex algorithm is the oldest flow solution method still in use today. The simplex approach of Dantzig~\cite{Dantzig:1949} was one of the first approaches used in the solution of flow problems. Specialised versions, known as \emph{network simplex} algorithms, were developed soon after, offering considerable performance gains~\cite{Dantzig:1962}.
-
-The generic network simplex algorithm is not guaranteed to run in polynomial time\footnotemark, although many variants have been devised with a polynomial bound~\cite{Tarjan:1991,Goldfarb:1992}. Apart from algorithmic improvements, there has also been considerable work to develop efficient implementations~\cite{Lobel:1996,Grigoriadis:1986}.
-\footnotetext{Although in practice it is typically rather efficient.}
+The network simplex algorithm is the oldest flow solution method still in use today. Although the generic network simplex algorithm is not guaranteed to run in polynomial time, many variants have been devised with a polynomial bound~\cite{Tarjan:1991,Goldfarb:1992}. Furthermore, there has been considerable work to develop efficient implementations~\cite{Lobel:1996,Grigoriadis:1986}.
 
 \subsection{Successive shortest path} \label{sec:intro-related-work-ssp}
 
 This algorithm was invented independently by several authors~\cite{Jewell:1958,Iri:1960,BusackerGowen:1960}. Edmonds and Karp~\cite{Edmonds:1972} and Tomizawa~\cite{Tomizawa:1971} independently suggested a technique to maintain non-negative arc costs during the algorithm; this allows for more efficient shortest path computations, considerably improving its performance. The variant given by Edmonds and Karp is notable for being the first (weakly) polynomial time algorithm\footnotemark.
 \footnotetext{In a weakly polynomial algorithm, the maximum cost and capacity of arcs may feature in the polynomial bound. By contrast, for a (strongly) polynomial algorithm, the bound is a function only of the dimensions of the problem: the number of vertices and arcs.}
 
-Nevertheless, these traditional versions of successive shortest path are inferior to more modern algorithms, such as cost scaling (see \cref{sec:intro-related-work-cs}). Relaxation is a variant due to Bertsekas and Tseng~\cite{BertsekasMethod:1988,BertsekasCodes:1988,BertsekasTseng:94} which is competitive with contemporary algorithms: in fact, it is the fastest solver on some networks~\cite{KiralyKovacs:2012}. Although relaxation is not normally described as a successive shortest path algorithm, it can be shown to performs the same basic operations~\cite[\S9.10]{Ahuja:1993}, a fact exploited by my incremental solver (see \cref{sec:impl-incremental-choice}). 
+Nevertheless, these traditional versions of successive shortest path are inferior to more modern algorithms, such as cost scaling (see \cref{sec:intro-related-work-cs}). Bertsekas and Tseng developed a more modern variant, \emph{relaxation}, which is competitive with contemporary algorithms~\cite{BertsekasMethod:1988,BertsekasCodes:1988,BertsekasTseng:94}. In fact, it is the fastest solver on some networks~\cite{KiralyKovacs:2012}. Although relaxation is not normally described as a successive shortest path algorithm, it can be shown to performs the same basic operations~\cite[\S9.10]{Ahuja:1993}, a fact exploited by my incremental solver (see \cref{sec:impl-incremental-choice}). 
 
 \subsection{Cycle cancelling}
 
@@ -106,4 +103,4 @@ Asymptotic complexity is sometimes misleading: flow algorithms usually considera
 
 Consequently, comparison of flow algorithms is typically done by empirical benchmarks. The most recent study in this area is due to Kir{\'{a}}ly and Kov{\'{a}}cs, who tested all the algorithms described above~\cite{KiralyKovacs:2012,Kovacs:2015}.
 
-In addition, many implementations of these algorithms are available. These include CS2 for the cost-scaling algorithm~\cite{CS2:2009} and RELAX-IV for the relaxation algorithm~\cite{RelaxIV:2011}. I compare my solver against these state-of-the-art implementations in my evaluation.
+In addition, reference implementations of these algorithms are available. These include CS2 for the cost-scaling algorithm~\cite{CS2:2009} and RELAX-IV for the relaxation algorithm~\cite{RelaxIV:2011}. I compare my solver against these state-of-the-art implementations in my evaluation.

@@ -49,7 +49,6 @@ Hapi is intended to used as part of a larger cluster scheduling system. To demon
         \caption{An overview from the web user interface for Firmament.}
     \end{subfigure}
     \begin{subfigure}{\textwidth}
-        % XXX
         \includegraphics[width=\textwidth]{screenshots/Firmament_flow_graph_raster}
         \caption{An extract of a flow graph, showing the scheduling of a small number of tasks (left hand side). Arcs are \textbf{\color{red} red} if they carry flow, \textbf{\color{gray} grey} otherwise.}
     \end{subfigure}
@@ -417,27 +416,27 @@ The method of approximation that I developed can be applied to any flow network.
     \begin{widepage}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics{app/netgen_8_oracle_policy_2col.pdf}
-        \caption{NETGEN-8}
+        \caption{NETGEN-8.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics{app/netgen_lo_8_oracle_policy_2col.pdf}
-        \caption{NETGEN-LO-8}
+        \caption{NETGEN-LO-8.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics{app/netgen_sr_oracle_policy_2col.pdf}
-        \caption{NETGEN-SR}
+        \caption{NETGEN-SR.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics{app/netgen_lo_sr_oracle_policy_2col.pdf}
-        \caption{NETGEN-LO-SR}
+        \caption{NETGEN-LO-SR.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics{app/goto_8_oracle_policy_2col.pdf}
-        \caption{GOTO-8}
+        \caption{GOTO-8.}
     \end{subfigure}
     \begin{subfigure}[c]{0.5\textwidth}
         \includegraphics{app/goto_sr_oracle_policy_2col.pdf}
-        \caption{GOTO-SR}
+        \caption{GOTO-SR.}
     \end{subfigure}
     \end{widepage}
     \caption[Upper bound on speedup from approximation on general flow networks]{Upper bound on speedup from approximation on general flow networks, computed using the oracle policy. The experiment was conducted over 1,000 independently generated networks.}
@@ -450,29 +449,29 @@ The method of approximation that I developed can be applied to any flow network.
     \begin{widepage}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_8_policy_cost_parameters_2col.pdf}
-            \caption{NETGEN-8}
+            \caption{NETGEN-8.}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_lo_8_policy_cost_parameters_2col.pdf}
-            \caption{NETGEN-LO-8}
+            \caption{NETGEN-LO-8.}
             \label{fig:app-general-cost-parameters:netgen-lo-8}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_sr_policy_cost_parameters_2col.pdf}
-            \caption{NETGEN-SR}
+            \caption{NETGEN-SR.}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_lo_sr_policy_cost_parameters_2col.pdf}
-            \caption{NETGEN-LO-SR}
+            \caption{NETGEN-LO-SR.}
             \label{fig:app-general-cost-parameters:netgen-lo-sr}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/goto_8_policy_cost_parameters_2col.pdf}
-            \caption{GOTO-8}
+            \caption{GOTO-8.}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/goto_sr_policy_cost_parameters_2col.pdf}
-            \caption{GOTO-SR}
+            \caption{GOTO-SR.}
         \end{subfigure}
     \end{widepage}
     \caption[Parameter choice for cost convergence on general flow networks]{Parameter choice for cost convergence on general flow networks: selecting a cost threshold $c$. Cost convergence was applied, for various parameters $c$, to each of the 250 networks in the training set. The solution accuracy measures how close the resulting solutions were to optimality. Key: \textbf{\color{matplotlib_blue} 1\textsuperscript{st} percentile}, \textbf{\color{matplotlib_green} 5\textsuperscript{th} percentile}, \textbf{\color{matplotlib_red} 25\textsuperscript{th} percentile}, \textbf{\color{matplotlib_cyan} median}.}
@@ -486,29 +485,29 @@ The relationship between the threshold $c$ for the cost convergence heuristic an
     \begin{widepage}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_8_policy_cost_accuracy_narrow_2col.pdf}
-            \caption{NETGEN-8}
+            \caption{NETGEN-8.}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_lo_8_policy_cost_accuracy_narrow_2col.pdf}
-            \caption{NETGEN-LO-8}
+            \caption{NETGEN-LO-8.}
             \label{fig:app-general-cost-accuracy-cdf:netgen-lo-8}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_sr_policy_cost_accuracy_narrow_2col.pdf}
-            \caption{NETGEN-SR}
+            \caption{NETGEN-SR.}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/netgen_lo_sr_policy_cost_accuracy_narrow_2col.pdf}
-            \caption{NETGEN-LO-SR}
+            \caption{NETGEN-LO-SR.}
             \label{fig:app-general-cost-accuracy-cdf:netgen-lo-sr}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/goto_8_policy_cost_accuracy_narrow_2col.pdf}
-            \caption{GOTO-8}
+            \caption{GOTO-8.}
         \end{subfigure}
         \begin{subfigure}[c]{0.5\textwidth}
             \includegraphics{app/goto_sr_policy_cost_accuracy_narrow_2col.pdf}
-            \caption{GOTO-SR}
+            \caption{GOTO-SR.}
         \end{subfigure}
     \end{widepage}
     \caption[Accuracy of cost convergence policy on general flow networks]{Accuracy of cost convergence policy on general flow networks. CDFs computed over the 750 networks in the test set.}
