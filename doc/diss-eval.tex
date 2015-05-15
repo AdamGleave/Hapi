@@ -250,7 +250,7 @@ My implementation performs best with a small scaling factor, between $2$ and $6$
 
 Goldberg's solver exhibits the opposite behaviour, enjoying considerable performance gains with larger scaling factors. There are diminishing returns after around $\alpha = 12$, with performance starting to degrade from around $\alpha = 24$.
 
-I believe this behaviour is due to Goldberg's extensive use of heuristics (see \cref{appendix:impl-csheuristics}) in his implementation. Although these improve the overall performance of the algorithm, they add overhead to to each execution of \textproc{Refine}. This favours larger values of $\alpha$, which cause fewer calls to \textproc{Refine}. 
+I believe this behaviour is due to Goldberg's extensive use of heuristics (see \cref{appendix:impl-csheuristics}) in his implementation. Although these improve the overall performance of the algorithm, they add overhead to each execution of \textproc{Refine}. This favours larger values of $\alpha$, which cause fewer calls to \textproc{Refine}. 
 
 In subsequent tests, a scaling factor of $\alpha = 3$ is used for my implementation and $\alpha = 20$ for Goldberg's. These offer small, but statistically significant speedups, over the default cost scaling factors of $2$ (my implementation) and $12$ (Goldberg's implementation).
 
@@ -287,7 +287,7 @@ This test was repeated for all other implementations in the project. The complet
 Unlike with other algorithms, evaluation of approximate solution methods (see \cref{sec:impl-approx}) must consider not just their speed, but also their accuracy\footnotemark. To complicate matters further, both the speed and accuracy of the approximation algorithm vary depending on the terminating condition chosen.
 \footnotetext{Defined to be the ratio of the cost of an optimal solution, to the cost of the solution returned.}
 
-I introduce an \emph{oracle} policy to ease interpretation of the results. The oracle terminates the algorithm as soon as as an intermediate solution is found that reaches the target accuracy. Of course, an oracle policy is unrealistic: the entire challenge of approximation is that the minimum cost is not known \textit{a priori}. The oracle policy therefore provides an upper bound on the speedup that can possibly be achieved by approximation.
+I introduce an \emph{oracle} policy to ease interpretation of the results. The oracle terminates the algorithm as soon as an intermediate solution is found that reaches the target accuracy. Of course, an oracle policy is unrealistic: the entire challenge of approximation is that the minimum cost is not known \textit{a priori}. The oracle policy therefore provides an upper bound on the speedup that can possibly be achieved by approximation.
 
 When evaluating the heuristic policies (see \cref{sec:impl-approx-adaptions}), I split each dataset into training and test data in a 1:3 ratio. The parameters are chosen from the training data in order to achieve a target accuracy $A$ at least a proportion $p$ of the time. In the tests below, both $A$ and $p$ were set to 99\%. Naturally, relaxing these constraints allows for a greater speedup.
 
