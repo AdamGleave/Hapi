@@ -23,11 +23,6 @@
 % Make list environments more configurable
 \usepackage{enumitem}
 
-%\usepackage{showidx}
-%\usepackage[textsize=footnotesize,textwidth=0.8in]{todonotes}
-%\setlength{\marginparwidth}{0.9in}
-%\usepackage{todonotes}
-
 \usepackage{gitinfo}
 
 % Hyperlinks
@@ -242,7 +237,6 @@ doi=false,]{biblatex}
 %%% Cleverref: must load after hyperref, so orphaned
 \usepackage{cleveref}
 % use \S and \S\S for section references
-% SOMEDAY: do we even want the \S symbol?
 \makeatletter
 \newcommand{\crefformats}[2]{%
     \@for\next:=#1\do{%

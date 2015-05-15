@@ -12,7 +12,6 @@ I start by outlining desirable properties of cluster schedulers. Following this,
 
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
-% SOMEDAY: Rephrase 2nd sentence: "Moreover, ... may need to analyse a large amount of data ..."
 To achieve optimal performance, the scheduling policy employed must be \emph{targeted} to the requirements of the workload. The scheduler may need to analyse a large amount of data, such as the resource requirements of each task and the utilisation of each machine, to \emph{effectively} implement a particular policy. All decisions should be made as \emph{fast} as possible, to support interactive applications. Furthermore, the system must be able to \emph{scale} to the size of modern clusters. These goals are summarised in \cref{table:cluster-scheduler-design-goals}.
 
 \begin{table}
@@ -325,16 +324,7 @@ Having mastered the background material, I began to refine the initial project p
 
 \subsection{Requirements analysis} \label{sec:prep-management-requirements}
 
-% SOMEDAY: Include dependency analysis?
-% Matt did this and it was a big plus, but ultimately my dependence structure is much simpler; unsure if it's worth it?
-% Implementation: strategy -> algorithms -> data structures
-% Some common code, e.g. parsing.
-% Evaluation: test harness -> simulator
-
-% Requirements: based on success criteria and extensions in project proposal
-% Requirements shown along with section satisfying them
-% Quick summary?
-% Core deliverables: 
+%WONTFIX: Include dependency analysis?
 
 The main goals for the project are listed in \cref{table:prep-project-requirements}, broadly following the success criteria and extensions suggested in the original project proposal.
 
