@@ -357,7 +357,7 @@ Under cost convergence, the algorithm terminates when the cost changes by less t
 
 The task migration convergence heuristic measures the number of tasks that have been reassigned (`migrated') between machines, terminating when it is less than a threshold $t$. Although it was hoped that this domain-specific heuristic might fare better than the more general cost convergence policy, \cref{fig:app-quincy-medium-task-assignment-parameters} is not encouraging. 
 
-% TODO: Graph actually showing task migrations?
+%WONTFIX: Graph actually showing task migrations?
 Although the number of task migrations falls somewhat as the algorithm converges, it remains high throughout execution. In fact, tasks are migrated even once optimality is reached (but while $\epsilon > 1$)! Tasks with only a single input file have preference arcs with equal cost to each machine that has a replica of the file. These tasks may be migrated freely between machines in their preference set, without changing the cost of the overall solution.
 
 This is reflected in the fact that accuracy in \cref{fig:app-quincy-medium-task-assignment-parameters} only drops at a relatively large migration threshold, of over $6000$. When it does fall, it does so precipitously, indicating the heuristic is highly sensitive to parameter setting.
@@ -574,7 +574,7 @@ Time is divided into \emph{scheduling rounds}. When an event (such as task submi
 The scheduling latency for round $n$ is defined to be the \emph{longest} time any event spent waiting in the queue during scheduling round $n-1$, plus the runtime of the flow algorithm on scheduling round $n$. This represents the performance that would be observed by users in a real application.
 % WONTFIX: Maybe you should evaluate the fixed interval one as well? Could put it in the appendix.
 
-%FIGURE: Illustrate timeline of events, if time
+%WONTFIX: Illustrate timeline of events, if time
 
 This approach is necessary: unlike algorithms that run from scratch, the runtime of incremental algorithms depends on the number of changes to the flow network. Decreasing the runtime of an incremental algorithm will therefore tend to produce an even greater decrease in the scheduling latency, since the number of pending events in the queue is smaller. Conversely, small increases in the runtime of incremental solvers are amplified when measuring scheduling latency. 
 
@@ -616,11 +616,11 @@ For relaxation, the incremental solver enjoys a speedup of $29\times$. Although 
 
 Both incremental solvers have a long tail. This is a reflection of the distribution of events in the cluster trace. In most scheduling rounds, there are only a handful of changes, and the incremental solver returns quickly. Occasionally, however, thousands of events may occur in a small time window: for example, when a large job is submitted. In this case, reoptimisation may take a while, although it is still faster than solving from scratch.
 
-% SOMEDAY: Could mention performance on other sized datasets?
+%WONTFIX: Could mention performance on other sized datasets?
 
 \subsection{Best-in-class comparison}
 
-% TODO: Add in relaxation to this once ion_irelax has finished, it should beat augmenting path
+%TODO: Add in relaxation to this once ion_irelax has finished, it should beat augmenting path
 \begin{figure}
     \begin{widepage}
         \begin{subfigure}[c]{0.5\textwidth}

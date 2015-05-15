@@ -101,7 +101,7 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
     \label{fig:ssp-trace}
 \end{figure}
 
-% SOMEDAY: footnote after $t$ is bad
+%WONTFIX: footnote after $t$ is bad
 \begin{algorithm}
     \caption{Successive shortest path}
     \label{algo:successive-shortest-path}
@@ -109,7 +109,7 @@ In general, this algorithm runs in weakly polynomial time. However, for the clas
         \State $\mathbf{x} \gets \mathbf{0}$ and $\boldsymbol{\pi} \gets \mathbf{0}$
         \While{mass balance constraints not satisfied} \label{algo:successive-shortest-path:start-loop}
           \State choose excess vertex $s$ and deficit vertex $t$\footnotemark \label{algo:successive-shortest-path:select-active}
-          % SOMEDAY: These statements are multi-line, shorten? Or at least reflow.
+          %WONTFIX: These statements are multi-line, shorten? Or at least reflow.
           \State solve SSSP problem from $s$ to all vertices in the residual network $G_{\mathbf{x}}$, with respect to the reduced costs $c^{\boldsymbol{\pi}}_{ij}$ \label{algo:successive-shortest-path:solve-sssp}
           \State let $\mathbf{d}$ denote the vector of shortest path distances, such that $d_i$ is the shortest path from $s$ to $i\in V$
           \Let{$\boldsymbol{\pi}$}{$\boldsymbol{\pi} - \mathbf{d}$} \label{algo:successive-shortest-path:update-potentials}
@@ -474,7 +474,7 @@ The complexity is thus $O\left(nm^2CU\right)$ on flow scheduling networks by the
 
 % PROOFREAD: 1 minor edits
 
-% SOMEDAY: If you run a benchmark of reference implementations, cite it here.
+%WONTFIX: If you run a benchmark of reference implementations, cite it here.
 The cost scaling method is due to Goldberg and Tarjan~\cite{Goldberg:1987}. The generic version runs in weakly polynomial time, with variants offering strongly polynomial bounds. It is one of the most efficient solution methods, in both theory and practice\footnotemark. Cost scaling works by successive approximation, so is readily adapted to create an approximate solver (see \cref{sec:impl-approx}). It is not suitable to being used incrementally, however.
 \footnotetext{In computational benchmarks such as the one by Kir{\'{a}}ly and Kov{\'{a}}cs~\cite{KiralyKovacs:2012}, cost scaling is the fastest algorithm for many classes of network. It is occasionally beaten by other algorithms, although its performance is still competitive in these cases. This makes it more robust than some alternative solution methods, such as relaxation (see \cref{sec:impl-relax}), which sometimes outperform it, but are in other cases orders of magnitude slower.}
 
@@ -872,7 +872,6 @@ Cost convergence is a general approach, applicable to any class of flow network.
 
 % PROOFREAD: 1 minor edits, 2 minor edits
 
-% FIGURE: Sequence of flow graphs, showing small change?
 Flow scheduling systems produce a sequence of closely related flow networks. Each new network in the sequence is generated in response to cluster events. \Cref{fig:inc-network} gives an example of the changes triggered by task submission, one of the most common events. Other events include task completion, machine addition and removal.
 
 These events cause localised changes to the flow network. Consequently, the optimal flow tends to remain mostly the same. My method of \emph{incremental} solution is designed to exploit this. The algorithm reuses the solution for the old flow network, \emph{reoptimising} to produce an answer for the new network. This approach proved to be extremely successful, producing a factor of $14.5\times$ speedup in my tests (see \cref{sec:eval-incremental}). I believe my implementation is the first of its kind: there is certainly no mention of this method in the literature.
@@ -1048,7 +1047,7 @@ Each arc $(i,j)$ is identified by an array index in RELAX-IV. Of course, the flo
 
 % PROOFREAD: None
 
-% FIGURE: scope of Firmament extension? XXX [good to get credit for this, & relatively easy]
+% WONTFIX: figure giving scope of Firmament extension
 
 The last two sections described my implementation of approximate and incremental solution methods. This section considers their use as part of a flow scheduling platform, Firmament~\cite[ch.~5]{Schwarzkopf:2015}. Integration with Firmament was straightforward: the standard DIMACS format is used to exchange flow networks and their solution~\cite{DIMACSStandard}. However, I significantly extended Firmament in other ways.
 

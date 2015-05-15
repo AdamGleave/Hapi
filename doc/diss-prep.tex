@@ -4,7 +4,6 @@
 
 % PROOFREAD: 1. Major edits. 2. Minor edits.
 
-% TODO: Get some references from Malte/Ionel on this?
 Much as an operating system scheduler maps threads to processor cores, a cluster scheduler maps tasks to machines. Better scheduling techniques can considerably improve performance: for example, throughput increased by 40\% under Quincy ~\cite{Isard:2009}. Due to their importance, cluster schedulers are an active area of research.
 
 I start by outlining desirable properties of cluster schedulers. Following this, I summarise the prevailing approaches to scheduling. I conclude by discussing the principles underlying Firmament, showing how it improves upon competing approaches with its use of flow scheduling.
@@ -29,14 +28,6 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
     \label{table:cluster-scheduler-design-goals}
 \end{table}
 
-%Scheduler policies can have a variety of objectives. For batch processing, job throughput may be the primary goal; for interactive jobs, low latency may be more important. Moreover, modern clusters are often multi-tenant: it is essential that the scheduler is \emph{fair}, providing an equitable distribution of resources between users. Naturally, objectives often conflict with each other, and a trade-off must be chosen.
-%
-%Getting the objectives right is hard, but implementing a scheduler which effectively achieves those objectives is still more difficult. Particularly challenging is the sheer amount of information that must be processed: as an example, consider the Whare-Map scheduler. It seeks to minimise \emph{co-location interference}: the degradation of performance occurring when tasks running on the same machine compete for shared resources~\cite{Mars:2013}\footnotemark. To achieve this objective, it monitors the performance of \emph{every} task running in the cluster, building up a profile of how applications interact.
-%\footnotetext{In fact, the approach is more general than this: Whare-Map tries to take into account machine heterogeneity due to hardware differences as well.}
-%
-%% SOMEDAY: Terminology re: latency is a bit confused. Here you're talking about scheduling latency to do with the solver being slow. But in the next section you talk about latency due to policy: a FIFO queue.
-%Finally, the system should remain responsive at scale. Today's warehouse scale computers contain tens of thousands of machines, running hundreds of thousands of tasks. Furthermore, these platforms now often run interactive applications: for example, a job may be spawned in response to a query in a data analytics platform, requiring sub-second scheduling latency~\cite{Ousterhout:2013}.
-
 \subsection{Prevailing approaches}
 
 \begin{table}
@@ -44,7 +35,7 @@ To achieve optimal performance, the scheduling policy employed must be \emph{tar
     \begin{tabular}{lccc}
         \textbf{System} & \textbf{Targeted} & \textbf{Effective} & \textbf{Fast and scalable} \tabularnewline
         \hline
-        \textit{Traditional schedulers} \tabularnewline % TODO: new name? or mention heuristic in body text
+        \textit{Traditional schedulers} \tabularnewline
         Hadoop Fair Scheduler~\cite{HadoopFairSchedulerJIRA} & \mmark & \cmark & \mmark \tabularnewline 
 %        YARN~\cite{YARN} & \cmark & \mmark & \mmark \tabularnewline
         Apache Mesos~\cite{Hindman:2011} & \cmark & \mmark & \mmark \tabularnewline
@@ -405,7 +396,7 @@ The spiral model indicates that development of deliverables S1 and S3 in \cref{t
 
 Deliverables S2, E1 and E3 were all rated as medium or high risk. Their requirements were fairly well known, but there was significant uncertainty as to the appropriate design. \emph{Evolutionary prototyping} was followed in accordance with the spiral model, first constructing a robust prototype which is then repeatedly refined. Building a prototype early was invaluable for risk management: for example, it allowed the viability of the incremental solver (extension E1) to be confirmed before committing significant development time.
 
-%FIGURE: Spiral model
+%WONTFIX
 
 \subsection{Testing strategy}
 \label{sec:prep-management-testing}
@@ -486,7 +477,7 @@ To protect against these threats, nightly backups were taken using a cron job. T
 
 Copies of the resulting snapshots were stored on the university MCS and the Student Run Computing Facility (SRCF) in Cambridge. Additional off-site backups were made to Copy, a cloud storage service based in the US.
 
-%FIGURE: Backup strategy
+%WONTFIX
 
 \section{Summary}
 

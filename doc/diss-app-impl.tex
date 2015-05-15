@@ -25,7 +25,7 @@ Each iteration of the algorithm identifies a directed cycle of negative cost in 
 
 Negative cost cycles are \emph{cancelled} by pushing as much flow as possible along the cycle. This causes it to `drop out' of the residual network: one or more arcs along the cycle become saturated, and so are no longer present in the residual network. Sending flow along a negative cost cycle reduces the cost of the solution, bringing it closer to optimality. The algorithm terminates when no negative cost directed cycles remain, guaranteeing optimality by \cref{thm:optimality-neg-cycle}.
 
-%SOMEDAY: Difficult to justify, better way of saying it?
+%WONTFIX: Difficult to justify, better way of saying it?
 Note this generic version of the algorithm does not specify \emph{how} negative cycles are to be identified. I used the well-known Bellman-Ford~\cite[p.~651]{CLRS:2009} algorithm, although other more efficient methods exist. However, cycle cancelling was only implemented in order to have a known-working algorithm early on in development. Even the fastest variants are too slow for practical purposes.
 
 \subsubsection{Correctness} \label{appendix:impl-cc-analysis:correctness}
@@ -197,7 +197,7 @@ This is computationally more efficient, as it reduces the number of elements of 
 
 First, I show \textproc{UpdatePotentials} and \textproc{AugmentFlow} preserve reduced cost optimality. Using these lemmas, I show that reduced cost optimality is maintained as an invariant throughout the algorithm. It follows that, if the algorithm terminates, then $\mathbf{x}$ is a solution to the minimum-cost flow problem. I also prove some other useful properties of \textproc{UpdatePotentials} and \textproc{AugmentFlow}.\\
 
-% SOMEDAY: This proof is a little bit confusing. You're talking about sums inside a minimisation. Also, you're saying w(pi) is unchanged by changing x: well, of course it is, it has to be as w isn't a function of x! I know wht you mean, but this could perhaps be restated to be explicit. 
+%WONTFIX: This proof is a little bit confusing. You're talking about sums inside a minimisation. Also, you're saying w(pi) is unchanged by changing x: well, of course it is, it has to be as w isn't a function of x! I know wht you mean, but this could perhaps be restated to be explicit. 
 \begin{lemma}[Correctness of \textproc{UpdatePotentials}] \label{lemma:relax-correctness-updatepotentials}
     Let $e(S) > r(\boldsymbol{\pi},S)$. Let $\left(\mathbf{x},\boldsymbol{\pi}\right)$ satisfy reduced cost optimality conditions. Then, after executing $\textproc{UpdatePotentials}$, the new pseudoflow and vertex potentials $\left(\mathbf{x},\boldsymbol{\pi}\right)$ continue to satisfy reduced cost optimality conditions, and $w(\boldsymbol{\pi}') > w(\boldsymbol{\pi})$.
 \end{lemma}

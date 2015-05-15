@@ -1,6 +1,5 @@
 In Firmament, scheduling policies are represented in terms of a \emph{cost model}. As the name suggests, this specifies the costs of arcs. It also determines the network structure, grouping tasks and resources into \emph{equivalence classes}. In this section, I describe how I ported Quincy to this model. Details of the implementation work are provided in \cref{sec:impl-firmament} and \cref{sec:eval-benchmark-strategy-quincy}. For a more thorough description of the general framework and other examples of cost models, see Schwarzkopf~\cite[ch.~5]{Schwarzkopf:2015}.
 
-% XXX: Reference figures from text
 \section{Network structure} \label{appendix:flow-scheduling:structure}
 
 \begin{figure}
@@ -10,8 +9,6 @@ In Firmament, scheduling policies are represented in terms of a \emph{cost model
     \label{fig:flow-network-no-costs-appendix}
 \end{figure}
 % PROOFREAD: 1 major edits, need to reread.
-
-%FIGURE-LOWPRI: Table summarising vertices
 
 \Cref{fig:flow-network-no-costs-appendix} depicts a Quincy flow network, on a cluster of four machines scheduling two jobs with a total of five tasks.
 
