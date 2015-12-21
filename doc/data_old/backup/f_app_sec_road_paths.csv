@@ -1,0 +1,8 @@
+test,file,iteration,algorithm_time,total_time
+cs,general/natural/road/road_paths_06_FL_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_paths_01_DC_a.min,0,2.515797,2.6111741065979004
+cs,general/natural/road/road_paths_05_WI_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_paths_04_NV_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_paths_02_DE_a.min,0,8.457359,8.859846830368042
+cs,general/natural/road/road_paths_07_TX_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_paths_03_NH_a.min,0,40.807203,41.71610474586487

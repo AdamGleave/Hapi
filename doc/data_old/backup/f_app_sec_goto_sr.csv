@@ -1,0 +1,10 @@
+test,file,iteration,algorithm_time,total_time
+cs,general/synthetic/goto/generated/goto_sr_14a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_sr_10a.min,0,2.429615,2.620412588119507
+cs,general/synthetic/goto/generated/goto_sr_16a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_sr_08a.min,0,0.099109,0.1278238296508789
+cs,general/synthetic/goto/generated/goto_sr_11a.min,0,12.082924,12.53714656829834
+cs,general/synthetic/goto/generated/goto_sr_09a.min,0,0.508503,0.5669798851013184
+cs,general/synthetic/goto/generated/goto_sr_13a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_sr_15a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_sr_12a.min,0,Timeout,Timeout

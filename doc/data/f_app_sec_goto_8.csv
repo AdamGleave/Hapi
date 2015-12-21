@@ -1,0 +1,16 @@
+test,file,iteration,algorithm_time,total_time
+cs,general/synthetic/goto/generated/goto_8_17a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_08a.min,0,0.058901,0.10287213325500488
+cs,general/synthetic/goto/generated/goto_8_16a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_18a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_12a.min,0,12.881701,13.070516109466553
+cs,general/synthetic/goto/generated/goto_8_13a.min,0,57.390794,57.72483682632446
+cs,general/synthetic/goto/generated/goto_8_19a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_15a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_21a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_11a.min,0,4.984117,5.0822741985321045
+cs,general/synthetic/goto/generated/goto_8_09a.min,0,0.282018,0.3409860134124756
+cs,general/synthetic/goto/generated/goto_8_10a.min,0,0.710955,0.7627973556518555
+cs,general/synthetic/goto/generated/goto_8_20a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_14a.min,0,Timeout,Timeout
+cs,general/synthetic/goto/generated/goto_8_22a.min,0,Timeout,Timeout

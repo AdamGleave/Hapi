@@ -1,0 +1,8 @@
+test,file,iteration,algorithm_time,total_time
+cs,general/natural/road/road_flow_05_WI_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_flow_02_DE_a.min,0,11.064313,11.523316383361816
+cs,general/natural/road/road_flow_01_DC_a.min,0,2.911214,3.014442205429077
+cs,general/natural/road/road_flow_06_FL_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_flow_07_TX_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_flow_03_NH_a.min,0,Timeout,Timeout
+cs,general/natural/road/road_flow_04_NV_a.min,0,Timeout,Timeout

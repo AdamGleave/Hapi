@@ -1,0 +1,16 @@
+test,file,iteration,algorithm_time,total_time
+cs,general/synthetic/netgen/generated/netgen_8_10a.min,0,0.925095,0.9647643566131592
+cs,general/synthetic/netgen/generated/netgen_8_09a.min,0,0.363859,0.38475680351257324
+cs,general/synthetic/netgen/generated/netgen_8_13a.min,0,24.001917,24.30806827545166
+cs,general/synthetic/netgen/generated/netgen_8_17a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_08a.min,0,0.146654,0.15917468070983887
+cs,general/synthetic/netgen/generated/netgen_8_20a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_12a.min,0,7.213649,7.36762547492981
+cs,general/synthetic/netgen/generated/netgen_8_21a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_18a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_22a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_16a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_15a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_19a.min,0,Timeout,Timeout
+cs,general/synthetic/netgen/generated/netgen_8_14a.min,0,55.898218,56.56637454032898
+cs,general/synthetic/netgen/generated/netgen_8_11a.min,0,2.872975,2.959794044494629

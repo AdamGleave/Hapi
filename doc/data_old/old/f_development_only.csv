@@ -1,0 +1,13 @@
+test,file,iteration,algorithm_time,total_time
+my,clusters/synthetic/firmament/graph_4m_2crs_10j.in,0,0.000554,0.020536422729492188
+goldberg,clusters/synthetic/firmament/graph_4m_2crs_10j.in,0,0.000000,0.020793437957763672
+my,clusters/synthetic/firmament/graph_4m_2crs_10j.in,1,0.000531,0.02322101593017578
+goldberg,clusters/synthetic/firmament/graph_4m_2crs_10j.in,1,0.000000,0.021122217178344727
+my,clusters/synthetic/firmament/graph_4m_2crs_10j.in,2,0.000513,0.021688461303710938
+goldberg,clusters/synthetic/firmament/graph_4m_2crs_10j.in,2,0.000000,0.020564556121826172
+my,clusters/synthetic/handmade/small_graph.in,0,0.000035,0.019937753677368164
+goldberg,clusters/synthetic/handmade/small_graph.in,0,0.000000,0.023501157760620117
+my,clusters/synthetic/handmade/small_graph.in,1,0.000035,0.022951126098632812
+goldberg,clusters/synthetic/handmade/small_graph.in,1,0.000000,0.027501344680786133
+my,clusters/synthetic/handmade/small_graph.in,2,0.000035,0.019743680953979492
+goldberg,clusters/synthetic/handmade/small_graph.in,2,0.000030,0.02050924301147461

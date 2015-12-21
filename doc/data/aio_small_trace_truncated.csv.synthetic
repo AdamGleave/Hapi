@@ -1,0 +1,13 @@
+file,delta_id,test_iteration,refine_iteration,refine_time,overhead_time,epsilon,cost,task_assignments_changed
+clusters/natural/google_trace/small_trace_truncated.imin,0,0,0,1000,2000,42,8000,-1
+clusters/natural/google_trace/small_trace_truncated.imin,0,0,1,800,1800,10,4500,-1
+clusters/natural/google_trace/small_trace_truncated.imin,0,0,2,1100,900,1,3800,-1
+clusters/natural/google_trace/small_trace_truncated.imin,1,0,0,1100,1900,42,8000,-1
+clusters/natural/google_trace/small_trace_truncated.imin,1,0,1,850,1850,10,4600,-1
+clusters/natural/google_trace/small_trace_truncated.imin,1,0,2,1050,950,1,3900,-1
+clusters/natural/google_trace/small_trace_truncated.imin,0,1,0,1001,2000,42,8000,-1
+clusters/natural/google_trace/small_trace_truncated.imin,0,1,1,801,1800,10,4500,-1
+clusters/natural/google_trace/small_trace_truncated.imin,0,1,2,1101,900,1,3800,-1
+clusters/natural/google_trace/small_trace_truncated.imin,1,1,0,1101,1900,42,8000,-1
+clusters/natural/google_trace/small_trace_truncated.imin,1,1,1,851,1850,10,4600,-1
+clusters/natural/google_trace/small_trace_truncated.imin,1,1,2,1051,950,1,3900,-1
