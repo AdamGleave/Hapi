@@ -14,8 +14,6 @@
 
 #include "dimacs.h"
 
-const static std::string TIMER_FORMAT = "ALGOTIME: %w\n";
-
 using namespace flowsolver_bertsekas;
 
 void compute_reserved_memory(MCFClass::Index &num_nodes,
@@ -104,7 +102,7 @@ bool process_result(RelaxIV *mcf, bool flow, bool potentials) {
 }
 
 // timer
-boost::timer::auto_cpu_timer t(std::cerr, TIMER_FORMAT);
+boost::timer::auto_cpu_timer t;
 
 // this looks stupid but is needed for a callback
 void restart_timer() {
@@ -187,7 +185,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 		mcf->SolveMCF();
-		t.stop(); t.report();
+		t.stop();
 
 #ifdef DEBUG
 		std::cout << "c END GRAPH" << endl;
@@ -197,7 +195,7 @@ int main(int argc, char *argv[]) {
 		if (!success) {
 			return -1;
 		}
-
+    std::cout << "c ALGORITHM TIME " << t.elapsed().wall / 1000 << endl;
 		std::cout << "c EOI" << endl;
 		std::cout.flush();
 	} while (dimacs.ReadDelta(restart_timer));

@@ -235,8 +235,7 @@ int main( int argc , char **argv )
     double tu , ts;
     mcf->TimeMCF( tu , ts );
     cerr << "Solution time (s): user " << tu << ", system " << ts << endl;
-    // output overall time for benchmark suite
-    cerr << "ALGOTIME: " << mcf->TimeMCF() << endl;
+
     #if( PRINT_RESULTS )
     {
     	if (flow) {
@@ -270,9 +269,10 @@ int main( int argc , char **argv )
 							 						 delete[] pi;
 						 }
 			  }
-    	}
-     #endif
-
+  }
+  #endif
+    // output overall time for benchmark suite
+    cout << "c ALGORITHM TIME " << mcf->TimeMCF() << endl;
     // check solution
     mcf->CheckPSol();
     mcf->CheckDSol();
